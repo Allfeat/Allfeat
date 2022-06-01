@@ -60,7 +60,7 @@ impl<T: Config<I>, I: 'static> sp_std::ops::DerefMut for ExtraMutator<T, I> {
 impl<T: Config<I>, I: 'static> ExtraMutator<T, I> {
 	pub(super) fn maybe_new(
 		id: T::AssetId,
-		who: impl sp_std::borrow::Borrow<T::AccountId>,
+		who: impl Borrow<T::AccountId>,
 	) -> Option<ExtraMutator<T, I>> {
 		if let Some(a) = Account::<T, I>::get(id, who.borrow()) {
 			Some(ExtraMutator::<T, I> {
