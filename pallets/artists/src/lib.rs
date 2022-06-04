@@ -1,6 +1,8 @@
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(feature = "runtime-benchmarks")]
+mod benchmarking;
 #[cfg(test)]
 pub mod mock;
 #[cfg(test)]
@@ -8,18 +10,23 @@ pub mod tests;
 
 mod types;
 mod functions;
+pub mod weights;
 pub use types::*;
 
 use codec::HasCompact;
 use sp_std::prelude::*;
-use sp_runtime::traits::AtLeast32BitUnsigned;
+use sp_runtime::traits::{AtLeast32BitUnsigned, StaticLookup};
 use frame_support::{
     Blake2_128Concat, BoundedVec, dispatch::DispatchResult,
-    traits::fungibles::{Create, Mutate, metadata::Mutate as MetadataMutate},
+    traits::{
+		fungibles::{Create, Mutate, metadata::Mutate as MetadataMutate},
+		Currency,
+	},
     dispatch::DispatchError
 };
 
 pub use pallet::*;
+pub use weights::WeightInfo;
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -45,6 +52,8 @@ pub mod pallet {
             + MaybeSerializeDeserialize
             + MaxEncodedLen
             + TypeInfo;
+
+		type Currency: Currency<Self::AccountId>;
 
         /// The identifier of an artist
         type ArtistId: Member
@@ -91,6 +100,8 @@ pub mod pallet {
 
         #[pallet::constant]
 		type Decimals: Get<u8>;
+
+		type WeightInfo: WeightInfo;
     }
 
     #[pallet::storage]
@@ -204,15 +215,17 @@ pub mod pallet {
         /// - `asset_symbol`: The symbol of the artist asset.
         ///
         /// Emits `ArtistCreated` when the artist is successfuly inserted in storage.
-        #[pallet::weight(0)]
+        #[pallet::weight(T::WeightInfo::force_create(name.len() as u32, asset_name.len() as u32, asset_symbol.len() as u32,))]
         pub fn force_create(
             origin: OriginFor<T>,
             #[pallet::compact] id: T::ArtistId,
-            account: T::AccountId,
+            account: <T::Lookup as StaticLookup>::Source,
             name: Vec<u8>,
             asset_name: Vec<u8>,
             asset_symbol: Vec<u8>,
         ) -> DispatchResult {
+			let acc = T::Lookup::lookup(account)?;
+
             ensure_root(origin)?;
             ensure!(!ArtistStorage::<T, I>::contains_key(id), Error::<T, I>::AlreadyExist);
 
@@ -223,7 +236,7 @@ pub mod pallet {
             // Create, set the metadatas and mint the supply of the artist asset
             Self::create_and_init_asset(
                 id.into(),
-                account.clone(),
+                acc.clone(),
                 asset_name,
                 asset_symbol,
             )?;
@@ -233,7 +246,7 @@ pub mod pallet {
                 id,
                 ArtistInfos {
                     id,
-                    account,
+                    account: acc,
                     name: artist_name.clone(),
                     age,
                 }

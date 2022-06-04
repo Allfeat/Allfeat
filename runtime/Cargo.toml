@@ -236,6 +236,7 @@ runtime-benchmarks = [
 	"pallet-uniques/runtime-benchmarks",
 	"pallet-vesting/runtime-benchmarks",
 	"pallet-whitelist/runtime-benchmarks",
+	"pallet-artists/runtime-benchmarks",
 	"frame-system-benchmarking",
 	"hex-literal",
 ]

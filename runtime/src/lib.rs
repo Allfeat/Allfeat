@@ -1484,6 +1484,7 @@ parameter_types! {
 impl pallet_artists::Config for Runtime {
 	type Event = Event;
 	type Balance = <Runtime as pallet_assets::Config>::Balance;
+	type Currency = Balances;
 	type ArtistId = u32;
 	type AssetId = <Runtime as pallet_assets::Config>::AssetId;
 	type Assets = Assets;
@@ -1491,6 +1492,7 @@ impl pallet_artists::Config for Runtime {
 	type DefaultSupply = DefaultSupply;
 	type MinBalance = MinBalance;
 	type Decimals = Decimals;
+	type WeightInfo = pallet_artists::weights::SubstrateWeight<Runtime>;
 }
 
 construct_runtime!(
@@ -1615,6 +1617,7 @@ mod benches {
 	define_benchmarks!(
 		[frame_benchmarking, BaselineBench::<Runtime>]
 		[pallet_assets, Assets]
+		[pallet_artists, Artists]
 		[pallet_babe, Babe]
 		[pallet_bags_list, BagsList]
 		[pallet_balances, Balances]
