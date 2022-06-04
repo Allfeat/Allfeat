@@ -155,7 +155,7 @@ where
 			select_chain,
 			deny_unsafe,
 		)
-		.into_rpc(),
+			.into_rpc(),
 	)?;
 	io.merge(
 		Grandpa::new(
@@ -165,7 +165,7 @@ where
 			justification_stream,
 			finality_provider,
 		)
-		.into_rpc(),
+			.into_rpc(),
 	)?;
 
 	io.merge(

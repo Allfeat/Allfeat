@@ -70,8 +70,6 @@ frame-system-rpc-runtime-api = { version = "4.0.0-dev", git = "https://github.co
 pallet-transaction-payment = { version = "4.0.0-dev", default-features = false, git = "https://github.com/SailorSnoW/substrate.git", branch = "allfeat" }
 
 node-primitives = { version = "2.0.0", git = "https://github.com/SailorSnoW/substrate.git", branch = "allfeat" }
-node-executor = { version = "3.0.0-dev", git = "https://github.com/SailorSnoW/substrate.git", branch = "allfeat" }
-
 
 # These dependencies are used for the node template's RPCs
 jsonrpsee = { version = "0.13.0", features = ["server"] }
