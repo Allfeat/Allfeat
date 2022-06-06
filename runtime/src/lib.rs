@@ -171,6 +171,8 @@ const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 /// We allow for 4 seconds of compute with a 12 second average block time.
 const MAXIMUM_BLOCK_WEIGHT: Weight = 4 * WEIGHT_PER_SECOND;
 
+pub const SS58_PREFIX: u16 = 21;
+
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 2400;
 	pub const Version: RuntimeVersion = VERSION;
@@ -220,7 +222,7 @@ impl frame_system::Config for Runtime {
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
 	type SystemWeightInfo = frame_system::weights::SubstrateWeight<Runtime>;
-	type SS58Prefix = ConstU16<42>;
+	type SS58Prefix = ConstU16<SS58_PREFIX>;
 	type OnSetCode = ();
 	type MaxConsumers = ConstU32<16>;
 }
@@ -511,10 +513,10 @@ impl pallet_session::historical::Config for Runtime {
 
 pallet_staking_reward_curve::build! {
 	const REWARD_CURVE: PiecewiseLinear<'static> = curve!(
-		min_inflation: 0_025_000,
-		max_inflation: 0_100_000,
-		ideal_stake: 0_500_000,
-		falloff: 0_050_000,
+		min_inflation: 0_025_000,	// 2,5%
+		max_inflation: 0_100_000,	// 10%
+		ideal_stake: 0_500_000,		// 50%
+		falloff: 0_050_000,			// 5%
 		max_piece_count: 40,
 		test_precision: 0_005_000,
 	);

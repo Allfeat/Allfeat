@@ -22,7 +22,7 @@
 
 use futures::prelude::*;
 use node_primitives::Block;
-use allfeat_runtime::RuntimeApi;
+use allfeat_runtime::{RuntimeApi, SS58_PREFIX};
 use sc_client_api::{BlockBackend, ExecutorProvider};
 use sc_consensus_babe::{self, SlotProportion};
 use sc_executor::NativeElseWasmExecutor;
@@ -30,6 +30,7 @@ use sc_network::{Event, NetworkService};
 use sc_service::{config::Configuration, error::Error as ServiceError, RpcHandlers, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryWorker};
 use sp_runtime::{traits::Block as BlockT};
+use sp_core::crypto::{set_default_ss58_version, Ss58AddressFormat};
 use std::sync::Arc;
 
 use crate::rpc;
@@ -264,6 +265,8 @@ pub fn new_full_base(
 	} else {
 		None
 	};
+
+	set_default_ss58_version(Ss58AddressFormat::custom(SS58_PREFIX));
 
 	let sc_service::PartialComponents {
 		client,
