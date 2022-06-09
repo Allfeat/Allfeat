@@ -97,7 +97,6 @@ dependencies = [
  "jsonrpsee",
  "log",
  "node-primitives",
- "pallet-asset-tx-payment",
  "pallet-contracts-rpc",
  "pallet-im-online",
  "pallet-mmr-rpc",
@@ -172,7 +171,6 @@ dependencies = [
  "log",
  "node-primitives",
  "pallet-artists",
- "pallet-asset-tx-payment",
  "pallet-assets",
  "pallet-authority-discovery",
  "pallet-authorship",
@@ -4109,23 +4107,6 @@ dependencies = [
  "pallet-balances",
  "parity-scale-codec",
  "scale-info",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-asset-tx-payment"
-version = "4.0.0-dev"
-source = "git+https://github.com/SailorSnoW/substrate.git?branch=allfeat#c8653447fc8ef8d95a92fe164c96dffb37919e85"
-dependencies = [
- "frame-support",
- "frame-system",
- "pallet-transaction-payment",
- "parity-scale-codec",
- "scale-info",
- "serde",
  "sp-core",
  "sp-io",
  "sp-runtime",
