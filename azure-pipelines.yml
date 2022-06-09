@@ -28,5 +28,5 @@ steps:
 - script: SKIP_WASM_BUILD=1 cargo build --release
   displayName: 'Build'
 
-- script: SKIP_WASM_BUILD=1 cargo test --release
+- script: cargo test --release
   displayName: 'Testing'
