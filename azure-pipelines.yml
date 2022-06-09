@@ -9,6 +9,8 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
+name: 'Build and Test'
+
 steps:
 - script: sudo apt install -y git clang curl libssl-dev llvm libudev-dev
   displayName: 'Set-up'
@@ -22,5 +24,8 @@ steps:
     rustup target add wasm32-unknown-unknown --toolchain nightly
   displayName: 'Install Rustup'
 
-- script: SKIP_WASM_BUILD=1 cargo check --release
-  displayName: 'Build check'
+- script: SKIP_WASM_BUILD=1 cargo build --release
+  displayName: 'Build'
+
+- script: SKIP_WASM_BUILD=1 cargo test --release
+  displayName: 'Testing'
