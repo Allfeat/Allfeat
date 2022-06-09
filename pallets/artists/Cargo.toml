@@ -1,11 +1,11 @@
 [package]
 name = "pallet-artists"
 version = "1.0.0-dev"
-authors = ["SailorSnoW <hello@SailorSnoW.com>"]
+authors = ["Allfeat <hello@allfeat.com>"]
 edition = "2021"
 license = "Apache-2.0"
-homepage = "https://SailorSnoW.com"
-description = "FRAME artists management pallet for the SailorSnoW chain"
+homepage = "https://allfeat.com"
+description = "FRAME artists management pallet for the Allfeat chain"
 readme = "README.md"
 
 [package.metadata.docs.rs]

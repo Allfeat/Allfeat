@@ -67,20 +67,22 @@ impl pallet_assets::Config for Test {
 	type ApprovalDeposit = ConstU64<1>;
 	type StringLimit = ConstU32<50>;
 	type Freezer = ();
-	type WeightInfo = ();
 	type Extra = ();
+	type WeightInfo = ();
 }
 
 impl Config for Test {
     type Event = Event;
-    type ArtistId = u32;
-    type AssetId = <Test as pallet_assets::Config>::AssetId;
-    type Assets = Assets;
-    type Balance = <Test as pallet_assets::Config>::Balance;
-    type Decimals = ConstU8<10>;
+	type Balance = <Test as pallet_assets::Config>::Balance;
+	type Currency = Balances;
+	type ArtistId = u32;
+	type AssetId = <Test as pallet_assets::Config>::AssetId;
+	type Assets = Assets;
+	type StringLimit = ConstU32<100>;
     type DefaultSupply = ConstU64<1_000_000_000_000>;
     type MinBalance = ConstU64<1_000_000>;
-    type StringLimit = ConstU32<100>;
+	type Decimals = ConstU8<10>;
+	type WeightInfo = pallet_artists::weights::SubstrateWeight<Test>;
 }
 
 construct_runtime!(

@@ -1,6 +1,8 @@
 // Ensure we're `no_std` when compiling for Wasm.
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(feature = "runtime-benchmarks")]
+mod benchmarking;
 #[cfg(test)]
 pub mod mock;
 #[cfg(test)]
@@ -8,24 +10,29 @@ pub mod tests;
 
 mod types;
 mod functions;
+pub mod weights;
 pub use types::*;
 
 use codec::HasCompact;
 use sp_std::prelude::*;
-use sp_runtime::traits::AtLeast32BitUnsigned;
+use sp_runtime::traits::{AtLeast32BitUnsigned, StaticLookup};
 use frame_support::{
     Blake2_128Concat, BoundedVec, dispatch::DispatchResult,
-    traits::fungibles::{Create, Mutate, metadata::Mutate as MetadataMutate},
+    traits::{
+		fungibles::{Create, Mutate, metadata::Mutate as MetadataMutate},
+		Currency,
+	},
     dispatch::DispatchError
 };
 
 pub use pallet::*;
+pub use weights::WeightInfo;
 
 #[frame_support::pallet]
 pub mod pallet {
-    use super::*;
+	use super::*;
     use frame_support::pallet_prelude::*;
-    use frame_system::pallet_prelude::*;
+	use frame_system::pallet_prelude::*;
 
     #[pallet::pallet]
     #[pallet::generate_store(pub(super) trait Store)]
@@ -45,6 +52,8 @@ pub mod pallet {
             + MaybeSerializeDeserialize
             + MaxEncodedLen
             + TypeInfo;
+
+		type Currency: Currency<Self::AccountId>;
 
         /// The identifier of an artist
         type ArtistId: Member
@@ -91,6 +100,8 @@ pub mod pallet {
 
         #[pallet::constant]
 		type Decimals: Get<u8>;
+
+		type WeightInfo: WeightInfo;
     }
 
     #[pallet::storage]
@@ -100,8 +111,8 @@ pub mod pallet {
         Blake2_128Concat,
         T::ArtistId,
         ArtistInfos<
-            T::ArtistId, 
-            T::AccountId, 
+            T::ArtistId,
+            T::AccountId,
             BoundedVec<u8, T::StringLimit>,
             T::BlockNumber,
         >,
@@ -123,16 +134,16 @@ pub mod pallet {
         }
     }
 
-    #[pallet::genesis_build]
+	#[pallet::genesis_build]
     impl <T: Config<I>, I: 'static> GenesisBuild<T, I> for GenesisConfig<T, I> {
         fn build(&self) {
             for (id, account, name, asset_name, asset_symbol) in &self.artists {
                 assert!(!ArtistStorage::<T, I>::contains_key(id), "Artist ID already in use");
 
-                let artist_name: BoundedVec<u8, T::StringLimit> 
+                let artist_name: BoundedVec<u8, T::StringLimit>
                     = name.clone().try_into().expect("name is too long");
                 let age: T::BlockNumber = <frame_system::Pallet<T>>::block_number();
-                
+
                 // Create, set the metadatas and mint the supply of the artist asset
                 T::Assets::create(
                     id.clone().into(),
@@ -154,7 +165,7 @@ pub mod pallet {
                     &account,
                     T::DefaultSupply::get(),
                 ).unwrap();
-    
+
                 // Inserting the new artist in the storage
                 ArtistStorage::<T, I>::insert(
                     id,
@@ -189,11 +200,11 @@ pub mod pallet {
     #[pallet::call]
     impl<T: Config<I>, I: 'static> Pallet<T, I> {
         /// Create and insert a new artist.
-        /// 
+        ///
         /// Must be called from the root origin.
-        /// 
+        ///
         /// The artist asset is initalized with the same ID than the artist and with a supply of `T::DefaultSupply`.
-        /// 
+        ///
         /// Parameters:
         /// - `id`: The ID of the new artist to create.
         /// - `asset_id`: The ID of the artist asset to create.
@@ -202,28 +213,30 @@ pub mod pallet {
         /// Should be less or equal than `T::StringLimit`.
         /// - `asset_name`: The name of the artist asset.
         /// - `asset_symbol`: The symbol of the artist asset.
-        /// 
+        ///
         /// Emits `ArtistCreated` when the artist is successfuly inserted in storage.
-        #[pallet::weight(0)]
+        #[pallet::weight(T::WeightInfo::force_create(name.len() as u32, asset_name.len() as u32, asset_symbol.len() as u32,))]
         pub fn force_create(
             origin: OriginFor<T>,
             #[pallet::compact] id: T::ArtistId,
-            account: T::AccountId,
+            account: <T::Lookup as StaticLookup>::Source,
             name: Vec<u8>,
             asset_name: Vec<u8>,
             asset_symbol: Vec<u8>,
         ) -> DispatchResult {
+			let acc = T::Lookup::lookup(account)?;
+
             ensure_root(origin)?;
             ensure!(!ArtistStorage::<T, I>::contains_key(id), Error::<T, I>::AlreadyExist);
 
-            let artist_name: BoundedVec<u8, T::StringLimit> 
+            let artist_name: BoundedVec<u8, T::StringLimit>
                 = name.try_into().expect("name is too long");
             let age: T::BlockNumber = <frame_system::Pallet<T>>::block_number();
-            
+
             // Create, set the metadatas and mint the supply of the artist asset
             Self::create_and_init_asset(
                 id.into(),
-                account.clone(),
+                acc.clone(),
                 asset_name,
                 asset_symbol,
             )?;
@@ -233,7 +246,7 @@ pub mod pallet {
                 id,
                 ArtistInfos {
                     id,
-                    account,
+                    account: acc,
                     name: artist_name.clone(),
                     age,
                 }

@@ -23,8 +23,7 @@ use crate::{
 	cli::{Cli, Subcommand},
 };
 use frame_benchmarking_cli::*;
-use node_executor::ExecutorDispatch;
-use node_primitives::Block;
+use allfeat_runtime::Block;
 use sc_cli::{ChainSpec, Result, RuntimeVersion, SubstrateCli};
 use sc_service::PartialComponents;
 
@@ -55,14 +54,14 @@ impl SubstrateCli for Cli {
 		2021
 	}
 
-	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
+	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 		let spec = match id {
-			"" =>
-				return Err(
-					"Please specify which chain you want to run, e.g. --dev or --chain=local"
-						.into(),
-				),
-			"dev" => Box::new(chain_spec::development_config()),
+			// "" =>
+			//	return Err(
+			//		"Please specify which chain you want to run, e.g. --dev or --chain=local"
+			//			.into(),
+			//	),
+			"" | "dev" => Box::new(chain_spec::development_config()),
 			"local" => Box::new(chain_spec::local_testnet_config()),
 			path =>
 				Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
@@ -103,7 +102,7 @@ pub fn run() -> Result<()> {
 							)
 						}
 
-						cmd.run::<Block, ExecutorDispatch>(config)
+						cmd.run::<Block, service::ExecutorDispatch>(config)
 					},
 					BenchmarkCmd::Block(cmd) => {
 						let PartialComponents { client, .. } = new_partial(&config)?;

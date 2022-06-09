@@ -97,8 +97,8 @@ impl Config for Test {
 	type ApprovalDeposit = ConstU64<1>;
 	type StringLimit = ConstU32<50>;
 	type Freezer = TestFreezer;
-	type WeightInfo = ();
 	type Extra = ();
+	type WeightInfo = ();
 }
 
 use std::{cell::RefCell, collections::HashMap};

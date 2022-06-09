@@ -27,7 +27,7 @@ use allfeat_runtime::{
 };
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use sc_chain_spec::ChainSpecExtension;
-use sc_service::{ChainType, Properties};
+use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_consensus_babe::AuthorityId as BabeId;
@@ -70,6 +70,16 @@ fn session_keys(
 	authority_discovery: AuthorityDiscoveryId,
 ) -> SessionKeys {
 	SessionKeys { grandpa, babe, im_online, authority_discovery }
+}
+
+pub fn chain_properties() -> serde_json::map::Map<String, serde_json::Value> {
+	serde_json::json!({
+		"tokenDecimals": 12,
+		"tokenSymbol": "AFT",
+	})
+	.as_object()
+	.expect("Map given; qed")
+	.clone()
 }
 
 /// Helper function to generate a crypto pair from seed
@@ -127,8 +137,6 @@ pub fn testnet_genesis(
 			get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
 			get_account_id_from_seed::<sr25519::Public>("Charlie//stash"),
 			get_account_id_from_seed::<sr25519::Public>("Dave//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
 		]
 	});
 	// endow all authorities and nominators.
@@ -163,8 +171,8 @@ pub fn testnet_genesis(
 
 	let num_endowed_accounts = endowed_accounts.len();
 
-	const ENDOWMENT: Balance = 10_000_000 * DOLLARS;
-	const STASH: Balance = ENDOWMENT / 1000;
+	const ENDOWMENT: Balance = 1_000 * DOLLARS;
+	const STASH: Balance = ENDOWMENT / 10;
 
 	GenesisConfig {
 		system: SystemConfig { code: wasm_binary_unwrap().to_vec() },
@@ -256,12 +264,7 @@ pub fn development_config() -> ChainSpec {
 		None,
 		None,
 		None,
-		Some({
-			let mut properties: Properties = Properties::new();
-			let token_symbol: serde_json::Value = serde_json::json!("AFT");
-			properties.insert("tokenSymbol".to_string(), token_symbol);
-			properties
-		}),
+		Some(chain_properties()),
 		Default::default(),
 	)
 }
@@ -286,7 +289,7 @@ pub fn local_testnet_config() -> ChainSpec {
 		None,
 		None,
 		None,
-		None,
+		Some(chain_properties()),
 		Default::default(),
 	)
 }

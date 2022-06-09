@@ -67,7 +67,6 @@ pallet-scheduler = { version = "4.0.0-dev", default-features = false, git = "htt
 pallet-society = { version = "4.0.0-dev", default-features = false, git = "https://github.com/SailorSnoW/substrate.git", branch = "allfeat" }
 pallet-tips = { version = "4.0.0-dev", default-features = false, git = "https://github.com/SailorSnoW/substrate.git", branch = "allfeat" }
 pallet-treasury = { version = "4.0.0-dev", default-features = false, git = "https://github.com/SailorSnoW/substrate.git", branch = "allfeat" }
-pallet-asset-tx-payment = { version = "4.0.0-dev", default-features = false, git = "https://github.com/SailorSnoW/substrate.git", branch = "allfeat" }
 pallet-transaction-storage = { version = "4.0.0-dev", default-features = false, git = "https://github.com/SailorSnoW/substrate.git", branch = "allfeat" }
 pallet-uniques = { version = "4.0.0-dev", default-features = false, git = "https://github.com/SailorSnoW/substrate.git", branch = "allfeat" }
 pallet-vesting = { version = "4.0.0-dev", default-features = false, git = "https://github.com/SailorSnoW/substrate.git", branch = "allfeat" }
@@ -236,6 +235,7 @@ runtime-benchmarks = [
 	"pallet-uniques/runtime-benchmarks",
 	"pallet-vesting/runtime-benchmarks",
 	"pallet-whitelist/runtime-benchmarks",
+	"pallet-artists/runtime-benchmarks",
 	"frame-system-benchmarking",
 	"hex-literal",
 ]

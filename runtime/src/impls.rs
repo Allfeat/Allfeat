@@ -17,30 +17,14 @@
 
 //! Some configurable implementations as associated type for the substrate runtime.
 
-use crate::{AccountId, Assets, Authorship, Balances, NegativeImbalance, Runtime};
-use frame_support::traits::{
-	fungibles::{Balanced, CreditOf},
-	Currency, OnUnbalanced,
-};
-use pallet_asset_tx_payment::HandleCredit;
+use crate::{Authorship, Balances, NegativeImbalance};
+use frame_support::{traits::{Currency, OnUnbalanced}};
 
 pub struct Author;
 impl OnUnbalanced<NegativeImbalance> for Author {
 	fn on_nonzero_unbalanced(amount: NegativeImbalance) {
 		if let Some(author) = Authorship::author() {
 			Balances::resolve_creating(&author, amount);
-		}
-	}
-}
-
-/// A `HandleCredit` implementation that naively transfers the fees to the block author.
-/// Will drop and burn the assets in case the transfer fails.
-pub struct CreditToBlockAuthor;
-impl HandleCredit<AccountId, Assets> for CreditToBlockAuthor {
-	fn handle_credit(credit: CreditOf<AccountId, Assets>) {
-		if let Some(author) = pallet_authorship::Pallet::<Runtime>::author() {
-			// Drop the result which will trigger the `OnDrop` of the imbalance in case of error.
-			let _ = Assets::resolve(&author, credit);
 		}
 	}
 }
@@ -53,13 +37,12 @@ mod multiplier_tests {
 		traits::{Convert, One, Zero},
 		FixedPointNumber,
 	};
-
 	use crate::{
 		constants::{currency::*, time::*},
 		AdjustmentVariable, MinimumMultiplier, Runtime, RuntimeBlockWeights as BlockWeights,
 		System, TargetBlockFullness, TransactionPayment,
 	};
-	use frame_support::weights::{DispatchClass, Weight, WeightToFeePolynomial};
+	use frame_support::weights::{DispatchClass, Weight, WeightToFee};
 
 	fn max_normal() -> Weight {
 		BlockWeights::get()
@@ -197,14 +180,17 @@ mod multiplier_tests {
 	#[test]
 	fn min_change_per_day() {
 		run_with_system_weight(max_normal(), || {
+			let expected = Multiplier::saturating_from_rational(1054, 1000);
 			let mut fm = Multiplier::one();
 			// See the example in the doc of `TargetedFeeAdjustment`. are at least 0.234, hence
 			// `fm > 1.234`.
+			// For 12 seconds per block, we have 7200 blocks in a day
+			// then instead, fm >= 0.00001 * 7200 * 0.75 fm >= 0.054
 			for _ in 0..DAYS {
 				let next = runtime_multiplier_update(fm);
 				fm = next;
 			}
-			assert!(fm > Multiplier::saturating_from_rational(1234, 1000));
+			assert!(fm > expected);
 		})
 	}
 
@@ -234,7 +220,7 @@ mod multiplier_tests {
 				fm = next;
 				iterations += 1;
 				let fee =
-					<Runtime as pallet_transaction_payment::Config>::WeightToFee::calc(&tx_weight);
+					<Runtime as pallet_transaction_payment::Config>::WeightToFee::weight_to_fee(&tx_weight);
 				let adjusted_fee = fm.saturating_mul_acc_int(fee);
 				println!(
 					"iteration {}, new fm = {:?}. Fee at this point is: {} units / {} millicents, \
@@ -355,8 +341,8 @@ mod multiplier_tests {
 			4294967295,
 			BlockWeights::get().max_block / 2,
 			BlockWeights::get().max_block,
-			Weight::max_value() / 2,
-			Weight::max_value(),
+			Weight::MAX / 2,
+			Weight::MAX,
 		]
 		.into_iter()
 		.for_each(|i| {

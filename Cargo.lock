@@ -96,9 +96,7 @@ dependencies = [
  "hex-literal",
  "jsonrpsee",
  "log",
- "node-executor",
  "node-primitives",
- "pallet-asset-tx-payment",
  "pallet-contracts-rpc",
  "pallet-im-online",
  "pallet-mmr-rpc",
@@ -173,8 +171,7 @@ dependencies = [
  "log",
  "node-primitives",
  "pallet-artists",
- "pallet-asset-tx-payment",
- "pallet-assets 4.0.0-dev",
+ "pallet-assets",
  "pallet-authority-discovery",
  "pallet-authorship",
  "pallet-babe",
@@ -3923,24 +3920,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "node-executor"
-version = "3.0.0-dev"
-source = "git+https://github.com/SailorSnoW/substrate.git?branch=allfeat#c8653447fc8ef8d95a92fe164c96dffb37919e85"
-dependencies = [
- "frame-benchmarking",
- "node-primitives",
- "node-runtime",
- "parity-scale-codec",
- "sc-executor",
- "scale-info",
- "sp-core",
- "sp-keystore",
- "sp-state-machine",
- "sp-tracing",
- "sp-trie",
-]
-
-[[package]]
 name = "node-primitives"
 version = "2.0.0"
 source = "git+https://github.com/SailorSnoW/substrate.git?branch=allfeat#c8653447fc8ef8d95a92fe164c96dffb37919e85"
@@ -3951,92 +3930,6 @@ dependencies = [
  "sp-application-crypto",
  "sp-core",
  "sp-runtime",
-]
-
-[[package]]
-name = "node-runtime"
-version = "3.0.0-dev"
-source = "git+https://github.com/SailorSnoW/substrate.git?branch=allfeat#c8653447fc8ef8d95a92fe164c96dffb37919e85"
-dependencies = [
- "frame-benchmarking",
- "frame-election-provider-support",
- "frame-executive",
- "frame-support",
- "frame-system",
- "frame-system-rpc-runtime-api",
- "frame-try-runtime",
- "log",
- "node-primitives",
- "pallet-asset-tx-payment",
- "pallet-assets 4.0.0-dev (git+https://github.com/SailorSnoW/substrate.git?branch=allfeat)",
- "pallet-authority-discovery",
- "pallet-authorship",
- "pallet-babe",
- "pallet-bags-list",
- "pallet-balances",
- "pallet-bounties",
- "pallet-child-bounties",
- "pallet-collective",
- "pallet-contracts",
- "pallet-contracts-primitives",
- "pallet-contracts-rpc-runtime-api",
- "pallet-conviction-voting",
- "pallet-democracy",
- "pallet-election-provider-multi-phase",
- "pallet-elections-phragmen",
- "pallet-gilt",
- "pallet-grandpa",
- "pallet-identity",
- "pallet-im-online",
- "pallet-indices",
- "pallet-lottery",
- "pallet-membership",
- "pallet-mmr",
- "pallet-multisig",
- "pallet-nomination-pools",
- "pallet-offences",
- "pallet-preimage",
- "pallet-proxy",
- "pallet-randomness-collective-flip",
- "pallet-recovery",
- "pallet-referenda",
- "pallet-remark",
- "pallet-scheduler",
- "pallet-session",
- "pallet-society",
- "pallet-staking",
- "pallet-staking-reward-curve",
- "pallet-state-trie-migration",
- "pallet-sudo",
- "pallet-timestamp",
- "pallet-tips",
- "pallet-transaction-payment",
- "pallet-transaction-payment-rpc-runtime-api",
- "pallet-transaction-storage",
- "pallet-treasury",
- "pallet-uniques",
- "pallet-utility",
- "pallet-vesting",
- "pallet-whitelist",
- "parity-scale-codec",
- "scale-info",
- "sp-api",
- "sp-authority-discovery",
- "sp-block-builder",
- "sp-consensus-babe",
- "sp-core",
- "sp-inherents",
- "sp-io",
- "sp-offchain",
- "sp-runtime",
- "sp-sandbox",
- "sp-session",
- "sp-staking",
- "sp-std",
- "sp-transaction-pool",
- "sp-version",
- "static_assertions",
- "substrate-wasm-builder",
 ]
 
 [[package]]
@@ -4210,27 +4103,10 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "pallet-assets 4.0.0-dev",
+ "pallet-assets",
  "pallet-balances",
  "parity-scale-codec",
  "scale-info",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-asset-tx-payment"
-version = "4.0.0-dev"
-source = "git+https://github.com/SailorSnoW/substrate.git?branch=allfeat#c8653447fc8ef8d95a92fe164c96dffb37919e85"
-dependencies = [
- "frame-support",
- "frame-system",
- "pallet-transaction-payment",
- "parity-scale-codec",
- "scale-info",
- "serde",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -4249,20 +4125,6 @@ dependencies = [
  "scale-info",
  "sp-core",
  "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-assets"
-version = "4.0.0-dev"
-source = "git+https://github.com/SailorSnoW/substrate.git?branch=allfeat#c8653447fc8ef8d95a92fe164c96dffb37919e85"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "scale-info",
  "sp-runtime",
  "sp-std",
 ]
