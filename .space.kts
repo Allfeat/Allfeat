@@ -10,7 +10,7 @@ job("Testing") {
     	  interpreter = "/bin/bash"
         content = """
           apt-get update && apt-get upgrade
-          apt-get install -y git clang curl libssl-dev llvm libudev-dev
+          apt-get install -y git clang curl libssl-dev llvm libudev-dev make
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
           source ~/.cargo/env
           rustup default stable
