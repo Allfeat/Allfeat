@@ -2,7 +2,5 @@ docs
 target
 
 .editorconfig
-.space.kts
-azure-pipelines.yml
 LICENSE
 README.md
