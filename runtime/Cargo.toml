@@ -25,8 +25,8 @@ sp-io = { version = "6.0.0", default-features = false, git = "https://github.com
 sp-sandbox = { version = "0.10.0-dev", default-features = false, git = "https://github.com/SailorSnoW/substrate.git", branch = "allfeat" }
 
 pallet-babe = { version = "4.0.0-dev", default-features = false, git = "https://github.com/SailorSnoW/substrate.git", branch = "allfeat" }
-pallet-assets = { version = "4.0.0-dev", default-features = false, path = "../pallets/assets" }
-pallet-artists = { version = "1.0.0-dev", default-features = false, path = "../pallets/artists" }
+pallet-assets = { version = "4.0.0-dev", default-features = false, git = "https://github.com/SailorSnoW/substrate.git", branch = "allfeat" }
+pallet-artists = { version = "1.0.0-dev", default-features = false, git = "ssh://git@github.com/All-feat/pallet-artists.git", branch = "master" }
 pallet-authority-discovery = { version = "4.0.0-dev", default-features = false, git = "https://github.com/SailorSnoW/substrate.git", branch = "allfeat" }
 pallet-authorship = { version = "4.0.0-dev", default-features = false, git = "https://github.com/SailorSnoW/substrate.git", branch = "allfeat" }
 pallet-bags-list = { version = "4.0.0-dev", default-features = false, git = "https://github.com/SailorSnoW/substrate.git", branch = "allfeat" }
