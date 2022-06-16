@@ -8,14 +8,12 @@ on:
     paths:
       - 'scripts/**'
       - 'runtime/**'
-      - 'pallets/**'
       - 'node/**'
   pull_request:
     branches: [ develop ]
     paths:
       - 'scripts/**'
       - 'runtime/**'
-      - 'pallets/**'
       - 'node/**'
 
   # Allows you to run this workflow manually from the Actions tab
@@ -31,6 +29,17 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+
+      - name: Set-Up SSH Key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          which ssh-agent || ( sudo apt install openssh-client -y )
+          eval $(ssh-agent -s)
+          echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
 
       - name: Set-Up
         run: sudo apt install -y git clang curl libssl-dev llvm libudev-dev
