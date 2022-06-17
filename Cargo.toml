@@ -1,8 +1,6 @@
 [workspace]
 members = [
     "node",
-    "pallets/assets",
-    "pallets/artists",
     "runtime",
 ]
 [profile.release]

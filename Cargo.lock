@@ -4099,16 +4099,13 @@ dependencies = [
 [[package]]
 name = "pallet-artists"
 version = "1.0.0-dev"
+source = "git+ssh://git@github.com/All-feat/pallet-artists.git?branch=master#a295e8eb78c0994fc0dca4b034fd38d4d62e66b1"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "pallet-assets",
- "pallet-balances",
  "parity-scale-codec",
  "scale-info",
- "sp-core",
- "sp-io",
  "sp-runtime",
  "sp-std",
 ]
@@ -4116,15 +4113,13 @@ dependencies = [
 [[package]]
 name = "pallet-assets"
 version = "4.0.0-dev"
+source = "git+https://github.com/SailorSnoW/substrate.git?branch=allfeat#c8653447fc8ef8d95a92fe164c96dffb37919e85"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "pallet-balances",
  "parity-scale-codec",
  "scale-info",
- "sp-core",
- "sp-io",
  "sp-runtime",
  "sp-std",
 ]
