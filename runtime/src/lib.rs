@@ -1479,6 +1479,8 @@ impl pallet_artists::Config for Runtime {
 	type ArtistId = u32;
 	type AssetId = <Runtime as pallet_assets::Config>::AssetId;
 	type Assets = Assets;
+	type ArtistGroup = ArtistCommittee;
+	type MaxArtists = ArtistMaxMembers;
 	type StringLimit = StringLimit;
 	type DefaultSupply = DefaultSupply;
 	type MinBalance = MinBalance;

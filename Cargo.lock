@@ -4099,7 +4099,7 @@ dependencies = [
 [[package]]
 name = "pallet-artists"
 version = "1.0.0-dev"
-source = "git+ssh://git@github.com/All-feat/pallet-artists.git?branch=master#a295e8eb78c0994fc0dca4b034fd38d4d62e66b1"
+source = "git+ssh://git@github.com/All-feat/pallet-artists.git?branch=develop#778c1334f79104a8c3e34e60081c047143117cc0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
