@@ -17,13 +17,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Substrate chain configurations.
-use sp_finality_grandpa::AuthorityId as GrandpaId;
 use allfeat_runtime::{
-	constants::currency::*, wasm_binary_unwrap, AuthorityDiscoveryConfig, BabeConfig,
-	BalancesConfig, Block, CouncilConfig, DemocracyConfig, ElectionsConfig, GrandpaConfig,
-	ImOnlineConfig, IndicesConfig, MaxNominations, SessionConfig, SessionKeys,
-	StakerStatus, StakingConfig, SudoConfig, SystemConfig, TechnicalCommitteeConfig, ArtistCommitteeConfig,
-	ArtistsConfig
+	constants::currency::*, wasm_binary_unwrap, ArtistCommitteeConfig, ArtistsConfig,
+	AuthorityDiscoveryConfig, BabeConfig, BalancesConfig, Block, CouncilConfig, DemocracyConfig,
+	ElectionsConfig, GrandpaConfig, ImOnlineConfig, IndicesConfig, MaxNominations, SessionConfig,
+	SessionKeys, StakerStatus, StakingConfig, SudoConfig, SystemConfig, TechnicalCommitteeConfig,
 };
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use sc_chain_spec::ChainSpecExtension;
@@ -32,13 +30,14 @@ use serde::{Deserialize, Serialize};
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_consensus_babe::AuthorityId as BabeId;
 use sp_core::{sr25519, Pair, Public};
+use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::{
 	traits::{IdentifyAccount, Verify},
 	Perbill,
 };
 
-pub use node_primitives::{AccountId, Balance, Signature};
 pub use allfeat_runtime::GenesisConfig;
+pub use node_primitives::{AccountId, Balance, Signature};
 
 type AccountPublic = <Signature as Verify>::Signer;
 
@@ -61,7 +60,6 @@ pub struct Extensions {
 
 /// Specialized `ChainSpec`.
 pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
-
 
 fn session_keys(
 	grandpa: GrandpaId,
@@ -222,9 +220,7 @@ pub fn testnet_genesis(
 			members: Default::default(),
 			phantom: Default::default(),
 		},
-		artists: ArtistsConfig {
-			artists: Default::default(),
-		},
+		artists: ArtistsConfig { artists: Default::default() },
 		sudo: SudoConfig { key: Some(root_key) },
 		babe: BabeConfig {
 			authorities: vec![],

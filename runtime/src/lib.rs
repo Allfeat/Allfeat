@@ -301,8 +301,7 @@ impl InstanceFilter<Call> for ProxyType {
 			ProxyType::Governance => matches!(
 				c,
 				Call::Democracy(..) |
-					Call::Council(..) |
-					Call::TechnicalCommittee(..) |
+					Call::Council(..) | Call::TechnicalCommittee(..) |
 					Call::Elections(..) | Call::Treasury(..)
 			),
 			ProxyType::Staking => matches!(c, Call::Staking(..)),
@@ -645,10 +644,7 @@ impl Get<Option<(usize, ExtendedBalance)>> for OffchainRandomBalancing {
 pub struct OnChainSeqPhragmen;
 impl onchain::Config for OnChainSeqPhragmen {
 	type System = Runtime;
-	type Solver = SequentialPhragmen<
-		AccountId,
-		SolutionAccuracyOf<Runtime>,
-	>;
+	type Solver = SequentialPhragmen<AccountId, SolutionAccuracyOf<Runtime>>;
 	type DataProvider = <Runtime as pallet_election_provider_multi_phase::Config>::DataProvider;
 	type WeightInfo = frame_election_provider_support::weights::SubstrateWeight<Runtime>;
 }

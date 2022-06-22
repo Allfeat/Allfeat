@@ -20,17 +20,17 @@
 
 //! Service implementation. Specialized wrapper over substrate service.
 
+use allfeat_runtime::{RuntimeApi, SS58_PREFIX};
 use futures::prelude::*;
 use node_primitives::Block;
-use allfeat_runtime::{RuntimeApi, SS58_PREFIX};
 use sc_client_api::{BlockBackend, ExecutorProvider};
 use sc_consensus_babe::{self, SlotProportion};
 use sc_executor::NativeElseWasmExecutor;
 use sc_network::{Event, NetworkService};
 use sc_service::{config::Configuration, error::Error as ServiceError, RpcHandlers, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryWorker};
-use sp_runtime::{traits::Block as BlockT};
 use sp_core::crypto::{set_default_ss58_version, Ss58AddressFormat};
+use sp_runtime::traits::Block as BlockT;
 use std::sync::Arc;
 
 use crate::rpc;
@@ -508,12 +508,12 @@ pub fn new_full(
 #[cfg(test)]
 mod tests {
 	use crate::service::{new_full_base, NewFullBase};
-	use codec::Encode;
-	use node_primitives::{Block, DigestItem, Signature};
 	use allfeat_runtime::{
 		constants::{currency::CENTS, time::SLOT_DURATION},
 		Address, BalancesCall, Call, UncheckedExtrinsic,
 	};
+	use codec::Encode;
+	use node_primitives::{Block, DigestItem, Signature};
 	use sc_client_api::BlockBackend;
 	use sc_consensus::{BlockImport, BlockImportParams, ForkChoiceStrategy};
 	use sc_consensus_babe::{BabeIntermediate, CompatibleDigestItem, INTERMEDIATE_KEY};
