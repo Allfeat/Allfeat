@@ -18,12 +18,13 @@
 
 use super::command_helper::{inherent_benchmark_data, BenchmarkExtrinsicBuilder};
 use crate::{
-	chain_spec, service,
-	service::{new_partial, FullClient},
+	chain_spec,
 	cli::{Cli, Subcommand},
+	service,
+	service::{new_partial, FullClient},
 };
-use frame_benchmarking_cli::*;
 use allfeat_runtime::Block;
+use frame_benchmarking_cli::*;
 use sc_cli::{ChainSpec, Result, RuntimeVersion, SubstrateCli};
 use sc_service::PartialComponents;
 

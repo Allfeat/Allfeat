@@ -18,7 +18,7 @@
 //! Some configurable implementations as associated type for the substrate runtime.
 
 use crate::{Authorship, Balances, NegativeImbalance};
-use frame_support::{traits::{Currency, OnUnbalanced}};
+use frame_support::traits::{Currency, OnUnbalanced};
 
 pub struct Author;
 impl OnUnbalanced<NegativeImbalance> for Author {
@@ -31,18 +31,18 @@ impl OnUnbalanced<NegativeImbalance> for Author {
 
 #[cfg(test)]
 mod multiplier_tests {
-	use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
-	use sp_runtime::{
-		assert_eq_error_rate,
-		traits::{Convert, One, Zero},
-		FixedPointNumber,
-	};
 	use crate::{
 		constants::{currency::*, time::*},
 		AdjustmentVariable, MinimumMultiplier, Runtime, RuntimeBlockWeights as BlockWeights,
 		System, TargetBlockFullness, TransactionPayment,
 	};
 	use frame_support::weights::{DispatchClass, Weight, WeightToFee};
+	use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
+	use sp_runtime::{
+		assert_eq_error_rate,
+		traits::{Convert, One, Zero},
+		FixedPointNumber,
+	};
 
 	fn max_normal() -> Weight {
 		BlockWeights::get()
@@ -220,7 +220,9 @@ mod multiplier_tests {
 				fm = next;
 				iterations += 1;
 				let fee =
-					<Runtime as pallet_transaction_payment::Config>::WeightToFee::weight_to_fee(&tx_weight);
+					<Runtime as pallet_transaction_payment::Config>::WeightToFee::weight_to_fee(
+						&tx_weight,
+					);
 				let adjusted_fee = fm.saturating_mul_acc_int(fee);
 				println!(
 					"iteration {}, new fm = {:?}. Fee at this point is: {} units / {} millicents, \
