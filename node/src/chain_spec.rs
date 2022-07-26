@@ -220,7 +220,7 @@ pub fn testnet_genesis(
 			members: Default::default(),
 			phantom: Default::default(),
 		},
-		artists: ArtistsConfig { artists: Default::default() },
+		artists: ArtistsConfig { artists: Default::default(), candidates: Default::default() },
 		sudo: SudoConfig { key: Some(root_key) },
 		babe: BabeConfig {
 			authorities: vec![],
