@@ -293,16 +293,17 @@ impl InstanceFilter<Call> for ProxyType {
 			ProxyType::Any => true,
 			ProxyType::NonTransfer => !matches!(
 				c,
-				Call::Balances(..) |
-					Call::Assets(..) | Call::Uniques(..) |
-					Call::Vesting(pallet_vesting::Call::vested_transfer { .. }) |
-					Call::Indices(pallet_indices::Call::transfer { .. })
+				Call::Balances(..)
+					| Call::Assets(..) | Call::Uniques(..)
+					| Call::Vesting(pallet_vesting::Call::vested_transfer { .. })
+					| Call::Indices(pallet_indices::Call::transfer { .. })
 			),
 			ProxyType::Governance => matches!(
 				c,
-				Call::Democracy(..) |
-					Call::Council(..) | Call::TechnicalCommittee(..) |
-					Call::Elections(..) | Call::Treasury(..)
+				Call::Democracy(..)
+					| Call::Council(..) | Call::TechnicalCommittee(..)
+					| Call::Elections(..)
+					| Call::Treasury(..)
 			),
 			ProxyType::Staking => matches!(c, Call::Staking(..)),
 		}
@@ -632,8 +633,8 @@ impl Get<Option<(usize, ExtendedBalance)>> for OffchainRandomBalancing {
 			max => {
 				let seed = sp_io::offchain::random_seed();
 				let random = <u32>::decode(&mut TrailingZeroInput::new(&seed))
-					.expect("input is padded with zeroes; qed") %
-					max.saturating_add(1);
+					.expect("input is padded with zeroes; qed")
+					% max.saturating_add(1);
 				random as usize
 			},
 		};
@@ -1467,25 +1468,19 @@ impl pallet_collective::Config<ArtistCollective> for Runtime {
 }
 
 parameter_types! {
-	pub const DefaultSupply: u32 = 1_000_000;
-	pub const Decimals: u8 = 10;
-	pub const MinBalance: u32 = 1;
+	pub const MaxCandidates: u32 = 50_000_000;
+	pub const NameMaxLength: u32 = 128;
+	pub const CreationDepositAmount: Balance = 5 * DOLLARS;
 }
 
 impl pallet_artists::Config for Runtime {
 	type Event = Event;
-	type Balance = <Runtime as pallet_assets::Config>::Balance;
 	type Currency = Balances;
-	type ArtistId = u32;
-	type AssetId = <Runtime as pallet_assets::Config>::AssetId;
-	type Assets = Assets;
-	type ArtistGroup = ArtistCommittee;
+	type AdminOrigin = EnsureRoot<Self::AccountId>;
+	type CreationDepositAmount = CreationDepositAmount;
+	type MaxCandidates = MaxCandidates;
+	type NameMaxLength = NameMaxLength;
 	type MaxArtists = ArtistMaxMembers;
-	type StringLimit = StringLimit;
-	type DefaultSupply = DefaultSupply;
-	type MinBalance = MinBalance;
-	type Decimals = Decimals;
-	type WeightInfo = pallet_artists::weights::SubstrateWeight<Runtime>;
 }
 
 construct_runtime!(
@@ -1609,7 +1604,6 @@ mod benches {
 	define_benchmarks!(
 		[frame_benchmarking, BaselineBench::<Runtime>]
 		[pallet_assets, Assets]
-		[pallet_artists, Artists]
 		[pallet_babe, Babe]
 		[pallet_bags_list, BagsList]
 		[pallet_balances, Balances]
