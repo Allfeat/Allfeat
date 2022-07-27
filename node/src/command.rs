@@ -16,7 +16,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::command_helper::{inherent_benchmark_data, BenchmarkExtrinsicBuilder};
+use super::command_helper::{
+	inherent_benchmark_data, BenchmarkExtrinsicBuilder, TransferKeepAliveBuilder,
+};
 use crate::{
 	chain_spec,
 	cli::{Cli, Subcommand},
@@ -27,7 +29,7 @@ use allfeat_runtime::Block;
 use frame_benchmarking_cli::*;
 use sc_cli::{ChainSpec, Result, RuntimeVersion, SubstrateCli};
 use sc_service::PartialComponents;
-
+use sp_keyring::Sr25519Keyring;
 use std::sync::Arc;
 
 impl SubstrateCli for Cli {
@@ -119,8 +121,23 @@ pub fn run() -> Result<()> {
 					BenchmarkCmd::Overhead(cmd) => {
 						let PartialComponents { client, .. } = new_partial(&config)?;
 						let ext_builder = BenchmarkExtrinsicBuilder::new(client.clone());
+						let inherent_data = inherent_benchmark_data()?;
 
-						cmd.run(config, client, inherent_benchmark_data()?, Arc::new(ext_builder))
+						cmd.run(config, client, inherent_data, &ext_builder)
+					},
+					BenchmarkCmd::Extrinsic(cmd) => {
+						let PartialComponents { client, .. } = service::new_partial(&config)?;
+						// Register the *Remark* and *TKA* builders.
+						let ext_factory = ExtrinsicFactory(vec![
+							Box::new(BenchmarkExtrinsicBuilder::new(client.clone())),
+							Box::new(TransferKeepAliveBuilder::new(
+								client.clone(),
+								Sr25519Keyring::Alice.to_account_id(),
+								allfeat_runtime::ExistentialDeposit::get(),
+							)),
+						]);
+
+						cmd.run(client, inherent_benchmark_data()?, &ext_factory)
 					},
 					BenchmarkCmd::Machine(cmd) =>
 						cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone()),

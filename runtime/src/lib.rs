@@ -24,14 +24,14 @@
 
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_election_provider_support::{
-	onchain, ElectionDataProvider, ExtendedBalance, SequentialPhragmen, VoteWeight,
+	onchain, BalancingConfig, ElectionDataProvider, SequentialPhragmen, VoteWeight,
 };
 use frame_support::{
 	construct_runtime,
 	pallet_prelude::Get,
 	parameter_types,
 	traits::{
-		AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32, Currency, EnsureOneOf,
+		AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32, Currency, EitherOfDiverse,
 		EqualPrivilegeOnly, Everything, Imbalance, InstanceFilter, KeyOwnerProofSystem,
 		LockIdentifier, Nothing, OnUnbalanced, U128CurrencyToVote,
 	},
@@ -69,7 +69,7 @@ use sp_runtime::{
 		SaturatedConversion, StaticLookup,
 	},
 	transaction_validity::{TransactionPriority, TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
+	ApplyExtrinsicResult, FixedPointNumber, FixedU128, Perbill, Percent, Permill, Perquintill,
 };
 use sp_std::prelude::*;
 #[cfg(any(feature = "std", test))]
@@ -293,17 +293,16 @@ impl InstanceFilter<Call> for ProxyType {
 			ProxyType::Any => true,
 			ProxyType::NonTransfer => !matches!(
 				c,
-				Call::Balances(..)
-					| Call::Assets(..) | Call::Uniques(..)
-					| Call::Vesting(pallet_vesting::Call::vested_transfer { .. })
-					| Call::Indices(pallet_indices::Call::transfer { .. })
+				Call::Balances(..) |
+					Call::Assets(..) | Call::Uniques(..) |
+					Call::Vesting(pallet_vesting::Call::vested_transfer { .. }) |
+					Call::Indices(pallet_indices::Call::transfer { .. })
 			),
 			ProxyType::Governance => matches!(
 				c,
-				Call::Democracy(..)
-					| Call::Council(..) | Call::TechnicalCommittee(..)
-					| Call::Elections(..)
-					| Call::Treasury(..)
+				Call::Democracy(..) |
+					Call::Council(..) | Call::TechnicalCommittee(..) |
+					Call::Elections(..) | Call::Treasury(..)
 			),
 			ProxyType::Staking => matches!(c, Call::Staking(..)),
 		}
@@ -447,6 +446,7 @@ parameter_types! {
 }
 
 impl pallet_transaction_payment::Config for Runtime {
+	type Event = Event;
 	type OnChargeTransaction = CurrencyAdapter<Balances, DealWithFees>;
 	type OperationalFeeMultiplier = OperationalFeeMultiplier;
 	type WeightToFee = IdentityFee<Balance>;
@@ -549,7 +549,7 @@ impl pallet_staking::Config for Runtime {
 	type BondingDuration = BondingDuration;
 	type SlashDeferDuration = SlashDeferDuration;
 	/// A super-majority of the council can cancel the slash.
-	type SlashCancelOrigin = EnsureOneOf<
+	type SlashCancelOrigin = EitherOfDiverse<
 		EnsureRoot<AccountId>,
 		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 3, 4>,
 	>;
@@ -625,21 +625,22 @@ pub const MINER_MAX_ITERATIONS: u32 = 10;
 
 /// A source of random balance for NposSolver, which is meant to be run by the OCW election miner.
 pub struct OffchainRandomBalancing;
-impl Get<Option<(usize, ExtendedBalance)>> for OffchainRandomBalancing {
-	fn get() -> Option<(usize, ExtendedBalance)> {
+impl Get<Option<BalancingConfig>> for OffchainRandomBalancing {
+	fn get() -> Option<BalancingConfig> {
 		use sp_runtime::traits::TrailingZeroInput;
-		let iters = match MINER_MAX_ITERATIONS {
+		let iterations = match MINER_MAX_ITERATIONS {
 			0 => 0,
 			max => {
 				let seed = sp_io::offchain::random_seed();
 				let random = <u32>::decode(&mut TrailingZeroInput::new(&seed))
-					.expect("input is padded with zeroes; qed")
-					% max.saturating_add(1);
+					.expect("input is padded with zeroes; qed") %
+					max.saturating_add(1);
 				random as usize
 			},
 		};
 
-		Some((iters, 0))
+		let config = BalancingConfig { iterations, tolerance: 0 };
+		Some(config)
 	}
 }
 
@@ -723,7 +724,8 @@ impl pallet_bags_list::Config for Runtime {
 parameter_types! {
 	pub const PostUnbondPoolsWindow: u32 = 4;
 	pub const NominationPoolsPalletId: PalletId = PalletId(*b"py/nopls");
-	pub const MinPointsToBalance: u32 = 10;
+	// TODO: Value set randomly
+	pub const MaxPointsToBalance: u8 = 10;
 }
 
 use sp_runtime::traits::Convert;
@@ -744,14 +746,16 @@ impl pallet_nomination_pools::Config for Runtime {
 	type Event = Event;
 	type WeightInfo = ();
 	type Currency = Balances;
+	type CurrencyBalance = Balance;
 	type PalletId = NominationPoolsPalletId;
-	type MinPointsToBalance = MinPointsToBalance;
+	type MaxPointsToBalance = MaxPointsToBalance;
 	type BalanceToU256 = BalanceToU256;
 	type U256ToBalance = U256ToBalance;
 	type StakingInterface = pallet_staking::Pallet<Self>;
 	type PostUnbondingPoolsWindow = PostUnbondPoolsWindow;
 	type MaxMetadataLen = ConstU32<256>;
 	type MaxUnbonding = ConstU32<8>;
+	type RewardCounter = FixedU128;
 }
 
 parameter_types! {
@@ -790,12 +794,14 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 				confirm_period: 2,
 				min_enactment_period: 4,
 				min_approval: pallet_referenda::Curve::LinearDecreasing {
-					begin: Perbill::from_percent(100),
-					delta: Perbill::from_percent(50),
+					length: Perbill::from_percent(100),
+					floor: Perbill::from_percent(50),
+					ceil: Perbill::from_percent(100),
 				},
-				min_turnout: pallet_referenda::Curve::LinearDecreasing {
-					begin: Perbill::from_percent(100),
-					delta: Perbill::from_percent(100),
+				min_support: pallet_referenda::Curve::LinearDecreasing {
+					length: Perbill::from_percent(100),
+					floor: Perbill::from_percent(0),
+					ceil: Perbill::from_percent(100),
 				},
 			},
 		)];
@@ -819,6 +825,7 @@ impl pallet_referenda::Config for Runtime {
 	type WeightInfo = pallet_referenda::weights::SubstrateWeight<Self>;
 	type Scheduler = Scheduler;
 	type Currency = pallet_balances::Pallet<Self>;
+	type SubmitOrigin = EnsureSigned<Self::AccountId>;
 	type CancelOrigin = EnsureRoot<AccountId>;
 	type KillOrigin = EnsureRoot<AccountId>;
 	type Slash = ();
@@ -879,7 +886,7 @@ impl pallet_democracy::Config for Runtime {
 	type BlacklistOrigin = EnsureRoot<AccountId>;
 	// To cancel a proposal before it has been passed, the technical committee must be unanimous or
 	// Root must agree.
-	type CancelProposalOrigin = EnsureOneOf<
+	type CancelProposalOrigin = EitherOfDiverse<
 		EnsureRoot<AccountId>,
 		pallet_collective::EnsureProportionAtLeast<AccountId, TechnicalCollective, 1, 1>,
 	>;
@@ -968,7 +975,7 @@ impl pallet_collective::Config<TechnicalCollective> for Runtime {
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
 }
 
-type EnsureRootOrHalfCouncil = EnsureOneOf<
+type EnsureRootOrHalfCouncil = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilCollective, 1, 2>,
 >;
@@ -1001,11 +1008,11 @@ parameter_types! {
 
 impl pallet_treasury::Config for Runtime {
 	type Currency = Balances;
-	type ApproveOrigin = EnsureOneOf<
+	type ApproveOrigin = EitherOfDiverse<
 		EnsureRoot<AccountId>,
 		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 3, 5>,
 	>;
-	type RejectOrigin = EnsureOneOf<
+	type RejectOrigin = EitherOfDiverse<
 		EnsureRoot<AccountId>,
 		pallet_collective::EnsureProportionMoreThan<AccountId, CouncilCollective, 1, 2>,
 	>;
@@ -1021,6 +1028,8 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = pallet_treasury::weights::SubstrateWeight<Runtime>;
 	type SpendFunds = Bounties;
 	type MaxApprovals = MaxApprovals;
+	// TODO: Value set randomly
+	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>;
 }
 
 parameter_types! {
@@ -1116,6 +1125,8 @@ impl pallet_contracts::Config for Runtime {
 	type AddressGenerator = pallet_contracts::DefaultAddressGenerator;
 	type MaxCodeLen = ConstU32<{ 128 * 1024 }>;
 	type RelaxedMaxCodeLen = ConstU32<{ 256 * 1024 }>;
+	// TODO: Value set randomly
+	type MaxStorageKeyLen = ConstU32<{ 256 * 1024 }>;
 }
 
 impl pallet_sudo::Config for Runtime {
@@ -1413,12 +1424,20 @@ impl pallet_uniques::Config for Runtime {
 	type WeightInfo = pallet_uniques::weights::SubstrateWeight<Runtime>;
 }
 
+// TODO: Value set randomly
+parameter_types! {
+	pub const MaxBlockTransactions: u32 = 1000;
+	pub const MaxTransactionSize: u32 = 512;
+}
+
 impl pallet_transaction_storage::Config for Runtime {
 	type Event = Event;
 	type Call = Call;
 	type Currency = Balances;
 	type FeeDestination = ();
 	type WeightInfo = pallet_transaction_storage::weights::SubstrateWeight<Runtime>;
+	type MaxBlockTransactions = MaxBlockTransactions;
+	type MaxTransactionSize = MaxTransactionSize;
 }
 
 impl pallet_whitelist::Config for Runtime {
@@ -1433,6 +1452,8 @@ impl pallet_whitelist::Config for Runtime {
 parameter_types! {
 	pub const MigrationSignedDepositPerItem: Balance = 1 * CENTS;
 	pub const MigrationSignedDepositBase: Balance = 20 * DOLLARS;
+	// TODO: Value set randomly
+	pub const MaxNumberOfBytesThatAKeyCanHave: u32 = 512;
 }
 
 impl pallet_state_trie_migration::Config for Runtime {
@@ -1447,6 +1468,7 @@ impl pallet_state_trie_migration::Config for Runtime {
 	type SignedDepositPerItem = MigrationSignedDepositPerItem;
 	type SignedDepositBase = MigrationSignedDepositBase;
 	type WeightInfo = ();
+	type MaxKeyLen = MaxNumberOfBytesThatAKeyCanHave;
 }
 
 parameter_types! {
@@ -1844,7 +1866,7 @@ impl_runtime_apis! {
 
 		fn get_storage(
 			address: AccountId,
-			key: [u8; 32],
+			key: Vec<u8>,
 		) -> pallet_contracts_primitives::GetStorageResult {
 			Contracts::get_storage(address, key)
 		}
