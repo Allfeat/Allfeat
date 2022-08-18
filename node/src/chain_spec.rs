@@ -20,8 +20,9 @@
 use allfeat_runtime::{
 	constants::currency::*, wasm_binary_unwrap, ArtistCommitteeConfig, ArtistsConfig,
 	AuthorityDiscoveryConfig, BabeConfig, BalancesConfig, Block, CouncilConfig, DemocracyConfig,
-	ElectionsConfig, GrandpaConfig, ImOnlineConfig, IndicesConfig, MaxNominations, SessionConfig,
-	SessionKeys, StakerStatus, StakingConfig, SudoConfig, SystemConfig, TechnicalCommitteeConfig,
+	ElectionsConfig, GrandpaConfig, ImOnlineConfig, IndicesConfig, MaxNominations,
+	MusicStylesConfig, SessionConfig, SessionKeys, StakerStatus, StakingConfig, SudoConfig,
+	SystemConfig, TechnicalCommitteeConfig,
 };
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use sc_chain_spec::ChainSpecExtension;
@@ -218,6 +219,16 @@ pub fn testnet_genesis(
 		},
 		artist_committee: ArtistCommitteeConfig {
 			members: Default::default(),
+			phantom: Default::default(),
+		},
+		music_styles: MusicStylesConfig {
+			styles: vec![
+				(b"Rap".to_vec(), vec![b"Trap".to_vec(), b"Drill".to_vec()]),
+				(
+					b"Electro".to_vec(),
+					vec![b"Dubstep".to_vec(), b"Downtempo".to_vec(), b"Drum'N'Bass".to_vec()],
+				),
+			],
 			phantom: Default::default(),
 		},
 		artists: ArtistsConfig { artists: Default::default(), candidates: Default::default() },

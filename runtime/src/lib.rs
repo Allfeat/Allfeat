@@ -26,14 +26,15 @@ use codec::{Decode, Encode, MaxEncodedLen};
 use frame_election_provider_support::{
 	onchain, BalancingConfig, ElectionDataProvider, SequentialPhragmen, VoteWeight,
 };
+use frame_support::traits::AsEnsureOriginWithArg;
 use frame_support::{
 	construct_runtime,
 	pallet_prelude::Get,
 	parameter_types,
 	traits::{
-		AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32, Currency, EitherOfDiverse,
-		EqualPrivilegeOnly, Everything, Imbalance, InstanceFilter, KeyOwnerProofSystem,
-		LockIdentifier, Nothing, OnUnbalanced, U128CurrencyToVote,
+		ConstU128, ConstU16, ConstU32, Currency, EitherOfDiverse, EqualPrivilegeOnly, Everything,
+		Imbalance, InstanceFilter, KeyOwnerProofSystem, LockIdentifier, Nothing, OnUnbalanced,
+		U128CurrencyToVote,
 	},
 	weights::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND},
@@ -293,16 +294,17 @@ impl InstanceFilter<Call> for ProxyType {
 			ProxyType::Any => true,
 			ProxyType::NonTransfer => !matches!(
 				c,
-				Call::Balances(..) |
-					Call::Assets(..) | Call::Uniques(..) |
-					Call::Vesting(pallet_vesting::Call::vested_transfer { .. }) |
-					Call::Indices(pallet_indices::Call::transfer { .. })
+				Call::Balances(..)
+					| Call::Assets(..) | Call::Uniques(..)
+					| Call::Vesting(pallet_vesting::Call::vested_transfer { .. },)
+					| Call::Indices(pallet_indices::Call::transfer { .. })
 			),
 			ProxyType::Governance => matches!(
 				c,
-				Call::Democracy(..) |
-					Call::Council(..) | Call::TechnicalCommittee(..) |
-					Call::Elections(..) | Call::Treasury(..)
+				Call::Democracy(..)
+					| Call::Council(..) | Call::TechnicalCommittee(..)
+					| Call::Elections(..)
+					| Call::Treasury(..)
 			),
 			ProxyType::Staking => matches!(c, Call::Staking(..)),
 		}
@@ -633,8 +635,8 @@ impl Get<Option<BalancingConfig>> for OffchainRandomBalancing {
 			max => {
 				let seed = sp_io::offchain::random_seed();
 				let random = <u32>::decode(&mut TrailingZeroInput::new(&seed))
-					.expect("input is padded with zeroes; qed") %
-					max.saturating_add(1);
+					.expect("input is padded with zeroes; qed")
+					% max.saturating_add(1);
 				random as usize
 			},
 		};
@@ -1490,7 +1492,6 @@ impl pallet_collective::Config<ArtistCollective> for Runtime {
 }
 
 parameter_types! {
-	pub const MaxCandidates: u32 = 50_000_000;
 	pub const NameMaxLength: u32 = 128;
 	pub const CreationDepositAmount: Balance = 5 * DOLLARS;
 }
@@ -1500,9 +1501,38 @@ impl pallet_artists::Config for Runtime {
 	type Currency = Balances;
 	type AdminOrigin = EnsureRoot<Self::AccountId>;
 	type CreationDepositAmount = CreationDepositAmount;
-	type MaxCandidates = MaxCandidates;
 	type NameMaxLength = NameMaxLength;
-	type MaxArtists = ArtistMaxMembers;
+}
+
+parameter_types! {
+	pub const MaxStyleCount: u32 = 30;
+	pub const MaxSubStyleCount: u32 = 50;
+	pub const StyleNameMaxLength: u32 = 64;
+}
+
+impl pallet_music_styles::Config for Runtime {
+	type Event = Event;
+	type AdminOrigin = EnsureRoot<Self::AccountId>;
+	type MaxStyleCount = MaxStyleCount;
+	type MaxSubStyleCount = MaxSubStyleCount;
+	type NameMaxLength = StyleNameMaxLength;
+}
+
+parameter_types! {
+	pub const CostPerByte: Balance = 1 * DOLLARS;
+	pub const MaxRegisteredStyles: u32 = 5;
+	pub const MaxDefaultStringLength: u32 = 128;
+	pub const MaxDescriptionLength: u32 = 512;
+}
+
+impl pallet_artist_identity::Config for Runtime {
+	type Event = Event;
+	type Artists = Artists;
+	type Currency = Balances;
+	type CostPerByte = CostPerByte;
+	type MaxRegisteredStyles = MaxRegisteredStyles;
+	type MaxDefaultStringLength = MaxDefaultStringLength;
+	type MaxDescriptionLength = MaxDescriptionLength;
 }
 
 construct_runtime!(
@@ -1540,6 +1570,7 @@ construct_runtime!(
 		Historical: pallet_session_historical::{Pallet},
 		RandomnessCollectiveFlip: pallet_randomness_collective_flip,
 		Identity: pallet_identity,
+		ArtistIdentity: pallet_artist_identity,
 		Recovery: pallet_recovery,
 		Vesting: pallet_vesting,
 		Scheduler: pallet_scheduler,
@@ -1549,6 +1580,7 @@ construct_runtime!(
 		Bounties: pallet_bounties,
 		Tips: pallet_tips,
 		Assets: pallet_assets,
+		MusicStyles: pallet_music_styles,
 		Artists: pallet_artists,
 		Mmr: pallet_mmr,
 		Lottery: pallet_lottery,
