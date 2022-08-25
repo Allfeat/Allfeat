@@ -170,6 +170,7 @@ dependencies = [
  "hex-literal",
  "log",
  "node-primitives",
+ "pallet-allfeat-uniques",
  "pallet-artist-identity",
  "pallet-artists",
  "pallet-assets",
@@ -223,7 +224,6 @@ dependencies = [
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-transaction-storage",
  "pallet-treasury",
- "pallet-uniques",
  "pallet-utility",
  "pallet-vesting",
  "pallet-whitelist",
@@ -4145,6 +4145,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-allfeat-uniques"
+version = "0.1.0-dev"
+source = "git+ssh://git@github.com/All-feat/pallet-allfeat-uniques.git?branch=develop#517125652f7027bc0b6310551be6a71169a3a421"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-artist-identity"
 version = "0.1.0-dev"
 source = "git+ssh://git@github.com/All-feat/pallet-artist-identity.git?branch=develop#cc59f58db6f4ba0a867dbfa03d5ffcf8685c5d9d"
@@ -4162,7 +4177,7 @@ dependencies = [
 [[package]]
 name = "pallet-artists"
 version = "1.0.0-dev"
-source = "git+ssh://git@github.com/All-feat/pallet-artists.git?branch=develop#1055d735a5dadf88f336eaa2e8658cc82eae078f"
+source = "git+ssh://git@github.com/All-feat/pallet-artists.git?branch=develop#1ba3a97db05aae6dd032bffd7c9aa4b24911bc00"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -5102,21 +5117,6 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-uniques"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.27#8eff668a42325aeb4433eace1604f4d286a6ec05"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "parity-scale-codec",
- "scale-info",
  "sp-runtime",
  "sp-std",
 ]
@@ -9046,7 +9046,7 @@ version = "1.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if 0.1.10",
  "digest 0.10.3",
  "rand 0.8.5",
  "static_assertions",

@@ -80,6 +80,7 @@ use static_assertions::const_assert;
 
 #[cfg(any(feature = "std", test))]
 pub use frame_system::Call as SystemCall;
+use pallet_artists::EnsureArtist;
 #[cfg(any(feature = "std", test))]
 pub use pallet_balances::Call as BalancesCall;
 #[cfg(any(feature = "std", test))]
@@ -295,7 +296,7 @@ impl InstanceFilter<Call> for ProxyType {
 			ProxyType::NonTransfer => !matches!(
 				c,
 				Call::Balances(..)
-					| Call::Assets(..) | Call::Uniques(..)
+					| Call::Assets(..) | Call::ArtistNfts(..)
 					| Call::Vesting(pallet_vesting::Call::vested_transfer { .. },)
 					| Call::Indices(pallet_indices::Call::transfer { .. })
 			),
@@ -1405,14 +1406,14 @@ parameter_types! {
 	pub const ValueLimit: u32 = 256;
 }
 
-impl pallet_uniques::Config for Runtime {
+type ArtistNft = pallet_allfeat_uniques::Instance1;
+impl pallet_allfeat_uniques::Config<ArtistNft> for Runtime {
 	type Event = Event;
 	type CollectionId = u32;
 	type ItemId = u32;
 	type Currency = Balances;
-	type ForceOrigin = EnsureRoot<AccountId>;
-	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
-	type Locker = ();
+	type AdminOrigin = EnsureRoot<AccountId>;
+	type CreateOrigin = AsEnsureOriginWithArg<EnsureArtist<AccountId>>;
 	type CollectionDeposit = CollectionDeposit;
 	type ItemDeposit = ItemDeposit;
 	type MetadataDepositBase = MetadataDepositBase;
@@ -1423,7 +1424,7 @@ impl pallet_uniques::Config for Runtime {
 	type ValueLimit = ValueLimit;
 	#[cfg(feature = "runtime-benchmarks")]
 	type Helper = ();
-	type WeightInfo = pallet_uniques::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = pallet_allfeat_uniques::weights::SubstrateWeight<Runtime>;
 }
 
 // TODO: Value set randomly
@@ -1500,6 +1501,8 @@ impl pallet_artists::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
 	type AdminOrigin = EnsureRoot<Self::AccountId>;
+	type Origin = Origin;
+	type Call = Call;
 	type CreationDepositAmount = CreationDepositAmount;
 	type NameMaxLength = NameMaxLength;
 }
@@ -1585,7 +1588,7 @@ construct_runtime!(
 		Mmr: pallet_mmr,
 		Lottery: pallet_lottery,
 		Gilt: pallet_gilt,
-		Uniques: pallet_uniques,
+		ArtistNfts: pallet_allfeat_uniques::<Instance1>,
 		TransactionStorage: pallet_transaction_storage,
 		BagsList: pallet_bags_list,
 		StateTrieMigration: pallet_state_trie_migration,
@@ -1695,7 +1698,7 @@ mod benches {
 		[pallet_tips, Tips]
 		[pallet_transaction_storage, TransactionStorage]
 		[pallet_treasury, Treasury]
-		[pallet_uniques, Uniques]
+		[pallet_allfeat_uniques, ArtistNfts]
 		[pallet_utility, Utility]
 		[pallet_vesting, Vesting]
 		[pallet_whitelist, Whitelist]
