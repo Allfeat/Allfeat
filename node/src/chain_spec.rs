@@ -18,11 +18,10 @@
 
 //! Substrate chain configurations.
 use allfeat_runtime::{
-	constants::currency::*, wasm_binary_unwrap, ArtistCommitteeConfig, ArtistsConfig,
-	AuthorityDiscoveryConfig, BabeConfig, BalancesConfig, Block, CouncilConfig, DemocracyConfig,
-	ElectionsConfig, GrandpaConfig, ImOnlineConfig, IndicesConfig, MaxNominations,
-	MusicStylesConfig, SessionConfig, SessionKeys, StakerStatus, StakingConfig, SudoConfig,
-	SystemConfig, TechnicalCommitteeConfig,
+	constants::currency::*, wasm_binary_unwrap, ArtistsConfig, AuthorityDiscoveryConfig,
+	BabeConfig, BalancesConfig, Block, CouncilConfig, DemocracyConfig, ElectionsConfig,
+	GrandpaConfig, ImOnlineConfig, IndicesConfig, MaxNominations, MusicStylesConfig, SessionConfig,
+	SessionKeys, StakerStatus, StakingConfig, SudoConfig, SystemConfig, TechnicalCommitteeConfig,
 };
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use sc_chain_spec::ChainSpecExtension;
@@ -215,10 +214,6 @@ pub fn testnet_genesis(
 				.take((num_endowed_accounts + 1) / 2)
 				.cloned()
 				.collect(),
-			phantom: Default::default(),
-		},
-		artist_committee: ArtistCommitteeConfig {
-			members: Default::default(),
 			phantom: Default::default(),
 		},
 		music_styles: MusicStylesConfig {

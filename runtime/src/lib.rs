@@ -26,15 +26,14 @@ use codec::{Decode, Encode, MaxEncodedLen};
 use frame_election_provider_support::{
 	onchain, BalancingConfig, ElectionDataProvider, SequentialPhragmen, VoteWeight,
 };
-use frame_support::traits::AsEnsureOriginWithArg;
 use frame_support::{
 	construct_runtime,
 	pallet_prelude::Get,
 	parameter_types,
 	traits::{
-		ConstU128, ConstU16, ConstU32, Currency, EitherOfDiverse, EqualPrivilegeOnly, Everything,
-		Imbalance, InstanceFilter, KeyOwnerProofSystem, LockIdentifier, Nothing, OnUnbalanced,
-		U128CurrencyToVote,
+		AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32, Currency, EitherOfDiverse,
+		EqualPrivilegeOnly, Everything, Imbalance, InstanceFilter, KeyOwnerProofSystem,
+		LockIdentifier, Nothing, OnUnbalanced, U128CurrencyToVote,
 	},
 	weights::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND},
@@ -81,6 +80,7 @@ use static_assertions::const_assert;
 #[cfg(any(feature = "std", test))]
 pub use frame_system::Call as SystemCall;
 use pallet_artists::EnsureArtist;
+use pallet_artists_nft::EnsureArtistNft;
 #[cfg(any(feature = "std", test))]
 pub use pallet_balances::Call as BalancesCall;
 #[cfg(any(feature = "std", test))]
@@ -296,7 +296,7 @@ impl InstanceFilter<Call> for ProxyType {
 			ProxyType::NonTransfer => !matches!(
 				c,
 				Call::Balances(..)
-					| Call::Assets(..) | Call::ArtistNfts(..)
+					| Call::Assets(..) | Call::Uniques(..)
 					| Call::Vesting(pallet_vesting::Call::vested_transfer { .. },)
 					| Call::Indices(pallet_indices::Call::transfer { .. })
 			),
@@ -1406,14 +1406,13 @@ parameter_types! {
 	pub const ValueLimit: u32 = 256;
 }
 
-type ArtistNft = pallet_allfeat_uniques::Instance1;
-impl pallet_allfeat_uniques::Config<ArtistNft> for Runtime {
+impl pallet_allfeat_uniques::Config for Runtime {
 	type Event = Event;
 	type CollectionId = u32;
 	type ItemId = u32;
 	type Currency = Balances;
 	type AdminOrigin = EnsureRoot<AccountId>;
-	type CreateOrigin = AsEnsureOriginWithArg<EnsureArtist<AccountId>>;
+	type CreateOrigin = AsEnsureOriginWithArg<EnsureArtistNft<AccountId>>;
 	type CollectionDeposit = CollectionDeposit;
 	type ItemDeposit = ItemDeposit;
 	type MetadataDepositBase = MetadataDepositBase;
@@ -1480,18 +1479,6 @@ parameter_types! {
 	pub const ArtistMaxMembers: u32 = 10000;
 }
 
-type ArtistCollective = pallet_collective::Instance3;
-impl pallet_collective::Config<ArtistCollective> for Runtime {
-	type Origin = Origin;
-	type Proposal = Call;
-	type Event = Event;
-	type MotionDuration = ArtistMotionDuration;
-	type MaxProposals = ArtistMaxProposals;
-	type MaxMembers = ArtistMaxMembers;
-	type DefaultVote = pallet_collective::PrimeDefaultVote;
-	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
-}
-
 parameter_types! {
 	pub const NameMaxLength: u32 = 128;
 	pub const CreationDepositAmount: Balance = 5 * DOLLARS;
@@ -1528,6 +1515,12 @@ parameter_types! {
 	pub const MaxDescriptionLength: u32 = 512;
 }
 
+impl pallet_artists_nft::Config for Runtime {
+	type Event = Event;
+	type Origin = Origin;
+	type ArtistOrigin = EnsureArtist<AccountId>;
+}
+
 impl pallet_artist_identity::Config for Runtime {
 	type Event = Event;
 	type Artists = Artists;
@@ -1560,7 +1553,6 @@ construct_runtime!(
 		Democracy: pallet_democracy,
 		Council: pallet_collective::<Instance1>,
 		TechnicalCommittee: pallet_collective::<Instance2>,
-		ArtistCommittee: pallet_collective::<Instance3>,
 		Elections: pallet_elections_phragmen,
 		TechnicalMembership: pallet_membership::<Instance1>,
 		Grandpa: pallet_grandpa,
@@ -1588,7 +1580,8 @@ construct_runtime!(
 		Mmr: pallet_mmr,
 		Lottery: pallet_lottery,
 		Gilt: pallet_gilt,
-		ArtistNfts: pallet_allfeat_uniques::<Instance1>,
+		Uniques: pallet_allfeat_uniques,
+		ArtistNfts: pallet_artists_nft,
 		TransactionStorage: pallet_transaction_storage,
 		BagsList: pallet_bags_list,
 		StateTrieMigration: pallet_state_trie_migration,
@@ -1698,7 +1691,8 @@ mod benches {
 		[pallet_tips, Tips]
 		[pallet_transaction_storage, TransactionStorage]
 		[pallet_treasury, Treasury]
-		[pallet_allfeat_uniques, ArtistNfts]
+		[pallet_allfeat_uniques, Uniques]
+		[pallet_artists_nft, ArtistNfts]
 		[pallet_utility, Utility]
 		[pallet_vesting, Vesting]
 		[pallet_whitelist, Whitelist]

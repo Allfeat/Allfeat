@@ -173,6 +173,7 @@ dependencies = [
  "pallet-allfeat-uniques",
  "pallet-artist-identity",
  "pallet-artists",
+ "pallet-artists-nft",
  "pallet-assets",
  "pallet-authority-discovery",
  "pallet-authorship",
@@ -4147,7 +4148,7 @@ dependencies = [
 [[package]]
 name = "pallet-allfeat-uniques"
 version = "0.1.0-dev"
-source = "git+ssh://git@github.com/All-feat/pallet-allfeat-uniques.git?branch=develop#517125652f7027bc0b6310551be6a71169a3a421"
+source = "git+ssh://git@github.com/All-feat/pallet-allfeat-uniques.git?branch=develop#45da9156914eb790e18ae30e84f2d7af91accde4"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4182,6 +4183,21 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-artists-nft"
+version = "0.1.0-dev"
+source = "git+ssh://git@github.com/All-feat/pallet-artists-nft.git?branch=develop#202c845fc40374c06ee739a08ab51f02960e5de1"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "pallet-allfeat-uniques",
  "parity-scale-codec",
  "scale-info",
  "sp-runtime",
@@ -9046,7 +9062,7 @@ version = "1.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
- "cfg-if 0.1.10",
+ "cfg-if 1.0.0",
  "digest 0.10.3",
  "rand 0.8.5",
  "static_assertions",

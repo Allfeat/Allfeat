@@ -49,6 +49,7 @@ pallet-artists = { version = "1.0.0-dev", default-features = false, git = "ssh:/
 pallet-music-styles = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/All-feat/pallet-music-styles.git", branch = "develop" }
 pallet-artist-identity = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/All-feat/pallet-artist-identity.git", branch = "develop" }
 pallet-allfeat-uniques = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/All-feat/pallet-allfeat-uniques.git", branch = "develop" }
+pallet-artists-nft = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/All-feat/pallet-artists-nft.git", branch = "develop" }
 
 pallet-babe = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 pallet-assets = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
@@ -193,6 +194,7 @@ std = [
   "pallet-recovery/std",
 	"pallet-allfeat-uniques/std",
 	"pallet-vesting/std",
+	"pallet-artists-nft/std",
   "log/std",
   "frame-try-runtime/std",
   "sp-io/std",
@@ -243,7 +245,8 @@ runtime-benchmarks = [
   "pallet-treasury/runtime-benchmarks",
   "pallet-utility/runtime-benchmarks",
 	"pallet-allfeat-uniques/runtime-benchmarks",
-  "pallet-vesting/runtime-benchmarks",
+	"pallet-artists-nft/runtime-benchmarks",
+	"pallet-vesting/runtime-benchmarks",
   "pallet-whitelist/runtime-benchmarks",
   "pallet-artists/runtime-benchmarks",
   "frame-system-benchmarking",
@@ -293,7 +296,8 @@ try-runtime = [
   "pallet-treasury/try-runtime",
   "pallet-utility/try-runtime",
 	"pallet-allfeat-uniques/try-runtime",
-  "pallet-vesting/try-runtime",
+	"pallet-artists-nft/try-runtime",
+	"pallet-vesting/try-runtime",
   "pallet-whitelist/try-runtime",
 ]
 # Make contract callable functions marked as __unstable__ available. Do not enable
