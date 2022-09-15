@@ -237,7 +237,6 @@ pub fn testnet_genesis(
 		grandpa: GrandpaConfig { authorities: vec![] },
 		technical_membership: Default::default(),
 		treasury: Default::default(),
-		vesting: Default::default(),
 		assets: Default::default(),
 		gilt: Default::default(),
 		transaction_storage: Default::default(),

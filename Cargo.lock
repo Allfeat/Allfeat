@@ -170,11 +170,12 @@ dependencies = [
  "hex-literal",
  "log",
  "node-primitives",
+ "pallet-allfeat-assets",
  "pallet-allfeat-uniques",
  "pallet-artist-identity",
  "pallet-artists",
  "pallet-artists-nft",
- "pallet-assets",
+ "pallet-artists-tokens",
  "pallet-authority-discovery",
  "pallet-authorship",
  "pallet-babe",
@@ -226,7 +227,6 @@ dependencies = [
  "pallet-transaction-storage",
  "pallet-treasury",
  "pallet-utility",
- "pallet-vesting",
  "pallet-whitelist",
  "parity-scale-codec",
  "scale-info",
@@ -4146,6 +4146,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-allfeat-assets"
+version = "0.1.0-dev"
+source = "git+ssh://git@github.com/All-feat/pallet-allfeat-assets.git?branch=master#f9a82cc7cb406b124a53a8023771546c618df872"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-allfeat-uniques"
 version = "0.1.0-dev"
 source = "git+ssh://git@github.com/All-feat/pallet-allfeat-uniques.git?branch=develop#45da9156914eb790e18ae30e84f2d7af91accde4"
@@ -4205,15 +4219,17 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-assets"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.27#8eff668a42325aeb4433eace1604f4d286a6ec05"
+name = "pallet-artists-tokens"
+version = "0.1.0-dev"
+source = "git+ssh://git@github.com/All-feat/pallet-artists-tokens.git?branch=master#f3fd84e2be462075609d84abe2ee6066fa3eb533"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
+ "pallet-allfeat-assets",
  "parity-scale-codec",
  "scale-info",
+ "sp-io",
  "sp-runtime",
  "sp-std",
 ]
@@ -5149,21 +5165,6 @@ dependencies = [
  "scale-info",
  "sp-core",
  "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-vesting"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.27#8eff668a42325aeb4433eace1604f4d286a6ec05"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "parity-scale-codec",
- "scale-info",
  "sp-runtime",
  "sp-std",
 ]
@@ -9062,7 +9063,7 @@ version = "1.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if 0.1.10",
  "digest 0.10.3",
  "rand 0.8.5",
  "static_assertions",
