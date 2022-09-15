@@ -65,8 +65,8 @@ use sp_runtime::{
 	curve::PiecewiseLinear,
 	generic, impl_opaque_keys,
 	traits::{
-		self, BlakeTwo256, Block as BlockT, ConvertInto, NumberFor, OpaqueKeys,
-		SaturatedConversion, StaticLookup,
+		self, BlakeTwo256, Block as BlockT, NumberFor, OpaqueKeys, SaturatedConversion,
+		StaticLookup,
 	},
 	transaction_validity::{TransactionPriority, TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, FixedPointNumber, FixedU128, Perbill, Percent, Permill, Perquintill,
@@ -81,6 +81,7 @@ use static_assertions::const_assert;
 pub use frame_system::Call as SystemCall;
 use pallet_artists::EnsureArtist;
 use pallet_artists_nft::EnsureArtistNft;
+use pallet_artists_tokens::EnsureArtistToken;
 #[cfg(any(feature = "std", test))]
 pub use pallet_balances::Call as BalancesCall;
 #[cfg(any(feature = "std", test))]
@@ -297,7 +298,6 @@ impl InstanceFilter<Call> for ProxyType {
 				c,
 				Call::Balances(..)
 					| Call::Assets(..) | Call::Uniques(..)
-					| Call::Vesting(pallet_vesting::Call::vested_transfer { .. },)
 					| Call::Indices(pallet_indices::Call::transfer { .. })
 			),
 			ProxyType::Governance => matches!(
@@ -421,7 +421,7 @@ impl pallet_indices::Config for Runtime {
 }
 
 parameter_types! {
-	pub const ExistentialDeposit: Balance = 1 * DOLLARS;
+	pub const ExistentialDeposit: Balance = 1 * CENTS;
 	// For weight estimation, we assume that the most locks on an individual account will be 50.
 	// This number may need to be adjusted in the future if this assumption no longer holds true.
 	pub const MaxLocks: u32 = 50;
@@ -1302,21 +1302,6 @@ parameter_types! {
 	pub const MaxCandidateIntake: u32 = 10;
 }
 
-parameter_types! {
-	pub const MinVestedTransfer: Balance = 100 * DOLLARS;
-}
-
-impl pallet_vesting::Config for Runtime {
-	type Event = Event;
-	type Currency = Balances;
-	type BlockNumberToBalance = ConvertInto;
-	type MinVestedTransfer = MinVestedTransfer;
-	type WeightInfo = pallet_vesting::weights::SubstrateWeight<Runtime>;
-	// `VestingInfo` encode length is 36bytes. 28 schedules gets encoded as 1009 bytes, which is the
-	// highest number of schedules that encodes less than 2^10.
-	const MAX_VESTING_SCHEDULES: u32 = 28;
-}
-
 impl pallet_mmr::Config for Runtime {
 	const INDEXING_PREFIX: &'static [u8] = b"mmr";
 	type Hashing = <Runtime as frame_system::Config>::Hashing;
@@ -1346,19 +1331,20 @@ impl pallet_lottery::Config for Runtime {
 }
 
 parameter_types! {
-	pub const AssetDeposit: Balance = 100 * DOLLARS;
+	pub const AssetDeposit: Balance = 5 * DOLLARS;
 	pub const ApprovalDeposit: Balance = 1 * DOLLARS;
 	pub const StringLimit: u32 = 50;
 	pub const MetadataDepositBase: Balance = 10 * DOLLARS;
 	pub const MetadataDepositPerByte: Balance = 1 * DOLLARS;
 }
 
-impl pallet_assets::Config for Runtime {
+impl pallet_allfeat_assets::Config for Runtime {
 	type Event = Event;
 	type Balance = u128;
 	type AssetId = u32;
 	type Currency = Balances;
 	type ForceOrigin = EnsureRoot<AccountId>;
+	type CreateOrigin = EnsureArtistToken<AccountId>;
 	type AssetDeposit = AssetDeposit;
 	type AssetAccountDeposit = ConstU128<DOLLARS>;
 	type MetadataDepositBase = MetadataDepositBase;
@@ -1367,7 +1353,7 @@ impl pallet_assets::Config for Runtime {
 	type StringLimit = StringLimit;
 	type Freezer = ();
 	type Extra = ();
-	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = pallet_allfeat_assets::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -1521,6 +1507,28 @@ impl pallet_artists_nft::Config for Runtime {
 	type ArtistOrigin = EnsureArtist<AccountId>;
 }
 
+parameter_types! {
+	pub const ArtistReserve: u64 = TokenMaxSupply::get().saturating_mul(2000).saturating_div(10000u64);
+	pub const TokenMaxSupply: u64 = 1000000_u64.saturating_mul(UNIT_ARTIST_TOKEN);
+	pub const TokenDecimal: u8 = 12;
+	pub const UnlockedPerBlock: u64 = ArtistReserve::get().saturating_mul(10).saturating_div(10000000u64); // => 1% of the ArtistReserve per block
+	pub const ExistentialDepositArtistToken: u64 = UNIT_ARTIST_TOKEN.saturating_mul(100).saturating_div(10000u64);
+}
+
+impl pallet_artists_tokens::Config for Runtime {
+	type Event = Event;
+	type Origin = Origin;
+	type ArtistOrigin = EnsureArtist<AccountId>;
+	type ExistentialDepositToken = ExistentialDeposit;
+	type ArtistReserve = ArtistReserve;
+	type TokenDecimal = TokenDecimal;
+	type TokenMaxSupply = TokenMaxSupply;
+	type UnlockedPerBlock = UnlockedPerBlock;
+}
+
+const UNIT_ARTIST_TOKEN: u64 =
+	1_u64.saturating_mul(10u64.saturating_pow(TokenDecimal::get() as u32));
+
 impl pallet_artist_identity::Config for Runtime {
 	type Event = Event;
 	type Artists = Artists;
@@ -1567,14 +1575,14 @@ construct_runtime!(
 		Identity: pallet_identity,
 		ArtistIdentity: pallet_artist_identity,
 		Recovery: pallet_recovery,
-		Vesting: pallet_vesting,
 		Scheduler: pallet_scheduler,
 		Preimage: pallet_preimage,
 		Proxy: pallet_proxy,
 		Multisig: pallet_multisig,
 		Bounties: pallet_bounties,
 		Tips: pallet_tips,
-		Assets: pallet_assets,
+		Assets: pallet_allfeat_assets,
+		ArtistTokens: pallet_artists_tokens,
 		MusicStyles: pallet_music_styles,
 		Artists: pallet_artists,
 		Mmr: pallet_mmr,
@@ -1653,7 +1661,7 @@ extern crate frame_benchmarking;
 mod benches {
 	define_benchmarks!(
 		[frame_benchmarking, BaselineBench::<Runtime>]
-		[pallet_assets, Assets]
+		[pallet_allfeat_assets, Assets]
 		[pallet_babe, Babe]
 		[pallet_bags_list, BagsList]
 		[pallet_balances, Balances]
@@ -1694,7 +1702,6 @@ mod benches {
 		[pallet_allfeat_uniques, Uniques]
 		[pallet_artists_nft, ArtistNfts]
 		[pallet_utility, Utility]
-		[pallet_vesting, Vesting]
 		[pallet_whitelist, Whitelist]
 	);
 }
