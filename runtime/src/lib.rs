@@ -22,6 +22,8 @@
 // `construct_runtime!` does a lot of recursion and requires us to increase the limit to 512.
 #![recursion_limit = "512"]
 
+pub use allfeat_primitives::{AccountId, Signature};
+use allfeat_primitives::{AccountIndex, Balance, BlockNumber, Hash, Index, Moment};
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_election_provider_support::{
 	onchain, BalancingConfig, ElectionDataProvider, SequentialPhragmen, VoteWeight,
@@ -45,8 +47,6 @@ use frame_system::{
 	limits::{BlockLength, BlockWeights},
 	EnsureRoot, EnsureSigned,
 };
-pub use node_primitives::{AccountId, Signature};
-use node_primitives::{AccountIndex, Balance, BlockNumber, Hash, Index, Moment};
 use pallet_contracts::weights::WeightInfo;
 use pallet_election_provider_multi_phase::SolutionAccuracyOf;
 use pallet_grandpa::{
@@ -296,16 +296,15 @@ impl InstanceFilter<Call> for ProxyType {
 			ProxyType::Any => true,
 			ProxyType::NonTransfer => !matches!(
 				c,
-				Call::Balances(..)
-					| Call::Assets(..) | Call::Uniques(..)
-					| Call::Indices(pallet_indices::Call::transfer { .. })
+				Call::Balances(..) |
+					Call::Assets(..) | Call::Uniques(..) |
+					Call::Indices(pallet_indices::Call::transfer { .. })
 			),
 			ProxyType::Governance => matches!(
 				c,
-				Call::Democracy(..)
-					| Call::Council(..) | Call::TechnicalCommittee(..)
-					| Call::Elections(..)
-					| Call::Treasury(..)
+				Call::Democracy(..) |
+					Call::Council(..) | Call::TechnicalCommittee(..) |
+					Call::Elections(..) | Call::Treasury(..)
 			),
 			ProxyType::Staking => matches!(c, Call::Staking(..)),
 		}
@@ -636,8 +635,8 @@ impl Get<Option<BalancingConfig>> for OffchainRandomBalancing {
 			max => {
 				let seed = sp_io::offchain::random_seed();
 				let random = <u32>::decode(&mut TrailingZeroInput::new(&seed))
-					.expect("input is padded with zeroes; qed")
-					% max.saturating_add(1);
+					.expect("input is padded with zeroes; qed") %
+					max.saturating_add(1);
 				random as usize
 			},
 		};
@@ -1542,7 +1541,7 @@ impl pallet_artist_identity::Config for Runtime {
 construct_runtime!(
 	pub enum Runtime where
 		Block = Block,
-		NodeBlock = node_primitives::Block,
+		NodeBlock = allfeat_primitives::Block,
 		UncheckedExtrinsic = UncheckedExtrinsic
 	{
 		System: frame_system,

@@ -156,9 +156,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "allfeat-primitives"
+version = "1.0.0"
+dependencies = [
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-application-crypto",
+ "sp-core",
+ "sp-runtime",
+]
+
+[[package]]
 name = "allfeat-runtime"
 version = "1.0.0-dev"
 dependencies = [
+ "allfeat-primitives",
  "frame-benchmarking",
  "frame-election-provider-support",
  "frame-executive",
@@ -169,7 +182,6 @@ dependencies = [
  "frame-try-runtime",
  "hex-literal",
  "log",
- "node-primitives",
  "pallet-allfeat-assets",
  "pallet-allfeat-uniques",
  "pallet-artist-identity",
@@ -4192,7 +4204,7 @@ dependencies = [
 [[package]]
 name = "pallet-artists"
 version = "1.0.0-dev"
-source = "git+ssh://git@github.com/All-feat/pallet-artists.git?branch=develop#1ba3a97db05aae6dd032bffd7c9aa4b24911bc00"
+source = "git+ssh://git@github.com/All-feat/pallet-artists.git?branch=develop#d410bea4978ebb761ac8ec9825f9d3e0e6d321f8"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -9063,7 +9075,7 @@ version = "1.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
- "cfg-if 0.1.10",
+ "cfg-if 1.0.0",
  "digest 0.10.3",
  "rand 0.8.5",
  "static_assertions",
