@@ -45,7 +45,7 @@ sp-io = { version = "6.0.0", default-features = false, git = "https://github.com
 sp-sandbox = { version = "0.10.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 
 # Allfeat pallets
-pallet-artists = { version = "1.0.0-dev", default-features = false, git = "ssh://git@github.com/All-feat/pallet-artists.git", branch = "develop" }
+pallet-artists = { version = "1.0.0-dev", default-features = false, git = "ssh://git@github.com/All-feat/pallet-artists.git", branch = "features/benchmarking" }
 pallet-music-styles = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/All-feat/pallet-music-styles.git", branch = "develop" }
 pallet-artist-identity = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/All-feat/pallet-artist-identity.git", branch = "develop" }
 pallet-allfeat-uniques = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/All-feat/pallet-allfeat-uniques.git", branch = "develop" }
@@ -245,8 +245,8 @@ runtime-benchmarks = [
   "pallet-treasury/runtime-benchmarks",
   "pallet-utility/runtime-benchmarks",
 	"pallet-allfeat-uniques/runtime-benchmarks",
-	"pallet-artists-nft/runtime-benchmarks",
-	"pallet-artists-tokens/runtime-benchmarks",
+	# "pallet-artists-nft/runtime-benchmarks",
+	# "pallet-artists-tokens/runtime-benchmarks",
   "pallet-whitelist/runtime-benchmarks",
   "pallet-artists/runtime-benchmarks",
   "frame-system-benchmarking",
@@ -295,6 +295,7 @@ try-runtime = [
   "pallet-transaction-payment/try-runtime",
   "pallet-treasury/try-runtime",
   "pallet-utility/try-runtime",
+	"pallet-artists/try-runtime",
 	"pallet-allfeat-uniques/try-runtime",
 	"pallet-artists-nft/try-runtime",
 	"pallet-artists-tokens/try-runtime",

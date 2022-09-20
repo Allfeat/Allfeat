@@ -4160,7 +4160,7 @@ dependencies = [
 [[package]]
 name = "pallet-allfeat-assets"
 version = "0.1.0-dev"
-source = "git+ssh://git@github.com/All-feat/pallet-allfeat-assets.git?branch=master#f9a82cc7cb406b124a53a8023771546c618df872"
+source = "git+ssh://git@github.com/All-feat/pallet-allfeat-assets.git?branch=master#75a8fd5d6f94e5fed703b0d0084ad3009e40d39a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4174,7 +4174,7 @@ dependencies = [
 [[package]]
 name = "pallet-allfeat-uniques"
 version = "0.1.0-dev"
-source = "git+ssh://git@github.com/All-feat/pallet-allfeat-uniques.git?branch=develop#45da9156914eb790e18ae30e84f2d7af91accde4"
+source = "git+ssh://git@github.com/All-feat/pallet-allfeat-uniques.git?branch=develop#ebd72c350c72ea0a27d7aabe0d38a0f0b3c03d4b"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4204,7 +4204,7 @@ dependencies = [
 [[package]]
 name = "pallet-artists"
 version = "1.0.0-dev"
-source = "git+ssh://git@github.com/All-feat/pallet-artists.git?branch=develop#d410bea4978ebb761ac8ec9825f9d3e0e6d321f8"
+source = "git+ssh://git@github.com/All-feat/pallet-artists.git?branch=features/benchmarking#63661c4c65280bcfff3c70be7896d28417808526"
 dependencies = [
  "frame-benchmarking",
  "frame-support",

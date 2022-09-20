@@ -296,15 +296,16 @@ impl InstanceFilter<Call> for ProxyType {
 			ProxyType::Any => true,
 			ProxyType::NonTransfer => !matches!(
 				c,
-				Call::Balances(..) |
-					Call::Assets(..) | Call::Uniques(..) |
-					Call::Indices(pallet_indices::Call::transfer { .. })
+				Call::Balances(..)
+					| Call::Assets(..) | Call::Uniques(..)
+					| Call::Indices(pallet_indices::Call::transfer { .. })
 			),
 			ProxyType::Governance => matches!(
 				c,
-				Call::Democracy(..) |
-					Call::Council(..) | Call::TechnicalCommittee(..) |
-					Call::Elections(..) | Call::Treasury(..)
+				Call::Democracy(..)
+					| Call::Council(..) | Call::TechnicalCommittee(..)
+					| Call::Elections(..)
+					| Call::Treasury(..)
 			),
 			ProxyType::Staking => matches!(c, Call::Staking(..)),
 		}
@@ -635,8 +636,8 @@ impl Get<Option<BalancingConfig>> for OffchainRandomBalancing {
 			max => {
 				let seed = sp_io::offchain::random_seed();
 				let random = <u32>::decode(&mut TrailingZeroInput::new(&seed))
-					.expect("input is padded with zeroes; qed") %
-					max.saturating_add(1);
+					.expect("input is padded with zeroes; qed")
+					% max.saturating_add(1);
 				random as usize
 			},
 		};
@@ -1477,6 +1478,7 @@ impl pallet_artists::Config for Runtime {
 	type Call = Call;
 	type CreationDepositAmount = CreationDepositAmount;
 	type NameMaxLength = NameMaxLength;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -1661,6 +1663,7 @@ mod benches {
 	define_benchmarks!(
 		[frame_benchmarking, BaselineBench::<Runtime>]
 		[pallet_allfeat_assets, Assets]
+		[pallet_artists, Artists]
 		[pallet_babe, Babe]
 		[pallet_bags_list, BagsList]
 		[pallet_balances, Balances]
@@ -1698,8 +1701,8 @@ mod benches {
 		[pallet_tips, Tips]
 		[pallet_transaction_storage, TransactionStorage]
 		[pallet_treasury, Treasury]
-		[pallet_allfeat_uniques, Uniques]
-		[pallet_artists_nft, ArtistNfts]
+		// TODO [pallet_allfeat_uniques, Uniques]
+		// TODO [pallet_artists_nft, ArtistNfts]
 		[pallet_utility, Utility]
 		[pallet_whitelist, Whitelist]
 	);
