@@ -213,7 +213,7 @@ dependencies = [
  "pallet-membership",
  "pallet-mmr",
  "pallet-multisig",
- "pallet-music-styles",
+ "pallet-music-styles 0.1.0-dev (git+ssh://git@github.com/Allfeat/pallet-music-styles.git?branch=develop)",
  "pallet-nomination-pools",
  "pallet-nomination-pools-benchmarking",
  "pallet-offences",
@@ -4160,7 +4160,7 @@ dependencies = [
 [[package]]
 name = "pallet-allfeat-assets"
 version = "0.1.0-dev"
-source = "git+ssh://git@github.com/All-feat/pallet-allfeat-assets.git?branch=master#75a8fd5d6f94e5fed703b0d0084ad3009e40d39a"
+source = "git+ssh://git@github.com/Allfeat/pallet-allfeat-assets.git?branch=master#75a8fd5d6f94e5fed703b0d0084ad3009e40d39a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4174,7 +4174,7 @@ dependencies = [
 [[package]]
 name = "pallet-allfeat-uniques"
 version = "0.1.0-dev"
-source = "git+ssh://git@github.com/All-feat/pallet-allfeat-uniques.git?branch=develop#ebd72c350c72ea0a27d7aabe0d38a0f0b3c03d4b"
+source = "git+ssh://git@github.com/Allfeat/pallet-allfeat-uniques.git?branch=develop#ebd72c350c72ea0a27d7aabe0d38a0f0b3c03d4b"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4189,12 +4189,12 @@ dependencies = [
 [[package]]
 name = "pallet-artist-identity"
 version = "0.1.0-dev"
-source = "git+ssh://git@github.com/All-feat/pallet-artist-identity.git?branch=develop#cc59f58db6f4ba0a867dbfa03d5ffcf8685c5d9d"
+source = "git+ssh://git@github.com/Allfeat/pallet-artist-identity.git?branch=develop#74aa579fe65d65d59a08bf9faef6ff3dfab4b03d"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "pallet-music-styles",
+ "pallet-music-styles 0.1.0-dev (git+ssh://git@github.com/All-feat/pallet-music-styles.git?branch=develop)",
  "parity-scale-codec",
  "scale-info",
  "sp-runtime",
@@ -4204,7 +4204,7 @@ dependencies = [
 [[package]]
 name = "pallet-artists"
 version = "1.0.0-dev"
-source = "git+ssh://git@github.com/All-feat/pallet-artists.git?branch=features/benchmarking#63661c4c65280bcfff3c70be7896d28417808526"
+source = "git+ssh://git@github.com/Allfeat/pallet-artists.git?branch=features/benchmarking#237d9041b6aef1599d5682cf8556b7f1660e3c55"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4218,7 +4218,7 @@ dependencies = [
 [[package]]
 name = "pallet-artists-nft"
 version = "0.1.0-dev"
-source = "git+ssh://git@github.com/All-feat/pallet-artists-nft.git?branch=develop#202c845fc40374c06ee739a08ab51f02960e5de1"
+source = "git+ssh://git@github.com/Allfeat/pallet-artists-nft.git?branch=develop#45117acd22b3e71702499aaf948a174ec528b454"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4233,7 +4233,7 @@ dependencies = [
 [[package]]
 name = "pallet-artists-tokens"
 version = "0.1.0-dev"
-source = "git+ssh://git@github.com/All-feat/pallet-artists-tokens.git?branch=master#f3fd84e2be462075609d84abe2ee6066fa3eb533"
+source = "git+ssh://git@github.com/Allfeat/pallet-artists-tokens.git?branch=master#cf3088df3868af71a1729cd86abae81639916335"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -4734,6 +4734,21 @@ dependencies = [
 name = "pallet-music-styles"
 version = "0.1.0-dev"
 source = "git+ssh://git@github.com/All-feat/pallet-music-styles.git?branch=develop#9829579c6df23a5cfda2ac3c4081bc12d4f9e421"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-music-styles"
+version = "0.1.0-dev"
+source = "git+ssh://git@github.com/Allfeat/pallet-music-styles.git?branch=develop#0e7261804c6ae678edcce52edc1bd40eb44aec07"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
