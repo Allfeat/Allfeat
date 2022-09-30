@@ -45,13 +45,13 @@ sp-io = { version = "6.0.0", default-features = false, git = "https://github.com
 sp-sandbox = { version = "0.10.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 
 # Allfeat pallets
-pallet-artists = { version = "1.0.0-dev", default-features = false, git = "ssh://git@github.com/All-feat/pallet-artists.git", branch = "develop" }
-pallet-music-styles = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/All-feat/pallet-music-styles.git", branch = "develop" }
-pallet-artist-identity = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/All-feat/pallet-artist-identity.git", branch = "develop" }
-pallet-allfeat-uniques = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/All-feat/pallet-allfeat-uniques.git", branch = "develop" }
-pallet-allfeat-assets = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/All-feat/pallet-allfeat-assets.git", branch = "master" }
-pallet-artists-nft = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/All-feat/pallet-artists-nft.git", branch = "develop" }
-pallet-artists-tokens = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/All-feat/pallet-artists-tokens.git", branch = "master" }
+pallet-artists = { version = "1.0.0-dev", default-features = false, git = "ssh://git@github.com/Allfeat/pallet-artists.git", branch = "master" }
+pallet-music-styles = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/Allfeat/pallet-music-styles.git", branch = "master" }
+pallet-artist-identity = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/Allfeat/pallet-artist-identity.git", branch = "master" }
+pallet-allfeat-uniques = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/Allfeat/pallet-allfeat-uniques.git", branch = "master" }
+pallet-allfeat-assets = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/Allfeat/pallet-allfeat-assets.git", branch = "master" }
+pallet-artists-nft = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/Allfeat/pallet-artists-nft.git", branch = "master" }
+pallet-artists-tokens = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/Allfeat/pallet-artists-tokens.git", branch = "master" }
 
 pallet-babe = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 pallet-authority-discovery = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
@@ -247,6 +247,8 @@ runtime-benchmarks = [
 	"pallet-allfeat-uniques/runtime-benchmarks",
 	"pallet-artists-nft/runtime-benchmarks",
 	"pallet-artists-tokens/runtime-benchmarks",
+	"pallet-music-styles/runtime-benchmarks",
+	"pallet-artist-identity/runtime-benchmarks",
   "pallet-whitelist/runtime-benchmarks",
   "pallet-artists/runtime-benchmarks",
   "frame-system-benchmarking",
@@ -295,6 +297,7 @@ try-runtime = [
   "pallet-transaction-payment/try-runtime",
   "pallet-treasury/try-runtime",
   "pallet-utility/try-runtime",
+	"pallet-artists/try-runtime",
 	"pallet-allfeat-uniques/try-runtime",
 	"pallet-artists-nft/try-runtime",
 	"pallet-artists-tokens/try-runtime",
