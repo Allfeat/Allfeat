@@ -1478,7 +1478,7 @@ impl pallet_artists::Config for Runtime {
 	type Call = Call;
 	type CreationDepositAmount = CreationDepositAmount;
 	type NameMaxLength = NameMaxLength;
-	type WeightInfo = ();
+	type WeightInfo = pallet_artists::weights::AllfeatWeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -1493,6 +1493,7 @@ impl pallet_music_styles::Config for Runtime {
 	type MaxStyleCount = MaxStyleCount;
 	type MaxSubStyleCount = MaxSubStyleCount;
 	type NameMaxLength = StyleNameMaxLength;
+	type Weights = pallet_music_styles::weights::AllfeatWeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -1506,6 +1507,7 @@ impl pallet_artists_nft::Config for Runtime {
 	type Event = Event;
 	type Origin = Origin;
 	type ArtistOrigin = EnsureArtist<AccountId>;
+	type Weights = pallet_artists_nft::weights::AllfeatWeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -1525,6 +1527,7 @@ impl pallet_artists_tokens::Config for Runtime {
 	type TokenDecimal = TokenDecimal;
 	type TokenMaxSupply = TokenMaxSupply;
 	type UnlockedPerBlock = UnlockedPerBlock;
+	type Weights = pallet_artists_tokens::weights::AllfeatWeightInfo<Runtime>;
 }
 
 const UNIT_ARTIST_TOKEN: u64 =
@@ -1532,12 +1535,13 @@ const UNIT_ARTIST_TOKEN: u64 =
 
 impl pallet_artist_identity::Config for Runtime {
 	type Event = Event;
-	type Artists = Artists;
 	type Currency = Balances;
+	type ArtistOrigin = EnsureArtist<Self::AccountId>;
 	type CostPerByte = CostPerByte;
 	type MaxRegisteredStyles = MaxRegisteredStyles;
 	type MaxDefaultStringLength = MaxDefaultStringLength;
 	type MaxDescriptionLength = MaxDescriptionLength;
+	type Weights = pallet_artist_identity::weights::AllfeatWeightInfo<Runtime>;
 }
 
 construct_runtime!(
@@ -1664,6 +1668,8 @@ mod benches {
 		[frame_benchmarking, BaselineBench::<Runtime>]
 		[pallet_allfeat_assets, Assets]
 		[pallet_artists, Artists]
+		[pallet_artist_identity, ArtistIdentity]
+		[pallet_artists_tokens, ArtistTokens]
 		[pallet_babe, Babe]
 		[pallet_bags_list, BagsList]
 		[pallet_balances, Balances]
@@ -1685,6 +1691,7 @@ mod benches {
 		[pallet_membership, TechnicalMembership]
 		[pallet_mmr, Mmr]
 		[pallet_multisig, Multisig]
+		[pallet_music_styles, MusicStyles]
 		[pallet_nomination_pools, NominationPoolsBench::<Runtime>]
 		[pallet_offences, OffencesBench::<Runtime>]
 		[pallet_preimage, Preimage]
@@ -1701,8 +1708,8 @@ mod benches {
 		[pallet_tips, Tips]
 		[pallet_transaction_storage, TransactionStorage]
 		[pallet_treasury, Treasury]
-		// TODO [pallet_allfeat_uniques, Uniques]
-		// TODO [pallet_artists_nft, ArtistNfts]
+		[pallet_allfeat_uniques, Uniques]
+		[pallet_artists_nft, ArtistNfts]
 		[pallet_utility, Utility]
 		[pallet_whitelist, Whitelist]
 	);
