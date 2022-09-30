@@ -68,7 +68,6 @@ pallet-democracy = { version = "4.0.0-dev", default-features = false, git = "htt
 pallet-election-provider-multi-phase = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 pallet-election-provider-support-benchmarking = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 pallet-elections-phragmen = { version = "5.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
-pallet-gilt = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 pallet-im-online = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 pallet-indices = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 pallet-identity = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
@@ -146,7 +145,6 @@ std = [
   "pallet-democracy/std",
   "pallet-elections-phragmen/std",
   "frame-executive/std",
-  "pallet-gilt/std",
   "pallet-grandpa/std",
   "pallet-im-online/std",
   "pallet-indices/std",
@@ -218,7 +216,6 @@ runtime-benchmarks = [
   "pallet-election-provider-multi-phase/runtime-benchmarks",
   "pallet-election-provider-support-benchmarking/runtime-benchmarks",
   "pallet-elections-phragmen/runtime-benchmarks",
-  "pallet-gilt/runtime-benchmarks",
   "pallet-grandpa/runtime-benchmarks",
   "pallet-identity/runtime-benchmarks",
   "pallet-im-online/runtime-benchmarks",
@@ -271,7 +268,6 @@ try-runtime = [
   "pallet-democracy/try-runtime",
   "pallet-election-provider-multi-phase/try-runtime",
   "pallet-elections-phragmen/try-runtime",
-  "pallet-gilt/try-runtime",
   "pallet-grandpa/try-runtime",
   "pallet-identity/try-runtime",
   "pallet-im-online/try-runtime",
