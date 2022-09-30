@@ -83,7 +83,6 @@ pallet-preimage = { version = "4.0.0-dev", default-features = false, git = "http
 pallet-proxy = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 pallet-recovery = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 pallet-referenda = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
-pallet-remark = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 pallet-session = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 pallet-session-benchmarking = { version = "4.0.0-dev", optional = true, default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 pallet-staking = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
@@ -188,7 +187,6 @@ std = [
   "sp-version/std",
   "pallet-society/std",
   "pallet-referenda/std",
-  "pallet-remark/std",
   "pallet-recovery/std",
 	"pallet-allfeat-uniques/std",
 	"pallet-artists-nft/std",
@@ -231,7 +229,6 @@ runtime-benchmarks = [
   "pallet-scheduler/runtime-benchmarks",
   "pallet-referenda/runtime-benchmarks",
   "pallet-recovery/runtime-benchmarks",
-  "pallet-remark/runtime-benchmarks",
   "pallet-session-benchmarking",
   "pallet-society/runtime-benchmarks",
   "pallet-staking/runtime-benchmarks",
