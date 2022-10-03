@@ -172,6 +172,7 @@ name = "allfeat-runtime"
 version = "1.0.0-dev"
 dependencies = [
  "allfeat-primitives",
+ "allfeat-support",
  "frame-benchmarking",
  "frame-election-provider-support",
  "frame-executive",
@@ -257,6 +258,15 @@ dependencies = [
  "sp-version",
  "static_assertions",
  "substrate-wasm-builder",
+]
+
+[[package]]
+name = "allfeat-support"
+version = "0.1.0-dev"
+source = "git+ssh://git@github.com/allfeat/allfeat-support?branch=master#71881cff0778155bef8bae0ce08bbb2dc8e0ea8d"
+dependencies = [
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -4204,12 +4214,12 @@ dependencies = [
 [[package]]
 name = "pallet-artist-identity"
 version = "0.1.0-dev"
-source = "git+ssh://git@github.com/Allfeat/pallet-artist-identity.git?branch=master#085bc7a43940225c05a7f1ea523b847516990e13"
+source = "git+ssh://git@github.com/Allfeat/pallet-artist-identity.git?branch=develop#754a84b5ab05d4cfb368d1411ba99df1ea802d0a"
 dependencies = [
+ "allfeat-support",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "pallet-music-styles",
  "parity-scale-codec",
  "scale-info",
  "sp-runtime",
@@ -4733,8 +4743,9 @@ dependencies = [
 [[package]]
 name = "pallet-music-styles"
 version = "0.1.0-dev"
-source = "git+ssh://git@github.com/Allfeat/pallet-music-styles.git?branch=master#5bade905b94cc3d37eb74b0fd761fb52f8686c93"
+source = "git+ssh://git@github.com/Allfeat/pallet-music-styles.git?branch=develop#e767e17043511a20660688d56fddee1a1fec0a64"
 dependencies = [
+ "allfeat-support",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
@@ -5364,9 +5375,9 @@ checksum = "478c572c3d73181ff3c2539045f6eb99e5491218eae919370993b890cdbdd98e"
 
 [[package]]
 name = "pest"
-version = "2.3.1"
+version = "2.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cb779fcf4bb850fbbb0edc96ff6cf34fd90c4b1a112ce042653280d9a7364048"
+checksum = "dbc7bc69c062e492337d74d59b120c274fd3d261b6bf6d3207d499b4b379c41a"
 dependencies = [
  "thiserror",
  "ucd-trie",
@@ -5374,9 +5385,9 @@ dependencies = [
 
 [[package]]
 name = "pest_derive"
-version = "2.3.1"
+version = "2.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "502b62a6d0245378b04ffe0a7fb4f4419a4815fce813bd8a0ec89a56e07d67b1"
+checksum = "60b75706b9642ebcb34dab3bc7750f811609a0eb1dd8b88c2d15bf628c1c65b2"
 dependencies = [
  "pest",
  "pest_generator",
@@ -5384,9 +5395,9 @@ dependencies = [
 
 [[package]]
 name = "pest_generator"
-version = "2.3.1"
+version = "2.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "451e629bf49b750254da26132f1a5a9d11fd8a95a3df51d15c4abd1ba154cb6c"
+checksum = "f4f9272122f5979a6511a749af9db9bfc810393f63119970d7085fed1c4ea0db"
 dependencies = [
  "pest",
  "pest_meta",
@@ -5397,9 +5408,9 @@ dependencies = [
 
 [[package]]
 name = "pest_meta"
-version = "2.3.1"
+version = "2.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bcec162c71c45e269dfc3fc2916eaeb97feab22993a21bcce4721d08cd7801a6"
+checksum = "4c8717927f9b79515e565a64fe46c38b8cd0427e64c40680b14a7365ab09ac8d"
 dependencies = [
  "once_cell",
  "pest",
@@ -7566,9 +7577,9 @@ checksum = "03b634d87b960ab1a38c4fe143b508576f075e7c978bfad18217645ebfdfa2ec"
 
 [[package]]
 name = "smallvec"
-version = "1.9.0"
+version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2fd0db749597d91ff862fd1d55ea87f7855a744a8425a64695b6fca237d1dad1"
+checksum = "a507befe795404456341dfab10cef66ead4c041f62b8b11bbb92bffe5d0953e0"
 
 [[package]]
 name = "snap"
@@ -8342,9 +8353,9 @@ checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 
 [[package]]
 name = "ss58-registry"
-version = "1.29.1"
+version = "1.30.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e4f0cb475a8e58d9ed8a963010108768d79e397f7aff79f9a3972ef490f97de"
+checksum = "c2486f3d026e958566c6079caef44108cddf0ae6f8a411ef74fb08cdb56e614a"
 dependencies = [
  "Inflector",
  "num-format",

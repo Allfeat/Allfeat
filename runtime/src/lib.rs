@@ -1467,9 +1467,6 @@ parameter_types! {
 impl pallet_music_styles::Config for Runtime {
 	type Event = Event;
 	type AdminOrigin = EnsureRoot<Self::AccountId>;
-	type MaxStyleCount = MaxStyleCount;
-	type MaxSubStyleCount = MaxSubStyleCount;
-	type NameMaxLength = StyleNameMaxLength;
 	type Weights = pallet_music_styles::weights::AllfeatWeightInfo<Runtime>;
 }
 
@@ -1514,10 +1511,13 @@ impl pallet_artist_identity::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
 	type ArtistOrigin = EnsureArtist<Self::AccountId>;
+	type StylesProvider = MusicStyles;
 	type CostPerByte = CostPerByte;
 	type MaxRegisteredStyles = MaxRegisteredStyles;
 	type MaxDefaultStringLength = MaxDefaultStringLength;
 	type MaxDescriptionLength = MaxDescriptionLength;
+	#[cfg(feature = "runtime-benchmarks")]
+	type StylesHelper = MusicStyles;
 	type Weights = pallet_artist_identity::weights::AllfeatWeightInfo<Runtime>;
 }
 

@@ -21,6 +21,7 @@ scale-info = { version = "2.0.1", default-features = false, features = [
 static_assertions = "1.1.0"
 log = { version = "0.4.17", default-features = false }
 
+allfeat-support = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/allfeat/allfeat-support", branch = "master" }
 frame-support = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 frame-election-provider-support = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 frame-system = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
@@ -46,8 +47,8 @@ sp-sandbox = { version = "0.10.0-dev", default-features = false, git = "https://
 
 # Allfeat pallets
 pallet-artists = { version = "1.0.0-dev", default-features = false, git = "ssh://git@github.com/Allfeat/pallet-artists.git", branch = "master" }
-pallet-music-styles = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/Allfeat/pallet-music-styles.git", branch = "master" }
-pallet-artist-identity = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/Allfeat/pallet-artist-identity.git", branch = "master" }
+pallet-music-styles = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/Allfeat/pallet-music-styles.git", branch = "develop" }
+pallet-artist-identity = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/Allfeat/pallet-artist-identity.git", branch = "develop" }
 pallet-allfeat-uniques = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/Allfeat/pallet-allfeat-uniques.git", branch = "master" }
 pallet-allfeat-assets = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/Allfeat/pallet-allfeat-assets.git", branch = "master" }
 pallet-artists-nft = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/Allfeat/pallet-artists-nft.git", branch = "master" }
@@ -171,6 +172,7 @@ std = [
   "pallet-state-trie-migration/std",
   "sp-session/std",
   "pallet-sudo/std",
+  "allfeat-support/std",
   "frame-support/std",
   "frame-benchmarking/std",
   "frame-system-rpc-runtime-api/std",
