@@ -80,8 +80,6 @@ use static_assertions::const_assert;
 #[cfg(any(feature = "std", test))]
 pub use frame_system::Call as SystemCall;
 use pallet_artists::EnsureArtist;
-use pallet_artists_nft::EnsureArtistNft;
-use pallet_artists_tokens::EnsureArtistToken;
 #[cfg(any(feature = "std", test))]
 pub use pallet_balances::Call as BalancesCall;
 #[cfg(any(feature = "std", test))]
@@ -296,16 +294,15 @@ impl InstanceFilter<Call> for ProxyType {
 			ProxyType::Any => true,
 			ProxyType::NonTransfer => !matches!(
 				c,
-				Call::Balances(..)
-					| Call::Assets(..) | Call::Uniques(..)
-					| Call::Indices(pallet_indices::Call::transfer { .. })
+				Call::Balances(..) |
+					Call::Assets(..) | Call::Uniques(..) |
+					Call::Indices(pallet_indices::Call::transfer { .. })
 			),
 			ProxyType::Governance => matches!(
 				c,
-				Call::Democracy(..)
-					| Call::Council(..) | Call::TechnicalCommittee(..)
-					| Call::Elections(..)
-					| Call::Treasury(..)
+				Call::Democracy(..) |
+					Call::Council(..) | Call::TechnicalCommittee(..) |
+					Call::Elections(..) | Call::Treasury(..)
 			),
 			ProxyType::Staking => matches!(c, Call::Staking(..)),
 		}
@@ -636,8 +633,8 @@ impl Get<Option<BalancingConfig>> for OffchainRandomBalancing {
 			max => {
 				let seed = sp_io::offchain::random_seed();
 				let random = <u32>::decode(&mut TrailingZeroInput::new(&seed))
-					.expect("input is padded with zeroes; qed")
-					% max.saturating_add(1);
+					.expect("input is padded with zeroes; qed") %
+					max.saturating_add(1);
 				random as usize
 			},
 		};
@@ -1339,7 +1336,6 @@ impl pallet_allfeat_assets::Config for Runtime {
 	type AssetId = u32;
 	type Currency = Balances;
 	type ForceOrigin = EnsureRoot<AccountId>;
-	type CreateOrigin = EnsureArtistToken<AccountId>;
 	type AssetDeposit = AssetDeposit;
 	type AssetAccountDeposit = ConstU128<DOLLARS>;
 	type MetadataDepositBase = MetadataDepositBase;
@@ -1375,7 +1371,6 @@ impl pallet_allfeat_uniques::Config for Runtime {
 	type ItemId = u32;
 	type Currency = Balances;
 	type AdminOrigin = EnsureRoot<AccountId>;
-	type CreateOrigin = AsEnsureOriginWithArg<EnsureArtistNft<AccountId>>;
 	type CollectionDeposit = CollectionDeposit;
 	type ItemDeposit = ItemDeposit;
 	type MetadataDepositBase = MetadataDepositBase;
@@ -1479,7 +1474,9 @@ parameter_types! {
 
 impl pallet_artists_nft::Config for Runtime {
 	type Event = Event;
-	type Origin = Origin;
+	type Currency = Balances;
+	type Uniques = Uniques;
+	type ValueLimit = ValueLimit;
 	type ArtistOrigin = EnsureArtist<AccountId>;
 	type Weights = pallet_artists_nft::weights::AllfeatWeightInfo<Runtime>;
 }
@@ -1494,12 +1491,14 @@ parameter_types! {
 
 impl pallet_artists_tokens::Config for Runtime {
 	type Event = Event;
-	type Origin = Origin;
+	type Currency = Balances;
+	type Assets = Assets;
 	type ArtistOrigin = EnsureArtist<AccountId>;
 	type ExistentialDepositToken = ExistentialDeposit;
 	type ArtistReserve = ArtistReserve;
 	type TokenDecimal = TokenDecimal;
 	type TokenMaxSupply = TokenMaxSupply;
+	type StringLimit = StringLimit;
 	type UnlockedPerBlock = UnlockedPerBlock;
 	type Weights = pallet_artists_tokens::weights::AllfeatWeightInfo<Runtime>;
 }
