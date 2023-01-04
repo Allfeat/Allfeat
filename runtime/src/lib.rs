@@ -306,16 +306,15 @@ impl InstanceFilter<Call> for ProxyType {
 			ProxyType::Any => true,
 			ProxyType::NonTransfer => !matches!(
 				c,
-				Call::Balances(..)
-					| Call::Assets(..) | Call::Uniques(..)
-					| Call::Indices(pallet_indices::Call::transfer { .. })
+				Call::Balances(..) |
+					Call::Assets(..) | Call::Uniques(..) |
+					Call::Indices(pallet_indices::Call::transfer { .. })
 			),
 			ProxyType::Governance => matches!(
 				c,
-				Call::Democracy(..)
-					| Call::Council(..) | Call::TechnicalCommittee(..)
-					| Call::Elections(..)
-					| Call::Treasury(..)
+				Call::Democracy(..) |
+					Call::Council(..) | Call::TechnicalCommittee(..) |
+					Call::Elections(..) | Call::Treasury(..)
 			),
 			ProxyType::Staking => matches!(c, Call::Staking(..)),
 		}
@@ -646,8 +645,8 @@ impl Get<Option<BalancingConfig>> for OffchainRandomBalancing {
 			max => {
 				let seed = sp_io::offchain::random_seed();
 				let random = <u32>::decode(&mut TrailingZeroInput::new(&seed))
-					.expect("input is padded with zeroes; qed")
-					% max.saturating_add(1);
+					.expect("input is padded with zeroes; qed") %
+					max.saturating_add(1);
 				random as usize
 			},
 		};
@@ -1398,7 +1397,6 @@ impl pallet_allfeat_uniques::Config for Runtime {
 	type WeightInfo = pallet_allfeat_uniques::weights::SubstrateWeight<Runtime>;
 }
 
-// TODO: Value set randomly
 parameter_types! {
 	pub const MaxBlockTransactions: u32 = 1000;
 	pub const MaxTransactionSize: u32 = 512;
@@ -1426,7 +1424,6 @@ impl pallet_whitelist::Config for Runtime {
 parameter_types! {
 	pub const MigrationSignedDepositPerItem: Balance = 1 * CENTS;
 	pub const MigrationSignedDepositBase: Balance = 20 * DOLLARS;
-	// TODO: Value set randomly
 	pub const MaxNumberOfBytesThatAKeyCanHave: u32 = 512;
 }
 
@@ -1467,6 +1464,13 @@ impl pallet_artists::Config for Runtime {
 	type WeightInfo = pallet_artists::weights::AllfeatWeightInfo<Runtime>;
 }
 
+parameter_types! {
+	pub const CostPerByte: Balance = 1 * DOLLARS;
+	pub const MaxRegisteredStyles: u32 = 5;
+	pub const MaxDefaultStringLength: u32 = 128;
+	pub const MaxDescriptionLength: u32 = 512;
+}
+
 impl pallet_artist_identity::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
@@ -1491,13 +1495,6 @@ impl pallet_music_styles::Config for Runtime {
 	type Event = Event;
 	type AdminOrigin = EnsureRoot<Self::AccountId>;
 	type Weights = pallet_music_styles::weights::AllfeatWeightInfo<Runtime>;
-}
-
-parameter_types! {
-	pub const CostPerByte: Balance = 1 * DOLLARS;
-	pub const MaxRegisteredStyles: u32 = 5;
-	pub const MaxDefaultStringLength: u32 = 128;
-	pub const MaxDescriptionLength: u32 = 512;
 }
 
 construct_runtime!(
