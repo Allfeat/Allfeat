@@ -59,9 +59,6 @@ pallet-bags-list = { version = "4.0.0-dev", default-features = false, git = "htt
 pallet-bounties = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 pallet-child-bounties = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 pallet-collective = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
-pallet-contracts = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
-pallet-contracts-primitives = { version = "6.0.0", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
-pallet-contracts-rpc-runtime-api = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 pallet-conviction-voting = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 pallet-democracy = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 pallet-election-provider-multi-phase = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
@@ -136,9 +133,6 @@ std = [
   "codec/std",
   "scale-info/std",
   "pallet-collective/std",
-  "pallet-contracts/std",
-  "pallet-contracts-primitives/std",
-  "pallet-contracts-rpc-runtime-api/std",
   "pallet-conviction-voting/std",
   "pallet-democracy/std",
   "pallet-elections-phragmen/std",
@@ -206,7 +200,6 @@ runtime-benchmarks = [
   "pallet-bounties/runtime-benchmarks",
   "pallet-child-bounties/runtime-benchmarks",
   "pallet-collective/runtime-benchmarks",
-  "pallet-contracts/runtime-benchmarks",
   "pallet-conviction-voting/runtime-benchmarks",
   "pallet-democracy/runtime-benchmarks",
   "pallet-election-provider-multi-phase/runtime-benchmarks",
@@ -256,7 +249,6 @@ try-runtime = [
   "pallet-bounties/try-runtime",
   "pallet-child-bounties/try-runtime",
   "pallet-collective/try-runtime",
-  "pallet-contracts/try-runtime",
   "pallet-conviction-voting/try-runtime",
   "pallet-democracy/try-runtime",
   "pallet-election-provider-multi-phase/try-runtime",
@@ -290,9 +282,7 @@ try-runtime = [
 	"pallet-allfeat-uniques/try-runtime",
   "pallet-whitelist/try-runtime",
 ]
-# Make contract callable functions marked as __unstable__ available. Do not enable
-# on live chains as those are subject to change.
-contracts-unstable-interface = ["pallet-contracts/unstable-interface"]
+
 # Force `sp-sandbox` to call into the host resident executor. One still need to make sure
 # that `sc-executor` gets the `wasmer-sandbox` feature which happens automatically when
 # specified on the command line.
