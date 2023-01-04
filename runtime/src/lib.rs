@@ -91,7 +91,7 @@ pub use sp_runtime::BuildStorage;
 
 /// Implementations of some helper traits passed into runtime modules as associated types.
 pub mod impls;
-use impls::Author;
+use impls::{AllfeatLabs, Author};
 
 /// Constant values used within the runtime.
 pub mod constants;
@@ -145,20 +145,32 @@ pub fn native_version() -> NativeVersion {
 	NativeVersion { runtime_version: VERSION, can_author_with: Default::default() }
 }
 
+pub const LABS_PAYMENT_DELAY: BlockNumber = (365 * DAYS) * 4 + 1;
+
+/// Create the Allfeat Labs account
+
 type NegativeImbalance = <Balances as Currency<AccountId>>::NegativeImbalance;
 
 pub struct DealWithFees;
 impl OnUnbalanced<NegativeImbalance> for DealWithFees {
 	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance>) {
 		if let Some(fees) = fees_then_tips.next() {
-			// for fees, 80% to treasury, 20% to author
+			// for fees, 80% to author, 20% for extras (treasure, maybe labs...).
 			let mut split = fees.ration(80, 20);
+
 			if let Some(tips) = fees_then_tips.next() {
-				// for tips, if any, 80% to treasury, 20% to author (though this can be anything)
+				// for tips, if any, 80% to author, 20% to extras
 				tips.ration_merge_into(80, 20, &mut split);
 			}
-			Treasury::on_unbalanced(split.0);
-			Author::on_unbalanced(split.1);
+
+			Author::on_unbalanced(split.0);
+			if System::block_number() < LABS_PAYMENT_DELAY {
+				let s_split = split.1.ration(75, 25);
+				Treasury::on_unbalanced(s_split.0);
+				AllfeatLabs::on_unbalanced(s_split.1);
+			} else {
+				Treasury::on_unbalanced(split.1);
+			}
 		}
 	}
 }
@@ -730,6 +742,7 @@ parameter_types! {
 }
 
 use sp_runtime::traits::Convert;
+
 pub struct BalanceToU256;
 impl Convert<Balance, sp_core::U256> for BalanceToU256 {
 	fn convert(balance: Balance) -> sp_core::U256 {

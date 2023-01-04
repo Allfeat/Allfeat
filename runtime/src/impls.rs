@@ -17,7 +17,7 @@
 
 //! Some configurable implementations as associated type for the substrate runtime.
 
-use crate::{Authorship, Balances, NegativeImbalance};
+use crate::{constants::known_accounts::ALLFEAT_LABS, Authorship, Balances, NegativeImbalance};
 use frame_support::traits::{Currency, OnUnbalanced};
 
 pub struct Author;
@@ -26,6 +26,13 @@ impl OnUnbalanced<NegativeImbalance> for Author {
 		if let Some(author) = Authorship::author() {
 			Balances::resolve_creating(&author, amount);
 		}
+	}
+}
+
+pub struct AllfeatLabs;
+impl OnUnbalanced<NegativeImbalance> for AllfeatLabs {
+	fn on_nonzero_unbalanced(amount: NegativeImbalance) {
+		Balances::resolve_creating(&ALLFEAT_LABS, amount);
 	}
 }
 
@@ -169,7 +176,7 @@ mod multiplier_tests {
 				let next = runtime_multiplier_update(fm);
 				fm = next;
 				if fm == min_multiplier() {
-					break
+					break;
 				}
 				iterations += 1;
 			}
