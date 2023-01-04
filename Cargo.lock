@@ -86,6 +86,7 @@ dependencies = [
 name = "allfeat-node"
 version = "1.0.0-dev"
 dependencies = [
+ "allfeat-primitives",
  "allfeat-runtime",
  "clap",
  "frame-benchmarking",
@@ -96,7 +97,6 @@ dependencies = [
  "hex-literal",
  "jsonrpsee",
  "log",
- "node-primitives",
  "pallet-im-online",
  "pallet-mmr-rpc",
  "pallet-transaction-payment",
@@ -4077,19 +4077,6 @@ dependencies = [
  "bitflags",
  "cfg-if 1.0.0",
  "libc",
-]
-
-[[package]]
-name = "node-primitives"
-version = "2.0.0"
-source = "git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.27#5bfdbab8ba28523ef10e365627fed64ef2b77cbf"
-dependencies = [
- "frame-system",
- "parity-scale-codec",
- "scale-info",
- "sp-application-crypto",
- "sp-core",
- "sp-runtime",
 ]
 
 [[package]]

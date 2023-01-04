@@ -36,8 +36,8 @@ use sp_runtime::{
 	Perbill,
 };
 
+pub use allfeat_primitives::{AccountId, Balance, Signature};
 pub use allfeat_runtime::GenesisConfig;
-pub use node_primitives::{AccountId, Balance, Signature};
 
 type AccountPublic = <Signature as Verify>::Signer;
 

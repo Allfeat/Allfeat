@@ -20,9 +20,9 @@
 
 //! Service implementation. Specialized wrapper over substrate service.
 
+use allfeat_primitives::Block;
 use allfeat_runtime::{RuntimeApi, SS58_PREFIX};
 use futures::prelude::*;
-use node_primitives::Block;
 use sc_client_api::{BlockBackend, ExecutorProvider};
 use sc_consensus_babe::{self, SlotProportion};
 use sc_executor::NativeElseWasmExecutor;
