@@ -51,8 +51,6 @@ pallet-music-styles = { version = "0.1.0-dev", default-features = false, git = "
 pallet-artist-identity = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/Allfeat/pallet-artist-identity.git", branch = "develop" }
 pallet-allfeat-uniques = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/Allfeat/pallet-allfeat-uniques.git", branch = "master" }
 pallet-allfeat-assets = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/Allfeat/pallet-allfeat-assets.git", branch = "master" }
-pallet-artists-nft = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/Allfeat/pallet-artists-nft.git", branch = "master" }
-pallet-artists-tokens = { version = "0.1.0-dev", default-features = false, git = "ssh://git@github.com/Allfeat/pallet-artists-tokens.git", branch = "master" }
 
 pallet-babe = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
 pallet-authority-discovery = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.27" }
@@ -191,8 +189,6 @@ std = [
   "pallet-referenda/std",
   "pallet-recovery/std",
 	"pallet-allfeat-uniques/std",
-	"pallet-artists-nft/std",
-	"pallet-artists-tokens/std",
   "log/std",
   "frame-try-runtime/std",
   "sp-io/std",
@@ -241,8 +237,6 @@ runtime-benchmarks = [
   "pallet-treasury/runtime-benchmarks",
   "pallet-utility/runtime-benchmarks",
 	"pallet-allfeat-uniques/runtime-benchmarks",
-	"pallet-artists-nft/runtime-benchmarks",
-	"pallet-artists-tokens/runtime-benchmarks",
 	"pallet-music-styles/runtime-benchmarks",
 	"pallet-artist-identity/runtime-benchmarks",
   "pallet-whitelist/runtime-benchmarks",
@@ -294,8 +288,6 @@ try-runtime = [
   "pallet-utility/try-runtime",
 	"pallet-artists/try-runtime",
 	"pallet-allfeat-uniques/try-runtime",
-	"pallet-artists-nft/try-runtime",
-	"pallet-artists-tokens/try-runtime",
   "pallet-whitelist/try-runtime",
 ]
 # Make contract callable functions marked as __unstable__ available. Do not enable

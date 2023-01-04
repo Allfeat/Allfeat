@@ -187,8 +187,6 @@ dependencies = [
  "pallet-allfeat-uniques",
  "pallet-artist-identity",
  "pallet-artists",
- "pallet-artists-nft",
- "pallet-artists-tokens",
  "pallet-authority-discovery",
  "pallet-authorship",
  "pallet-babe",
@@ -4319,37 +4317,6 @@ dependencies = [
  "frame-system",
  "parity-scale-codec",
  "scale-info",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-artists-nft"
-version = "0.1.0-dev"
-source = "git+ssh://git@github.com/Allfeat/pallet-artists-nft.git?branch=master#de31638313f9a3d5179dc104866a7bd1c223c7aa"
-dependencies = [
- "allfeat-support",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "scale-info",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-artists-tokens"
-version = "0.1.0-dev"
-source = "git+ssh://git@github.com/Allfeat/pallet-artists-tokens.git?branch=master#491dee33ab900370d0e681611e5b747b6db6e759"
-dependencies = [
- "allfeat-support",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "scale-info",
- "sp-io",
  "sp-runtime",
  "sp-std",
 ]

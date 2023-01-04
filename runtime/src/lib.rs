@@ -33,9 +33,9 @@ use frame_support::{
 	pallet_prelude::Get,
 	parameter_types,
 	traits::{
-		AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32, Currency, EitherOfDiverse,
-		EqualPrivilegeOnly, Everything, Imbalance, InstanceFilter, KeyOwnerProofSystem,
-		LockIdentifier, Nothing, OnUnbalanced, U128CurrencyToVote,
+		ConstU128, ConstU16, ConstU32, Currency, EitherOfDiverse, EqualPrivilegeOnly, Everything,
+		Imbalance, InstanceFilter, KeyOwnerProofSystem, LockIdentifier, Nothing, OnUnbalanced,
+		U128CurrencyToVote,
 	},
 	weights::{
 		constants::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_PER_SECOND},
@@ -294,15 +294,16 @@ impl InstanceFilter<Call> for ProxyType {
 			ProxyType::Any => true,
 			ProxyType::NonTransfer => !matches!(
 				c,
-				Call::Balances(..) |
-					Call::Assets(..) | Call::Uniques(..) |
-					Call::Indices(pallet_indices::Call::transfer { .. })
+				Call::Balances(..)
+					| Call::Assets(..) | Call::Uniques(..)
+					| Call::Indices(pallet_indices::Call::transfer { .. })
 			),
 			ProxyType::Governance => matches!(
 				c,
-				Call::Democracy(..) |
-					Call::Council(..) | Call::TechnicalCommittee(..) |
-					Call::Elections(..) | Call::Treasury(..)
+				Call::Democracy(..)
+					| Call::Council(..) | Call::TechnicalCommittee(..)
+					| Call::Elections(..)
+					| Call::Treasury(..)
 			),
 			ProxyType::Staking => matches!(c, Call::Staking(..)),
 		}
@@ -633,8 +634,8 @@ impl Get<Option<BalancingConfig>> for OffchainRandomBalancing {
 			max => {
 				let seed = sp_io::offchain::random_seed();
 				let random = <u32>::decode(&mut TrailingZeroInput::new(&seed))
-					.expect("input is padded with zeroes; qed") %
-					max.saturating_add(1);
+					.expect("input is padded with zeroes; qed")
+					% max.saturating_add(1);
 				random as usize
 			},
 		};
@@ -1453,6 +1454,20 @@ impl pallet_artists::Config for Runtime {
 	type WeightInfo = pallet_artists::weights::AllfeatWeightInfo<Runtime>;
 }
 
+impl pallet_artist_identity::Config for Runtime {
+	type Event = Event;
+	type Currency = Balances;
+	type ArtistOrigin = EnsureArtist<Self::AccountId>;
+	type StylesProvider = MusicStyles;
+	type CostPerByte = CostPerByte;
+	type MaxRegisteredStyles = MaxRegisteredStyles;
+	type MaxDefaultStringLength = MaxDefaultStringLength;
+	type MaxDescriptionLength = MaxDescriptionLength;
+	#[cfg(feature = "runtime-benchmarks")]
+	type StylesHelper = MusicStyles;
+	type Weights = pallet_artist_identity::weights::AllfeatWeightInfo<Runtime>;
+}
+
 parameter_types! {
 	pub const MaxStyleCount: u32 = 30;
 	pub const MaxSubStyleCount: u32 = 50;
@@ -1470,54 +1485,6 @@ parameter_types! {
 	pub const MaxRegisteredStyles: u32 = 5;
 	pub const MaxDefaultStringLength: u32 = 128;
 	pub const MaxDescriptionLength: u32 = 512;
-}
-
-impl pallet_artists_nft::Config for Runtime {
-	type Event = Event;
-	type Currency = Balances;
-	type Uniques = Uniques;
-	type ValueLimit = ValueLimit;
-	type ArtistOrigin = EnsureArtist<AccountId>;
-	type Weights = pallet_artists_nft::weights::AllfeatWeightInfo<Runtime>;
-}
-
-parameter_types! {
-	pub const ArtistReserve: u64 = TokenMaxSupply::get().saturating_mul(2000).saturating_div(10000u64);
-	pub const TokenMaxSupply: u64 = 1000000_u64.saturating_mul(UNIT_ARTIST_TOKEN);
-	pub const TokenDecimal: u8 = 12;
-	pub const UnlockedPerBlock: u64 = ArtistReserve::get().saturating_mul(10).saturating_div(10000000u64); // => 1% of the ArtistReserve per block
-	pub const ExistentialDepositArtistToken: u64 = UNIT_ARTIST_TOKEN.saturating_mul(100).saturating_div(10000u64);
-}
-
-impl pallet_artists_tokens::Config for Runtime {
-	type Event = Event;
-	type Currency = Balances;
-	type Assets = Assets;
-	type ArtistOrigin = EnsureArtist<AccountId>;
-	type ExistentialDepositToken = ExistentialDeposit;
-	type ArtistReserve = ArtistReserve;
-	type TokenDecimal = TokenDecimal;
-	type TokenMaxSupply = TokenMaxSupply;
-	type StringLimit = StringLimit;
-	type UnlockedPerBlock = UnlockedPerBlock;
-	type Weights = pallet_artists_tokens::weights::AllfeatWeightInfo<Runtime>;
-}
-
-const UNIT_ARTIST_TOKEN: u64 =
-	1_u64.saturating_mul(10u64.saturating_pow(TokenDecimal::get() as u32));
-
-impl pallet_artist_identity::Config for Runtime {
-	type Event = Event;
-	type Currency = Balances;
-	type ArtistOrigin = EnsureArtist<Self::AccountId>;
-	type StylesProvider = MusicStyles;
-	type CostPerByte = CostPerByte;
-	type MaxRegisteredStyles = MaxRegisteredStyles;
-	type MaxDefaultStringLength = MaxDefaultStringLength;
-	type MaxDescriptionLength = MaxDescriptionLength;
-	#[cfg(feature = "runtime-benchmarks")]
-	type StylesHelper = MusicStyles;
-	type Weights = pallet_artist_identity::weights::AllfeatWeightInfo<Runtime>;
 }
 
 construct_runtime!(
@@ -1563,13 +1530,11 @@ construct_runtime!(
 		Bounties: pallet_bounties,
 		Tips: pallet_tips,
 		Assets: pallet_allfeat_assets,
-		ArtistTokens: pallet_artists_tokens,
 		MusicStyles: pallet_music_styles,
 		Artists: pallet_artists,
 		Mmr: pallet_mmr,
 		Lottery: pallet_lottery,
 		Uniques: pallet_allfeat_uniques,
-		ArtistNfts: pallet_artists_nft,
 		TransactionStorage: pallet_transaction_storage,
 		BagsList: pallet_bags_list,
 		StateTrieMigration: pallet_state_trie_migration,
@@ -1643,7 +1608,6 @@ mod benches {
 		[pallet_allfeat_assets, Assets]
 		[pallet_artists, Artists]
 		[pallet_artist_identity, ArtistIdentity]
-		[pallet_artists_tokens, ArtistTokens]
 		[pallet_babe, Babe]
 		[pallet_bags_list, BagsList]
 		[pallet_balances, Balances]
