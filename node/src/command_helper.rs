@@ -22,7 +22,6 @@
 use crate::service::FullClient;
 
 use allfeat_node::chain_spec::Balance;
-use allfeat_runtime as runtime;
 use runtime::{AccountId, BalancesCall, SystemCall};
 use sc_cli::Result;
 use sc_client_api::BlockBackend;
@@ -31,6 +30,7 @@ use sp_inherents::{InherentData, InherentDataProvider};
 use sp_keyring::Sr25519Keyring;
 use sp_runtime::{OpaqueExtrinsic, SaturatedConversion};
 use std::{sync::Arc, time::Duration};
+use symphonie_runtime as runtime;
 
 /// Generates extrinsics for the `benchmark overhead` command.
 ///

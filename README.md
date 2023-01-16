@@ -176,7 +176,7 @@ called "pallets". At the heart of FRAME is a helpful
 create pallets and flexibly compose them to create blockchains that can address
 [a variety of needs](https://www.substrate.io/substrate-users/).
 
-Review the [FRAME runtime implementation](./runtime/src/lib.rs) included in this template and note
+Review the [FRAME runtime implementation](runtime/symphonie/src/lib.rs) included in this template and note
 the following:
 
 - This file configures several pallets to include in the runtime. Each pallet configuration is

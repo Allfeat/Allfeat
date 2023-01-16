@@ -21,7 +21,6 @@
 //! Service implementation. Specialized wrapper over substrate service.
 
 use allfeat_primitives::Block;
-use allfeat_runtime::{RuntimeApi, SS58_PREFIX};
 use futures::prelude::*;
 use sc_client_api::{BlockBackend, ExecutorProvider};
 use sc_consensus_babe::{self, SlotProportion};
@@ -32,6 +31,7 @@ use sc_telemetry::{Telemetry, TelemetryWorker};
 use sp_core::crypto::{set_default_ss58_version, Ss58AddressFormat};
 use sp_runtime::traits::Block as BlockT;
 use std::sync::Arc;
+use symphonie_runtime::{RuntimeApi, SS58_PREFIX};
 
 use crate::rpc;
 
@@ -54,11 +54,11 @@ impl sc_executor::NativeExecutionDispatch for ExecutorDispatch {
 	type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
 
 	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-		allfeat_runtime::api::dispatch(method, data)
+		symphonie_runtime::api::dispatch(method, data)
 	}
 
 	fn native_version() -> sc_executor::NativeVersion {
-		allfeat_runtime::native_version()
+		symphonie_runtime::native_version()
 	}
 }
 
@@ -508,7 +508,7 @@ pub fn new_full(
 #[cfg(test)]
 mod tests {
 	use crate::service::{new_full_base, NewFullBase};
-	use allfeat_runtime::{
+	use allfeat_testnet_runtime::{
 		constants::{currency::CENTS, time::SLOT_DURATION},
 		Address, BalancesCall, Call, UncheckedExtrinsic,
 	};
@@ -634,7 +634,7 @@ mod tests {
 						sc_consensus_babe::authorship::claim_slot(slot.into(), &epoch, &keystore)
 							.map(|(digest, _)| digest)
 					{
-						break (babe_pre_digest, epoch_descriptor)
+						break (babe_pre_digest, epoch_descriptor);
 					}
 
 					slot += 1;

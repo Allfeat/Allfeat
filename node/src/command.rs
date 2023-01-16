@@ -25,12 +25,12 @@ use crate::{
 	service,
 	service::{new_partial, FullClient},
 };
-use allfeat_runtime::Block;
 use frame_benchmarking_cli::*;
 use sc_cli::{ChainSpec, Result, RuntimeVersion, SubstrateCli};
 use sc_service::PartialComponents;
 use sp_keyring::Sr25519Keyring;
 use std::sync::Arc;
+use symphonie_runtime::Block;
 
 impl SubstrateCli for Cli {
 	fn impl_name() -> String {
@@ -50,11 +50,11 @@ impl SubstrateCli for Cli {
 	}
 
 	fn support_url() -> String {
-		"https://github.com/allfeat/substrate/issues/new".into()
+		"https://github.com/allfeat/Allfeat/issues/new".into()
 	}
 
 	fn copyright_start_year() -> i32 {
-		2021
+		2023
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
@@ -66,14 +66,15 @@ impl SubstrateCli for Cli {
 			//	),
 			"" | "dev" => Box::new(chain_spec::development_config()),
 			"local" => Box::new(chain_spec::local_testnet_config()),
-			path =>
-				Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
+			path => {
+				Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?)
+			},
 		};
 		Ok(spec)
 	}
 
 	fn native_runtime_version(_: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
-		&allfeat_runtime::VERSION
+		&symphonie_runtime::VERSION
 	}
 }
 
@@ -102,7 +103,7 @@ pub fn run() -> Result<()> {
 								"Runtime benchmarking wasn't enabled when building the node. \
 							You can enable it with `--features runtime-benchmarks`."
 									.into(),
-							)
+							);
 						}
 
 						cmd.run::<Block, service::ExecutorDispatch>(config)
@@ -133,14 +134,15 @@ pub fn run() -> Result<()> {
 							Box::new(TransferKeepAliveBuilder::new(
 								client.clone(),
 								Sr25519Keyring::Alice.to_account_id(),
-								allfeat_runtime::ExistentialDeposit::get(),
+								symphonie_runtime::ExistentialDeposit::get(),
 							)),
 						]);
 
 						cmd.run(client, inherent_benchmark_data()?, &ext_factory)
 					},
-					BenchmarkCmd::Machine(cmd) =>
-						cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone()),
+					BenchmarkCmd::Machine(cmd) => {
+						cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone())
+					},
 				}
 			})
 		},

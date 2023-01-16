@@ -17,12 +17,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Substrate chain configurations.
-use allfeat_runtime::{
-	constants::currency::*, wasm_binary_unwrap, ArtistsConfig, AuthorityDiscoveryConfig,
-	BabeConfig, BalancesConfig, Block, CouncilConfig, DemocracyConfig, ElectionsConfig,
-	GrandpaConfig, ImOnlineConfig, IndicesConfig, MaxNominations, MusicStylesConfig, SessionConfig,
-	SessionKeys, StakerStatus, StakingConfig, SudoConfig, SystemConfig, TechnicalCommitteeConfig,
-};
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use sc_chain_spec::ChainSpecExtension;
 use sc_service::ChainType;
@@ -35,9 +29,15 @@ use sp_runtime::{
 	traits::{IdentifyAccount, Verify},
 	Perbill,
 };
+use symphonie_runtime::{
+	constants::currency::*, wasm_binary_unwrap, ArtistsConfig, AuthorityDiscoveryConfig,
+	BabeConfig, BalancesConfig, Block, GrandpaConfig, ImOnlineConfig, IndicesConfig,
+	MaxNominations, MusicStylesConfig, SessionConfig, SessionKeys, StakerStatus, StakingConfig,
+	SudoConfig, SystemConfig,
+};
 
 pub use allfeat_primitives::{AccountId, Balance, Signature};
-pub use allfeat_runtime::GenesisConfig;
+pub use symphonie_runtime::GenesisConfig;
 
 type AccountPublic = <Signature as Verify>::Signer;
 
@@ -73,7 +73,7 @@ fn session_keys(
 pub fn chain_properties() -> serde_json::map::Map<String, serde_json::Value> {
 	serde_json::json!({
 		"tokenDecimals": 12,
-		"tokenSymbol": "AFT",
+		"tokenSymbol": "SPI",
 	})
 	.as_object()
 	.expect("Map given; qed")
@@ -167,7 +167,7 @@ pub fn testnet_genesis(
 		}))
 		.collect::<Vec<_>>();
 
-	let num_endowed_accounts = endowed_accounts.len();
+	let _num_endowed_accounts = endowed_accounts.len();
 
 	const ENDOWMENT: Balance = 1_000 * DOLLARS;
 	const STASH: Balance = ENDOWMENT / 10;
@@ -198,24 +198,6 @@ pub fn testnet_genesis(
 			stakers,
 			..Default::default()
 		},
-		democracy: DemocracyConfig::default(),
-		elections: ElectionsConfig {
-			members: endowed_accounts
-				.iter()
-				.take((num_endowed_accounts + 1) / 2)
-				.cloned()
-				.map(|member| (member, STASH))
-				.collect(),
-		},
-		council: CouncilConfig::default(),
-		technical_committee: TechnicalCommitteeConfig {
-			members: endowed_accounts
-				.iter()
-				.take((num_endowed_accounts + 1) / 2)
-				.cloned()
-				.collect(),
-			phantom: Default::default(),
-		},
 		music_styles: MusicStylesConfig {
 			styles: vec![
 				(b"Rap".to_vec(), vec![b"Trap".to_vec(), b"Drill".to_vec()]),
@@ -230,13 +212,11 @@ pub fn testnet_genesis(
 		sudo: SudoConfig { key: Some(root_key) },
 		babe: BabeConfig {
 			authorities: vec![],
-			epoch_config: Some(allfeat_runtime::BABE_GENESIS_EPOCH_CONFIG),
+			epoch_config: Some(symphonie_runtime::BABE_GENESIS_EPOCH_CONFIG),
 		},
 		im_online: ImOnlineConfig { keys: vec![] },
 		authority_discovery: AuthorityDiscoveryConfig { keys: vec![] },
 		grandpa: GrandpaConfig { authorities: vec![] },
-		technical_membership: Default::default(),
-		treasury: Default::default(),
 		assets: Default::default(),
 		transaction_storage: Default::default(),
 		transaction_payment: Default::default(),
