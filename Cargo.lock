@@ -4691,6 +4691,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-nfts"
+version = "4.0.0-dev"
+source = "git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.37#946507ba9ef13e263534176b7b74e26fc56efbd4"
+dependencies = [
+ "enumflags2",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-nomination-pools"
 version = "1.0.0"
 source = "git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.37#946507ba9ef13e263534176b7b74e26fc56efbd4"
@@ -8724,6 +8741,7 @@ dependencies = [
  "pallet-mmr",
  "pallet-multisig",
  "pallet-music-styles",
+ "pallet-nfts",
  "pallet-nomination-pools",
  "pallet-nomination-pools-benchmarking",
  "pallet-offences",

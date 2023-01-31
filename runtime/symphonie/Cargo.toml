@@ -64,6 +64,7 @@ pallet-identity = { version = "4.0.0-dev", default-features = false, git = "http
 pallet-membership = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.37" }
 pallet-mmr = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.37" }
 pallet-multisig = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.37" }
+pallet-nfts = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.37" }
 pallet-nomination-pools = { version = "1.0.0", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.37" }
 pallet-nomination-pools-benchmarking = { version = "1.0.0", optional = true, default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.37" }
 pallet-offences = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.37" }
@@ -129,6 +130,7 @@ std = [
   "pallet-membership/std",
   "pallet-mmr/std",
   "pallet-multisig/std",
+  "pallet-nfts/std",
   "pallet-nomination-pools/std",
   "pallet-identity/std",
   "pallet-scheduler/std",
@@ -186,6 +188,7 @@ runtime-benchmarks = [
   "pallet-membership/runtime-benchmarks",
   "pallet-mmr/runtime-benchmarks",
   "pallet-multisig/runtime-benchmarks",
+  "pallet-nfts/runtime-benchmarks",
   "pallet-nomination-pools-benchmarking",
   "pallet-offences-benchmarking",
   "pallet-preimage/runtime-benchmarks",
@@ -223,6 +226,7 @@ try-runtime = [
   "pallet-membership/try-runtime",
   "pallet-mmr/try-runtime",
   "pallet-multisig/try-runtime",
+  "pallet-nfts/try-runtime",
   "pallet-offences/try-runtime",
   "pallet-preimage/try-runtime",
   "pallet-proxy/try-runtime",

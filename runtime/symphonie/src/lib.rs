@@ -28,23 +28,15 @@ use codec::{Decode, Encode, MaxEncodedLen};
 use frame_election_provider_support::{
 	onchain, BalancingConfig, ElectionDataProvider, SequentialPhragmen, VoteWeight,
 };
-use frame_support::{
-	construct_runtime,
-	dispatch::DispatchClass,
-	pallet_prelude::Get,
-	parameter_types,
-	traits::{
-		ConstU16, ConstU32, Currency, EqualPrivilegeOnly, Everything, InstanceFilter,
-		KeyOwnerProofSystem, U128CurrencyToVote,
+use frame_support::{construct_runtime, dispatch::DispatchClass, pallet_prelude::Get, parameter_types, traits::{
+	ConstU16, ConstU32, Currency, EqualPrivilegeOnly, Everything, InstanceFilter,
+	KeyOwnerProofSystem, U128CurrencyToVote,
+}, weights::{
+	constants::{
+		BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND,
 	},
-	weights::{
-		constants::{
-			BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND,
-		},
-		ConstantMultiplier, IdentityFee, Weight,
-	},
-	PalletId, RuntimeDebug,
-};
+	ConstantMultiplier, IdentityFee, Weight,
+}, PalletId, RuntimeDebug};
 use frame_support::traits::{AsEnsureOriginWithArg, NeverEnsureOrigin};
 use frame_system::{limits::{BlockLength, BlockWeights}, EnsureRoot, EnsureSigned};
 use pallet_election_provider_multi_phase::SolutionAccuracyOf;
@@ -81,6 +73,7 @@ pub use frame_system::Call as SystemCall;
 use pallet_artists::EnsureArtist;
 #[cfg(any(feature = "std", test))]
 pub use pallet_balances::Call as BalancesCall;
+use pallet_nfts::PalletFeatures;
 #[cfg(any(feature = "std", test))]
 pub use pallet_staking::StakerStatus;
 #[cfg(any(feature = "std", test))]
@@ -897,6 +890,46 @@ impl pallet_assets::Config for Runtime {
 }
 
 parameter_types! {
+	pub const CollectionDeposit: Balance = 100 * DOLLARS;
+	pub const ItemDeposit: Balance = 1 * DOLLARS;
+	pub const KeyLimit: u32 = 32;
+	pub const ValueLimit: u32 = 256;
+	pub const ApprovalsLimit: u32 = 20;
+	pub const ItemAttributesApprovalsLimit: u32 = 20;
+	pub const MaxTips: u32 = 10;
+	pub const MaxDeadlineDuration: BlockNumber = 12 * 30 * DAYS;
+
+	pub Features: PalletFeatures = PalletFeatures::all_enabled();
+}
+
+impl pallet_nfts::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type CollectionId = u32;
+	type ItemId = u32;
+	type Currency = Balances;
+	type ForceOrigin = EnsureRoot<AccountId>;
+	type CollectionDeposit = CollectionDeposit;
+	type ItemDeposit = ItemDeposit;
+	type MetadataDepositBase = MetadataDepositBase;
+	type AttributeDepositBase = MetadataDepositBase;
+	type DepositPerByte = MetadataDepositPerByte;
+	type StringLimit = StringLimit;
+	type KeyLimit = KeyLimit;
+	type ValueLimit = ValueLimit;
+	type ApprovalsLimit = ApprovalsLimit;
+	type ItemAttributesApprovalsLimit = ItemAttributesApprovalsLimit;
+	type MaxTips = MaxTips;
+	type MaxDeadlineDuration = MaxDeadlineDuration;
+	type Features = Features;
+	type WeightInfo = pallet_nfts::weights::SubstrateWeight<Runtime>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type Helper = ();
+	// Collection creation is not exposed
+	type CreateOrigin = AsEnsureOriginWithArg<NeverEnsureOrigin<AccountId>>;
+	type Locker = ();
+}
+
+parameter_types! {
 	pub const BasicDeposit: Balance = 10 * DOLLARS;       // 258 bytes on-chain
 	pub const FieldDeposit: Balance = 250 * CENTS;        // 66 bytes on-chain
 	pub const SubAccountDeposit: Balance = 2 * DOLLARS;   // 53 bytes on-chain
@@ -1085,6 +1118,7 @@ construct_runtime!(
 		MusicStyles: pallet_music_styles,
 		Artists: pallet_artists,
 		Assets: pallet_assets,
+		Nfts: pallet_nfts,
 		Mmr: pallet_mmr,
 		TransactionStorage: pallet_transaction_storage,
 		BagsList: pallet_bags_list,
@@ -1160,6 +1194,7 @@ mod benches {
 		[pallet_mmr, Mmr]
 		[pallet_multisig, Multisig]
 		[pallet_music_styles, MusicStyles]
+		[pallet_nfts, Nfts]
 		[pallet_nomination_pools, NominationPoolsBench::<Runtime>]
 		[pallet_offences, OffencesBench::<Runtime>]
 		[pallet_preimage, Preimage]
