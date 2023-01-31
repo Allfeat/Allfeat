@@ -66,9 +66,8 @@ impl SubstrateCli for Cli {
 			//	),
 			"" | "dev" => Box::new(chain_spec::development_config()),
 			"local" => Box::new(chain_spec::local_testnet_config()),
-			path => {
-				Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?)
-			},
+			path =>
+				Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 		};
 		Ok(spec)
 	}
@@ -103,7 +102,7 @@ pub fn run() -> Result<()> {
 								"Runtime benchmarking wasn't enabled when building the node. \
 							You can enable it with `--features runtime-benchmarks`."
 									.into(),
-							);
+							)
 						}
 
 						cmd.run::<Block, service::ExecutorDispatch>(config)
@@ -112,19 +111,25 @@ pub fn run() -> Result<()> {
 						let PartialComponents { client, .. } = new_partial(&config)?;
 						cmd.run(client)
 					},
+					#[cfg(not(feature = "runtime-benchmarks"))]
+					BenchmarkCmd::Storage(_) => Err(
+						"Storage benchmarking can be enabled with `--features runtime-benchmarks`."
+							.into(),
+					),
+					#[cfg(feature = "runtime-benchmarks")]
 					BenchmarkCmd::Storage(cmd) => {
-						let PartialComponents { client, backend, .. } = new_partial(&config)?;
-						let db = backend.expose_db();
-						let storage = backend.expose_storage();
+						let partial = new_partial(&config)?;
+						let db = partial.backend.expose_db();
+						let storage = partial.backend.expose_storage();
 
-						cmd.run(config, client, db, storage)
+						cmd.run(config, partial.client, db, storage)
 					},
 					BenchmarkCmd::Overhead(cmd) => {
-						let PartialComponents { client, .. } = new_partial(&config)?;
-						let ext_builder = BenchmarkExtrinsicBuilder::new(client.clone());
+						let partial = new_partial(&config)?;
+						let ext_builder = BenchmarkExtrinsicBuilder::new(partial.client.clone());
 						let inherent_data = inherent_benchmark_data()?;
 
-						cmd.run(config, client, inherent_data, &ext_builder)
+						cmd.run(config, partial.client, inherent_data, Vec::new(), &ext_builder)
 					},
 					BenchmarkCmd::Extrinsic(cmd) => {
 						let PartialComponents { client, .. } = service::new_partial(&config)?;
@@ -138,11 +143,10 @@ pub fn run() -> Result<()> {
 							)),
 						]);
 
-						cmd.run(client, inherent_benchmark_data()?, &ext_factory)
+						cmd.run(client, inherent_benchmark_data()?, Vec::new(), &ext_factory)
 					},
-					BenchmarkCmd::Machine(cmd) => {
-						cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone())
-					},
+					BenchmarkCmd::Machine(cmd) =>
+						cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone()),
 				}
 			})
 		},
