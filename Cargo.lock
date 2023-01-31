@@ -233,7 +233,7 @@ dependencies = [
 [[package]]
 name = "allfeat-primitives"
 version = "1.0.0"
-source = "git+ssh://git@github.com/allfeat/Allfeat?branch=update#e77373a067c123ab8167132604d2ea146d9efca0"
+source = "git+ssh://git@github.com/allfeat/Allfeat?branch=update#ef1f6e34012609c9feeb48b30e27162c026df6dd"
 dependencies = [
  "frame-system",
  "parity-scale-codec",
@@ -4386,6 +4386,21 @@ dependencies = [
  "frame-system",
  "parity-scale-codec",
  "scale-info",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-assets"
+version = "4.0.0-dev"
+source = "git+https://github.com/paritytech/substrate.git?branch=polkadot-v0.9.37#946507ba9ef13e263534176b7b74e26fc56efbd4"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
  "sp-runtime",
  "sp-std",
 ]
@@ -8692,6 +8707,7 @@ dependencies = [
  "log",
  "pallet-artist-identity",
  "pallet-artists",
+ "pallet-assets",
  "pallet-authority-discovery",
  "pallet-authorship",
  "pallet-babe",

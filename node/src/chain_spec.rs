@@ -209,6 +209,7 @@ pub fn testnet_genesis(
 			phantom: Default::default(),
 		},
 		artists: ArtistsConfig { artists: Default::default(), candidates: Default::default() },
+		assets: Default::default(),
 		sudo: SudoConfig { key: Some(root_key) },
 		babe: BabeConfig {
 			authorities: vec![],
