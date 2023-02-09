@@ -233,7 +233,7 @@ dependencies = [
 [[package]]
 name = "allfeat-primitives"
 version = "1.0.0"
-source = "git+ssh://git@github.com/allfeat/Allfeat?branch=update#ef1f6e34012609c9feeb48b30e27162c026df6dd"
+source = "git+ssh://git@github.com/allfeat/Allfeat?branch=master#7c8f0dae0d823efe9dd7c9658f712ae534a44cc4"
 dependencies = [
  "frame-system",
  "parity-scale-codec",
@@ -246,9 +246,9 @@ dependencies = [
 [[package]]
 name = "allfeat-support"
 version = "0.1.0-dev"
-source = "git+ssh://git@github.com/allfeat/allfeat-support?branch=update#6b859363a49e7a70bbf03d1ecaf503b7f09dc8eb"
+source = "git+ssh://git@github.com/allfeat/allfeat-support?branch=master#a97b096b49e55e0b37086f2d14b8931c5606293b"
 dependencies = [
- "allfeat-primitives 1.0.0 (git+ssh://git@github.com/allfeat/Allfeat?branch=update)",
+ "allfeat-primitives 1.0.0 (git+ssh://git@github.com/allfeat/Allfeat?branch=master)",
  "frame-support",
  "parity-scale-codec",
  "scale-info",
@@ -4363,7 +4363,7 @@ dependencies = [
 [[package]]
 name = "pallet-artist-identity"
 version = "0.1.0-dev"
-source = "git+ssh://git@github.com/Allfeat/pallet-artist-identity.git?branch=update#428ff512e741df509076fad7e716236204dfb061"
+source = "git+ssh://git@github.com/Allfeat/pallet-artist-identity.git?branch=master#a541346fde0d55962d86fd35aad12b2b268c57ca"
 dependencies = [
  "allfeat-support",
  "frame-benchmarking",
@@ -4378,7 +4378,7 @@ dependencies = [
 [[package]]
 name = "pallet-artists"
 version = "1.0.0-dev"
-source = "git+ssh://git@github.com/Allfeat/pallet-artists.git?branch=update#0504318c0741185c38823bbb1acda10502257f35"
+source = "git+ssh://git@github.com/Allfeat/pallet-artists.git?branch=master#0949d6d0d9e22b0f72681ba50bd8afbfc212a546"
 dependencies = [
  "allfeat-support",
  "frame-benchmarking",
@@ -4677,7 +4677,7 @@ dependencies = [
 [[package]]
 name = "pallet-music-styles"
 version = "0.1.0-dev"
-source = "git+ssh://git@github.com/Allfeat/pallet-music-styles.git?branch=update#da212720ae62d270e8162d2451d46ba807ac7076"
+source = "git+ssh://git@github.com/Allfeat/pallet-music-styles.git?branch=master#ddd84631592a81b4adb205f30e24f5a98d2c8eef"
 dependencies = [
  "allfeat-support",
  "frame-benchmarking",

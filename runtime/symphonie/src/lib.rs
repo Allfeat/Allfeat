@@ -149,7 +149,7 @@ const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 const MAXIMUM_BLOCK_WEIGHT: Weight =
 	Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2), u64::MAX);
 
-pub const SS58_PREFIX: u16 = 440;
+pub const SS58_PREFIX: u16 = 441;
 
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 2400;
