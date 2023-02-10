@@ -29,7 +29,7 @@ use sp_std::marker::PhantomData;
 
 /// Weight functions for `pallet_artists`.
 pub struct WeightInfo<T>(PhantomData<T>);
-impl<T: frame_system::Config> pallet_artists::WeightInfo for WeightInfo<T> {
+impl<T: frame_system::Config> pallet_artists::weights::WeightInfo for WeightInfo<T> {
 	// Storage: Artists Artists (r:1 w:0)
 	// Storage: Artists Candidates (r:1 w:1)
 	/// The range of component `n` is `[1, 128]`.

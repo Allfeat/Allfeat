@@ -29,7 +29,7 @@ use sp_std::marker::PhantomData;
 
 /// Weight functions for `pallet_artist_identity`.
 pub struct WeightInfo<T>(PhantomData<T>);
-impl<T: frame_system::Config> pallet_artist_identity::WeightInfo for WeightInfo<T> {
+impl<T: frame_system::Config> pallet_artist_identity::weights::WeightInfo for WeightInfo<T> {
 	// Storage: ArtistIdentity ArtistMetadata (r:1 w:1)
 	/// The range of component `n` is `[0, 128]`.
 	fn update_alias(n: u32, ) -> Weight {

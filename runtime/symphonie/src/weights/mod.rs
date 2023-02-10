@@ -1,0 +1,17 @@
+pub mod artist_identity;
+pub mod artists;
+pub mod bags_list;
+pub mod balances;
+pub mod identity;
+pub mod im_online;
+pub mod indices;
+pub mod multisig;
+pub mod music_styles;
+pub mod preimage;
+pub mod proxy;
+pub mod recovery;
+pub mod scheduler;
+pub mod session;
+pub mod system;
+pub mod timestamp;
+pub mod utility;
