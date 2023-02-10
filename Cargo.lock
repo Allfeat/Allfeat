@@ -8721,6 +8721,7 @@ dependencies = [
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
+ "hex-literal",
  "log",
  "pallet-artist-identity",
  "pallet-artists",

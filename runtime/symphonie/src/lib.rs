@@ -28,17 +28,27 @@ use codec::{Decode, Encode, MaxEncodedLen};
 use frame_election_provider_support::{
 	onchain, BalancingConfig, ElectionDataProvider, SequentialPhragmen, VoteWeight,
 };
-use frame_support::{construct_runtime, dispatch::DispatchClass, pallet_prelude::Get, parameter_types, traits::{
-	ConstU16, ConstU32, Currency, EqualPrivilegeOnly, Everything, InstanceFilter,
-	KeyOwnerProofSystem, U128CurrencyToVote,
-}, weights::{
-	constants::{
-		BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND,
+use frame_support::{
+	construct_runtime,
+	dispatch::DispatchClass,
+	pallet_prelude::Get,
+	parameter_types,
+	traits::{
+		AsEnsureOriginWithArg, ConstU16, ConstU32, Currency, EqualPrivilegeOnly, Everything,
+		InstanceFilter, KeyOwnerProofSystem, NeverEnsureOrigin, U128CurrencyToVote,
 	},
-	ConstantMultiplier, IdentityFee, Weight,
-}, PalletId, RuntimeDebug};
-use frame_support::traits::{AsEnsureOriginWithArg, NeverEnsureOrigin};
-use frame_system::{limits::{BlockLength, BlockWeights}, EnsureRoot, EnsureSigned};
+	weights::{
+		constants::{
+			BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND,
+		},
+		ConstantMultiplier, IdentityFee, Weight,
+	},
+	PalletId, RuntimeDebug,
+};
+use frame_system::{
+	limits::{BlockLength, BlockWeights},
+	EnsureRoot, EnsureSigned,
+};
 use pallet_election_provider_multi_phase::SolutionAccuracyOf;
 use pallet_grandpa::{
 	fg_primitives, AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList,
@@ -49,7 +59,7 @@ pub use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdj
 use pallet_transaction_payment::{FeeDetails, RuntimeDispatchInfo};
 use sp_api::impl_runtime_apis;
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
-use sp_core::{ConstU128, crypto::KeyTypeId, OpaqueMetadata};
+use sp_core::{crypto::KeyTypeId, ConstU128, OpaqueMetadata};
 use sp_inherents::{CheckInherentsResult, InherentData};
 use sp_runtime::{
 	create_runtime_str,
@@ -690,7 +700,8 @@ parameter_types! {
 	pub const BagThresholds: &'static [u64] = &voter_bags::THRESHOLDS;
 }
 
-impl pallet_bags_list::Config for Runtime {
+type VoterBagsListInstance = pallet_bags_list::Instance1;
+impl pallet_bags_list::Config<VoterBagsListInstance> for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = pallet_bags_list::weights::SubstrateWeight<Runtime>;
 	type ScoreProvider = Staking;
@@ -1121,7 +1132,7 @@ construct_runtime!(
 		Nfts: pallet_nfts,
 		Mmr: pallet_mmr,
 		TransactionStorage: pallet_transaction_storage,
-		BagsList: pallet_bags_list,
+		BagsList: pallet_bags_list::<Instance1>,
 		StateTrieMigration: pallet_state_trie_migration,
 		NominationPools: pallet_nomination_pools,
 	}
@@ -1183,14 +1194,12 @@ mod benches {
 		[pallet_babe, Babe]
 		[pallet_bags_list, BagsList]
 		[pallet_balances, Balances]
-		[pallet_collective, Council]
 		[pallet_election_provider_multi_phase, ElectionProviderMultiPhase]
 		[pallet_election_provider_support_benchmarking, EPSBench::<Runtime>]
 		[pallet_grandpa, Grandpa]
 		[pallet_identity, Identity]
 		[pallet_im_online, ImOnline]
 		[pallet_indices, Indices]
-		[pallet_membership, TechnicalMembership]
 		[pallet_mmr, Mmr]
 		[pallet_multisig, Multisig]
 		[pallet_music_styles, MusicStyles]
@@ -1207,7 +1216,6 @@ mod benches {
 		[frame_system, SystemBench::<Runtime>]
 		[pallet_timestamp, Timestamp]
 		[pallet_transaction_storage, TransactionStorage]
-		[pallet_artists_nft, ArtistNfts]
 		[pallet_utility, Utility]
 	);
 }
