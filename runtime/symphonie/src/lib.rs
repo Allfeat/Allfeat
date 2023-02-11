@@ -35,7 +35,7 @@ use frame_support::{
 	parameter_types,
 	traits::{
 		AsEnsureOriginWithArg, ConstU16, ConstU32, Currency, EqualPrivilegeOnly, Everything,
-		InstanceFilter, KeyOwnerProofSystem, NeverEnsureOrigin, U128CurrencyToVote,
+		InstanceFilter, KeyOwnerProofSystem, U128CurrencyToVote,
 	},
 	weights::{
 		constants::{
@@ -45,10 +45,7 @@ use frame_support::{
 	},
 	PalletId, RuntimeDebug,
 };
-use frame_system::{
-	limits::{BlockLength, BlockWeights},
-	EnsureRoot, EnsureSigned,
-};
+use frame_system::{limits::{BlockLength, BlockWeights}, EnsureRoot, EnsureSigned, EnsureNever};
 use pallet_election_provider_multi_phase::SolutionAccuracyOf;
 use pallet_grandpa::{
 	fg_primitives, AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList,
@@ -871,6 +868,14 @@ impl pallet_grandpa::Config for Runtime {
 	type MaxAuthorities = MaxAuthorities;
 }
 
+// For benchmarking only, we need an origin which can have a success value.
+#[cfg(feature = "runtime-benchmarks")]
+pub type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
+
+// For production, we don't want to expose the creation for anyone.
+#[cfg(not(feature = "runtime-benchmarks"))]
+pub type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
+
 parameter_types! {
 	pub const AssetDeposit: Balance = 100 * DOLLARS;
 	pub const ApprovalDeposit: Balance = 1 * DOLLARS;
@@ -885,8 +890,7 @@ impl pallet_assets::Config for Runtime {
 	type AssetId = u32;
 	type AssetIdParameter = codec::Compact<u32>;
 	type Currency = Balances;
-	// Assets creation extrinsic is not exposed
-	type CreateOrigin = AsEnsureOriginWithArg<NeverEnsureOrigin<AccountId>>;
+	type CreateOrigin = CreateOrigin;
 	type ForceOrigin = EnsureRoot<AccountId>;
 	type AssetDeposit = AssetDeposit;
 	type AssetAccountDeposit = ConstU128<{ 250 * CENTS }>;
@@ -938,8 +942,7 @@ impl pallet_nfts::Config for Runtime {
 	type WeightInfo = pallet_nfts::weights::SubstrateWeight<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type Helper = ();
-	// Collection creation is not exposed
-	type CreateOrigin = AsEnsureOriginWithArg<NeverEnsureOrigin<AccountId>>;
+	type CreateOrigin = CreateOrigin;
 	type Locker = ();
 }
 
