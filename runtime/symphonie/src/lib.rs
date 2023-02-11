@@ -513,8 +513,8 @@ parameter_types! {
 
 pub struct StakingBenchmarkingConfig;
 impl pallet_staking::BenchmarkingConfig for StakingBenchmarkingConfig {
-	type MaxValidators = ConstU32<5>;
-	type MaxNominators = ConstU32<5>;
+	type MaxValidators = ConstU32<1000>;
+	type MaxNominators = ConstU32<1000>;
 }
 
 impl pallet_staking::Config for Runtime {
@@ -589,7 +589,7 @@ frame_election_provider_support::generate_solution_type!(
 parameter_types! {
 	pub MaxNominations: u32 = <NposSolution16 as frame_election_provider_support::NposSolution>::LIMIT as u32;
 	pub MaxElectingVoters: u32 = 10_000;
-	pub MaxActiveValidators: u32 = 5;
+	pub MaxActiveValidators: u32 = 1000;
 }
 
 /// The numbers configured here could always be more than the the maximum limits of staking pallet
