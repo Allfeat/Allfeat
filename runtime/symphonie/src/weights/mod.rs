@@ -1,5 +1,6 @@
 pub mod artist_identity;
 pub mod artists;
+pub mod assets;
 pub mod bags_list;
 pub mod balances;
 pub mod identity;
@@ -7,6 +8,7 @@ pub mod im_online;
 pub mod indices;
 pub mod multisig;
 pub mod music_styles;
+pub mod nfts;
 pub mod preimage;
 pub mod proxy;
 pub mod recovery;
