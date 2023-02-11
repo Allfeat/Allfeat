@@ -45,7 +45,7 @@ use frame_support::{
 	},
 	PalletId, RuntimeDebug,
 };
-use frame_system::{limits::{BlockLength, BlockWeights}, EnsureRoot, EnsureSigned, EnsureNever};
+use frame_system::{limits::{BlockLength, BlockWeights}, EnsureRoot, EnsureSigned};
 use pallet_election_provider_multi_phase::SolutionAccuracyOf;
 use pallet_grandpa::{
 	fg_primitives, AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList,
@@ -74,6 +74,9 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 use static_assertions::const_assert;
+
+#[cfg(not(feature = "runtime-benchmarks"))]
+use frame_system::EnsureNever;
 
 #[cfg(any(feature = "std", test))]
 pub use frame_system::Call as SystemCall;
