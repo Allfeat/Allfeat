@@ -548,7 +548,7 @@ impl pallet_staking::Config for Runtime {
 	type TargetList = pallet_staking::UseValidatorsMap<Self>;
 	type BenchmarkingConfig = StakingBenchmarkingConfig;
 	type HistoryDepth = HistoryDepth;
-	type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::staking::WeightInfo<Runtime>;
 }
 
 parameter_types! {
@@ -640,7 +640,7 @@ impl onchain::Config for OnChainSeqPhragmen {
 		pallet_election_provider_multi_phase::SolutionAccuracyOf<Runtime>,
 	>;
 	type DataProvider = <Runtime as pallet_election_provider_multi_phase::Config>::DataProvider;
-	type WeightInfo = frame_election_provider_support::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::election_provider_support_benchmarking::WeightInfo<Runtime>;
 	type MaxWinners = <Runtime as pallet_election_provider_multi_phase::Config>::MaxWinners;
 	type VotersBound = MaxElectingVoters;
 	type TargetsBound = ConstU32<2_000>;
@@ -696,7 +696,7 @@ impl pallet_election_provider_multi_phase::Config for Runtime {
 	type Solver = SequentialPhragmen<AccountId, SolutionAccuracyOf<Self>, OffchainRandomBalancing>;
 	type ForceOrigin = EnsureRoot<AccountId>;
 	type BenchmarkingConfig = ElectionProviderBenchmarkConfig;
-	type WeightInfo = pallet_election_provider_multi_phase::weights::SubstrateWeight<Self>;
+	type WeightInfo = weights::election_provider_multi_phase::WeightInfo<Runtime>;
 }
 
 parameter_types! {

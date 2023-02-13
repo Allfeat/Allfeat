@@ -29,7 +29,7 @@ use sp_std::marker::PhantomData;
 
 /// Weight functions for `pallet_election_provider_support_benchmarking`.
 pub struct WeightInfo<T>(PhantomData<T>);
-impl<T: frame_system::Config> pallet_election_provider_support_benchmarking::WeightInfo for WeightInfo<T> {
+impl<T: frame_system::Config> frame_election_provider_support::weights::WeightInfo for WeightInfo<T> {
 	/// The range of component `v` is `[1000, 2000]`.
 	/// The range of component `t` is `[500, 1000]`.
 	/// The range of component `d` is `[5, 16]`.
