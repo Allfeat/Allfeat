@@ -45,7 +45,10 @@ use frame_support::{
 	},
 	PalletId, RuntimeDebug,
 };
-use frame_system::{limits::{BlockLength, BlockWeights}, EnsureRoot, EnsureSigned};
+use frame_system::{
+	limits::{BlockLength, BlockWeights},
+	EnsureRoot, EnsureSigned,
+};
 use pallet_election_provider_multi_phase::SolutionAccuracyOf;
 use pallet_grandpa::{
 	fg_primitives, AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList,
@@ -162,7 +165,7 @@ const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 const MAXIMUM_BLOCK_WEIGHT: Weight =
 	Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2), u64::MAX);
 
-pub const SS58_PREFIX: u16 = 441;
+pub const SS58_PREFIX: u16 = 42;
 
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 2400;
