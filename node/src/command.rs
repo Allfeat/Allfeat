@@ -15,12 +15,11 @@
 
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 use super::command_helper::{
 	inherent_benchmark_data, BenchmarkExtrinsicBuilder, TransferKeepAliveBuilder,
 };
 use crate::{
-	chain_spec,
+	chain_specs,
 	cli::{Cli, Subcommand},
 	service,
 	service::{new_partial, FullClient},
@@ -59,15 +58,11 @@ impl SubstrateCli for Cli {
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 		let spec = match id {
-			// "" =>
-			//	return Err(
-			//		"Please specify which chain you want to run, e.g. --dev or --chain=local"
-			//			.into(),
-			//	),
-			"" | "dev" => Box::new(chain_spec::development_config()),
-			"local" => Box::new(chain_spec::local_testnet_config()),
+			"" | "dev" => Box::new(chain_specs::development_config()),
+			"local" => Box::new(chain_specs::local_testnet_config()),
+			"symphonie" => Box::new(chain_specs::symphonie_testnet_config()),
 			path =>
-				Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
+				Box::new(chain_specs::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 		};
 		Ok(spec)
 	}

@@ -20,7 +20,7 @@
 //! otherwise bloat that module.
 
 use crate::service::FullClient;
-use allfeat_node::chain_spec::Balance;
+use allfeat_node::chain_specs::Balance;
 use runtime::{AccountId, BalancesCall, SystemCall};
 use sc_cli::Result;
 use sc_client_api::BlockBackend;

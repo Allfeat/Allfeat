@@ -1,7 +1,7 @@
 //! Allfeat CLI library.
 #![warn(missing_docs)]
 
-mod chain_spec;
+mod chain_specs;
 #[macro_use]
 mod service;
 mod cli;
