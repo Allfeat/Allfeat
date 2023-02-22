@@ -87,11 +87,11 @@ fn symphonie_genesis() -> GenesisConfig {
 				hex!["562084a21a731deda557ea459e62a0ebfde8dab9d6808c6278f80c966c77bb3e"].into(),
 				//5GR9Z189CSvXjzDZmVwrRpPvy3rVV5ygicTprY7n3wLVK3Di
 				hex!["c08857235e75f1bf3665568fd7ee75a4bfc6867ca70b4bfda9b2c2f6ebc5e91e"].into(),
-				//5DaQ3zrWxpTM3Mu95yvWLxCLyZXBadzUGEifMrscg8vAeLJk
-				hex!["42e1a8e510e2049b925401a877a618f3c18a487f0203746bfcc7d106fa56c630"]
-					.unchecked_into(),
 				//5FW4DJxWw3okS9H27CSZYafatCstvQXbiUr5UFtMLu4R3rSx
 				hex!["980a5c0885142fb8e4517273ddf6a8bbb8551caaf0452090e5ff92fc6676beb0"]
+					.unchecked_into(),
+				//5DaQ3zrWxpTM3Mu95yvWLxCLyZXBadzUGEifMrscg8vAeLJk
+				hex!["42e1a8e510e2049b925401a877a618f3c18a487f0203746bfcc7d106fa56c630"]
 					.unchecked_into(),
 				//5Et26aurfK1uZPUp31gEuNjxyMt937wYrE72QP3xSeNmdmPQ
 				hex!["7c8e66ebc8cbf64e50cf668cb6de7d48272ad5243fa85186c6312a64c07d3334"]
@@ -105,11 +105,11 @@ fn symphonie_genesis() -> GenesisConfig {
 				hex!["542f225139b0f0c1ed69b90844825f23b2dbf159b48cb9a215ea1fc3e975736e"].into(),
 				//5Demd2q77PNyzB5KS6aZPzK1tFb8kMCQKdxdcVBaTo8HJFMt
 				hex!["4637403e41fa998e3841ab94abcec51f013d33a613bbd63fc1ea0676202bca3b"].into(),
-				//5GLERfburZZkmbEvkriyQ6tar7AwaH1uXeG3189xBmtGqinh
-				hex!["bcc884e0738864594b6fa61437b772651d64f0192dea2522bd7140ae2e22dc52"]
-					.unchecked_into(),
 				//5FcunhH8quD1zF1cYm9Ec5kWDPBPR6NcgN9y7XtK2LQSpQKo
 				hex!["9d44b7e12f65ea3869390b510fc1ca09e3eabb1cd0822e1106926cf40b6df873"]
+					.unchecked_into(),
+				//5GLERfburZZkmbEvkriyQ6tar7AwaH1uXeG3189xBmtGqinh
+				hex!["bcc884e0738864594b6fa61437b772651d64f0192dea2522bd7140ae2e22dc52"]
 					.unchecked_into(),
 				//5EbeeK7qbKcHTH5FtJsYea3CbR4VEo5jkxeVWNpebK6kSmqn
 				hex!["7012422860ef516a603744cbfe23ab9f67b023f787ec058441029430b2c56861"]
@@ -123,11 +123,11 @@ fn symphonie_genesis() -> GenesisConfig {
 				hex!["0c2b786f3437f33aa82a69e76d5051286badb503313b44bff58eb1616136f104"].into(),
 				//5F9A2qrjHMFFqz5meN2BDiRpNw6GgyyMSAQCdqrgtu6KAiaz
 				hex!["8819cbda401a83ece26ae910da0ba8d92d820be1aa6a5e2a77577d822cc67042"].into(),
-				//5EX6oCS5Fk5x6KMg7mawmd3qeLvirFdjpeSz66fb1sv3hHDR
-				hex!["6c9a1224e5e55510838213f1474cdadfd3de7c2fd200458f937bd460056bee22"]
-					.unchecked_into(),
 				//5FG3sALFTJ46qZA5AyfEBnQLmhS79aDvddfmB5YnyeftDiFB
 				hex!["8d5bc121a4eea2037760f51ebde38f53acadc49f9659565f290ce2863ea83192"]
+					.unchecked_into(),
+				//5EX6oCS5Fk5x6KMg7mawmd3qeLvirFdjpeSz66fb1sv3hHDR
+				hex!["6c9a1224e5e55510838213f1474cdadfd3de7c2fd200458f937bd460056bee22"]
 					.unchecked_into(),
 				//5HHZr24CBTcFxAtZbk7bBGRECBefYYfcu8xaUUQNCXotFixh
 				hex!["e6fc63b0607839b2692eddaa91b5c6735c19a2c82eaaf583aa781788995cfa5a"]
