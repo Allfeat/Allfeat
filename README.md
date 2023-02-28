@@ -1,235 +1,228 @@
-# Substrate Node Template
+<h1 align="center">
+    Allfeat Network 🎼
+</h1>
 
-[![Try on playground](https://img.shields.io/badge/Playground-Node_Template-brightgreen?logo=Parity%20Substrate)](https://docs.substrate.io/playground/) [![Matrix](https://img.shields.io/matrix/substrate-technical:matrix.org)](https://matrix.to/#/#substrate-technical:matrix.org)
 
-A fresh FRAME-based [Substrate](https://www.substrate.io/) node, ready for hacking :rocket:
+<h3 align="center">
+  <a href="https://www.allfeat.network/">Website</a>
+  <span> · </span>
+  <a href="https://twitter.com/weareallfeat">Twitter</a>
+  <span> · </span>
+  <a href="https://matrix.to/#/#allfeat:matrix.org">Matrix</a>
+</h3>
 
-## Getting Started
+Welcome to the Allfeat Blockchain repo which hosts the code used to build and run the Allfeat node.
+Allfeat is designed to enable interoperability for the music industry and make a perfect place for industry dApps builder.
 
-Follow the steps below to get started with the Node Template, or get it up and running right from
-your browser in just a few clicks using
-the [Substrate Playground](https://docs.substrate.io/playground/) :hammer_and_wrench:
+</br>
 
-### Using Nix
+Table of Contents:
 
-Install [nix](https://nixos.org/) and optionally [direnv](https://github.com/direnv/direnv) and
-[lorri](https://github.com/target/lorri) for a fully plug and play experience for setting up the
-development environment. To get all the correct dependencies activate direnv `direnv allow` and
-lorri `lorri shell`.
+- [Build](#build)
+  - [Build Locally](#build-locally)
+  - [Build With Docker](#build-with-docker)
+- [Run](#run)
+  - [Run Locally](#run-locally)
+  - [Run With Docker](#run-with-docker)
+  - [Run With Provided Binary](#run-with-provided-binary)
+- [Running Benchmarks](#running-benchmarks)
+- [Running Unit Tests](#running-unit-tests)
+- [Generating Reference Documentation](#generating-reference-documentation)
+- [Running With Docker Tips](#running-with-docker-tips)
+  - [Permanent Storage](#permanent-storage)
+  - [Run The Container And Access Its Shell](#run-the-container-and-access-its-shell)
+  - [Create A Detached Instance And Access Its Shell](#create-a-detached-instance-and-access-its-shell)
+- [Wiki](#wiki)
+- [Useful Tools](#useful-tools)
 
-### Rust Setup
+# Build
+All the examples in this document assume that you use a Ubuntu like system. If that's not the case, you need to change the commands so that it works for your system.
 
-First, complete the [basic Rust setup instructions](./docs/rust-setup.md).
+## Build Locally
 
-### Run
-
-Use Rust's native `cargo` command to build and launch the template node:
-
-```sh
-cargo run --release -- --dev
+### Pre-requisites
+```bash
+  # Downloads the package lists and "updates" them.
+  sudo apt update -y
+  # Installing all dependencies (but not Rust).
+  sudo apt install build-essential git clang curl libssl-dev llvm libudev-dev cmake make protobuf-compiler -y
+  # Installing Rust.
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+  # Starting a new bash environment so we have access to cargo and rust commands.
+  exec bash
+```
+### Build from source
+```bash
+  # Get repo and CD
+  git clone https://github.com/allfeat/allfeat.git && cd allfeat
+  # Updating Rust to latest versions and installing the right Rust version.
+  rustup update && rustup show
+  # Building the Allfeat Binary.
+  cargo build --locked --release
+  # Checking if everything is OK.
+  ./target/release/allfeat -V
 ```
 
-### Build
-
-The `cargo run` command will perform an initial build. Use the following command to build the node
-without launching it:
-
-```sh
-cargo build --release
+## Build With Docker
+```bash
+  # Downloads the package lists and "updates" them.
+  sudo apt update -y
+  # Installing docker.
+  sudo apt install docker
+  # Building the image using docker and the already available Dockerfile.
+  docker build -t allfeat .
+  # Checking if everything is OK.
+  docker images | grep allfeat
 ```
 
-### Embedded Docs
+# Run
+Node flag explanation:
+- `--chain symphonie`: There are a couple of chain configurations that we provide and each configuration has a drastic impact on how the chain behaves and what features it has. For testing purposes it's best to stick with symphonie configuration.
+- `--alice`: This sets a couple of flags for us. It sets the `--validator` flag so that the client is running in a validator mode, it makes Alice a validator and it inserts Alice's keys into the local keystore.
+- `--tmp`: Makes is so that the blockchain data is stored in a temporary location. Usually this data is deleted on reboot.
+- `--name MyLocalNode`: Sets the name of the name. This should be something unique.
+- `--rpc-external`: Listen to all RPC interfaces. This should be used only during testing.
+- `--ws-external`: Listen to all Websocket interfaces. This should be used only during testing.
+- `--rpc-cors all`: Specifies browser Origins allowed to access the HTTP && WS RPC servers. This should be used only during testing.
+- `--telemetry-url "wss://telemetry.polkadot.io/submit/ 0"`: Tells the node to send node telemetry data to `telemetry.polkadot.io`.
 
-Once the project has been built, the following command can be used to explore all parameters and
-subcommands:
+Docker flag explanation:
+- `-p 127.0.0.1:9944:9944`: Maps host `127.0.0.1:9944` address:port to container `9944` port. This is the Websocket traffic port.
+- `-p 127.0.0.1:9933:9933`: Maps host `127.0.0.1:9933` address:port to container `9933` port. This is the RPC traffic port.
+- `-p 127.0.0.1:30333:30333`: Maps host `127.0.0.1:30333` address:port to container `30333` port. This is the P2P port.
 
-```sh
-./target/release/node-template -h
+## Run Locally
+```bash
+  # Make sure that you have built a binary from the "Build Locally" step.
+  ./target/release/allfeat --chain symphonie --alice --tmp --name MyLocalNode --rpc-external --ws-external --rpc-cors all
 ```
 
-## Run
+## Run With Docker
+```bash
+  # Make sure that you have built a image from the "Build With Docker" step.
+  docker run -p 9944:9944 -p 9933:9933 -p 30333:30333 allfeat
+```
 
-The provided `cargo run` command will launch a temporary node and its state will be discarded after
-you terminate the process. After the project has been built, there are other ways to launch the
-node.
+## Run With Provided Binary
+Depending on what binary you downloaded certain features might not be available in to use. To get the latest features get the latest binary. In this example the oldest binary is being used.
+```bash
+  # Getting the binary from github.
+  wget https://github.com/allfeat/allfeat/releases/download/v1.0.0/allfeat
+  # Makes the binary executable
+  chmod u+x allfeat
+  # Runs the chain
+  ./allfeat --chain symphonie --alice --tmp --name MyLocalNode --rpc-external --ws-external --rpc-cors all
+```
 
-### Single-Node Development Chain
+# Running Benchmarks
+```bash
+  # Building the Allfeat Binary.
+  cargo build --locked --release --features runtime-benchmarks
+  # Run the benchmarks for the balances pallet.
+  ./target/release/allfeat benchmark pallet --chain symphonie --steps=50 --repeat=20 --extrinsic=* --execution=wasm --wasm-execution=compiled --heap-pages=4096 --output=./weights/ --pallet=pallet_balances
+```
 
-This command will start the single-node development chain with non-persistent state:
+# Running Unit Tests
+```bash
+  # It's important to not omit the "--all-features" flag otherwise not all test will run.
+  cargo test --all --all-features
+```
+
+# Generating Reference Documentation
+```bash
+  # While compiling it might display some warning that can be safely ignored.
+  cargo doc --open
+```
+
+# Running With Docker Tips
+In the next examples some useful Docker commands will be shown. It's important to note that most flags have been omitted in order to make the examples more concise. Before running anything make sure that the image was built from the "Build With Docker" step.
+
+If no command arguments are given by default it will try run the Allfeat Node with default parameters. To cancel this add `bash` at the end of the command. Example: `docker run tsdk bash`;
+
+### Remove Container After Exit
+A container that was run and its job has been finished or the user has exited will not automatically be removed instead it will enter the Exit state.
+To make sure that the container is deleted and removed after it's being used the flag `--rm` should be used.
 
 ```bash
-./target/release/node-template --dev
+  # The --rm flag removes the container after usage.
+  docker run --rm allfeat
+  # Stop the container
+  [ctrl+c]
+  # Check if any container is running or stopped.
+  docker ps -a
 ```
 
-Purge the development chain's state:
+## Persistent Storage
+There are two virtual endpoints that can be mapped to real ones.
+
+### /data
+Container uses a local folder to store the chain data. This means that every time a new container is created the chain will start from block 0. To avoid this the container volume `/data` needs to mapped to a directory on the host machine. With this mapping done all the chain data will be stored on the host and it can be used with multiple containers.
 
 ```bash
-./target/release/node-template purge-chain --dev
+  # This folder will be used to stored ternoa node and chain data.
+  mkdir allfeat-data
+  # Flag -v tells the host machine to map the physical "./allfeat-data" path with the virtual container one "/data".
+  podman run -v ./allfeat-data:/data allfeat
 ```
 
-Start the development chain with detailed logging:
+### /workdir
+Container uses a local copy of the repo in order to compile and run the Allfeat Binary. This means that if code changes are made inside the container that they will not propagate and they will be lost. To change this the virtual container volume `/workdir` needs to be mapped to a directory on the host machine that contains the chain repo. With the mapping done any change in the mapped directory will be visible to the container.
+
+This can be useful if you want to develop your own chain without installing all the dependencies for it. For the workflow check the [Create A Development Environment](#create-a-development-environment) segment.
+```bash
+  # This folder will be used to store allfeat node and chain data.
+  mkdir allfeat-data
+  # Flag -v tells the host machine to map the physical "./allfeat-data" path with the virtual container one "/data".
+  docker run -v ./.:/workdir allfeat
+```
+
+
+## Run The Container And Access Its Shell
+The predefined operation/command of the container when run is to run the Allfeat Node with the symphonie configuration. To execute a different operation additional commands can be passed at the end of the run command. Example: passing `bash` will run the bash shell session instead the default operation.
 
 ```bash
-RUST_BACKTRACE=1 ./target/release/node-template -ldebug --dev
+  # If no command arguments are given this will try to run the Ternoa Node with default parameters.
+  # By passing "bash" we make sure that we run a bash shell session once the container starts.
+  docker run -it tchain bash
 ```
 
-> Development chain means that the state of our chain will be in a tmp folder while the nodes are
-> running. Also, **alice** account will be authority and sudo account as declared in the
-> [genesis state](https://github.com/substrate-developer-hub/substrate-node-template/blob/main/node/src/chain_spec.rs#L49).
-> At the same time the following accounts will be pre-funded:
-> - Alice
-> - Bob
-> - Alice//stash
-> - Bob//stash
+## Create A Detached Instance And Access Its Shell
+```bash
+  # Flag "-d" runs the container in detached mode.
+  docker run -d tchain
+  # Access its shell.
+  docker exec -itl bash
+```
 
-In case of being interested in maintaining the chain' state between runs a base path must be added
-so the db can be stored in the provided folder instead of a temporal one. We could use this folder
-to store different chain databases, as a different folder will be created per different chain that
-is ran. The following commands shows how to use a newly created folder as our db base path.
+### Create A Development Environment
+The dockerfile is made in a way that it can be used to develop new applications with it.
+Example of a typical workflows:
+- The host installs git, clones the repo and install a code editor like VS Code.
+- The host runs the container in an interactive mode with /workdir pointing to a workdir on host machine (can be your own project or chain repo).
+- The host writes code via a code editor and uses the terminal (which is connected to the container) to run the `cargo build` and `cargo check` commands.
+- With that setup all the changes are done locally on the host machine while the container is only used to compile and run the chain.
 
 ```bash
-// Create a folder to use as the db base path
-$ mkdir my-chain-state
+  mkdir allfeat-data
+  # Flag "--name" is used to name the container.
+  docker run -it --name my_chain_env -v ./allfeat-data:/data -v ./.:/workdir allfeat bash
+  # Do some activity and exit the container
+  [root@d4ad8ec11655:/workdir] nano -V
+  [root@d4ad8ec11655:/workdir] apt install nano
+  [root@d4ad8ec11655:/workdir] exit
 
-// Use of that folder to store the chain state
-$ ./target/release/node-template --dev --base-path ./my-chain-state/
-
-// Check the folder structure created inside the base path after running the chain
-$ ls ./my-chain-state
-chains
-$ ls ./my-chain-state/chains/
-dev
-$ ls ./my-chain-state/chains/dev
-db keystore network
+  # Return to the same container
+  docker start my_chain_env
+  docker exec -it my_chain_env /bin/bash
+  [root@d4ad8ec11655:/workdir] nano -V
 ```
 
+# Wiki
+Check out our [Wiki](https://docs.allfeat.network) page. We are constantly adding new pages and guides there.
 
-### Connect with Polkadot-JS Apps Front-end
+# Useful tools
+[Substrate JS utilities](https://www.shawntabrizi.com/substrate-js-utilities/)
 
-Once the node template is running locally, you can connect it with **Polkadot-JS Apps** front-end
-to interact with your chain. [Click
-here](https://polkadot.js.org/apps/#/explorer?rpc=ws://localhost:9944) connecting the Apps to your
-local node template.
+[Subwasm](https://github.com/chevdor/subwasm)
 
-### Multi-Node Local Testnet
-
-If you want to see the multi-node consensus algorithm in action, refer to our
-[Start a Private Network tutorial](https://docs.substrate.io/tutorials/v3/private-network).
-
-## Template Structure
-
-A Substrate project such as this consists of a number of components that are spread across a few
-directories.
-
-### Node
-
-A blockchain node is an application that allows users to participate in a blockchain network.
-Substrate-based blockchain nodes expose a number of capabilities:
-
-- Networking: Substrate nodes use the [`libp2p`](https://libp2p.io/) networking stack to allow the
-  nodes in the network to communicate with one another.
-- Consensus: Blockchains must have a way to come to
-  [consensus](https://docs.substrate.io/v3/advanced/consensus) on the state of the
-  network. Substrate makes it possible to supply custom consensus engines and also ships with
-  several consensus mechanisms that have been built on top of
-  [Web3 Foundation research](https://research.web3.foundation/en/latest/polkadot/NPoS/index.html).
-- RPC Server: A remote procedure call (RPC) server is used to interact with Substrate nodes.
-
-There are several files in the `node` directory - take special note of the following:
-
-- [`chain_spec.rs`](./node/src/chain_spec.rs): A
-  [chain specification](https://docs.substrate.io/v3/runtime/chain-specs) is a
-  source code file that defines a Substrate chain's initial (genesis) state. Chain specifications
-  are useful for development and testing, and critical when architecting the launch of a
-  production chain. Take note of the `development_config` and `testnet_genesis` functions, which
-  are used to define the genesis state for the local development chain configuration. These
-  functions identify some
-  [well-known accounts](https://docs.substrate.io/v3/tools/subkey#well-known-keys)
-  and use them to configure the blockchain's initial state.
-- [`service.rs`](./node/src/service.rs): This file defines the node implementation. Take note of
-  the libraries that this file imports and the names of the functions it invokes. In particular,
-  there are references to consensus-related topics, such as the
-  [longest chain rule](https://docs.substrate.io/v3/advanced/consensus#longest-chain-rule),
-  the [Aura](https://docs.substrate.io/v3/advanced/consensus#aura) block authoring
-  mechanism and the
-  [GRANDPA](https://docs.substrate.io/v3/advanced/consensus#grandpa) finality
-  gadget.
-
-After the node has been [built](#build), refer to the embedded documentation to learn more about the
-capabilities and configuration parameters that it exposes:
-
-```shell
-./target/release/node-template --help
-```
-
-### Runtime
-
-In Substrate, the terms
-"[runtime](https://docs.substrate.io/v3/getting-started/glossary#runtime)" and
-"[state transition function](https://docs.substrate.io/v3/getting-started/glossary#state-transition-function-stf)"
-are analogous - they refer to the core logic of the blockchain that is responsible for validating
-blocks and executing the state changes they define. The Substrate project in this repository uses
-the [FRAME](https://docs.substrate.io/v3/runtime/frame) framework to construct a
-blockchain runtime. FRAME allows runtime developers to declare domain-specific logic in modules
-called "pallets". At the heart of FRAME is a helpful
-[macro language](https://docs.substrate.io/v3/runtime/macros) that makes it easy to
-create pallets and flexibly compose them to create blockchains that can address
-[a variety of needs](https://www.substrate.io/substrate-users/).
-
-Review the [FRAME runtime implementation](runtime/symphonie/src/lib.rs) included in this template and note
-the following:
-
-- This file configures several pallets to include in the runtime. Each pallet configuration is
-  defined by a code block that begins with `impl $PALLET_NAME::Config for Runtime`.
-- The pallets are composed into a single runtime by way of the
-  [`construct_runtime!`](https://crates.parity.io/frame_support/macro.construct_runtime.html)
-  macro, which is part of the core
-  [FRAME Support](https://docs.substrate.io/v3/runtime/frame#support-crate)
-  library.
-
-### Pallets
-
-The runtime in this project is constructed using many FRAME pallets that ship with the
-[core Substrate repository](https://github.com/paritytech/substrate/tree/master/frame) and a
-template pallet that is [defined in the `pallets`](./pallets/template/src/lib.rs) directory.
-
-A FRAME pallet is comprised of a number of blockchain primitives:
-
-- Storage: FRAME defines a rich set of powerful
-  [storage abstractions](https://docs.substrate.io/v3/runtime/storage) that makes
-  it easy to use Substrate's efficient key-value database to manage the evolving state of a
-  blockchain.
-- Dispatchables: FRAME pallets define special types of functions that can be invoked (dispatched)
-  from outside of the runtime in order to update its state.
-- Events: Substrate uses [events and errors](https://docs.substrate.io/v3/runtime/events-and-errors)
-  to notify users of important changes in the runtime.
-- Errors: When a dispatchable fails, it returns an error.
-- Config: The `Config` configuration interface is used to define the types and parameters upon
-  which a FRAME pallet depends.
-
-### Run in Docker
-
-First, install [Docker](https://docs.docker.com/get-docker/) and
-[Docker Compose](https://docs.docker.com/compose/install/).
-
-Then run the following command to start a single node development chain.
-
-```bash
-./scripts/docker_run.sh
-```
-
-This command will firstly compile your code, and then start a local development network. You can
-also replace the default command
-(`cargo build --release && ./target/release/node-template --dev --ws-external`)
-by appending your own. A few useful ones are as follow.
-
-```bash
-# Run Substrate node without re-compiling
-./scripts/docker_run.sh ./target/release/node-template --dev --ws-external
-
-# Purge the local dev chain
-./scripts/docker_run.sh ./target/release/node-template purge-chain --dev
-
-# Check whether the code is compilable
-./scripts/docker_run.sh cargo check
-```
+[Querying Substrate Storage via RPC](https://www.shawntabrizi.com/substrate/querying-substrate-storage-via-rpc/)
