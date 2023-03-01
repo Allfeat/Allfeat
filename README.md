@@ -67,8 +67,13 @@ All the examples in this document assume that you use a Ubuntu like system. If t
 ```bash
   # Downloads the package lists and "updates" them.
   sudo apt update -y
-  # Installing docker.
-  sudo apt install docker
+  # Setup docker repo/installation.
+  sudo apt install apt-transport-https ca-certificates curl software-properties-common
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
+  apt-cache policy docker-ce
+  # Install docker
+  sudo apt install docker-ce
   # Building the image using docker and the already available Dockerfile.
   docker build -t allfeat .
   # Checking if everything is OK.
