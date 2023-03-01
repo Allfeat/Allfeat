@@ -1,8 +1,6 @@
 use super::*;
 use sp_core::{Pair, Public};
 
-// const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
-
 pub fn session_keys(
 	grandpa: GrandpaId,
 	babe: BabeId,
