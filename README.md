@@ -164,7 +164,7 @@ There are two virtual endpoints that can be mapped to real ones.
 Container uses a local folder to store the chain data. This means that every time a new container is created the chain will start from block 0. To avoid this the container volume `/data` needs to mapped to a directory on the host machine. With this mapping done all the chain data will be stored on the host and it can be used with multiple containers.
 
 ```bash
-  # This folder will be used to stored ternoa node and chain data.
+  # This folder will be used to stored allfeat node and chain data.
   mkdir allfeat-data
   # Flag -v tells the host machine to map the physical "./allfeat-data" path with the virtual container one "/data".
   podman run -v ./allfeat-data:/data allfeat
@@ -186,7 +186,7 @@ This can be useful if you want to develop your own chain without installing all 
 The predefined operation/command of the container when run is to run the Allfeat Node with the symphonie configuration. To execute a different operation additional commands can be passed at the end of the run command. Example: passing `bash` will run the bash shell session instead the default operation.
 
 ```bash
-  # If no command arguments are given this will try to run the Ternoa Node with default parameters.
+  # If no command arguments are given this will try to run the Allfeat Node with default parameters.
   # By passing "bash" we make sure that we run a bash shell session once the container starts.
   docker run -it tchain bash
 ```
