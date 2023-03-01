@@ -233,7 +233,7 @@ dependencies = [
 [[package]]
 name = "allfeat-primitives"
 version = "1.0.0"
-source = "git+ssh://git@github.com/allfeat/Allfeat?branch=master#7c8f0dae0d823efe9dd7c9658f712ae534a44cc4"
+source = "git+https://github.com/allfeat/Allfeat?branch=master#ef00675ab486be28329e12d022beb82ac95f5b58"
 dependencies = [
  "frame-system",
  "parity-scale-codec",
@@ -246,9 +246,9 @@ dependencies = [
 [[package]]
 name = "allfeat-support"
 version = "0.1.0-dev"
-source = "git+ssh://git@github.com/allfeat/allfeat-support?branch=master#a97b096b49e55e0b37086f2d14b8931c5606293b"
+source = "git+https://github.com/Allfeat/allfeat-support.git?branch=master#6856b3f54bfd5a55d18005a26434f737d3453bd4"
 dependencies = [
- "allfeat-primitives 1.0.0 (git+ssh://git@github.com/allfeat/Allfeat?branch=master)",
+ "allfeat-primitives 1.0.0 (git+https://github.com/allfeat/Allfeat?branch=master)",
  "frame-support",
  "parity-scale-codec",
  "scale-info",
@@ -4363,7 +4363,7 @@ dependencies = [
 [[package]]
 name = "pallet-artist-identity"
 version = "0.1.0-dev"
-source = "git+ssh://git@github.com/Allfeat/pallet-artist-identity.git?branch=master#a541346fde0d55962d86fd35aad12b2b268c57ca"
+source = "git+https://github.com/Allfeat/pallet-artist-identity.git?branch=master#3e665d8163c706391a644864d6c0dd1f44a63f3b"
 dependencies = [
  "allfeat-support",
  "frame-benchmarking",
@@ -4378,7 +4378,7 @@ dependencies = [
 [[package]]
 name = "pallet-artists"
 version = "1.0.0-dev"
-source = "git+ssh://git@github.com/Allfeat/pallet-artists.git?branch=master#0949d6d0d9e22b0f72681ba50bd8afbfc212a546"
+source = "git+https://github.com/Allfeat/pallet-artists.git?branch=master#43f3e5834291a6fa7158fd81e647c9daccf0f457"
 dependencies = [
  "allfeat-support",
  "frame-benchmarking",
@@ -4677,7 +4677,7 @@ dependencies = [
 [[package]]
 name = "pallet-music-styles"
 version = "0.1.0-dev"
-source = "git+ssh://git@github.com/Allfeat/pallet-music-styles.git?branch=master#ddd84631592a81b4adb205f30e24f5a98d2c8eef"
+source = "git+https://github.com/Allfeat/pallet-music-styles.git?branch=master#39d503faea627430e7940bb07e12698ddf6b596a"
 dependencies = [
  "allfeat-support",
  "frame-benchmarking",
