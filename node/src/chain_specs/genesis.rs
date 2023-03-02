@@ -69,7 +69,7 @@ pub fn testnet_genesis(
 
 	let _num_endowed_accounts = endowed_accounts.len();
 
-	const ENDOWMENT: Balance = 1_000 * DOLLARS;
+	const ENDOWMENT: Balance = 1_000_000 * DOLLARS;
 	const STASH: Balance = ENDOWMENT / 10;
 
 	GenesisConfig {
@@ -91,7 +91,7 @@ pub fn testnet_genesis(
 				.collect::<Vec<_>>(),
 		},
 		staking: StakingConfig {
-			validator_count: initial_authorities.len() as u32,
+			validator_count: 3u32,
 			minimum_validator_count: initial_authorities.len() as u32,
 			invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
 			slash_reward_fraction: Perbill::from_percent(10),
@@ -99,13 +99,10 @@ pub fn testnet_genesis(
 			..Default::default()
 		},
 		music_styles: MusicStylesConfig {
-			styles: vec![
-				(b"Rap".to_vec(), vec![b"Trap".to_vec(), b"Drill".to_vec()]),
-				(
-					b"Electro".to_vec(),
-					vec![b"Dubstep".to_vec(), b"Downtempo".to_vec(), b"Drum'N'Bass".to_vec()],
-				),
-			],
+			styles: vec![(
+				b"Test Style".to_vec(),
+				vec![b"Test Sub".to_vec(), b"Test Sub 2".to_vec()],
+			)],
 			phantom: Default::default(),
 		},
 		artists: ArtistsConfig { artists: Default::default(), candidates: Default::default() },
