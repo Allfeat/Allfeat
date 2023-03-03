@@ -99,11 +99,12 @@ try-runtime-cli = { version = "0.10.0-dev", optional = true, git = "https://gith
 substrate-build-script-utils = { version = "3.0.0", git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.37" }
 
 [features]
-default = []
+default = ["symphonie-native"]
 runtime-benchmarks = [
 	"symphonie-runtime/runtime-benchmarks",
 	"frame-benchmarking-cli/runtime-benchmarks"
 ]
+symphonie-native = []
 # Enable features that allow the runtime to be tried and debugged. Name might be subject to change
 # in the near future.
 try-runtime = ["symphonie-runtime/try-runtime", "try-runtime-cli"]

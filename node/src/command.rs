@@ -53,16 +53,17 @@ impl SubstrateCli for Cli {
 	}
 
 	fn copyright_start_year() -> i32 {
-		2023
+		2022
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 		let spec = match id {
-			"" | "dev" => Box::new(chain_specs::development_config()),
-			"local" => Box::new(chain_specs::local_testnet_config()),
-			"symphonie" => Box::new(chain_specs::symphonie_testnet_config()),
-			path =>
-				Box::new(chain_specs::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
+			"" | "symphonie" => Box::new(chain_specs::symphonie_config()?),
+			#[cfg(feature = "symphonie-native")]
+			"symphonie-dev" => Box::new(chain_specs::development_config()),
+			path => Box::new(chain_specs::SymphonieChainSpec::from_json_file(
+				std::path::PathBuf::from(path),
+			)?),
 		};
 		Ok(spec)
 	}
