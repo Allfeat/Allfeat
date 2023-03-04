@@ -3,7 +3,8 @@
   "id": "symphonie_live",
   "chainType": "Live",
   "bootNodes": [
-    "/dns/rpc-test.allfeat.io/tcp/30333/p2p/12D3KooWSLczf6f3MuBMQpM3sMP5TdmiqhQS49BFm3WNvuehw3SN"
+    "/dns/rpc-test.allfeat.io/tcp/30333/p2p/12D3KooWSLczf6f3MuBMQpM3sMP5TdmiqhQS49BFm3WNvuehw3SN",
+    "/ip4/134.209.251.75/tcp/30333/p2p/12D3KooWNQF5E1rVHe35K8kUDUbejatthLu3SbQ2Kkp21r3SKCeR"
   ],
   "telemetryEndpoints": [
     [
