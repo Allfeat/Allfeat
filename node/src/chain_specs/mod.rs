@@ -51,6 +51,7 @@ pub struct Extensions {
 	pub light_sync_state: sc_sync_state_rpc::LightSyncStateExtension,
 }
 
+#[allow(unused)]
 // Dummy chain spec, in case when we don't have the native runtime.
 pub type DummyChainSpec = GenericChainSpec<(), Extensions>;
 
