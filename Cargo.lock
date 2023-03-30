@@ -264,7 +264,7 @@ dependencies = [
 [[package]]
 name = "allfeat-primitives"
 version = "1.0.0"
-source = "git+https://github.com/allfeat/Allfeat?branch=master#900a6f4a177c98b1c082c957f66f7a1de437b52e"
+source = "git+https://github.com/allfeat/Allfeat?branch=master#4f88d438af81a8a2cd80bb86f847eedb22e8bc39"
 dependencies = [
  "frame-system",
  "parity-scale-codec",
