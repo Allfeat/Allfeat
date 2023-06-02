@@ -60,7 +60,7 @@ impl SubstrateCli for Cli {
 		let spec = match id {
 			"" | "symphonie" => Box::new(chain_specs::symphonie_config()?),
 			#[cfg(feature = "symphonie-native")]
-			"symphonie-dev" => Box::new(chain_specs::development_config()),
+			"dev" | "symphonie-dev" => Box::new(chain_specs::development_config()),
 			path => Box::new(chain_specs::SymphonieChainSpec::from_json_file(
 				std::path::PathBuf::from(path),
 			)?),
