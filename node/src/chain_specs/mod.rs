@@ -23,6 +23,7 @@ pub mod helpers;
 
 use crate::chain_specs::helpers::{authority_keys_from_seed, chain_properties};
 pub use allfeat_primitives::{AccountId, Balance, Signature};
+use grandpa_primitives::AuthorityId as GrandpaId;
 use hex_literal::hex;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use sc_chain_spec::{ChainSpecExtension, ChainType, GenericChainSpec};
@@ -30,7 +31,6 @@ use serde::{Deserialize, Serialize};
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_consensus_babe::AuthorityId as BabeId;
 use sp_core::{crypto::UncheckedInto, sr25519};
-use sp_finality_grandpa::AuthorityId as GrandpaId;
 use sp_runtime::traits::{IdentifyAccount, Verify};
 pub use symphonie_runtime::{Block, SessionKeys};
 
