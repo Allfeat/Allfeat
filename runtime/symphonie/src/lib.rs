@@ -95,7 +95,7 @@ pub use pallet_sudo::Call as SudoCall;
 pub use sp_runtime::BuildStorage;
 
 /// Custom weights for Symphonie
-pub mod weights;
+/// pub mod weights;
 
 /// Implementations of some helper traits passed into runtime modules as associated types.
 pub mod impls;
@@ -215,7 +215,7 @@ impl frame_system::Config for Runtime {
 	type AccountData = pallet_balances::AccountData<Balance>;
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
-	type SystemWeightInfo = weights::system::WeightInfo<Runtime>;
+	type SystemWeightInfo = ();
 	type SS58Prefix = ConstU16<SS58_PREFIX>;
 	type OnSetCode = ();
 	type MaxConsumers = ConstU32<16>;
@@ -227,7 +227,7 @@ impl pallet_utility::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type PalletsOrigin = OriginCaller;
-	type WeightInfo = weights::utility::WeightInfo<Runtime>;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -244,7 +244,7 @@ impl pallet_multisig::Config for Runtime {
 	type DepositBase = DepositBase;
 	type DepositFactor = DepositFactor;
 	type MaxSignatories = ConstU32<100>;
-	type WeightInfo = weights::multisig::WeightInfo<Runtime>;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -312,7 +312,7 @@ impl pallet_proxy::Config for Runtime {
 	type ProxyDepositBase = ProxyDepositBase;
 	type ProxyDepositFactor = ProxyDepositFactor;
 	type MaxProxies = ConstU32<32>;
-	type WeightInfo = weights::proxy::WeightInfo<Runtime>;
+	type WeightInfo = ();
 	type MaxPending = ConstU32<32>;
 	type CallHasher = BlakeTwo256;
 	type AnnouncementDepositBase = AnnouncementDepositBase;
@@ -333,7 +333,7 @@ impl pallet_scheduler::Config for Runtime {
 	type ScheduleOrigin = EnsureRoot<AccountId>;
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
 	type MaxScheduledPerBlock = ConstU32<50>;
-	type WeightInfo = weights::scheduler::WeightInfo<Runtime>;
+	type WeightInfo = ();
 	type Preimages = Preimage;
 }
 
@@ -346,7 +346,7 @@ parameter_types! {
 
 impl pallet_preimage::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = weights::preimage::WeightInfo<Runtime>;
+	type WeightInfo = ();
 	type Currency = Balances;
 	type ManagerOrigin = EnsureRoot<AccountId>;
 	type BaseDeposit = PreimageBaseDeposit;
@@ -387,7 +387,7 @@ impl pallet_indices::Config for Runtime {
 	type Currency = Balances;
 	type Deposit = IndexDeposit;
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = weights::indices::WeightInfo<Runtime>;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -446,7 +446,7 @@ impl pallet_timestamp::Config for Runtime {
 	type Moment = Moment;
 	type OnTimestampSet = Babe;
 	type MinimumPeriod = MinimumPeriod;
-	type WeightInfo = weights::timestamp::WeightInfo<Runtime>;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -476,7 +476,7 @@ impl pallet_session::Config for Runtime {
 	type SessionManager = pallet_session::historical::NoteHistoricalRoot<Self, Staking>;
 	type SessionHandler = <SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
 	type Keys = SessionKeys;
-	type WeightInfo = weights::session::WeightInfo<Runtime>;
+	type WeightInfo = ();
 }
 
 impl pallet_session::historical::Config for Runtime {
@@ -544,7 +544,7 @@ impl pallet_staking::Config for Runtime {
 	type TargetList = pallet_staking::UseValidatorsMap<Self>;
 	type BenchmarkingConfig = StakingBenchmarkingConfig;
 	type HistoryDepth = HistoryDepth;
-	type WeightInfo = weights::staking::WeightInfo<Runtime>;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -636,7 +636,7 @@ impl onchain::Config for OnChainSeqPhragmen {
 		pallet_election_provider_multi_phase::SolutionAccuracyOf<Runtime>,
 	>;
 	type DataProvider = <Runtime as pallet_election_provider_multi_phase::Config>::DataProvider;
-	type WeightInfo = weights::election_provider_support_benchmarking::WeightInfo<Runtime>;
+	type WeightInfo = ();
 	type MaxWinners = <Runtime as pallet_election_provider_multi_phase::Config>::MaxWinners;
 	type VotersBound = MaxElectingVoters;
 	type TargetsBound = ConstU32<2_000>;
@@ -693,7 +693,7 @@ impl pallet_election_provider_multi_phase::Config for Runtime {
 	type Solver = SequentialPhragmen<AccountId, SolutionAccuracyOf<Self>, OffchainRandomBalancing>;
 	type ForceOrigin = EnsureRoot<AccountId>;
 	type BenchmarkingConfig = ElectionProviderBenchmarkConfig;
-	type WeightInfo = weights::election_provider_multi_phase::WeightInfo<Runtime>;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -703,7 +703,7 @@ parameter_types! {
 type VoterBagsListInstance = pallet_bags_list::Instance1;
 impl pallet_bags_list::Config<VoterBagsListInstance> for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = weights::bags_list::WeightInfo<Runtime>;
+	type WeightInfo = ();
 	type ScoreProvider = Staking;
 	type BagThresholds = BagThresholds;
 	type Score = VoteWeight;
@@ -712,7 +712,6 @@ impl pallet_bags_list::Config<VoterBagsListInstance> for Runtime {
 parameter_types! {
 	pub const PostUnbondPoolsWindow: u32 = 4;
 	pub const NominationPoolsPalletId: PalletId = PalletId(*b"py/nopls");
-	// TODO: Value set randomly
 	pub const MaxPointsToBalance: u8 = 10;
 }
 
@@ -771,7 +770,7 @@ impl pallet_contracts::Config for Runtime {
 	type DefaultDepositLimit = DefaultDepositLimit;
 	type CallStack = [pallet_contracts::Frame<Self>; 5];
 	type WeightPrice = pallet_transaction_payment::Pallet<Self>;
-	type WeightInfo = pallet_contracts::weights::SubstrateWeight<Self>;
+	type WeightInfo = ();
 	type ChainExtension = ();
 	type Schedule = Schedule;
 	type AddressGenerator = pallet_contracts::DefaultAddressGenerator;
@@ -867,7 +866,7 @@ impl pallet_im_online::Config for Runtime {
 	type NextSessionRotation = Babe;
 	type ReportUnresponsiveness = Offences;
 	type UnsignedPriority = ImOnlineUnsignedPriority;
-	type WeightInfo = weights::im_online::WeightInfo<Runtime>;
+	type WeightInfo = ();
 }
 
 impl pallet_offences::Config for Runtime {
@@ -1000,7 +999,7 @@ impl pallet_identity::Config for Runtime {
 	type Slashed = ();
 	type ForceOrigin = EnsureRoot<AccountId>;
 	type RegistrarOrigin = EnsureRoot<AccountId>;
-	type WeightInfo = weights::identity::WeightInfo<Runtime>;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -1012,7 +1011,7 @@ parameter_types! {
 
 impl pallet_recovery::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = weights::recovery::WeightInfo<Runtime>;
+	type WeightInfo = ();
 	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
 	type ConfigDepositBase = ConfigDepositBase;
@@ -1081,7 +1080,7 @@ impl pallet_artists::Config for Runtime {
 	type Call = RuntimeCall;
 	type CreationDepositAmount = CreationDepositAmount;
 	type NameMaxLength = NameMaxLength;
-	type WeightInfo = weights::artists::WeightInfo<Runtime>;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -1102,7 +1101,7 @@ impl pallet_artist_identity::Config for Runtime {
 	type MaxDescriptionLength = MaxDescriptionLength;
 	#[cfg(feature = "runtime-benchmarks")]
 	type StylesHelper = MusicStyles;
-	type Weights = weights::artist_identity::WeightInfo<Runtime>;
+	type Weights = ();
 }
 
 parameter_types! {
@@ -1114,7 +1113,7 @@ parameter_types! {
 impl pallet_music_styles::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type AdminOrigin = EnsureRoot<Self::AccountId>;
-	type Weights = weights::music_styles::WeightInfo<Runtime>;
+	type Weights = ();
 }
 
 construct_runtime!(
