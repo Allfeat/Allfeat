@@ -56,6 +56,6 @@ for pallet in ${pallets[*]}; do
         --execution=wasm \
         --wasm-execution=compiled \
         --heap-pages=4096 \
-        --output=./"$ALLFEAT_WEIGHT_DIR"/"$pallet".rs \
+        --output=./"$SYMPHONIE_WEIGHT_DIR"/"$pallet".rs \
         --template=./.maintain/frame-weight-template.hbs
 done
