@@ -30,16 +30,9 @@
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
-/// Weight functions needed for pallet_bags_list.
-pub trait WeightInfo {
-	fn rebag_non_terminal() -> Weight;
-	fn rebag_terminal() -> Weight;
-	fn put_in_front_of() -> Weight;
-}
-
 /// Weights for pallet_bags_list using the Allfeat node and recommended hardware.
 pub struct AllfeatWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
+impl<T: frame_system::Config> pallet_bags_list::WeightInfo for AllfeatWeight<T> {
 	/// Storage: Staking Bonded (r:1 w:0)
 	/// Proof: Staking Bonded (max_values: None, max_size: Some(72), added: 2547, mode: MaxEncodedLen)
 	/// Storage: Staking Ledger (r:1 w:0)
@@ -92,62 +85,5 @@ impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
 		Weight::from_parts(292_655_000, 11506)
 			.saturating_add(T::DbWeight::get().reads(10_u64))
 			.saturating_add(T::DbWeight::get().writes(6_u64))
-	}
-}
-
-// For backwards compatibility and tests
-impl WeightInfo for () {
-	/// Storage: Staking Bonded (r:1 w:0)
-	/// Proof: Staking Bonded (max_values: None, max_size: Some(72), added: 2547, mode: MaxEncodedLen)
-	/// Storage: Staking Ledger (r:1 w:0)
-	/// Proof: Staking Ledger (max_values: None, max_size: Some(1091), added: 3566, mode: MaxEncodedLen)
-	/// Storage: BagsList ListNodes (r:4 w:4)
-	/// Proof: BagsList ListNodes (max_values: None, max_size: Some(154), added: 2629, mode: MaxEncodedLen)
-	/// Storage: BagsList ListBags (r:1 w:1)
-	/// Proof: BagsList ListBags (max_values: None, max_size: Some(82), added: 2557, mode: MaxEncodedLen)
-	fn rebag_non_terminal() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `1585`
-		//  Estimated: `11506`
-		// Minimum execution time: 257_781_000 picoseconds.
-		Weight::from_parts(259_551_000, 11506)
-			.saturating_add(RocksDbWeight::get().reads(7_u64))
-			.saturating_add(RocksDbWeight::get().writes(5_u64))
-	}
-	/// Storage: Staking Bonded (r:1 w:0)
-	/// Proof: Staking Bonded (max_values: None, max_size: Some(72), added: 2547, mode: MaxEncodedLen)
-	/// Storage: Staking Ledger (r:1 w:0)
-	/// Proof: Staking Ledger (max_values: None, max_size: Some(1091), added: 3566, mode: MaxEncodedLen)
-	/// Storage: BagsList ListNodes (r:3 w:3)
-	/// Proof: BagsList ListNodes (max_values: None, max_size: Some(154), added: 2629, mode: MaxEncodedLen)
-	/// Storage: BagsList ListBags (r:2 w:2)
-	/// Proof: BagsList ListBags (max_values: None, max_size: Some(82), added: 2557, mode: MaxEncodedLen)
-	fn rebag_terminal() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `1479`
-		//  Estimated: `8877`
-		// Minimum execution time: 248_167_000 picoseconds.
-		Weight::from_parts(249_484_000, 8877)
-			.saturating_add(RocksDbWeight::get().reads(7_u64))
-			.saturating_add(RocksDbWeight::get().writes(5_u64))
-	}
-	/// Storage: BagsList ListNodes (r:4 w:4)
-	/// Proof: BagsList ListNodes (max_values: None, max_size: Some(154), added: 2629, mode: MaxEncodedLen)
-	/// Storage: Staking Bonded (r:2 w:0)
-	/// Proof: Staking Bonded (max_values: None, max_size: Some(72), added: 2547, mode: MaxEncodedLen)
-	/// Storage: Staking Ledger (r:2 w:0)
-	/// Proof: Staking Ledger (max_values: None, max_size: Some(1091), added: 3566, mode: MaxEncodedLen)
-	/// Storage: BagsList CounterForListNodes (r:1 w:1)
-	/// Proof: BagsList CounterForListNodes (max_values: Some(1), max_size: Some(4), added: 499, mode: MaxEncodedLen)
-	/// Storage: BagsList ListBags (r:1 w:1)
-	/// Proof: BagsList ListBags (max_values: None, max_size: Some(82), added: 2557, mode: MaxEncodedLen)
-	fn put_in_front_of() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `1791`
-		//  Estimated: `11506`
-		// Minimum execution time: 290_813_000 picoseconds.
-		Weight::from_parts(292_655_000, 11506)
-			.saturating_add(RocksDbWeight::get().reads(10_u64))
-			.saturating_add(RocksDbWeight::get().writes(6_u64))
 	}
 }

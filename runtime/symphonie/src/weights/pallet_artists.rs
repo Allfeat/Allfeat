@@ -30,18 +30,9 @@
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
-/// Weight functions needed for pallet_artists.
-pub trait WeightInfo {
-	fn submit_candidacy(n: u32, ) -> Weight;
-	fn withdraw_candidacy() -> Weight;
-	fn approve_candidacy(n: u32, ) -> Weight;
-	fn call_as_artist() -> Weight;
-	fn call_as_candidate() -> Weight;
-}
-
 /// Weights for pallet_artists using the Allfeat node and recommended hardware.
 pub struct AllfeatWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
+impl<T: frame_system::Config> pallet_artists::weights::WeightInfo for AllfeatWeight<T> {
 	/// Storage: Artists Artists (r:1 w:0)
 	/// Proof: Artists Artists (max_values: None, max_size: Some(182), added: 2657, mode: MaxEncodedLen)
 	/// Storage: Artists Candidates (r:1 w:1)
@@ -104,72 +95,5 @@ impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
 		// Minimum execution time: 64_428_000 picoseconds.
 		Weight::from_parts(66_245_000, 3647)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
-	}
-}
-
-// For backwards compatibility and tests
-impl WeightInfo for () {
-	/// Storage: Artists Artists (r:1 w:0)
-	/// Proof: Artists Artists (max_values: None, max_size: Some(182), added: 2657, mode: MaxEncodedLen)
-	/// Storage: Artists Candidates (r:1 w:1)
-	/// Proof: Artists Candidates (max_values: None, max_size: Some(182), added: 2657, mode: MaxEncodedLen)
-	/// The range of component `n` is `[1, 128]`.
-	fn submit_candidacy(n: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `42`
-		//  Estimated: `3647`
-		// Minimum execution time: 146_028_000 picoseconds.
-		Weight::from_parts(148_570_259, 3647)
-			// Standard Error: 1_043
-			.saturating_add(Weight::from_parts(5_066, 0).saturating_mul(n.into()))
-			.saturating_add(RocksDbWeight::get().reads(2_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: Artists Candidates (r:1 w:1)
-	/// Proof: Artists Candidates (max_values: None, max_size: Some(182), added: 2657, mode: MaxEncodedLen)
-	fn withdraw_candidacy() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `147`
-		//  Estimated: `3647`
-		// Minimum execution time: 137_042_000 picoseconds.
-		Weight::from_parts(137_499_000, 3647)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: Artists Artists (r:1 w:1)
-	/// Proof: Artists Artists (max_values: None, max_size: Some(182), added: 2657, mode: MaxEncodedLen)
-	/// Storage: Artists Candidates (r:1 w:1)
-	/// Proof: Artists Candidates (max_values: None, max_size: Some(182), added: 2657, mode: MaxEncodedLen)
-	/// The range of component `n` is `[1, 128]`.
-	fn approve_candidacy(n: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `121 + n * (1 ±0)`
-		//  Estimated: `3647`
-		// Minimum execution time: 80_504_000 picoseconds.
-		Weight::from_parts(82_184_060, 3647)
-			// Standard Error: 604
-			.saturating_add(Weight::from_parts(9_866, 0).saturating_mul(n.into()))
-			.saturating_add(RocksDbWeight::get().reads(2_u64))
-			.saturating_add(RocksDbWeight::get().writes(2_u64))
-	}
-	/// Storage: Artists Artists (r:1 w:0)
-	/// Proof: Artists Artists (max_values: None, max_size: Some(182), added: 2657, mode: MaxEncodedLen)
-	fn call_as_artist() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `147`
-		//  Estimated: `3647`
-		// Minimum execution time: 62_317_000 picoseconds.
-		Weight::from_parts(63_320_000, 3647)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-	}
-	/// Storage: Artists Candidates (r:1 w:0)
-	/// Proof: Artists Candidates (max_values: None, max_size: Some(182), added: 2657, mode: MaxEncodedLen)
-	fn call_as_candidate() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `147`
-		//  Estimated: `3647`
-		// Minimum execution time: 64_428_000 picoseconds.
-		Weight::from_parts(66_245_000, 3647)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
 	}
 }

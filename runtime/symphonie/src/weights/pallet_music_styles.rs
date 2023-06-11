@@ -30,15 +30,9 @@
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
-/// Weight functions needed for pallet_music_styles.
-pub trait WeightInfo {
-	fn add_style(n: u32, x: u32, ) -> Weight;
-	fn add_sub_style(n: u32, x: u32, ) -> Weight;
-}
-
 /// Weights for pallet_music_styles using the Allfeat node and recommended hardware.
 pub struct AllfeatWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
+impl<T: frame_system::Config> pallet_music_styles::WeightInfo for AllfeatWeight<T> {
 	/// Storage: MusicStyles Styles (r:1 w:1)
 	/// Proof: MusicStyles Styles (max_values: Some(1), max_size: Some(34881), added: 35376, mode: MaxEncodedLen)
 	/// The range of component `n` is `[1, 32]`.
@@ -70,41 +64,5 @@ impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
 			.saturating_add(Weight::from_parts(22_590_165, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
-	}
-}
-
-// For backwards compatibility and tests
-impl WeightInfo for () {
-	/// Storage: MusicStyles Styles (r:1 w:1)
-	/// Proof: MusicStyles Styles (max_values: Some(1), max_size: Some(34881), added: 35376, mode: MaxEncodedLen)
-	/// The range of component `n` is `[1, 32]`.
-	/// The range of component `x` is `[0, 32]`.
-	fn add_style(n: u32, x: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `64`
-		//  Estimated: `36366`
-		// Minimum execution time: 61_127_000 picoseconds.
-		Weight::from_parts(16_833_691, 36366)
-			// Standard Error: 32_695
-			.saturating_add(Weight::from_parts(1_471_531, 0).saturating_mul(n.into()))
-			// Standard Error: 31_655
-			.saturating_add(Weight::from_parts(23_956_727, 0).saturating_mul(x.into()))
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: MusicStyles Styles (r:1 w:1)
-	/// Proof: MusicStyles Styles (max_values: Some(1), max_size: Some(34881), added: 35376, mode: MaxEncodedLen)
-	/// The range of component `n` is `[1, 32]`.
-	/// The range of component `x` is `[1, 32]`.
-	fn add_sub_style(_n: u32, x: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `68`
-		//  Estimated: `36366`
-		// Minimum execution time: 64_427_000 picoseconds.
-		Weight::from_parts(64_877_000, 36366)
-			// Standard Error: 30_582
-			.saturating_add(Weight::from_parts(22_590_165, 0).saturating_mul(x.into()))
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
 	}
 }

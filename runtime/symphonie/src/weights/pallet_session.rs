@@ -30,15 +30,9 @@
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
-/// Weight functions needed for pallet_session.
-pub trait WeightInfo {
-	fn set_keys() -> Weight;
-	fn purge_keys() -> Weight;
-}
-
 /// Weights for pallet_session using the Allfeat node and recommended hardware.
 pub struct AllfeatWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
+impl<T: frame_system::Config> pallet_session::WeightInfo for AllfeatWeight<T> {
 	/// Storage: Staking Ledger (r:1 w:0)
 	/// Proof: Staking Ledger (max_values: None, max_size: Some(1091), added: 3566, mode: MaxEncodedLen)
 	/// Storage: Session NextKeys (r:1 w:1)
@@ -68,39 +62,5 @@ impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
 		Weight::from_parts(131_547_000, 5118)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(5_u64))
-	}
-}
-
-// For backwards compatibility and tests
-impl WeightInfo for () {
-	/// Storage: Staking Ledger (r:1 w:0)
-	/// Proof: Staking Ledger (max_values: None, max_size: Some(1091), added: 3566, mode: MaxEncodedLen)
-	/// Storage: Session NextKeys (r:1 w:1)
-	/// Proof Skipped: Session NextKeys (max_values: None, max_size: None, mode: Measured)
-	/// Storage: Session KeyOwner (r:4 w:4)
-	/// Proof Skipped: Session KeyOwner (max_values: None, max_size: None, mode: Measured)
-	fn set_keys() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `1786`
-		//  Estimated: `12676`
-		// Minimum execution time: 186_244_000 picoseconds.
-		Weight::from_parts(199_660_000, 12676)
-			.saturating_add(RocksDbWeight::get().reads(6_u64))
-			.saturating_add(RocksDbWeight::get().writes(5_u64))
-	}
-	/// Storage: Staking Ledger (r:1 w:0)
-	/// Proof: Staking Ledger (max_values: None, max_size: Some(1091), added: 3566, mode: MaxEncodedLen)
-	/// Storage: Session NextKeys (r:1 w:1)
-	/// Proof Skipped: Session NextKeys (max_values: None, max_size: None, mode: Measured)
-	/// Storage: Session KeyOwner (r:0 w:4)
-	/// Proof Skipped: Session KeyOwner (max_values: None, max_size: None, mode: Measured)
-	fn purge_keys() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `1653`
-		//  Estimated: `5118`
-		// Minimum execution time: 129_741_000 picoseconds.
-		Weight::from_parts(131_547_000, 5118)
-			.saturating_add(RocksDbWeight::get().reads(2_u64))
-			.saturating_add(RocksDbWeight::get().writes(5_u64))
 	}
 }

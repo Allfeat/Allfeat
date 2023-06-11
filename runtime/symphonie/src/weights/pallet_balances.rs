@@ -30,21 +30,9 @@
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
-/// Weight functions needed for pallet_balances.
-pub trait WeightInfo {
-	fn transfer_allow_death() -> Weight;
-	fn transfer_keep_alive() -> Weight;
-	fn force_set_balance_creating() -> Weight;
-	fn force_set_balance_killing() -> Weight;
-	fn force_transfer() -> Weight;
-	fn transfer_all() -> Weight;
-	fn force_unreserve() -> Weight;
-	fn upgrade_accounts(u: u32, ) -> Weight;
-}
-
 /// Weights for pallet_balances using the Allfeat node and recommended hardware.
 pub struct AllfeatWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
+impl<T: frame_system::Config> pallet_balances::WeightInfo for AllfeatWeight<T> {
 	/// Storage: System Account (r:1 w:1)
 	/// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn transfer_allow_death() -> Weight {
@@ -135,102 +123,6 @@ impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
 			.saturating_add(Weight::from_parts(86_697_832, 0).saturating_mul(u.into()))
 			.saturating_add(T::DbWeight::get().reads((1_u64).saturating_mul(u.into())))
 			.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(u.into())))
-			.saturating_add(Weight::from_parts(0, 2603).saturating_mul(u.into()))
-	}
-}
-
-// For backwards compatibility and tests
-impl WeightInfo for () {
-	/// Storage: System Account (r:1 w:1)
-	/// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	fn transfer_allow_death() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `0`
-		//  Estimated: `3593`
-		// Minimum execution time: 314_086_000 picoseconds.
-		Weight::from_parts(327_121_000, 3593)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: System Account (r:1 w:1)
-	/// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	fn transfer_keep_alive() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `0`
-		//  Estimated: `3593`
-		// Minimum execution time: 245_486_000 picoseconds.
-		Weight::from_parts(246_399_000, 3593)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: System Account (r:1 w:1)
-	/// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	fn force_set_balance_creating() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `174`
-		//  Estimated: `3593`
-		// Minimum execution time: 79_118_000 picoseconds.
-		Weight::from_parts(79_600_000, 3593)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: System Account (r:1 w:1)
-	/// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	fn force_set_balance_killing() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `174`
-		//  Estimated: `3593`
-		// Minimum execution time: 118_359_000 picoseconds.
-		Weight::from_parts(118_790_000, 3593)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: System Account (r:2 w:2)
-	/// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	fn force_transfer() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `103`
-		//  Estimated: `6196`
-		// Minimum execution time: 330_344_000 picoseconds.
-		Weight::from_parts(332_049_000, 6196)
-			.saturating_add(RocksDbWeight::get().reads(2_u64))
-			.saturating_add(RocksDbWeight::get().writes(2_u64))
-	}
-	/// Storage: System Account (r:1 w:1)
-	/// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	fn transfer_all() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `0`
-		//  Estimated: `3593`
-		// Minimum execution time: 307_598_000 picoseconds.
-		Weight::from_parts(308_699_000, 3593)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: System Account (r:1 w:1)
-	/// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	fn force_unreserve() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `174`
-		//  Estimated: `3593`
-		// Minimum execution time: 99_239_000 picoseconds.
-		Weight::from_parts(99_785_000, 3593)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: System Account (r:999 w:999)
-	/// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	/// The range of component `u` is `[1, 1000]`.
-	fn upgrade_accounts(u: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `0 + u * (135 ±0)`
-		//  Estimated: `990 + u * (2603 ±0)`
-		// Minimum execution time: 97_753_000 picoseconds.
-		Weight::from_parts(97_865_000, 990)
-			// Standard Error: 32_142
-			.saturating_add(Weight::from_parts(86_697_832, 0).saturating_mul(u.into()))
-			.saturating_add(RocksDbWeight::get().reads((1_u64).saturating_mul(u.into())))
-			.saturating_add(RocksDbWeight::get().writes((1_u64).saturating_mul(u.into())))
 			.saturating_add(Weight::from_parts(0, 2603).saturating_mul(u.into()))
 	}
 }

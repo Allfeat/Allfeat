@@ -30,14 +30,9 @@
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
-/// Weight functions needed for pallet_mmr.
-pub trait WeightInfo {
-	fn on_initialize(x: u32, ) -> Weight;
-}
-
 /// Weights for pallet_mmr using the Allfeat node and recommended hardware.
 pub struct AllfeatWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
+impl<T: frame_system::Config> pallet_mmr::WeightInfo for AllfeatWeight<T> {
 	/// Storage: Mmr NumberOfLeaves (r:1 w:1)
 	/// Proof: Mmr NumberOfLeaves (max_values: Some(1), max_size: Some(8), added: 503, mode: MaxEncodedLen)
 	/// Storage: System ParentHash (r:1 w:0)
@@ -47,7 +42,7 @@ impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
 	/// Storage: Mmr RootHash (r:0 w:1)
 	/// Proof: Mmr RootHash (max_values: Some(1), max_size: Some(32), added: 527, mode: MaxEncodedLen)
 	/// The range of component `x` is `[1, 1000]`.
-	fn on_initialize(x: u32, ) -> Weight {
+	fn on_initialize(x: u64, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `42`
 		//  Estimated: `1517`
@@ -58,30 +53,5 @@ impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 			.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(x.into())))
-	}
-}
-
-// For backwards compatibility and tests
-impl WeightInfo for () {
-	/// Storage: Mmr NumberOfLeaves (r:1 w:1)
-	/// Proof: Mmr NumberOfLeaves (max_values: Some(1), max_size: Some(8), added: 503, mode: MaxEncodedLen)
-	/// Storage: System ParentHash (r:1 w:0)
-	/// Proof: System ParentHash (max_values: Some(1), max_size: Some(32), added: 527, mode: MaxEncodedLen)
-	/// Storage: Mmr Nodes (r:0 w:999)
-	/// Proof: Mmr Nodes (max_values: None, max_size: Some(40), added: 2515, mode: MaxEncodedLen)
-	/// Storage: Mmr RootHash (r:0 w:1)
-	/// Proof: Mmr RootHash (max_values: Some(1), max_size: Some(32), added: 527, mode: MaxEncodedLen)
-	/// The range of component `x` is `[1, 1000]`.
-	fn on_initialize(x: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `42`
-		//  Estimated: `1517`
-		// Minimum execution time: 62_632_000 picoseconds.
-		Weight::from_parts(63_024_000, 1517)
-			// Standard Error: 127_413
-			.saturating_add(Weight::from_parts(108_727_603, 0).saturating_mul(x.into()))
-			.saturating_add(RocksDbWeight::get().reads(2_u64))
-			.saturating_add(RocksDbWeight::get().writes(2_u64))
-			.saturating_add(RocksDbWeight::get().writes((1_u64).saturating_mul(x.into())))
 	}
 }

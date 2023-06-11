@@ -30,66 +30,9 @@
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
-/// Weight functions needed for pallet_utility.
-pub trait WeightInfo {
-	fn batch(c: u32, ) -> Weight;
-	fn as_derivative() -> Weight;
-	fn batch_all(c: u32, ) -> Weight;
-	fn dispatch_as() -> Weight;
-	fn force_batch(c: u32, ) -> Weight;
-}
-
 /// Weights for pallet_utility using the Allfeat node and recommended hardware.
 pub struct AllfeatWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
-	/// The range of component `c` is `[0, 1000]`.
-	fn batch(c: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `0`
-		//  Estimated: `0`
-		// Minimum execution time: 31_416_000 picoseconds.
-		Weight::from_parts(37_501_136, 0)
-			// Standard Error: 6_221
-			.saturating_add(Weight::from_parts(25_509_721, 0).saturating_mul(c.into()))
-	}
-	fn as_derivative() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `0`
-		//  Estimated: `0`
-		// Minimum execution time: 23_415_000 picoseconds.
-		Weight::from_parts(23_581_000, 0)
-	}
-	/// The range of component `c` is `[0, 1000]`.
-	fn batch_all(c: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `0`
-		//  Estimated: `0`
-		// Minimum execution time: 31_614_000 picoseconds.
-		Weight::from_parts(61_341_255, 0)
-			// Standard Error: 5_750
-			.saturating_add(Weight::from_parts(27_127_106, 0).saturating_mul(c.into()))
-	}
-	fn dispatch_as() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `0`
-		//  Estimated: `0`
-		// Minimum execution time: 41_266_000 picoseconds.
-		Weight::from_parts(42_194_000, 0)
-	}
-	/// The range of component `c` is `[0, 1000]`.
-	fn force_batch(c: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `0`
-		//  Estimated: `0`
-		// Minimum execution time: 31_872_000 picoseconds.
-		Weight::from_parts(38_434_540, 0)
-			// Standard Error: 4_329
-			.saturating_add(Weight::from_parts(25_479_313, 0).saturating_mul(c.into()))
-	}
-}
-
-// For backwards compatibility and tests
-impl WeightInfo for () {
+impl<T: frame_system::Config> pallet_utility::WeightInfo for AllfeatWeight<T> {
 	/// The range of component `c` is `[0, 1000]`.
 	fn batch(c: u32, ) -> Weight {
 		// Proof Size summary in bytes:

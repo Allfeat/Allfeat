@@ -11,13 +11,11 @@ pallets=(
     "pallet_artists" \
     "pallet_artist_identity" \
     "pallet_assets" \
-    "pallet_babe" \
     "pallet_bags_list" \
     "pallet_balances" \
     "pallet_contracts" \
     "pallet_election_provider_multi_phase" \
     "pallet_election_provider_support_benchmarking" \
-    "pallet_grandpa" \
     "pallet_identity" \
     "pallet_im_online" \
     "pallet_indices" \
@@ -25,8 +23,6 @@ pallets=(
     "pallet_multisig" \
     "pallet_music_styles" \
     "pallet_nfts" \
-    "pallet_nomination_pools" \
-    "pallet_offences" \
     "pallet_preimage" \
     "pallet_proxy" \
     "pallet_recovery" \

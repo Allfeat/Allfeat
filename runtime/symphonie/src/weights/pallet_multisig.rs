@@ -30,20 +30,9 @@
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
-/// Weight functions needed for pallet_multisig.
-pub trait WeightInfo {
-	fn as_multi_threshold_1(z: u32, ) -> Weight;
-	fn as_multi_create(s: u32, z: u32, ) -> Weight;
-	fn as_multi_approve(s: u32, z: u32, ) -> Weight;
-	fn as_multi_complete(s: u32, z: u32, ) -> Weight;
-	fn approve_as_multi_create(s: u32, ) -> Weight;
-	fn approve_as_multi_approve(s: u32, ) -> Weight;
-	fn cancel_as_multi(s: u32, ) -> Weight;
-}
-
 /// Weights for pallet_multisig using the Allfeat node and recommended hardware.
 pub struct AllfeatWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
+impl<T: frame_system::Config> pallet_multisig::WeightInfo for AllfeatWeight<T> {
 	/// The range of component `z` is `[0, 10000]`.
 	fn as_multi_threshold_1(z: u32, ) -> Weight {
 		// Proof Size summary in bytes:
@@ -148,114 +137,5 @@ impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
 			.saturating_add(Weight::from_parts(155_367, 0).saturating_mul(s.into()))
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
-	}
-}
-
-// For backwards compatibility and tests
-impl WeightInfo for () {
-	/// The range of component `z` is `[0, 10000]`.
-	fn as_multi_threshold_1(z: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `0`
-		//  Estimated: `0`
-		// Minimum execution time: 40_441_000 picoseconds.
-		Weight::from_parts(43_227_081, 0)
-			// Standard Error: 17
-			.saturating_add(Weight::from_parts(751, 0).saturating_mul(z.into()))
-	}
-	/// Storage: Multisig Multisigs (r:1 w:1)
-	/// Proof: Multisig Multisigs (max_values: None, max_size: Some(3346), added: 5821, mode: MaxEncodedLen)
-	/// The range of component `s` is `[2, 100]`.
-	/// The range of component `z` is `[0, 10000]`.
-	fn as_multi_create(s: u32, z: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `271 + s * (2 ±0)`
-		//  Estimated: `6811`
-		// Minimum execution time: 160_682_000 picoseconds.
-		Weight::from_parts(168_752_453, 6811)
-			// Standard Error: 4_221
-			.saturating_add(Weight::from_parts(237_443, 0).saturating_mul(s.into()))
-			// Standard Error: 41
-			.saturating_add(Weight::from_parts(1_559, 0).saturating_mul(z.into()))
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: Multisig Multisigs (r:1 w:1)
-	/// Proof: Multisig Multisigs (max_values: None, max_size: Some(3346), added: 5821, mode: MaxEncodedLen)
-	/// The range of component `s` is `[3, 100]`.
-	/// The range of component `z` is `[0, 10000]`.
-	fn as_multi_approve(s: u32, z: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `248`
-		//  Estimated: `6811`
-		// Minimum execution time: 98_424_000 picoseconds.
-		Weight::from_parts(85_470_273, 6811)
-			// Standard Error: 1_621
-			.saturating_add(Weight::from_parts(193_494, 0).saturating_mul(s.into()))
-			// Standard Error: 15
-			.saturating_add(Weight::from_parts(1_612, 0).saturating_mul(z.into()))
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: Multisig Multisigs (r:1 w:1)
-	/// Proof: Multisig Multisigs (max_values: None, max_size: Some(3346), added: 5821, mode: MaxEncodedLen)
-	/// Storage: System Account (r:1 w:1)
-	/// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	/// The range of component `s` is `[2, 100]`.
-	/// The range of component `z` is `[0, 10000]`.
-	fn as_multi_complete(s: u32, z: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `354 + s * (33 ±0)`
-		//  Estimated: `6811`
-		// Minimum execution time: 158_327_000 picoseconds.
-		Weight::from_parts(176_489_429, 6811)
-			// Standard Error: 2_580
-			.saturating_add(Weight::from_parts(240_435, 0).saturating_mul(s.into()))
-			// Standard Error: 25
-			.saturating_add(Weight::from_parts(1_552, 0).saturating_mul(z.into()))
-			.saturating_add(RocksDbWeight::get().reads(2_u64))
-			.saturating_add(RocksDbWeight::get().writes(2_u64))
-	}
-	/// Storage: Multisig Multisigs (r:1 w:1)
-	/// Proof: Multisig Multisigs (max_values: None, max_size: Some(3346), added: 5821, mode: MaxEncodedLen)
-	/// The range of component `s` is `[2, 100]`.
-	fn approve_as_multi_create(s: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `276 + s * (2 ±0)`
-		//  Estimated: `6811`
-		// Minimum execution time: 164_462_000 picoseconds.
-		Weight::from_parts(165_607_814, 6811)
-			// Standard Error: 2_175
-			.saturating_add(Weight::from_parts(170_523, 0).saturating_mul(s.into()))
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: Multisig Multisigs (r:1 w:1)
-	/// Proof: Multisig Multisigs (max_values: None, max_size: Some(3346), added: 5821, mode: MaxEncodedLen)
-	/// The range of component `s` is `[2, 100]`.
-	fn approve_as_multi_approve(s: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `248`
-		//  Estimated: `6811`
-		// Minimum execution time: 80_329_000 picoseconds.
-		Weight::from_parts(81_087_105, 6811)
-			// Standard Error: 1_665
-			.saturating_add(Weight::from_parts(147_120, 0).saturating_mul(s.into()))
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: Multisig Multisigs (r:1 w:1)
-	/// Proof: Multisig Multisigs (max_values: None, max_size: Some(3346), added: 5821, mode: MaxEncodedLen)
-	/// The range of component `s` is `[2, 100]`.
-	fn cancel_as_multi(s: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `420 + s * (1 ±0)`
-		//  Estimated: `6811`
-		// Minimum execution time: 107_676_000 picoseconds.
-		Weight::from_parts(160_937_591, 6811)
-			// Standard Error: 1_224
-			.saturating_add(Weight::from_parts(155_367, 0).saturating_mul(s.into()))
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
 	}
 }

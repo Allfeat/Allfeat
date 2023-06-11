@@ -38,39 +38,7 @@ pub trait WeightInfo {
 
 /// Weights for pallet_election_provider_support_benchmarking using the Allfeat node and recommended hardware.
 pub struct AllfeatWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
-	/// The range of component `v` is `[1000, 2000]`.
-	/// The range of component `t` is `[500, 1000]`.
-	/// The range of component `d` is `[5, 16]`.
-	fn phragmen(v: u32, _t: u32, d: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `0`
-		//  Estimated: `0`
-		// Minimum execution time: 28_213_422_000 picoseconds.
-		Weight::from_parts(28_390_387_000, 0)
-			// Standard Error: 554_273
-			.saturating_add(Weight::from_parts(18_792_322, 0).saturating_mul(v.into()))
-			// Standard Error: 56_666_943
-			.saturating_add(Weight::from_parts(3_154_775_315, 0).saturating_mul(d.into()))
-	}
-	/// The range of component `v` is `[1000, 2000]`.
-	/// The range of component `t` is `[500, 1000]`.
-	/// The range of component `d` is `[5, 16]`.
-	fn phragmms(v: u32, _t: u32, d: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `0`
-		//  Estimated: `0`
-		// Minimum execution time: 18_727_227_000 picoseconds.
-		Weight::from_parts(19_075_241_000, 0)
-			// Standard Error: 282_159
-			.saturating_add(Weight::from_parts(12_930_346, 0).saturating_mul(v.into()))
-			// Standard Error: 28_847_007
-			.saturating_add(Weight::from_parts(2_664_355_156, 0).saturating_mul(d.into()))
-	}
-}
-
-// For backwards compatibility and tests
-impl WeightInfo for () {
+impl<T: frame_system::Config> _feps::WeightInfo for AllfeatWeight<T> {
 	/// The range of component `v` is `[1000, 2000]`.
 	/// The range of component `t` is `[500, 1000]`.
 	/// The range of component `d` is `[5, 16]`.

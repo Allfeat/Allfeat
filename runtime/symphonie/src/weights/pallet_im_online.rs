@@ -30,14 +30,9 @@
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
-/// Weight functions needed for pallet_im_online.
-pub trait WeightInfo {
-	fn validate_unsigned_and_then_heartbeat(k: u32, e: u32, ) -> Weight;
-}
-
 /// Weights for pallet_im_online using the Allfeat node and recommended hardware.
 pub struct AllfeatWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
+impl<T: frame_system::Config> pallet_im_online::WeightInfo for AllfeatWeight<T> {
 	/// Storage: Session Validators (r:1 w:0)
 	/// Proof Skipped: Session Validators (max_values: Some(1), max_size: None, mode: Measured)
 	/// Storage: Session CurrentIndex (r:1 w:0)
@@ -62,37 +57,6 @@ impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
 			.saturating_add(Weight::from_parts(2_352_826, 0).saturating_mul(e.into()))
 			.saturating_add(T::DbWeight::get().reads(4_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
-			.saturating_add(Weight::from_parts(0, 35).saturating_mul(e.into()))
-			.saturating_add(Weight::from_parts(0, 32).saturating_mul(k.into()))
-	}
-}
-
-// For backwards compatibility and tests
-impl WeightInfo for () {
-	/// Storage: Session Validators (r:1 w:0)
-	/// Proof Skipped: Session Validators (max_values: Some(1), max_size: None, mode: Measured)
-	/// Storage: Session CurrentIndex (r:1 w:0)
-	/// Proof Skipped: Session CurrentIndex (max_values: Some(1), max_size: None, mode: Measured)
-	/// Storage: ImOnline Keys (r:1 w:0)
-	/// Proof: ImOnline Keys (max_values: Some(1), max_size: Some(320002), added: 320497, mode: MaxEncodedLen)
-	/// Storage: ImOnline ReceivedHeartbeats (r:1 w:1)
-	/// Proof: ImOnline ReceivedHeartbeats (max_values: None, max_size: Some(10021032), added: 10023507, mode: MaxEncodedLen)
-	/// Storage: ImOnline AuthoredBlocks (r:1 w:0)
-	/// Proof: ImOnline AuthoredBlocks (max_values: None, max_size: Some(56), added: 2531, mode: MaxEncodedLen)
-	/// The range of component `k` is `[1, 1000]`.
-	/// The range of component `e` is `[1, 100]`.
-	fn validate_unsigned_and_then_heartbeat(k: u32, e: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `295 + k * (32 ±0)`
-		//  Estimated: `10024497 + e * (35 ±0) + k * (32 ±0)`
-		// Minimum execution time: 262_318_000 picoseconds.
-		Weight::from_parts(232_315_953, 10024497)
-			// Standard Error: 623
-			.saturating_add(Weight::from_parts(38_474, 0).saturating_mul(k.into()))
-			// Standard Error: 6_280
-			.saturating_add(Weight::from_parts(2_352_826, 0).saturating_mul(e.into()))
-			.saturating_add(RocksDbWeight::get().reads(4_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
 			.saturating_add(Weight::from_parts(0, 35).saturating_mul(e.into()))
 			.saturating_add(Weight::from_parts(0, 32).saturating_mul(k.into()))
 	}
