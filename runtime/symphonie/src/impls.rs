@@ -36,7 +36,7 @@ mod multiplier_tests {
 		AdjustmentVariable, MinimumMultiplier, Runtime, RuntimeBlockWeights as BlockWeights,
 		System, TargetBlockFullness, TransactionPayment,
 	};
-	use frame_support::weights::{DispatchClass, Weight, WeightToFee};
+	use frame_support::weights::{Weight, WeightToFee};
 	use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
 	use sp_runtime::{
 		assert_eq_error_rate,
@@ -169,7 +169,7 @@ mod multiplier_tests {
 				let next = runtime_multiplier_update(fm);
 				fm = next;
 				if fm == min_multiplier() {
-					break
+					break;
 				}
 				iterations += 1;
 			}
