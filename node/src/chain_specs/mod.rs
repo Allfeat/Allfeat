@@ -79,3 +79,82 @@ pub fn development_config() -> SymphonieChainSpec {
 		Default::default(),
 	)
 }
+
+#[cfg(test)]
+pub(crate) mod tests {
+	use super::*;
+	use crate::chain_specs::genesis::symphonie_dev_genesis;
+	use crate::service::{new_full_base, NewFullBase};
+	use sc_service_test;
+	use sp_runtime::BuildStorage;
+	use symphonie_runtime::GenesisConfig;
+
+	fn local_testnet_genesis_instant_single() -> GenesisConfig {
+		genesis::testnet_genesis(
+			vec![authority_keys_from_seed("Alice")],
+			vec![],
+			helpers::get_account_id_from_seed::<sr25519::Public>("Alice"),
+			None,
+		)
+	}
+
+	/// Local testnet config (single validator - Alice)
+	pub fn integration_test_config_with_single_authority() -> SymphonieChainSpec {
+		SymphonieChainSpec::from_genesis(
+			"Integration Test",
+			"test",
+			ChainType::Development,
+			local_testnet_genesis_instant_single,
+			vec![],
+			None,
+			None,
+			None,
+			None,
+			Default::default(),
+		)
+	}
+
+	/// testnet config (multivalidator Alice + Bob)
+	pub fn integration_test_config_with_two_authorities() -> SymphonieChainSpec {
+		SymphonieChainSpec::from_genesis(
+			"Integration Test",
+			"test",
+			ChainType::Development,
+			symphonie_dev_genesis,
+			vec![],
+			None,
+			None,
+			None,
+			None,
+			Default::default(),
+		)
+	}
+
+	#[test]
+	#[ignore]
+	fn test_connectivity() {
+		sp_tracing::try_init_simple();
+
+		sc_service_test::connectivity(integration_test_config_with_two_authorities(), |config| {
+			let NewFullBase { task_manager, client, network, sync, transaction_pool, .. } =
+				new_full_base(config, false, |_, _| ())?;
+			Ok(sc_service_test::TestNetComponents::new(
+				task_manager,
+				client,
+				network,
+				sync,
+				transaction_pool,
+			))
+		});
+	}
+
+	#[test]
+	fn test_create_development_chain_spec() {
+		development_config().build_storage().unwrap();
+	}
+
+	#[test]
+	fn test_staging_test_net_chain_spec() {
+		symphonie_config().unwrap().build_storage().unwrap();
+	}
+}

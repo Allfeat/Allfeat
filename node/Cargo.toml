@@ -9,12 +9,20 @@ license = "Unlicense"
 publish = false
 build = "build.rs"
 
+[package.metadata.wasm-pack.profile.release]
+# `wasm-opt` has some problems on linux, see
+# https://github.com/rustwasm/wasm-pack/issues/781 etc.
+wasm-opt = false
+
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
 
 [[bin]]
 name = "allfeat"
 path = "src/main.rs"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 clap = { version = "4.0.9", features = ["derive"] }

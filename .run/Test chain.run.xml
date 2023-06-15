@@ -1,11 +1,11 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Run Artist Identity Benchmarks" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
-    <option name="command" value="run --release --features runtime-benchmarks -- benchmark pallet --chain dev --pallet pallet_artist_identity --extrinsic * --steps 50 --repeat 3 --output weights.rs " />
+  <configuration default="false" name="Test chain" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+    <option name="command" value="test" />
     <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+    <option name="emulateTerminal" value="false" />
     <option name="channel" value="DEFAULT" />
     <option name="requiredFeatures" value="true" />
     <option name="allFeatures" value="false" />
-    <option name="emulateTerminal" value="false" />
     <option name="withSudo" value="false" />
     <option name="buildTarget" value="REMOTE" />
     <option name="backtrace" value="SHORT" />
