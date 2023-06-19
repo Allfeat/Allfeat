@@ -13,7 +13,7 @@ pub fn session_keys(
 pub fn chain_properties() -> serde_json::map::Map<String, serde_json::Value> {
 	serde_json::json!({
 		"ss58Format": 42,
-		"tokenDecimals": 12,
+		"tokenDecimals": 10,
 		"tokenSymbol": "SPI",
 	})
 	.as_object()

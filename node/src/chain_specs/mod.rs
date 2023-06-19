@@ -30,7 +30,7 @@ use sc_chain_spec::{ChainSpecExtension, ChainType, GenericChainSpec};
 use serde::{Deserialize, Serialize};
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_consensus_babe::AuthorityId as BabeId;
-use sp_core::{crypto::UncheckedInto, sr25519};
+use sp_core::sr25519;
 use sp_runtime::traits::{IdentifyAccount, Verify};
 pub use symphonie_runtime::{Block, SessionKeys};
 
@@ -61,8 +61,25 @@ pub type SymphonieChainSpec = GenericChainSpec<symphonie_runtime::GenesisConfig,
 pub type SymphonieChainSpec = GenericChainSpec<DummyChainSpec, Extensions>;
 
 pub fn symphonie_config() -> Result<SymphonieChainSpec, String> {
-	SymphonieChainSpec::from_json_bytes(&include_bytes!("../../genesis/symphonie_raw.json")[..])
+	SymphonieChainSpec::from_json_bytes(&include_bytes!("../../genesis/symphonieV2_raw.json")[..])
 }
+
+/*
+pub fn _symphonie_live_config() -> SymphonieChainSpec {
+	SymphonieChainSpec::from_genesis(
+		"Symphonie Live",
+		"symphonie_live",
+		ChainType::Live,
+		genesis::symphonie_genesis,
+		vec![],
+		None,
+		Some("aft"),
+		None,
+		Some(chain_properties()),
+		Default::default(),
+	)
+}
+*/
 
 /// Development config (single validator Alice)
 pub fn development_config() -> SymphonieChainSpec {
