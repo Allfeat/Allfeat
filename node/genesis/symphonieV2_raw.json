@@ -2,7 +2,9 @@
   "name": "Symphonie Live",
   "id": "symphonie_live",
   "chainType": "Live",
-  "bootNodes": [],
+  "bootNodes": [
+    "/dns/rpc-test.allfeat.io/tcp/30333/p2p/12D3KooWSLczf6f3MuBMQpM3sMP5TdmiqhQS49BFm3WNvuehw3SN"
+  ],
   "telemetryEndpoints": [
     [
       "/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F",
