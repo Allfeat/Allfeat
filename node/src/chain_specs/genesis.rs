@@ -135,7 +135,7 @@ pub fn _symphonie_genesis() -> GenesisConfig {
 	testnet_genesis(
 		vec![
 			(
-				hex!["597cfd0debc214f04f6f55f859970319963a5735e9d6884c2418fcb0924bdc19"].into(),
+				hex!["643867ab67490163b0ec8813a294757ab39f6999e3dd83546c2d61a1aed07558"].into(),
 				hex!["1c4abecab438dff6f1343065de1e8ba1fc17d21ef9e247c53107b7175982f539"].into(),
 				hex!["68396700f406341a36d0a7686deba733c938601998dac68db92ea2ab8f3311f3"]
 					.unchecked_into(),

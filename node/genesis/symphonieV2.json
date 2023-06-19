@@ -45,7 +45,7 @@
             1000000000000000
           ],
           [
-            "5E63FMKiNaDnrvThgraH9YkJReLPod21pPUCrMLoBVurXX5Y",
+            "5EL7QEaKYKhQUMKL751NEE55TruKCDGdTudxViyFHdVjjEjL",
             1000000000000000
           ],
           [
@@ -61,7 +61,7 @@
         "validatorCount": 3,
         "minimumValidatorCount": 2,
         "invulnerables": [
-          "5E63FMKiNaDnrvThgraH9YkJReLPod21pPUCrMLoBVurXX5Y",
+          "5EL7QEaKYKhQUMKL751NEE55TruKCDGdTudxViyFHdVjjEjL",
           "5DFbsmVrt6fATHy3JEt8QqdY35M43UNKN5eFkSV21pKfC4rY"
         ],
         "forceEra": "NotForcing",
@@ -69,7 +69,7 @@
         "canceledPayout": 0,
         "stakers": [
           [
-            "5E63FMKiNaDnrvThgraH9YkJReLPod21pPUCrMLoBVurXX5Y",
+            "5EL7QEaKYKhQUMKL751NEE55TruKCDGdTudxViyFHdVjjEjL",
             "5ChoQGJkQTfBg69i7RtgGBjc7BcaNxQKjt5LzZvMuet6fFX4",
             100000000000000,
             "Validator"
@@ -89,8 +89,8 @@
       "session": {
         "keys": [
           [
-            "5E63FMKiNaDnrvThgraH9YkJReLPod21pPUCrMLoBVurXX5Y",
-            "5E63FMKiNaDnrvThgraH9YkJReLPod21pPUCrMLoBVurXX5Y",
+            "5EL7QEaKYKhQUMKL751NEE55TruKCDGdTudxViyFHdVjjEjL",
+            "5EL7QEaKYKhQUMKL751NEE55TruKCDGdTudxViyFHdVjjEjL",
             {
               "grandpa": "5ERMtXdTymteZcu5LDMF4HK7zSKtKY55iEkDPTYXxCtCfqcJ",
               "babe": "5DFr4ZxZJsYiBiqzQMuJMYzrMDW9pe5MZMaK9p4BZF1X13C5",
