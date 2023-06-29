@@ -78,14 +78,14 @@ use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 use static_assertions::const_assert;
 
-#[cfg(not(feature = "runtime-benchmarks"))]
-use frame_system::EnsureNever;
+use nfts_extension_impls_runtime::NftsExtension;
 
 #[cfg(any(feature = "std", test))]
 pub use frame_system::Call as SystemCall;
 use pallet_artists::EnsureArtist;
 #[cfg(any(feature = "std", test))]
 pub use pallet_balances::Call as BalancesCall;
+use pallet_contracts::EnsureContract;
 use pallet_nfts::PalletFeatures;
 #[cfg(any(feature = "std", test))]
 pub use pallet_staking::StakerStatus;
@@ -286,9 +286,9 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 			ProxyType::Any => true,
 			ProxyType::NonTransfer => !matches!(
 				c,
-				RuntimeCall::Balances(..) |
-					RuntimeCall::Assets(..) |
-					RuntimeCall::Indices(pallet_indices::Call::transfer { .. })
+				RuntimeCall::Balances(..)
+					| RuntimeCall::Assets(..)
+					| RuntimeCall::Indices(pallet_indices::Call::transfer { .. })
 			),
 			ProxyType::Staking => matches!(c, RuntimeCall::Staking(..)),
 		}
@@ -616,8 +616,8 @@ impl Get<Option<BalancingConfig>> for OffchainRandomBalancing {
 			max => {
 				let seed = sp_io::offchain::random_seed();
 				let random = <u32>::decode(&mut TrailingZeroInput::new(&seed))
-					.expect("input is padded with zeroes; qed") %
-					max.saturating_add(1);
+					.expect("input is padded with zeroes; qed")
+					% max.saturating_add(1);
 				random as usize
 			},
 		};
@@ -772,7 +772,7 @@ impl pallet_contracts::Config for Runtime {
 	type CallStack = [pallet_contracts::Frame<Self>; 5];
 	type WeightPrice = pallet_transaction_payment::Pallet<Self>;
 	type WeightInfo = weights::pallet_contracts::AllfeatWeight<Runtime>;
-	type ChainExtension = ();
+	type ChainExtension = NftsExtension<Runtime>;
 	type Schedule = Schedule;
 	type AddressGenerator = pallet_contracts::DefaultAddressGenerator;
 	type MaxCodeLen = ConstU32<{ 123 * 1024 }>;
@@ -901,9 +901,9 @@ impl pallet_grandpa::Config for Runtime {
 #[cfg(feature = "runtime-benchmarks")]
 pub type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
 
-// For production, we don't want to expose the creation for anyone.
+// For production, we don't want to expose the creation for anyone, only from contracts (dApps).
 #[cfg(not(feature = "runtime-benchmarks"))]
-pub type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
+pub type CreateOrigin = AsEnsureOriginWithArg<EnsureContract<AccountId>>;
 
 parameter_types! {
 	pub const AssetDeposit: Balance = 100 * DOLLARS;
