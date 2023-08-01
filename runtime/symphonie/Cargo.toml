@@ -57,7 +57,6 @@ pallet-contracts-primitives = { version = "7.0.0", default-features = false, git
 pallet-babe = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.42" }
 pallet-authority-discovery = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.42" }
 pallet-authorship = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.42" }
-pallet-assets = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.42" }
 pallet-bags-list = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.42" }
 pallet-collective = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.42" }
 pallet-election-provider-multi-phase = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.42" }
@@ -68,7 +67,6 @@ pallet-identity = { version = "4.0.0-dev", default-features = false, git = "http
 pallet-membership = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.42" }
 pallet-mmr = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.42" }
 pallet-multisig = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.42" }
-pallet-nfts = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.42" }
 pallet-nomination-pools = { version = "1.0.0", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.42" }
 pallet-nomination-pools-benchmarking = { version = "1.0.0", optional = true, default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.42" }
 pallet-offences = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.42" }
@@ -118,7 +116,6 @@ std = [
   "pallet-artists/std",
   "pallet-authority-discovery/std",
   "pallet-authorship/std",
-  "pallet-assets/std",
   "sp-consensus-babe/std",
   "pallet-babe/std",
   "pallet-bags-list/std",
@@ -135,7 +132,6 @@ std = [
   "pallet-membership/std",
   "pallet-mmr/std",
   "pallet-multisig/std",
-  "pallet-nfts/std",
   "pallet-nomination-pools/std",
   "pallet-identity/std",
   "pallet-scheduler/std",
@@ -182,7 +178,6 @@ runtime-benchmarks = [
   "frame-system/runtime-benchmarks",
   "sp-runtime/runtime-benchmarks",
 	"pallet-contracts/runtime-benchmarks",
-  "pallet-assets/runtime-benchmarks",
   "pallet-babe/runtime-benchmarks",
   "pallet-bags-list/runtime-benchmarks",
   "pallet-balances/runtime-benchmarks",
@@ -196,7 +191,6 @@ runtime-benchmarks = [
   "pallet-membership/runtime-benchmarks",
   "pallet-mmr/runtime-benchmarks",
   "pallet-multisig/runtime-benchmarks",
-  "pallet-nfts/runtime-benchmarks",
   "pallet-nomination-pools-benchmarking/runtime-benchmarks",
   "pallet-offences-benchmarking/runtime-benchmarks",
   "pallet-preimage/runtime-benchmarks",
@@ -222,7 +216,6 @@ try-runtime = [
 	"pallet-contracts/try-runtime",
   "pallet-authority-discovery/try-runtime",
   "pallet-authorship/try-runtime",
-  "pallet-assets/try-runtime",
   "pallet-babe/try-runtime",
   "pallet-balances/try-runtime",
   "pallet-collective/try-runtime",
@@ -234,7 +227,6 @@ try-runtime = [
   "pallet-membership/try-runtime",
   "pallet-mmr/try-runtime",
   "pallet-multisig/try-runtime",
-  "pallet-nfts/try-runtime",
   "pallet-offences/try-runtime",
   "pallet-preimage/try-runtime",
   "pallet-proxy/try-runtime",

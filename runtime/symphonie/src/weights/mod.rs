@@ -1,7 +1,6 @@
 pub mod frame_system;
 pub mod pallet_artist_identity;
 pub mod pallet_artists;
-pub mod pallet_assets;
 pub mod pallet_bags_list;
 pub mod pallet_balances;
 pub mod pallet_contracts;
@@ -13,7 +12,6 @@ pub mod pallet_indices;
 pub mod pallet_mmr;
 pub mod pallet_multisig;
 pub mod pallet_music_styles;
-pub mod pallet_nfts;
 pub mod pallet_preimage;
 pub mod pallet_proxy;
 pub mod pallet_recovery;

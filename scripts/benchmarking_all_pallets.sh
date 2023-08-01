@@ -10,7 +10,6 @@ mkdir -p $SYMPHONIE_WEIGHT_DIR
 pallets=(
     "pallet_artists" \
     "pallet_artist_identity" \
-    "pallet_assets" \
     "pallet_bags_list" \
     "pallet_balances" \
     "pallet_contracts" \
@@ -22,7 +21,6 @@ pallets=(
     "pallet_mmr" \
     "pallet_multisig" \
     "pallet_music_styles" \
-    "pallet_nfts" \
     "pallet_preimage" \
     "pallet_proxy" \
     "pallet_recovery" \
