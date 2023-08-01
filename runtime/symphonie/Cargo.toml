@@ -23,7 +23,7 @@ static_assertions = "1.1.0"
 log = { version = "0.4.17", default-features = false }
 hex-literal = "0.3.4"
 
-allfeat-support = { version = "0.1.0-dev", default-features = false, git = "https://github.com/Allfeat/allfeat-support.git", branch = "update" }
+allfeat-support = { version = "0.1.0-dev", default-features = false, git = "https://github.com/Allfeat/allfeat-support.git", branch = "polkadot-v0.9.42" }
 frame-support = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.42" }
 frame-election-provider-support = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.42" }
 frame-system = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.42" }
@@ -47,9 +47,9 @@ sp-staking = { version = "4.0.0-dev", default-features = false, git = "https://g
 sp-io = { version = "7.0.0", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.42" }
 
 # Allfeat pallets
-pallet-artists = { version = "1.0.0-dev", default-features = false, git = "https://github.com/Allfeat/pallet-artists.git", branch = "update" }
-pallet-music-styles = { version = "0.1.0-dev", default-features = false, git = "https://github.com/Allfeat/pallet-music-styles.git", branch = "update" }
-pallet-artist-identity = { version = "0.1.0-dev", default-features = false, git = "https://github.com/Allfeat/pallet-artist-identity.git", branch = "update" }
+pallet-artists = { version = "1.0.0-dev", default-features = false, git = "https://github.com/Allfeat/pallet-artists.git", branch = "polkadot-v0.9.42" }
+pallet-music-styles = { version = "0.1.0-dev", default-features = false, git = "https://github.com/Allfeat/pallet-music-styles.git", branch = "polkadot-v0.9.42" }
+pallet-artist-identity = { version = "0.1.0-dev", default-features = false, git = "https://github.com/Allfeat/pallet-artist-identity.git", branch = "polkadot-v0.9.42" }
 
 pallet-contracts = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.42" }
 pallet-contracts-primitives = { version = "7.0.0", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.42" }
