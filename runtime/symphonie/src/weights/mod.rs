@@ -1,9 +1,9 @@
-pub mod frame_system;
+// pub mod frame_system;
 pub mod pallet_artist_identity;
 pub mod pallet_artists;
 pub mod pallet_bags_list;
 pub mod pallet_balances;
-pub mod pallet_contracts;
+// pub mod pallet_contracts;
 pub mod pallet_election_provider_multi_phase;
 pub mod pallet_election_provider_support_benchmarking;
 pub mod pallet_identity;
