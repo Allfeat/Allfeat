@@ -16,7 +16,6 @@ codec = { package = "parity-scale-codec", version = "3.2.2", default-features = 
 	"derive",
 ] }
 scale-info = { version = "2.5.0", default-features = false, features = ["derive"] }
-frame-system = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.43" }
 sp-application-crypto = { version = "7.0.0", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.43" }
 sp-core = { version = "7.0.0", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.43" }
 sp-runtime = { version = "7.0.0", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.43" }
@@ -25,7 +24,6 @@ sp-runtime = { version = "7.0.0", default-features = false, git = "https://githu
 default = ["std"]
 std = [
 	"codec/std",
-	"frame-system/std",
 	"scale-info/std",
 	"sp-application-crypto/std",
 	"sp-core/std",
