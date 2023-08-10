@@ -2,8 +2,8 @@
 name = "allfeat-node"
 version = "1.0.0-dev"
 description = "The node of the Allfeat chain."
-authors = ["Allfeat<https://allfeat.com/>"]
-homepage = "https://allfeat.com"
+authors = ["Allfeat labs. <tech@allfeat.com>"]
+homepage = "https://allfeat.network"
 edition = "2021"
 license = "Unlicense"
 publish = false
@@ -30,7 +30,7 @@ codec = { package = "parity-scale-codec", version = "3.2.2" }
 serde = { version = "1.0.136", features = ["derive"] }
 serde_json = "1.0.79"
 futures = "0.3.21"
-hex-literal = "0.3.4"
+hex-literal = "0.4.1"
 log = "0.4.17"
 rand = "0.8"
 tempfile = "3.1.0"

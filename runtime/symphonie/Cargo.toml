@@ -2,7 +2,7 @@
 name = "symphonie-runtime"
 version = "1.0.0-dev"
 description = "The Symphonie Testnet runtime of Allfeat"
-authors = ["Allfeat<https://allfeat.network/>"]
+authors = ["Allfeat labs. <https://allfeat.com/>"]
 homepage = "https://allfeat.network/"
 edition = "2021"
 license = "Unlicense"
@@ -21,7 +21,7 @@ scale-info = { version = "2.5.0", default-features = false, features = [
 ] }
 static_assertions = "1.1.0"
 log = { version = "0.4.17", default-features = false }
-hex-literal = "0.3.4"
+hex-literal = "0.4.1"
 
 allfeat-support = { version = "0.1.0-dev", default-features = false, git = "https://github.com/Allfeat/allfeat-support.git", branch = "master" }
 frame-support = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.43" }
@@ -86,6 +86,8 @@ pallet-timestamp = { version = "4.0.0-dev", default-features = false, git = "htt
 pallet-transaction-payment = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.43" }
 pallet-utility = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.43" }
 
+# Contracts extensions
+pallet-artists-extension = { package = "allfeat_contracts_extensions_artists", version = "0.1.0", default-features = false, git = "https://github.com/Allfeat/allfeat-contracts.git", branch = "master", features = ["substrate"] }
 
 # Used for the node template's RPCs
 frame-system-rpc-runtime-api = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v0.9.43" }
@@ -105,8 +107,9 @@ default = ["std"]
 with-tracing = ["frame-executive/with-tracing"]
 std = [
   "sp-authority-discovery/std",
+  "pallet-artists-extension/std",
   "pallet-contracts/std",
-	"pallet-contracts-primitives/std",
+  "pallet-contracts-primitives/std",
   "pallet-artist-identity/std",
   "pallet-music-styles/std",
   "pallet-artists/std",
