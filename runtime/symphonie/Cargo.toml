@@ -196,6 +196,7 @@ runtime-benchmarks = [
   "pallet-state-trie-migration/runtime-benchmarks",
   "pallet-timestamp/runtime-benchmarks",
   "pallet-utility/runtime-benchmarks",
+  "pallet-sudo/runtime-benchmarks",
 	"pallet-music-styles/runtime-benchmarks",
 	"pallet-artist-identity/runtime-benchmarks",
   "pallet-artists/runtime-benchmarks",

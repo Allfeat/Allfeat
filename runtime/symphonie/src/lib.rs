@@ -212,7 +212,7 @@ impl frame_system::Config for Runtime {
 	type AccountData = pallet_balances::AccountData<Balance>;
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
-	type SystemWeightInfo = frame_system::weights::SubstrateWeight<Runtime>; // TODO weights allfeat
+	type SystemWeightInfo = weights::frame_system::AllfeatWeight<Runtime>;
 	type SS58Prefix = ConstU16<SS58_PREFIX>;
 	type OnSetCode = ();
 	type MaxConsumers = ConstU32<16>;
@@ -767,7 +767,7 @@ impl pallet_contracts::Config for Runtime {
 	type DefaultDepositLimit = DefaultDepositLimit;
 	type CallStack = [pallet_contracts::Frame<Self>; 5];
 	type WeightPrice = pallet_transaction_payment::Pallet<Self>;
-	type WeightInfo = pallet_contracts::weights::SubstrateWeight<Runtime>; // TODO weights allfeat;
+	type WeightInfo = weights::pallet_contracts::AllfeatWeight<Runtime>;
 	type ChainExtension = ArtistsExtension<Runtime>;
 	type Schedule = Schedule;
 	type AddressGenerator = pallet_contracts::DefaultAddressGenerator;
@@ -786,7 +786,7 @@ parameter_types! {
 impl pallet_sudo::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
-	type WeightInfo = pallet_sudo::weights::SubstrateWeight<Runtime>; // TODO weights allfeat
+	type WeightInfo = weights::pallet_sudo::AllfeatWeight<Runtime>;
 }
 
 parameter_types! {
@@ -1156,6 +1156,7 @@ mod benches {
 		[pallet_scheduler, Scheduler]
 		[pallet_session, SessionBench::<Runtime>]
 		[pallet_staking, Staking]
+		[pallet_sudo, Sudo]
 		[pallet_state_trie_migration, StateTrieMigration]
 		[frame_system, SystemBench::<Runtime>]
 		[pallet_timestamp, Timestamp]

@@ -8,30 +8,8 @@ NODE=./target/release/allfeat
 mkdir -p $SYMPHONIE_WEIGHT_DIR
 
 pallets=(
-    "pallet_artists" \
-    "pallet_artist_identity" \
-    "pallet_bags_list" \
-    "pallet_balances" \
-    "pallet_contracts" \
-    "pallet_election_provider_multi_phase" \
-    "pallet_election_provider_support_benchmarking" \
-    "pallet_identity" \
-    "pallet_im_online" \
-    "pallet_indices" \
-    "pallet_mmr" \
-    "pallet_multisig" \
-    "pallet_music_styles" \
-    "pallet_preimage" \
-    "pallet_proxy" \
-    "pallet_recovery" \
-    "pallet_scheduler" \
-    "pallet_session" \
-    "pallet_staking" \
-    "pallet_state_trie_migration" \
-    "frame_system" \
-    "pallet_timestamp" \
-    "pallet_utility" \
-)
+    "pallet_sudo" \
+  )
 
 echo building runtime-benchmarking feature...
 cargo build --release \
