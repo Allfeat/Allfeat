@@ -26,7 +26,7 @@ pub use allfeat_primitives::{AccountId, Balance, Signature};
 use grandpa_primitives::AuthorityId as GrandpaId;
 use hex_literal::hex;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
-use sc_chain_spec::{ChainSpecExtension, ChainType, GenericChainSpec};
+use sc_chain_spec::{ChainSpecExtension, ChainType};
 use serde::{Deserialize, Serialize};
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_consensus_babe::AuthorityId as BabeId;
@@ -53,10 +53,11 @@ pub struct Extensions {
 
 #[allow(unused)]
 // Dummy chain spec, in case when we don't have the native runtime.
-pub type DummyChainSpec = GenericChainSpec<(), Extensions>;
+pub type DummyChainSpec = sc_service::GenericChainSpec<(), Extensions>;
 
 #[cfg(feature = "symphonie-native")]
-pub type SymphonieChainSpec = GenericChainSpec<symphonie_runtime::GenesisConfig, Extensions>;
+pub type SymphonieChainSpec =
+	sc_service::GenericChainSpec<symphonie_runtime::RuntimeGenesisConfig, Extensions>;
 #[cfg(not(feature = "symphonie-native"))]
 pub type SymphonieChainSpec = GenericChainSpec<DummyChainSpec, Extensions>;
 
@@ -104,9 +105,9 @@ pub(crate) mod tests {
 	use crate::service::{new_full_base, NewFullBase};
 	use sc_service_test;
 	use sp_runtime::BuildStorage;
-	use symphonie_runtime::GenesisConfig;
+	use symphonie_runtime::RuntimeGenesisConfig;
 
-	fn local_testnet_genesis_instant_single() -> GenesisConfig {
+	fn local_testnet_genesis_instant_single() -> RuntimeGenesisConfig {
 		genesis::testnet_genesis(
 			vec![authority_keys_from_seed("Alice")],
 			vec![],

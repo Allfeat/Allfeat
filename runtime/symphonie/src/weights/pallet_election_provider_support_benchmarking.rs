@@ -38,7 +38,7 @@ pub trait WeightInfo {
 
 /// Weights for pallet_election_provider_support_benchmarking using the Allfeat node and recommended hardware.
 pub struct AllfeatWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> _feps::WeightInfo for AllfeatWeight<T> {
+impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
 	/// The range of component `v` is `[1000, 2000]`.
 	/// The range of component `t` is `[500, 1000]`.
 	/// The range of component `d` is `[5, 16]`.
