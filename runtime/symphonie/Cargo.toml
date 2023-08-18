@@ -215,6 +215,7 @@ try-runtime = [
   "pallet-authorship/try-runtime",
   "pallet-babe/try-runtime",
   "pallet-balances/try-runtime",
+  "pallet-bags-list/try-runtime",
   "pallet-election-provider-multi-phase/try-runtime",
   "pallet-grandpa/try-runtime",
   "pallet-identity/try-runtime",
@@ -236,5 +237,8 @@ try-runtime = [
   "pallet-transaction-payment/try-runtime",
   "pallet-utility/try-runtime",
   "pallet-artists/try-runtime",
-  "pallet-statement/try-runtime"
+  "pallet-statement/try-runtime",
+  "pallet-artist-identity/try-runtime",
+  "pallet-nomination-pools/try-runtime",
+  "pallet-music-styles/try-runtime"
 ]
