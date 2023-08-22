@@ -28,6 +28,7 @@ use codec::{Decode, Encode, MaxEncodedLen};
 use frame_election_provider_support::{
 	onchain, BalancingConfig, ElectionDataProvider, SequentialPhragmen, VoteWeight,
 };
+use frame_support::traits::Contains;
 use frame_support::{
 	construct_runtime,
 	dispatch::DispatchClass,
@@ -192,6 +193,31 @@ parameter_types! {
 }
 
 const_assert!(NORMAL_DISPATCH_RATIO.deconstruct() >= AVERAGE_ON_INITIALIZE_RATIO.deconstruct());
+
+/// A call filter that remove the posibility any users to upload and instantiate new contracts.
+/// This aim to force users to use a proxy pallet that make the calls to the contracts pallet instead.
+#[derive(
+	Copy,
+	Clone,
+	Eq,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	RuntimeDebug,
+	MaxEncodedLen,
+	scale_info::TypeInfo,
+)]
+pub struct _EverythingButContracts;
+impl Contains<RuntimeCall> for EverythingButContracts {
+	fn contains(call: &RuntimeCall) -> bool {
+		match call {
+			RuntimeCall::Contracts(_) => false,
+			_ => true,
+		}
+	}
+}
 
 impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
