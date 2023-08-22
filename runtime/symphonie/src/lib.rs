@@ -802,11 +802,7 @@ impl pallet_contracts::Config for Runtime {
 	type UnsafeUnstableInterface = ConstBool<false>;
 	type MaxDebugBufferLen = ConstU32<{ 2 * 1024 * 1024 }>;
 	#[cfg(not(feature = "runtime-benchmarks"))]
-	type Migrations = (
-		pallet_contracts::migration::NoopMigration<10>,
-		pallet_contracts::migration::v11::Migration<Runtime>,
-		pallet_contracts::migration::v12::Migration<Runtime>,
-	);
+	type Migrations = ();
 	#[cfg(feature = "runtime-benchmarks")]
 	type Migrations = (NoopMigration<1>, NoopMigration<2>);
 }
@@ -1168,8 +1164,7 @@ pub type Executive = frame_executive::Executive<
 >;
 // All migrations executed on runtime upgrade as a nested tuple of types implementing
 // `OnRuntimeUpgrade`.
-type Migrations =
-	(pallet_im_online::migration::v1::Migration<Runtime>, pallet_contracts::Migration<Runtime>);
+type Migrations = pallet_contracts::Migration<Runtime>;
 
 type EventRecord = frame_system::EventRecord<
 	<Runtime as frame_system::Config>::RuntimeEvent,
