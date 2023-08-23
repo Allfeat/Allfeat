@@ -210,7 +210,7 @@ const_assert!(NORMAL_DISPATCH_RATIO.deconstruct() >= AVERAGE_ON_INITIALIZE_RATIO
 	scale_info::TypeInfo,
 )]
 pub struct _EverythingButContracts;
-impl Contains<RuntimeCall> for EverythingButContracts {
+impl Contains<RuntimeCall> for _EverythingButContracts {
 	fn contains(call: &RuntimeCall) -> bool {
 		match call {
 			RuntimeCall::Contracts(_) => false,
