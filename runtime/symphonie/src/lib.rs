@@ -133,8 +133,8 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	// and set impl_version to 0. If only runtime
 	// implementation changes and behavior does not, then leave spec_version as
 	// is and increment impl_version.
-	spec_version: 103,
-	impl_version: 4,
+	spec_version: 104,
+	impl_version: 5,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 4,
 	state_version: 1,
@@ -1164,7 +1164,7 @@ pub type Executive = frame_executive::Executive<
 >;
 // All migrations executed on runtime upgrade as a nested tuple of types implementing
 // `OnRuntimeUpgrade`.
-type Migrations = pallet_contracts::Migration<Runtime>;
+type Migrations = ();
 
 type EventRecord = frame_system::EventRecord<
 	<Runtime as frame_system::Config>::RuntimeEvent,
