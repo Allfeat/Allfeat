@@ -1,9 +1,9 @@
-pub mod frame_system;
 pub mod artist_identity;
 pub mod artists;
 pub mod bags_list;
 pub mod balances;
-pub mod contracts;
+pub mod frame_system;
+//pub mod contracts;
 pub mod election_provider_multi_phase;
 pub mod identity;
 pub mod im_online;
