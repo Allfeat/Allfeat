@@ -267,7 +267,7 @@ dependencies = [
 [[package]]
 name = "allfeat-primitives"
 version = "1.0.0"
-source = "git+https://github.com/allfeat/Allfeat?branch=develop#a78d5ff7ee2df28be00743befc52823651cbae70"
+source = "git+https://github.com/allfeat/Allfeat?branch=master#57923a1522990f9e03fc5dc63768689d7a50366a"
 dependencies = [
  "sp-core",
  "sp-runtime",
@@ -276,9 +276,9 @@ dependencies = [
 [[package]]
 name = "allfeat-support"
 version = "0.1.0-dev"
-source = "git+https://github.com/Allfeat/allfeat-support.git?branch=master#900d2fa210e7bca7d06e38fe4bb440c6d33c2775"
+source = "git+https://github.com/Allfeat/allfeat-support.git?branch=master#b425ccd6304d7f99357a52f43289651d1f4206c5"
 dependencies = [
- "allfeat-primitives 1.0.0 (git+https://github.com/allfeat/Allfeat?branch=develop)",
+ "allfeat-primitives 1.0.0 (git+https://github.com/allfeat/Allfeat?branch=master)",
  "frame-support",
  "parity-scale-codec",
  "scale-info",
