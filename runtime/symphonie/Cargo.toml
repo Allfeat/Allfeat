@@ -46,6 +46,7 @@ allfeat-primitives = { version = "1.0.0", default-features = false, path = "../.
 sp-staking = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
 sp-io = { version = "23.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
 sp-statement-store = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
+sp-storage = { version = "13.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
 
 # Allfeat pallets
 pallet-artists = { version = "1.0.0-dev", default-features = false, git = "https://github.com/Allfeat/pallet-artists.git", branch = "master" }

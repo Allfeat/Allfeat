@@ -134,8 +134,8 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	// and set impl_version to 0. If only runtime
 	// implementation changes and behavior does not, then leave spec_version as
 	// is and increment impl_version.
-	spec_version: 105,
-	impl_version: 6,
+	spec_version: 106,
+	impl_version: 7,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 4,
 	state_version: 1,
@@ -813,7 +813,11 @@ impl pallet_contracts::Config for Runtime {
 	type MaxDebugBufferLen = ConstU32<{ 2 * 1024 * 1024 }>;
 	type RuntimeHoldReason = RuntimeHoldReason;
 	#[cfg(not(feature = "runtime-benchmarks"))]
-	type Migrations = ();
+	type Migrations = (
+		pallet_contracts::migration::v13::Migration<Runtime>,
+		pallet_contracts::migration::v14::Migration<Runtime, Balances>,
+		pallet_contracts::migration::v15::Migration<Runtime>,
+	);
 	#[cfg(feature = "runtime-benchmarks")]
 	type Migrations = pallet_contracts::migration::codegen::BenchMigrations;
 	type MaxDelegateDependencies = ConstU32<32>;
@@ -1555,7 +1559,8 @@ impl_runtime_apis! {
 		fn dispatch_benchmark(
 			config: frame_benchmarking::BenchmarkConfig
 		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
-			use frame_benchmarking::{baseline, Benchmarking, BenchmarkBatch,  TrackedStorageKey};
+			use frame_benchmarking::{baseline, Benchmarking, BenchmarkBatch};
+			use sp_storage::TrackedStorageKey;
 
 			// Trying to add benchmarks directly to the Session Pallet caused cyclic dependency
 			// issues. To get around that, we separated the Session benchmarks into its own crate,
