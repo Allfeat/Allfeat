@@ -803,7 +803,7 @@ impl pallet_contracts::Config for Runtime {
 	type DefaultDepositLimit = DefaultDepositLimit;
 	type CallStack = [pallet_contracts::Frame<Self>; 5];
 	type WeightPrice = pallet_transaction_payment::Pallet<Self>;
-	type WeightInfo = pallet_contracts::weights::SubstrateWeight<Runtime>; // TODO
+	type WeightInfo = weights::contracts::AllfeatWeight<Runtime>;
 	type ChainExtension = ArtistsExtension<Runtime>;
 	type Schedule = Schedule;
 	type AddressGenerator = pallet_contracts::DefaultAddressGenerator;
