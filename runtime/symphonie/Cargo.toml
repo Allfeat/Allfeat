@@ -45,7 +45,6 @@ sp-consensus-babe = { version = "0.10.0-dev", default-features = false, git = "h
 allfeat-primitives = { version = "1.0.0", default-features = false, path = "../../primitives" }
 sp-staking = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v1.0.0" }
 sp-io = { version = "23.0.0", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v1.0.0" }
-sp-statement-store = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v1.0.0" }
 
 # Allfeat pallets
 pallet-artists = { version = "1.0.0-dev", default-features = false, git = "https://github.com/Allfeat/pallet-artists.git", branch = "master" }
@@ -86,7 +85,6 @@ pallet-sudo = { version = "4.0.0-dev", default-features = false, git = "https://
 pallet-timestamp = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v1.0.0" }
 pallet-transaction-payment = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v1.0.0" }
 pallet-utility = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v1.0.0" }
-pallet-statement = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v1.0.0" }
 
 # Contracts extensions
 pallet-artists-extension = { package = "allfeat_contracts_extensions_artists", version = "0.1.0", default-features = false, git = "https://github.com/Allfeat/allfeat-contracts.git", branch = "master", features = ["substrate"] }
@@ -98,6 +96,21 @@ pallet-transaction-payment-rpc-runtime-api = { version = "4.0.0-dev", default-fe
 # Used for runtime benchmarking
 frame-benchmarking = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v1.0.0", optional = true }
 frame-system-benchmarking = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v1.0.0", optional = true }
+
+# Frontier
+fp-evm = { version = "3.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.0.0", default-features = false, features = ["serde"] }
+fp-rpc = { version = "3.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.0.0", default-features = false }
+fp-self-contained = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.0.0", default-features = false, features = ["serde"] }
+# Frontier FRAME
+pallet-base-fee = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.0.0", default-features = false }
+pallet-dynamic-fee = { version = "4.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.0.0", default-features = false }
+pallet-ethereum = { version = "4.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.0.0", default-features = false }
+pallet-evm = { version = "6.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.0.0", default-features = false }
+pallet-evm-chain-id = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.0.0", default-features = false }
+pallet-evm-precompile-modexp = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.0.0", default-features = false }
+pallet-evm-precompile-sha3fips = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.0.0", default-features = false }
+pallet-evm-precompile-simple = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.0.0", default-features = false }
+pallet-hotfix-sufficients = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.0.0", default-features = false }
 
 # Local Dependencies
 
@@ -169,8 +182,20 @@ std = [
   "log/std",
   "frame-try-runtime/std",
   "sp-io/std",
-  "sp-statement-store/std",
-  "pallet-statement/std"
+  # Frontier
+  "fp-evm/std",
+  "fp-rpc/std",
+  "fp-self-contained/std",
+  # Frontier FRAME
+  "pallet-base-fee/std",
+  "pallet-dynamic-fee/std",
+  "pallet-ethereum/std",
+  "pallet-evm/std",
+  "pallet-evm-chain-id/std",
+  "pallet-evm-precompile-modexp/std",
+  "pallet-evm-precompile-sha3fips/std",
+  "pallet-evm-precompile-simple/std",
+  "pallet-hotfix-sufficients/std",
 ]
 runtime-benchmarks = [
   "frame-benchmarking/runtime-benchmarks",
@@ -205,6 +230,9 @@ runtime-benchmarks = [
 	"pallet-artist-identity/runtime-benchmarks",
   "pallet-artists/runtime-benchmarks",
   "frame-system-benchmarking/runtime-benchmarks",
+  "pallet-ethereum/runtime-benchmarks",
+  "pallet-evm/runtime-benchmarks",
+  "pallet-hotfix-sufficients/runtime-benchmarks",
 ]
 try-runtime = [
   "frame-executive/try-runtime",
@@ -237,7 +265,6 @@ try-runtime = [
   "pallet-transaction-payment/try-runtime",
   "pallet-utility/try-runtime",
   "pallet-artists/try-runtime",
-  "pallet-statement/try-runtime",
   "pallet-artist-identity/try-runtime",
   "pallet-nomination-pools/try-runtime",
   "pallet-music-styles/try-runtime"

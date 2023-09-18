@@ -1,3 +1,4 @@
+use crate::eth::EthConfiguration;
 use sc_cli::RunCmd;
 
 #[derive(Debug, clap::Parser)]
@@ -7,6 +8,9 @@ pub struct Cli {
 
 	#[clap(flatten)]
 	pub run: RunCmd,
+
+	#[command(flatten)]
+	pub eth: EthConfiguration,
 
 	/// Disable automatic hardware benchmarks.
 	///
@@ -60,4 +64,7 @@ pub enum Subcommand {
 
 	/// Db meta columns information.
 	ChainInfo(sc_cli::ChainInfoCmd),
+
+	/// Db meta columns information.
+	FrontierDb(fc_cli::FrontierDbCmd),
 }
