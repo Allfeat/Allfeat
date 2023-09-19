@@ -86,9 +86,6 @@ pallet-timestamp = { version = "4.0.0-dev", default-features = false, git = "htt
 pallet-transaction-payment = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v1.0.0" }
 pallet-utility = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v1.0.0" }
 
-# Contracts extensions
-pallet-artists-extension = { package = "allfeat_contracts_extensions_artists", version = "0.1.0", default-features = false, git = "https://github.com/Allfeat/allfeat-contracts.git", branch = "master", features = ["substrate"] }
-
 # Used for the node template's RPCs
 frame-system-rpc-runtime-api = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v1.0.0" }
 pallet-transaction-payment-rpc-runtime-api = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/substrate.git", branch = "polkadot-v1.0.0" }
@@ -122,7 +119,6 @@ default = ["std"]
 with-tracing = ["frame-executive/with-tracing"]
 std = [
   "sp-authority-discovery/std",
-  "pallet-artists-extension/std",
   "pallet-contracts/std",
   "pallet-contracts-primitives/std",
   "pallet-artist-identity/std",
