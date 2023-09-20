@@ -109,6 +109,8 @@ pub use sp_runtime::BuildStorage;
 mod precompiles;
 use precompiles::FrontierPrecompiles;
 
+pub mod extensions;
+
 /// Custom weights for Symphonie
 pub mod weights;
 
@@ -790,6 +792,7 @@ parameter_types! {
 	pub const MaxPointsToBalance: u8 = 10;
 }
 
+use crate::extensions::artists::ArtistsExtension;
 use sp_runtime::traits::{Convert, DispatchInfoOf, PostDispatchInfoOf};
 use sp_runtime::transaction_validity::TransactionValidityError;
 
@@ -848,7 +851,7 @@ impl pallet_contracts::Config for Runtime {
 	type CallStack = [pallet_contracts::Frame<Self>; 5];
 	type WeightPrice = pallet_transaction_payment::Pallet<Self>;
 	type WeightInfo = weights::contracts::AllfeatWeight<Runtime>;
-	type ChainExtension = ();
+	type ChainExtension = ArtistsExtension<Runtime>;
 	type Schedule = Schedule;
 	type AddressGenerator = pallet_contracts::DefaultAddressGenerator;
 	type MaxCodeLen = ConstU32<{ 123 * 1024 }>;
