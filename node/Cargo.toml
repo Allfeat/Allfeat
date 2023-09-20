@@ -73,6 +73,8 @@ sp-timestamp = { version = "4.0.0-dev", git = "https://github.com/paritytech/pol
 sp-inherents = { version = "4.0.0-dev", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
 sp-keyring = { version = "24.0.0", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
 sp-tracing = { version = "10.0.0", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
+sp-offchain = { version = "4.0.0-dev", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
+sp-session = { version = "4.0.0-dev", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
 frame-system = { version = "4.0.0-dev", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
 frame-system-rpc-runtime-api = { version = "4.0.0-dev", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
 pallet-transaction-payment = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
@@ -95,8 +97,23 @@ sc-consensus-babe-rpc = { version = "0.10.0-dev", git = "https://github.com/pari
 sc-consensus-grandpa-rpc = { version = "0.10.0-dev", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
 substrate-frame-rpc-system = { version = "4.0.0-dev", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
 pallet-transaction-payment-rpc = { version = "4.0.0-dev", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
+pallet-transaction-payment-rpc-runtime-api = { version = "4.0.0-dev", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
 pallet-im-online = { version = "4.0.0-dev", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
 substrate-state-trie-migration-rpc = { version = "4.0.0-dev", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
+
+# Frontier
+fc-api = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.1.0" }
+fc-cli = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.1.0" }
+fc-consensus = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.1.0" }
+fc-db = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.1.0" }
+fc-mapping-sync = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.1.0" }
+fc-rpc = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.1.0" }
+fc-rpc-core = { version = "1.1.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.1.0" }
+fc-storage = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.1.0" }
+fp-account = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.1.0" }
+fp-dynamic-fee = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.1.0", features = ["default"] }
+fp-evm = { version = "3.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.1.0", features = ["default"] }
+fp-rpc = { version = "3.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.1.0", features = ["default"] }
 
 # These dependencies are used for runtime benchmarking
 frame-benchmarking = { version = "4.0.0-dev", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
@@ -112,7 +129,7 @@ try-runtime-cli = { version = "0.10.0-dev", optional = true, git = "https://gith
 substrate-build-script-utils = { version = "3.0.0", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
 
 [features]
-default = ["symphonie-native"]
+default = ["symphonie-native", "sql", "txpool", "rocksdb"]
 runtime-benchmarks = [
 	"symphonie-runtime/runtime-benchmarks",
 	"frame-benchmarking-cli/runtime-benchmarks"
@@ -121,3 +138,17 @@ symphonie-native = []
 # Enable features that allow the runtime to be tried and debugged. Name might be subject to change
 # in the near future.
 try-runtime = ["symphonie-runtime/try-runtime", "try-runtime-cli/try-runtime"]
+rocksdb = [
+	"sc-cli/rocksdb",
+	"sc-service/rocksdb",
+	"fc-cli/rocksdb",
+	"fc-db/rocksdb",
+	"fc-mapping-sync/rocksdb",
+	"fc-rpc/rocksdb",
+]
+sql = [
+	"fc-db/sql",
+	"fc-mapping-sync/sql",
+]
+txpool = ["fc-rpc/txpool"]
+rpc-binary-search-estimate = ["fc-rpc/rpc-binary-search-estimate"]

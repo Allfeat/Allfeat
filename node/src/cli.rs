@@ -1,12 +1,16 @@
+use crate::eth::EthConfiguration;
 use sc_cli::RunCmd;
 
 #[derive(Debug, clap::Parser)]
 pub struct Cli {
-	#[clap(subcommand)]
+	#[command(subcommand)]
 	pub subcommand: Option<Subcommand>,
 
-	#[clap(flatten)]
+	#[command(flatten)]
 	pub run: RunCmd,
+
+	#[command(flatten)]
+	pub eth: EthConfiguration,
 
 	/// Disable automatic hardware benchmarks.
 	///
@@ -15,14 +19,14 @@ pub struct Cli {
 	///
 	/// The results are then printed out in the logs, and also sent as part of
 	/// telemetry, if telemetry is enabled.
-	#[clap(long)]
+	#[arg(long)]
 	pub no_hardware_benchmarks: bool,
 }
 
 #[derive(Debug, clap::Subcommand)]
 pub enum Subcommand {
 	/// Key management cli utilities
-	#[clap(subcommand)]
+	#[command(subcommand)]
 	Key(sc_cli::KeySubcommand),
 
 	/// Build a chain specification.
@@ -47,7 +51,7 @@ pub enum Subcommand {
 	Revert(sc_cli::RevertCmd),
 
 	/// Sub-commands concerned with benchmarking.
-	#[clap(subcommand)]
+	#[command(subcommand)]
 	Benchmark(frame_benchmarking_cli::BenchmarkCmd),
 
 	/// Try some command against runtime state.
@@ -60,4 +64,7 @@ pub enum Subcommand {
 
 	/// Db meta columns information.
 	ChainInfo(sc_cli::ChainInfoCmd),
+
+	/// Db meta columns information.
+	FrontierDb(fc_cli::FrontierDbCmd),
 }
