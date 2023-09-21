@@ -19,13 +19,13 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-use codec::{Decode, Encode};
 use core::marker::PhantomData;
 use frame_support::pallet_prelude::Get;
 use pallet_artists::CandidateOf;
 use pallet_contracts::chain_extension::{
 	BufInBufOutState, ChainExtension, ChargedAmount, Environment, Ext, InitState, RetVal,
 };
+use parity_scale_codec::{Decode, Encode};
 use sp_runtime::{DispatchError, ModuleError};
 
 enum ArtistsFunc {

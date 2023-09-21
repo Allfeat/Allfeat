@@ -1,7 +1,7 @@
 [package]
 name = "allfeat-primitives"
 version = "1.0.0"
-authors = ["Allfeat labs. <tech@allfeat.com>"]
+authors = { workspace = true }
 description = "Allfeat node/runtime low-level primitives."
 edition = "2021"
 license = "Apache-2.0"
@@ -12,9 +12,9 @@ repository = "https://github.com/Allfeat/Allfeat"
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-sp-core = { version = "21.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
-sp-runtime = { version = "24.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
-fp-account = { version = "1.0.0-dev", default-features = false, git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.1.0", features = ["serde"] }
+sp-core = { workspace = true }
+sp-runtime = { workspace = true }
+fp-account = { workspace = true, features = ["serde"] }
 
 [features]
 default = ["std"]

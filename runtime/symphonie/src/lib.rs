@@ -24,7 +24,6 @@
 
 pub use allfeat_primitives::{AccountId, Signature};
 use allfeat_primitives::{AccountIndex, Balance, BlockNumber, Hash, Moment, Nonce};
-use codec::{Decode, Encode, MaxEncodedLen};
 use core::marker::PhantomData;
 use fp_evm::weight_per_gas;
 use fp_evm::FeeCalculator;
@@ -65,6 +64,7 @@ use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use pallet_session::historical::{self as pallet_session_historical};
 pub use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
 use pallet_transaction_payment::{FeeDetails, RuntimeDispatchInfo};
+use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_api::impl_runtime_apis;
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, RuntimeDebug, H160, H256, U256};
@@ -1544,7 +1544,7 @@ impl_runtime_apis! {
 			_set_id: fg_primitives::SetId,
 			authority_id: GrandpaId,
 		) -> Option<fg_primitives::OpaqueKeyOwnershipProof> {
-			use codec::Encode;
+			use parity_scale_codec::Encode;
 
 			Historical::prove((fg_primitives::KEY_TYPE, authority_id))
 				.map(|p| p.encode())
@@ -1586,7 +1586,7 @@ impl_runtime_apis! {
 			_slot: sp_consensus_babe::Slot,
 			authority_id: sp_consensus_babe::AuthorityId,
 		) -> Option<sp_consensus_babe::OpaqueKeyOwnershipProof> {
-			use codec::Encode;
+			use parity_scale_codec::Encode;
 
 			Historical::prove((sp_consensus_babe::KEY_TYPE, authority_id))
 				.map(|p| p.encode())
