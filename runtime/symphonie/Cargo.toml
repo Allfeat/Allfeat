@@ -16,6 +16,7 @@ parity-scale-codec = { workspace = true, features = ["derive", "max-encoded-len"
 scale-info = { workspace = true, features = ["derive"] }
 static_assertions = { workspace = true }
 log = { workspace = true }
+num_enum = { workspace = true }
 hex-literal = { workspace = true }
 
 allfeat-support = { workspace = true }
@@ -97,6 +98,10 @@ pallet-evm-precompile-modexp = { workspace = true }
 pallet-evm-precompile-sha3fips = { workspace = true }
 pallet-evm-precompile-simple = { workspace = true }
 pallet-hotfix-sufficients = { workspace = true }
+precompile-utils = { workspace = true }
+
+# Allfeat precompiles
+pallet-evm-precompile-balances-erc20 = { workspace = true }
 
 # Used for the node template's RPCs
 frame-system-rpc-runtime-api = { workspace = true }
@@ -107,6 +112,10 @@ frame-benchmarking = { workspace = true, optional = true }
 frame-system-benchmarking = { workspace = true, optional = true }
 
 # Local Dependencies
+[dev-dependencies]
+sha3 = { workspace = true, features = [ "std" ] }
+
+precompile-utils = { workspace = true, features = [ "std", "testing" ] }
 
 [build-dependencies]
 substrate-wasm-builder = { workspace = true }
@@ -190,6 +199,8 @@ std = [
   "pallet-evm-precompile-sha3fips/std",
   "pallet-evm-precompile-simple/std",
   "pallet-hotfix-sufficients/std",
+  "precompile-utils/std",
+  "pallet-evm-precompile-balances-erc20/std"
 ]
 runtime-benchmarks = [
   "frame-benchmarking/runtime-benchmarks",
