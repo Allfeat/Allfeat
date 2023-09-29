@@ -7,7 +7,6 @@ pub mod election_provider_multi_phase;
 pub mod frame_system;
 pub mod identity;
 pub mod im_online;
-pub mod indices;
 pub mod multisig;
 pub mod music_styles;
 pub mod preimage;

@@ -23,7 +23,7 @@
 #![recursion_limit = "512"]
 
 pub use allfeat_primitives::{AccountId, Signature};
-use allfeat_primitives::{AccountIndex, Balance, BlockNumber, Hash, Moment, Nonce};
+use allfeat_primitives::{Balance, BlockNumber, Hash, Moment, Nonce};
 use core::marker::PhantomData;
 use fp_evm::weight_per_gas;
 use fp_evm::FeeCalculator;
@@ -169,17 +169,17 @@ pub mod opaque {
 /// Runtime version.
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("symphonie-runtime"),
+	spec_name: create_runtime_str!("allfeat-testnet"),
 	impl_name: create_runtime_str!("allfeatlabs-symphonie"),
-	authoring_version: 11,
+	authoring_version: 1,
 	// Per convention: if the runtime behavior changes, increment spec_version
 	// and set impl_version to 0. If only runtime
 	// implementation changes and behavior does not, then leave spec_version as
 	// is and increment impl_version.
-	spec_version: 106,
-	impl_version: 7,
+	spec_version: 1,
+	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
-	transaction_version: 4,
+	transaction_version: 1,
 	state_version: 1,
 };
 
@@ -276,7 +276,7 @@ impl frame_system::Config for Runtime {
 	type Hash = Hash;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
-	type Lookup = Indices;
+	type Lookup = sp_runtime::traits::IdentityLookup<AccountId>;
 	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type DbWeight = RocksDbWeight;
@@ -354,11 +354,7 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 	fn filter(&self, c: &RuntimeCall) -> bool {
 		match self {
 			ProxyType::Any => true,
-			ProxyType::NonTransfer => !matches!(
-				c,
-				RuntimeCall::Balances(..)
-					| RuntimeCall::Indices(pallet_indices::Call::transfer { .. })
-			),
+			ProxyType::NonTransfer => !matches!(c, RuntimeCall::Balances(..)),
 			ProxyType::Staking => matches!(c, RuntimeCall::Staking(..)),
 		}
 	}
@@ -450,14 +446,6 @@ impl pallet_babe::Config for Runtime {
 
 parameter_types! {
 	pub const IndexDeposit: Balance = 1 * DOLLARS;
-}
-
-impl pallet_indices::Config for Runtime {
-	type AccountIndex = AccountIndex;
-	type Currency = Balances;
-	type Deposit = IndexDeposit;
-	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = weights::indices::AllfeatWeight<Runtime>;
 }
 
 parameter_types! {
@@ -931,7 +919,7 @@ where
 			})
 			.ok()?;
 		let signature = raw_payload.using_encoded(|payload| C::sign(payload, public))?;
-		let address = Indices::unlookup(account);
+		let address = Self::Lookup::unlookup(account);
 		let (call, extra, _) = raw_payload.deconstruct();
 		Some((call, (address, signature, extra)))
 	}
@@ -1242,7 +1230,6 @@ construct_runtime!(
 		// Authorship must be before session in order to note author in the correct session and era
 		// for im-online and staking.
 		Authorship: pallet_authorship,
-		Indices: pallet_indices,
 		Balances: pallet_balances,
 		TransactionPayment: pallet_transaction_payment,
 		ElectionProviderMultiPhase: pallet_election_provider_multi_phase,
@@ -1304,7 +1291,7 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 }
 
 /// The address format for describing accounts.
-pub type Address = sp_runtime::MultiAddress<AccountId, AccountIndex>;
+pub type Address = AccountId;
 /// Block header type as expected by this runtime.
 pub type Header = generic::Header<BlockNumber, BlakeTwo256>;
 /// Block type as expected by this runtime.
@@ -1433,7 +1420,6 @@ mod benches {
 		[pallet_grandpa, Grandpa]
 		[pallet_identity, Identity]
 		[pallet_im_online, ImOnline]
-		[pallet_indices, Indices]
 		[pallet_mmr, Mmr]
 		[pallet_multisig, Multisig]
 		[pallet_music_styles, MusicStyles]

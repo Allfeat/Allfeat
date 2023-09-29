@@ -1,16 +1,17 @@
 use super::*;
 use allfeat_primitives::{AccountId, Balance};
+use hex_literal::hex;
 use sp_core::{H160, U256};
 use sp_runtime::Perbill;
 use std::collections::BTreeMap;
 use std::str::FromStr;
 use symphonie_runtime::{
 	constants::currency::*, wasm_binary_unwrap, ArtistsConfig, BabeConfig, BalancesConfig,
-	EVMChainIdConfig, EVMConfig, ImOnlineConfig, IndicesConfig, MaxNominations, MusicStylesConfig,
+	EVMChainIdConfig, EVMConfig, ImOnlineConfig, MaxNominations, MusicStylesConfig,
 	RuntimeGenesisConfig, SessionConfig, StakerStatus, StakingConfig, SudoConfig, SystemConfig,
 };
 
-use crate::chain_specs::helpers::{get_account_id_from_seed, session_keys};
+use crate::chain_specs::helpers::session_keys;
 
 /// Helper function to create GenesisConfig for testing
 pub fn testnet_genesis(
@@ -29,16 +30,12 @@ pub fn testnet_genesis(
 ) -> RuntimeGenesisConfig {
 	let mut endowed_accounts: Vec<AccountId> = endowed_accounts.unwrap_or_else(|| {
 		vec![
-			get_account_id_from_seed::<sp_core::ecdsa::Public>("Alice"),
-			get_account_id_from_seed::<sp_core::ecdsa::Public>("Bob"),
-			get_account_id_from_seed::<sp_core::ecdsa::Public>("Charlie"),
-			get_account_id_from_seed::<sp_core::ecdsa::Public>("Dave"),
-			get_account_id_from_seed::<sp_core::ecdsa::Public>("Eve"),
-			get_account_id_from_seed::<sp_core::ecdsa::Public>("Ferdie"),
-			get_account_id_from_seed::<sp_core::ecdsa::Public>("Alice//stash"),
-			get_account_id_from_seed::<sp_core::ecdsa::Public>("Bob//stash"),
-			get_account_id_from_seed::<sp_core::ecdsa::Public>("Charlie//stash"),
-			get_account_id_from_seed::<sp_core::ecdsa::Public>("Dave//stash"),
+			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")), // Alith
+			AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")), // Baltathar
+			AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")), // Charleth
+			AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")), // Dorothy
+			AccountId::from(hex!("Ff64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB")), // Ethan
+			AccountId::from(hex!("C0F0f4ab324C46e55D02D0033343B4Be8A55532d")), // Faith
 		]
 	});
 	// endow all authorities and nominators.
@@ -81,7 +78,6 @@ pub fn testnet_genesis(
 		balances: BalancesConfig {
 			balances: endowed_accounts.iter().cloned().map(|x| (x, ENDOWMENT)).collect(),
 		},
-		indices: IndicesConfig { indices: vec![] },
 		session: SessionConfig {
 			keys: initial_authorities
 				.iter()
@@ -95,7 +91,7 @@ pub fn testnet_genesis(
 				.collect::<Vec<_>>(),
 		},
 		staking: StakingConfig {
-			validator_count: 3u32,
+			validator_count: initial_authorities.len() as u32,
 			minimum_validator_count: initial_authorities.len() as u32,
 			invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
 			slash_reward_fraction: Perbill::from_percent(10),
@@ -134,34 +130,11 @@ pub fn testnet_genesis(
 					H160::from_str("d43593c715fdd31c61141abd04a99fd6822c8558")
 						.expect("internal H160 is valid; qed"),
 					fp_evm::GenesisAccount {
-						balance: U256::from_str("0xffffffffffffffffffffffffffffffff")
+						balance: U256::from_str("0x38D7EA4C68000")
 							.expect("internal U256 is valid; qed"),
 						code: Default::default(),
 						nonce: Default::default(),
 						storage: Default::default(),
-					},
-				);
-				map.insert(
-					// H160 address of CI test runner account
-					H160::from_str("6be02d1d3665660d22ff9624b7be0551ee1ac91b")
-						.expect("internal H160 is valid; qed"),
-					fp_evm::GenesisAccount {
-						balance: U256::from_str("0xffffffffffffffffffffffffffffffff")
-							.expect("internal U256 is valid; qed"),
-						code: Default::default(),
-						nonce: Default::default(),
-						storage: Default::default(),
-					},
-				);
-				map.insert(
-					// H160 address for benchmark usage
-					H160::from_str("1000000000000000000000000000000000000001")
-						.expect("internal H160 is valid; qed"),
-					fp_evm::GenesisAccount {
-						nonce: U256::from(1),
-						balance: U256::from(1_000_000_000_000_000_000_000_000u128),
-						storage: Default::default(),
-						code: vec![0x00],
 					},
 				);
 				map
@@ -178,7 +151,7 @@ pub fn symphonie_dev_genesis() -> RuntimeGenesisConfig {
 	testnet_genesis(
 		vec![authority_keys_from_seed("Alice")],
 		vec![],
-		get_account_id_from_seed::<sp_core::ecdsa::Public>("Alice"),
+		AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
 		None,
 		42,
 	)

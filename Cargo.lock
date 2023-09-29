@@ -6243,23 +6243,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-indices"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech/polkadot-sdk.git?branch=release-polkadot-v1.1.0#f60318f68687e601c47de5ad5ca88e2c3f8139a7"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "scale-info",
- "sp-core",
- "sp-io",
- "sp-keyring",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "pallet-insecure-randomness-collective-flip"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech/polkadot-sdk.git?branch=release-polkadot-v1.1.0#f60318f68687e601c47de5ad5ca88e2c3f8139a7"
@@ -10776,7 +10759,6 @@ dependencies = [
  "pallet-hotfix-sufficients",
  "pallet-identity",
  "pallet-im-online",
- "pallet-indices",
  "pallet-insecure-randomness-collective-flip",
  "pallet-mmr",
  "pallet-multisig",
