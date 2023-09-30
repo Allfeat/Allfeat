@@ -112,13 +112,19 @@ for PALLET in "${PALLETS[@]}"; do
   WEIGHT_FILE="./runtime/harmonie/src/weights/${FOLDER}.rs"
   echo "[+] Benchmarking $PALLET with weight file $WEIGHT_FILE";
 
+  EXTRINSIC="*"
+  # pallet-evm have only one function to witdhraw and atm "*" is causing a crash.
+    if [ "$PALLET" = "pallet-evm" ]; then
+      EXTRINSIC="withdraw"
+    fi
+
   OUTPUT=$(
     $SUBSTRATE benchmark pallet \
     --chain=dev \
     --steps=50 \
     --repeat=20 \
     --pallet="$PALLET" \
-    --extrinsic="*" \
+    --extrinsic="$EXTRINSIC" \
     --wasm-execution=compiled \
     --heap-pages=4096 \
     --output="$WEIGHT_FILE" \
