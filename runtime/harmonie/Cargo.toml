@@ -1,7 +1,7 @@
 [package]
-name = "symphonie-runtime"
+name = "harmonie-runtime"
 version = "1.0.0-dev"
-description = "The Symphonie Testnet runtime of Allfeat"
+description = "The Harmonie Testnet runtime of Allfeat"
 authors = { workspace = true }
 homepage = "https://allfeat.network/"
 edition = "2021"

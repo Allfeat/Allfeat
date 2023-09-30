@@ -2,7 +2,7 @@
 resolver = "2"
 members = [
     "node",
-	"runtime/symphonie",
+	"runtime/harmonie",
 	"primitives",
 	"precompiles/balances-erc20",
 ]
@@ -151,7 +151,7 @@ substrate-build-script-utils = { version = "3.0.0", git = "https://github.com/pa
 frame-benchmarking-cli = { version = "4.0.0-dev", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
 
 # Allfeat (client)
-symphonie-runtime = { version = "1.0.0-dev", path = "./runtime/symphonie" }
+harmonie-runtime = { version = "1.0.0-dev", path = "./runtime/harmonie" }
 
 # Other (client)
 clap = { version = "4.2.5", features = ["derive"] }

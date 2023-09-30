@@ -28,6 +28,7 @@ use allfeat_primitives::Block;
 use fc_consensus::FrontierBlockImport;
 use frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
 use futures::prelude::*;
+use harmonie_runtime::{RuntimeApi, TransactionConverter, SS58_PREFIX};
 use sc_client_api::Backend;
 use sc_client_api::BlockBackend;
 use sc_consensus_babe::{self, BabeWorkerHandle, SlotProportion};
@@ -44,7 +45,6 @@ use sp_core::U256;
 use sp_runtime::traits::Block as BlockT;
 use std::path::Path;
 use std::sync::Arc;
-use symphonie_runtime::{RuntimeApi, TransactionConverter, SS58_PREFIX};
 
 use crate::rpc;
 
@@ -71,11 +71,11 @@ impl sc_executor::NativeExecutionDispatch for ExecutorDispatch {
 	type ExtendHostFunctions = (frame_benchmarking::benchmarking::HostFunctions,);
 
 	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-		symphonie_runtime::api::dispatch(method, data)
+		harmonie_runtime::api::dispatch(method, data)
 	}
 
 	fn native_version() -> sc_executor::NativeVersion {
-		symphonie_runtime::native_version()
+		harmonie_runtime::native_version()
 	}
 }
 
@@ -748,6 +748,10 @@ mod tests {
 	use crate::service::{new_full_base, NewFullBase};
 	use allfeat_primitives::{Block, DigestItem, Signature};
 	use codec::Encode;
+	use harmonie_runtime::{
+		constants::{currency::CENTS, time::SLOT_DURATION},
+		Address, BalancesCall, RuntimeCall, UncheckedExtrinsic,
+	};
 	use sc_client_api::BlockBackend;
 	use sc_consensus::{BlockImport, BlockImportParams, ForkChoiceStrategy};
 	use sc_consensus_babe::{BabeIntermediate, CompatibleDigestItem, INTERMEDIATE_KEY};
@@ -768,10 +772,6 @@ mod tests {
 	};
 	use sp_timestamp;
 	use std::sync::Arc;
-	use symphonie_runtime::{
-		constants::{currency::CENTS, time::SLOT_DURATION},
-		Address, BalancesCall, RuntimeCall, UncheckedExtrinsic,
-	};
 
 	type AccountPublic = <Signature as Verify>::Signer;
 

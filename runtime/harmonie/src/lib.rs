@@ -111,7 +111,7 @@ use precompiles::AllfeatPrecompiles;
 
 pub mod extensions;
 
-/// Custom weights for Symphonie
+/// Custom weights for Harmonie
 pub mod weights;
 
 /// Implementations of some helper traits passed into runtime modules as associated types.
@@ -170,7 +170,7 @@ pub mod opaque {
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("allfeat-testnet"),
-	impl_name: create_runtime_str!("allfeatlabs-symphonie"),
+	impl_name: create_runtime_str!("allfeatlabs-harmonie"),
 	authoring_version: 1,
 	// Per convention: if the runtime behavior changes, increment spec_version
 	// and set impl_version to 0. If only runtime

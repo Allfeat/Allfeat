@@ -30,7 +30,7 @@ use serde::{Deserialize, Serialize};
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_consensus_babe::AuthorityId as BabeId;
 use sp_runtime::traits::{IdentifyAccount, Verify};
-pub use symphonie_runtime::opaque::{Block, SessionKeys};
+pub use harmonie_runtime::opaque::{Block, SessionKeys};
 type AccountPublic = <Signature as Verify>::Signer;
 
 /// Node `ChainSpec` extensions.
@@ -52,23 +52,23 @@ pub struct Extensions {
 // Dummy chain spec, in case when we don't have the native runtime.
 pub type DummyChainSpec = sc_service::GenericChainSpec<(), Extensions>;
 
-#[cfg(feature = "symphonie-native")]
-pub type SymphonieChainSpec =
-	sc_service::GenericChainSpec<symphonie_runtime::RuntimeGenesisConfig, Extensions>;
-#[cfg(not(feature = "symphonie-native"))]
-pub type SymphonieChainSpec = GenericChainSpec<DummyChainSpec, Extensions>;
+#[cfg(feature = "harmonie-native")]
+pub type HarmonieChainSpec =
+	sc_service::GenericChainSpec<harmonie_runtime::RuntimeGenesisConfig, Extensions>;
+#[cfg(not(feature = "harmonie-native"))]
+pub type HarmonieChainSpec = GenericChainSpec<DummyChainSpec, Extensions>;
 
-pub fn symphonie_config() -> Result<SymphonieChainSpec, String> {
-	SymphonieChainSpec::from_json_bytes(&include_bytes!("../../genesis/symphonieV2_raw.json")[..])
+pub fn harmonie_config() -> Result<HarmonieChainSpec, String> {
+	HarmonieChainSpec::from_json_bytes(&include_bytes!("../../genesis/symphonieV2_raw.json")[..])
 }
 
 /*
-pub fn _symphonie_live_config() -> SymphonieChainSpec {
-	SymphonieChainSpec::from_genesis(
-		"Symphonie Live",
-		"symphonie_live",
+pub fn _harmonie_live_config() -> HarmonieChainSpec {
+	HarmonieChainSpec::from_genesis(
+		"Harmonie Testnet Live",
+		"harmonie_live",
 		ChainType::Live,
-		genesis::symphonie_genesis,
+		genesis::harmonie_genesis,
 		vec![],
 		None,
 		Some("aft"),
@@ -80,12 +80,12 @@ pub fn _symphonie_live_config() -> SymphonieChainSpec {
 */
 
 /// Development config (single validator Alice)
-pub fn development_config() -> SymphonieChainSpec {
-	SymphonieChainSpec::from_genesis(
-		"Symphonie Development",
-		"symphonie_dev",
+pub fn development_config() -> HarmonieChainSpec {
+	HarmonieChainSpec::from_genesis(
+		"Harmonie Development",
+		"harmonie_dev",
 		ChainType::Development,
-		genesis::symphonie_dev_genesis,
+		genesis::harmonie_dev_genesis,
 		vec![],
 		None,
 		None,
@@ -98,11 +98,11 @@ pub fn development_config() -> SymphonieChainSpec {
 #[cfg(test)]
 pub(crate) mod tests {
 	use super::*;
-	use crate::chain_specs::genesis::symphonie_dev_genesis;
+	use crate::chain_specs::genesis::harmonie_dev_genesis;
 	use crate::service::{new_full_base, NewFullBase};
 	use sc_service_test;
 	use sp_runtime::BuildStorage;
-	use symphonie_runtime::RuntimeGenesisConfig;
+	use harmonie_runtime::RuntimeGenesisConfig;
 
 	fn local_testnet_genesis_instant_single() -> RuntimeGenesisConfig {
 		genesis::testnet_genesis(
@@ -114,8 +114,8 @@ pub(crate) mod tests {
 	}
 
 	/// Local testnet config (single validator - Alice)
-	pub fn integration_test_config_with_single_authority() -> SymphonieChainSpec {
-		SymphonieChainSpec::from_genesis(
+	pub fn integration_test_config_with_single_authority() -> HarmonieChainSpec {
+		HarmonieChainSpec::from_genesis(
 			"Integration Test",
 			"test",
 			ChainType::Development,
@@ -130,12 +130,12 @@ pub(crate) mod tests {
 	}
 
 	/// testnet config (multivalidator Alice + Bob)
-	pub fn integration_test_config_with_two_authorities() -> SymphonieChainSpec {
-		SymphonieChainSpec::from_genesis(
+	pub fn integration_test_config_with_two_authorities() -> HarmonieChainSpec {
+		HarmonieChainSpec::from_genesis(
 			"Integration Test",
 			"test",
 			ChainType::Development,
-			symphonie_dev_genesis,
+			harmonie_dev_genesis,
 			vec![],
 			None,
 			None,
@@ -170,6 +170,6 @@ pub(crate) mod tests {
 
 	#[test]
 	fn test_staging_test_net_chain_spec() {
-		symphonie_config().unwrap().build_storage().unwrap();
+		harmonie_config().unwrap().build_storage().unwrap();
 	}
 }

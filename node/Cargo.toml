@@ -115,7 +115,7 @@ frame-benchmarking = { workspace = true }
 frame-benchmarking-cli = { workspace = true }
 
 # Local Dependencies
-symphonie-runtime = { workspace = true }
+harmonie-runtime = { workspace = true }
 
 # CLI-specific dependencies
 try-runtime-cli = { workspace = true, optional = true }
@@ -124,15 +124,15 @@ try-runtime-cli = { workspace = true, optional = true }
 substrate-build-script-utils = { workspace = true }
 
 [features]
-default = ["symphonie-native", "sql", "txpool", "rocksdb"]
+default = ["harmonie-native", "sql", "txpool", "rocksdb"]
 runtime-benchmarks = [
-	"symphonie-runtime/runtime-benchmarks",
+	"harmonie-runtime/runtime-benchmarks",
 	"frame-benchmarking-cli/runtime-benchmarks"
 ]
-symphonie-native = []
+harmonie-native = []
 # Enable features that allow the runtime to be tried and debugged. Name might be subject to change
 # in the near future.
-try-runtime = ["symphonie-runtime/try-runtime", "try-runtime-cli/try-runtime"]
+try-runtime = ["harmonie-runtime/try-runtime", "try-runtime-cli/try-runtime"]
 rocksdb = [
 	"sc-cli/rocksdb",
 	"sc-service/rocksdb",

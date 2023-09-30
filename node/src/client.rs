@@ -2,7 +2,7 @@
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch, NativeVersion};
 // Local
 use allfeat_primitives::{Balance, Nonce};
-use symphonie_runtime::{opaque::Block, AccountId};
+use harmonie_runtime::{opaque::Block, AccountId};
 
 use crate::eth::EthCompatRuntimeApiCollection;
 
@@ -24,11 +24,11 @@ impl NativeExecutionDispatch for TemplateRuntimeExecutor {
 	type ExtendHostFunctions = HostFunctions;
 
 	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-		symphonie_runtime::api::dispatch(method, data)
+		harmonie_runtime::api::dispatch(method, data)
 	}
 
 	fn native_version() -> NativeVersion {
-		symphonie_runtime::native_version()
+		harmonie_runtime::native_version()
 	}
 }
 

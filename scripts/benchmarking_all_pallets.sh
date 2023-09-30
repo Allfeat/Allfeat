@@ -109,7 +109,7 @@ for PALLET in "${PALLETS[@]}"; do
   fi
 
   FOLDER="$(echo "${PALLET#*_}" | tr '_' '-')";
-  WEIGHT_FILE="./runtime/symphonie/src/weights/${FOLDER}.rs"
+  WEIGHT_FILE="./runtime/harmonie/src/weights/${FOLDER}.rs"
   echo "[+] Benchmarking $PALLET with weight file $WEIGHT_FILE";
 
   OUTPUT=$(

@@ -22,4 +22,4 @@ EXPOSE 30333 9933 9944 9615
 VOLUME ["/data"]
 VOLUME ["/workdir"]
 
-CMD allfeat --chain symphonie --alice -d /data --name MyContainerNode --rpc-external --ws-external --rpc-cors all
+CMD allfeat --chain harmonie --alice -d /data --name MyContainerNode --rpc-external --ws-external --rpc-cors all

@@ -29,7 +29,7 @@ use sp_core::{ecdsa, Encode, Pair};
 use sp_inherents::{InherentData, InherentDataProvider};
 use sp_runtime::{OpaqueExtrinsic, SaturatedConversion};
 use std::{sync::Arc, time::Duration};
-use symphonie_runtime as runtime;
+use harmonie_runtime as runtime;
 
 /// Generates extrinsics for the `benchmark overhead` command.
 ///

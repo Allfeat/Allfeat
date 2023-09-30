@@ -82,7 +82,7 @@ All the examples in this document assume that you use a Ubuntu like system. If t
 
 # Run
 Node flag explanation:
-- `--chain symphonie`: There are a couple of chain configurations that we provide and each configuration has a drastic impact on how the chain behaves and what features it has. For testing purposes it's best to stick with symphonie configuration.
+- `--chain harmonie`: There are a couple of chain configurations that we provide and each configuration has a drastic impact on how the chain behaves and what features it has. For testing purposes it's best to stick with harmonie configuration.
 - `--alice`: This sets a couple of flags for us. It sets the `--validator` flag so that the client is running in a validator mode, it makes Alice a validator and it inserts Alice's keys into the local keystore.
 - `--tmp`: Makes is so that the blockchain data is stored in a temporary location. Usually this data is deleted on reboot.
 - `--name MyLocalNode`: Sets the name of the name. This should be something unique.
@@ -99,7 +99,7 @@ Docker flag explanation:
 ## Run Locally
 ```bash
   # Make sure that you have built a binary from the "Build Locally" step.
-  ./target/release/allfeat --chain symphonie --alice --tmp --name MyLocalNode --rpc-external --ws-external --rpc-cors all
+  ./target/release/allfeat --chain harmonie --alice --tmp --name MyLocalNode --rpc-external --ws-external --rpc-cors all
 ```
 
 ## Run With Docker
@@ -116,7 +116,7 @@ Depending on what binary you downloaded certain features might not be available 
   # Makes the binary executable
   chmod u+x allfeat
   # Runs the chain
-  ./allfeat --chain symphonie --alice --tmp --name MyLocalNode --rpc-external --ws-external --rpc-cors all
+  ./allfeat --chain harmonie --alice --tmp --name MyLocalNode --rpc-external --ws-external --rpc-cors all
 ```
 
 # Running Benchmarks
@@ -124,7 +124,7 @@ Depending on what binary you downloaded certain features might not be available 
   # Building the Allfeat Binary.
   cargo build --locked --release --features runtime-benchmarks
   # Run the benchmarks for the balances pallet.
-  ./target/release/allfeat benchmark pallet --chain symphonie --steps=50 --repeat=20 --extrinsic=* --execution=wasm --wasm-execution=compiled --heap-pages=4096 --output=./weights/ --pallet=pallet_balances
+  ./target/release/allfeat benchmark pallet --chain harmonie --steps=50 --repeat=20 --extrinsic=* --execution=wasm --wasm-execution=compiled --heap-pages=4096 --output=./weights/ --pallet=pallet_balances
 ```
 
 # Running Unit Tests
@@ -183,7 +183,7 @@ This can be useful if you want to develop your own chain without installing all 
 
 
 ## Run The Container And Access Its Shell
-The predefined operation/command of the container when run is to run the Allfeat Node with the symphonie configuration. To execute a different operation additional commands can be passed at the end of the run command. Example: passing `bash` will run the bash shell session instead the default operation.
+The predefined operation/command of the container when run is to run the Allfeat Node with the harmonie configuration. To execute a different operation additional commands can be passed at the end of the run command. Example: passing `bash` will run the bash shell session instead the default operation.
 
 ```bash
   # If no command arguments are given this will try to run the Allfeat Node with default parameters.

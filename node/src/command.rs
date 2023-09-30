@@ -29,11 +29,11 @@ use frame_benchmarking_cli::*;
 use sc_cli::{ChainSpec, Result, SubstrateCli};
 use sc_service::PartialComponents;
 use std::sync::Arc;
-use symphonie_runtime::Block;
+use harmonie_runtime::Block;
 
 #[cfg(feature = "try-runtime")]
 use {
-	crate::service::ExecutorDispatch, symphonie_runtime::constants::time::SLOT_DURATION,
+	crate::service::ExecutorDispatch, harmonie_runtime::constants::time::SLOT_DURATION,
 	try_runtime_cli::block_building_info::substrate_info,
 };
 
@@ -64,10 +64,10 @@ impl SubstrateCli for Cli {
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 		let spec = match id {
-			"" | "symphonie" => Box::new(chain_specs::symphonie_config()?),
-			#[cfg(feature = "symphonie-native")]
-			"dev" | "symphonie-dev" => Box::new(chain_specs::development_config()),
-			path => Box::new(chain_specs::SymphonieChainSpec::from_json_file(
+			"" | "harmonie" => Box::new(chain_specs::harmonie_config()?),
+			#[cfg(feature = "harmonie-native")]
+			"dev" | "harmonie-dev" => Box::new(chain_specs::development_config()),
+			path => Box::new(chain_specs::HarmonieChainSpec::from_json_file(
 				std::path::PathBuf::from(path),
 			)?),
 		};
@@ -140,7 +140,7 @@ pub fn run() -> Result<()> {
 							Box::new(TransferKeepAliveBuilder::new(
 								client.clone(),
 								get_account_id_from_seed::<sp_core::ecdsa::Public>("Alice"),
-								symphonie_runtime::ExistentialDeposit::get(),
+								harmonie_runtime::ExistentialDeposit::get(),
 							)),
 						]);
 
