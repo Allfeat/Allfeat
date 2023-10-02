@@ -75,7 +75,7 @@ pallet-staking = { workspace = true }
 pallet-staking-reward-curve = { workspace = true }
 pallet-state-trie-migration = { workspace = true }
 pallet-scheduler = { workspace = true }
-pallet-balances = { workspace = true }
+pallet-balances = { workspace = true, features = ["insecure_zero_ed"] }
 pallet-grandpa = { workspace = true }
 pallet-insecure-randomness-collective-flip = { workspace = true }
 pallet-sudo = { workspace = true }

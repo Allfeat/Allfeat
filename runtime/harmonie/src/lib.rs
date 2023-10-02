@@ -174,11 +174,11 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	// and set impl_version to 0. If only runtime
 	// implementation changes and behavior does not, then leave spec_version as
 	// is and increment impl_version.
-	spec_version: 1,
-	impl_version: 1,
+	spec_version: 100,
+	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
-	state_version: 1,
+	state_version: 0,
 };
 
 /// The BABE epoch configuration at genesis.
@@ -202,8 +202,8 @@ const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_percent(10);
 /// We allow `Normal` extrinsics to fill up the block up to 75%, the rest can be used
 /// by  Operational  extrinsics.
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
-/// We allow for 2 seconds of compute with a 6 second average block time, with maximum proof size
-pub const WEIGHT_MILLISECS_PER_BLOCK: u64 = 2000;
+/// We allow for 4 seconds of compute with a 12 second average block time, with maximum proof size
+pub const WEIGHT_MILLISECS_PER_BLOCK: u64 = 4000;
 const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
 	WEIGHT_MILLISECS_PER_BLOCK * WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2),
 	u64::MAX,
@@ -402,9 +402,9 @@ impl pallet_scheduler::Config for Runtime {
 
 parameter_types! {
 	pub const PreimageMaxSize: u32 = 4096 * 1024;
-	pub const PreimageBaseDeposit: Balance = 1 * DOLLARS;
+	pub const PreimageBaseDeposit: Balance = 1 * AFT;
 	// One cent: $10,000 / MB
-	pub const PreimageByteDeposit: Balance = 1 * CENTS;
+	pub const PreimageByteDeposit: Balance = 1 * MILLIAFT;
 }
 
 impl pallet_preimage::Config for Runtime {
@@ -443,11 +443,7 @@ impl pallet_babe::Config for Runtime {
 }
 
 parameter_types! {
-	pub const IndexDeposit: Balance = 1 * DOLLARS;
-}
-
-parameter_types! {
-	pub const ExistentialDeposit: Balance = 1 * CENTS;
+	pub const ExistentialDeposit: Balance = 0;
 	// For weight estimation, we assume that the most locks on an individual account will be 50.
 	// This number may need to be adjusted in the future if this assumption no longer holds true.
 	pub const MaxLocks: u32 = 50;
@@ -471,7 +467,7 @@ impl pallet_balances::Config for Runtime {
 }
 
 parameter_types! {
-	pub const TransactionByteFee: Balance = 10 * MILLICENTS;
+	pub const TransactionByteFee: Balance = 10 * MICROAFT;
 	pub const OperationalFeeMultiplier: u8 = 5;
 	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
 	pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(1, 100_000);
@@ -612,9 +608,9 @@ parameter_types! {
 	pub const UnsignedPhase: u32 = EPOCH_DURATION_IN_BLOCKS / 4;
 
 	// signed config
-	pub const SignedRewardBase: Balance = 1 * DOLLARS;
-	pub const SignedDepositBase: Balance = 1 * DOLLARS;
-	pub const SignedDepositByte: Balance = 1 * CENTS;
+	pub const SignedRewardBase: Balance = 1 * AFT;
+	pub const SignedDepositBase: Balance = 1 * AFT;
+	pub const SignedDepositByte: Balance = 1 * MILLIAFT;
 
 	pub BetterUnsignedThreshold: Perbill = Perbill::from_rational(1u32, 10_000);
 
@@ -859,12 +855,6 @@ impl pallet_contracts::Config for Runtime {
 	type Environment = ();
 }
 
-parameter_types! {
-	pub const AlarmInterval: BlockNumber = 1;
-	pub const SubmissionDeposit: Balance = 100 * DOLLARS;
-	pub const UndecidingTimeout: BlockNumber = 28 * DAYS;
-}
-
 impl pallet_sudo::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
@@ -976,9 +966,9 @@ impl pallet_grandpa::Config for Runtime {
 }
 
 parameter_types! {
-	pub const BasicDeposit: Balance = 10 * DOLLARS;       // 258 bytes on-chain
-	pub const FieldDeposit: Balance = 250 * CENTS;        // 66 bytes on-chain
-	pub const SubAccountDeposit: Balance = 2 * DOLLARS;   // 53 bytes on-chain
+	pub const BasicDeposit: Balance = 10 * AFT;       // 258 bytes on-chain
+	pub const FieldDeposit: Balance = 250 * MILLIAFT;        // 66 bytes on-chain
+	pub const SubAccountDeposit: Balance = 2 * AFT;   // 53 bytes on-chain
 	pub const MaxSubAccounts: u32 = 100;
 	pub const MaxAdditionalFields: u32 = 100;
 	pub const MaxRegistrars: u32 = 20;
@@ -1000,10 +990,10 @@ impl pallet_identity::Config for Runtime {
 }
 
 parameter_types! {
-	pub const ConfigDepositBase: Balance = 5 * DOLLARS;
-	pub const FriendDepositFactor: Balance = 50 * CENTS;
+	pub const ConfigDepositBase: Balance = 5 * AFT;
+	pub const FriendDepositFactor: Balance = 50 * MILLIAFT;
 	pub const MaxFriends: u16 = 9;
-	pub const RecoveryDeposit: Balance = 5 * DOLLARS;
+	pub const RecoveryDeposit: Balance = 5 * AFT;
 }
 
 impl pallet_recovery::Config for Runtime {
@@ -1018,11 +1008,11 @@ impl pallet_recovery::Config for Runtime {
 }
 
 parameter_types! {
-	pub const CandidateDeposit: Balance = 10 * DOLLARS;
-	pub const WrongSideDeduction: Balance = 2 * DOLLARS;
+	pub const CandidateDeposit: Balance = 10 * AFT;
+	pub const WrongSideDeduction: Balance = 2 * AFT;
 	pub const MaxStrikes: u32 = 10;
 	pub const RotationPeriod: BlockNumber = 80 * HOURS;
-	pub const PeriodSpend: Balance = 500 * DOLLARS;
+	pub const PeriodSpend: Balance = 500 * AFT;
 	pub const MaxLockDuration: BlockNumber = 36 * 30 * DAYS;
 	pub const ChallengePeriod: BlockNumber = 7 * DAYS;
 	pub const MaxCandidateIntake: u32 = 10;
@@ -1037,8 +1027,8 @@ impl pallet_mmr::Config for Runtime {
 }
 
 parameter_types! {
-	pub const MigrationSignedDepositPerItem: Balance = 1 * CENTS;
-	pub const MigrationSignedDepositBase: Balance = 20 * DOLLARS;
+	pub const MigrationSignedDepositPerItem: Balance = 1 * MILLIAFT;
+	pub const MigrationSignedDepositBase: Balance = 20 * AFT;
 	pub const MaxNumberOfBytesThatAKeyCanHave: u32 = 512;
 }
 
@@ -1065,7 +1055,7 @@ parameter_types! {
 
 parameter_types! {
 	pub const NameMaxLength: u32 = 128;
-	pub const CreationDepositAmount: Balance = 5 * DOLLARS;
+	pub const CreationDepositAmount: Balance = 5 * AFT;
 }
 
 impl pallet_artists::Config for Runtime {
@@ -1080,7 +1070,7 @@ impl pallet_artists::Config for Runtime {
 }
 
 parameter_types! {
-	pub const CostPerByte: Balance = 1 * DOLLARS;
+	pub const CostPerByte: Balance = 1 * AFT;
 	pub const MaxRegisteredStyles: u32 = 5;
 	pub const MaxDefaultStringLength: u32 = 128;
 	pub const MaxDescriptionLength: u32 = 512;
@@ -1110,15 +1100,6 @@ impl pallet_music_styles::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type AdminOrigin = EnsureRoot<Self::AccountId>;
 	type Weights = weights::music_styles::AllfeatWeight<Runtime>;
-}
-
-parameter_types! {
-	pub StatementCost: Balance = 1 * DOLLARS;
-	pub StatementByteCost: Balance = 100 * MILLICENTS;
-	pub const MinAllowedStatements: u32 = 4;
-	pub const MaxAllowedStatements: u32 = 10;
-	pub const MinAllowedBytes: u32 = 1024;
-	pub const MaxAllowedBytes: u32 = 4096;
 }
 
 impl pallet_evm_chain_id::Config for Runtime {}

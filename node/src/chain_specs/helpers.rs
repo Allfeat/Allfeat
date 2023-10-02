@@ -14,8 +14,8 @@ pub fn chain_properties() -> serde_json::map::Map<String, serde_json::Value> {
 	serde_json::json!({
 		"isEthereum": true,
 		"ss58Format": 42,
-		"tokenDecimals": 10,
-		"tokenSymbol": "SPI",
+		"tokenDecimals": 18,
+		"tokenSymbol": "HMY",
 	})
 	.as_object()
 	.expect("Map given; qed")

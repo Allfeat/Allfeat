@@ -20,13 +20,22 @@
 pub mod currency {
 	use allfeat_primitives::Balance;
 
-	pub const UNITS: Balance = 10_000_000_000;
-	pub const DOLLARS: Balance = UNITS; // 10_000_000_000
-	pub const CENTS: Balance = DOLLARS / 100; // 100_000_000
-	pub const MILLICENTS: Balance = CENTS / 1_000; // 100_000
+	// Provide a common factor between runtimes based on a supply of 10_000_000 tokens.
+	pub const SUPPLY_FACTOR: Balance = 100;
+
+	pub const WEI: Balance = 1;
+	pub const KILOWEI: Balance = 1_000;
+	pub const MEGAWEI: Balance = 1_000_000;
+	pub const GIGAWEI: Balance = 1_000_000_000;
+	pub const MICROAFT: Balance = 1_000_000_000_000;
+	pub const MILLIAFT: Balance = 1_000_000_000_000_000;
+
+	pub const AFT: Balance = 1_000_000_000_000_000_000;
+
+	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROAFT * SUPPLY_FACTOR;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 140 * MILLICENTS + (bytes as Balance) * 60 * MILLICENTS
+		items as Balance * 100 * MILLIAFT * SUPPLY_FACTOR + (bytes as Balance) * STORAGE_BYTE_FEE
 	}
 }
 
@@ -51,7 +60,7 @@ pub mod time {
 	/// `SLOT_DURATION` should have the same value.
 	///
 	/// <https://research.web3.foundation/en/latest/polkadot/block-production/Babe.html#-6.-practical-results>
-	pub const MILLISECS_PER_BLOCK: Moment = 6000;
+	pub const MILLISECS_PER_BLOCK: Moment = 12000;
 	pub const SECS_PER_BLOCK: Moment = MILLISECS_PER_BLOCK / 1000;
 
 	// NOTE: Currently it is not possible to change the slot duration after the chain has started.

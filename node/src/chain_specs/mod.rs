@@ -24,13 +24,13 @@ pub mod helpers;
 use crate::chain_specs::helpers::{authority_keys_from_seed, chain_properties};
 pub use allfeat_primitives::{AccountId, Balance, Signature};
 use grandpa_primitives::AuthorityId as GrandpaId;
+pub use harmonie_runtime::opaque::{Block, SessionKeys};
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use sc_chain_spec::{ChainSpecExtension, ChainType};
 use serde::{Deserialize, Serialize};
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_consensus_babe::AuthorityId as BabeId;
 use sp_runtime::traits::{IdentifyAccount, Verify};
-pub use harmonie_runtime::opaque::{Block, SessionKeys};
 type AccountPublic = <Signature as Verify>::Signer;
 
 /// Node `ChainSpec` extensions.
@@ -100,9 +100,9 @@ pub(crate) mod tests {
 	use super::*;
 	use crate::chain_specs::genesis::harmonie_dev_genesis;
 	use crate::service::{new_full_base, NewFullBase};
+	use harmonie_runtime::RuntimeGenesisConfig;
 	use sc_service_test;
 	use sp_runtime::BuildStorage;
-	use harmonie_runtime::RuntimeGenesisConfig;
 
 	fn local_testnet_genesis_instant_single() -> RuntimeGenesisConfig {
 		genesis::testnet_genesis(
