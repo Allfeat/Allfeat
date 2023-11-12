@@ -198,6 +198,10 @@ fc-rpc-core = { version = "1.1.0-dev", git = "https://github.com/paritytech/fron
 fc-storage = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.1.0" }
 fp-dynamic-fee = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.1.0", features = ["default"] }
 
+# Speed up compilation with front-end parallelisn
+[build]
+rustflags = ["-Z", "threads=8"]
+
 # make sure dev builds with backtrace do
 # not slow us down
 [profile.dev.package.backtrace]
