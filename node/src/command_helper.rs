@@ -20,8 +20,9 @@
 //! otherwise bloat that module.
 
 use crate::service::FullClient;
-use allfeat_node::chain_specs::Balance;
+use allfeat_primitives::Balance;
 use fp_account::AccountId20;
+use harmonie_runtime as runtime;
 use runtime::{AccountId, BalancesCall, SystemCall};
 use sc_cli::Result;
 use sc_client_api::BlockBackend;
@@ -29,7 +30,6 @@ use sp_core::{ecdsa, Encode, Pair};
 use sp_inherents::{InherentData, InherentDataProvider};
 use sp_runtime::{OpaqueExtrinsic, SaturatedConversion};
 use std::{sync::Arc, time::Duration};
-use harmonie_runtime as runtime;
 
 /// Generates extrinsics for the `benchmark overhead` command.
 ///

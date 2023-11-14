@@ -25,22 +25,20 @@
 pub use allfeat_primitives::{AccountId, Signature};
 use allfeat_primitives::{Balance, BlockNumber, Hash, Moment, Nonce};
 use core::marker::PhantomData;
-use fp_evm::weight_per_gas;
-use fp_evm::FeeCalculator;
+use fp_evm::{weight_per_gas, FeeCalculator};
 use fp_rpc::TransactionStatus;
-use frame_election_provider_support::bounds::{ElectionBounds, ElectionBoundsBuilder};
 use frame_election_provider_support::{
+	bounds::{ElectionBounds, ElectionBoundsBuilder},
 	onchain, BalancingConfig, ElectionDataProvider, SequentialPhragmen, VoteWeight,
 };
-use frame_support::traits::{Contains, FindAuthor, OnFinalize};
 use frame_support::{
 	construct_runtime,
 	dispatch::DispatchClass,
 	pallet_prelude::Get,
 	parameter_types,
 	traits::{
-		ConstU16, ConstU32, Currency, EqualPrivilegeOnly, Everything, InstanceFilter,
-		KeyOwnerProofSystem, Nothing,
+		ConstU16, ConstU32, Contains, Currency, EqualPrivilegeOnly, Everything, FindAuthor,
+		InstanceFilter, KeyOwnerProofSystem, Nothing, OnFinalize,
 	},
 	weights::{
 		constants::{
@@ -67,14 +65,13 @@ use sp_api::impl_runtime_apis;
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, RuntimeDebug, H160, H256, U256};
 use sp_inherents::{CheckInherentsResult, InherentData};
-use sp_runtime::traits::UniqueSaturatedInto;
 use sp_runtime::{
 	create_runtime_str,
 	curve::PiecewiseLinear,
 	generic, impl_opaque_keys,
 	traits::{
 		self, BlakeTwo256, Block as BlockT, Bounded, Dispatchable, NumberFor, OpaqueKeys,
-		SaturatedConversion, StaticLookup,
+		SaturatedConversion, StaticLookup, UniqueSaturatedInto,
 	},
 	transaction_validity::{TransactionPriority, TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult, ConsensusEngineId, FixedPointNumber, FixedU128, Perbill, Permill,
@@ -88,7 +85,6 @@ use static_assertions::const_assert;
 
 #[cfg(any(feature = "std", test))]
 pub use frame_system::Call as SystemCall;
-use pallet_artists::EnsureArtist;
 #[cfg(any(feature = "std", test))]
 pub use pallet_balances::Call as BalancesCall;
 use pallet_ethereum::{
@@ -239,7 +235,8 @@ parameter_types! {
 const_assert!(NORMAL_DISPATCH_RATIO.deconstruct() >= AVERAGE_ON_INITIALIZE_RATIO.deconstruct());
 
 /// A call filter that remove the posibility any users to upload and instantiate new contracts.
-/// This aim to force users to use a proxy pallet that make the calls to the contracts pallet instead.
+/// This aim to force users to use a proxy pallet that make the calls to the contracts pallet
+/// instead.
 #[derive(
 	Copy,
 	Clone,
@@ -460,10 +457,10 @@ impl pallet_balances::Config for Runtime {
 	type MaxLocks = MaxLocks;
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = [u8; 8];
-	type FreezeIdentifier = ();
-	type MaxFreezes = ();
+	type FreezeIdentifier = [u8; 8];
+	type MaxFreezes = ConstU32<50>;
 	type RuntimeHoldReason = RuntimeHoldReason;
-	type MaxHolds = ConstU32<2>;
+	type MaxHolds = ConstU32<50>;
 }
 
 parameter_types! {
@@ -677,8 +674,8 @@ impl Get<Option<BalancingConfig>> for OffchainRandomBalancing {
 			max => {
 				let seed = sp_io::offchain::random_seed();
 				let random = <u32>::decode(&mut TrailingZeroInput::new(&seed))
-					.expect("input is padded with zeroes; qed")
-					% max.saturating_add(1);
+					.expect("input is padded with zeroes; qed") %
+					max.saturating_add(1);
 				random as usize
 			},
 		};
@@ -775,8 +772,10 @@ parameter_types! {
 }
 
 use crate::extensions::artists::ArtistsExtension;
-use sp_runtime::traits::{Convert, DispatchInfoOf, PostDispatchInfoOf};
-use sp_runtime::transaction_validity::TransactionValidityError;
+use sp_runtime::{
+	traits::{Convert, DispatchInfoOf, PostDispatchInfoOf},
+	transaction_validity::TransactionValidityError,
+};
 
 pub struct BalanceToU256;
 impl Convert<Balance, sp_core::U256> for BalanceToU256 {
@@ -842,11 +841,7 @@ impl pallet_contracts::Config for Runtime {
 	type MaxDebugBufferLen = ConstU32<{ 2 * 1024 * 1024 }>;
 	type RuntimeHoldReason = RuntimeHoldReason;
 	#[cfg(not(feature = "runtime-benchmarks"))]
-	type Migrations = (
-		pallet_contracts::migration::v13::Migration<Runtime>,
-		pallet_contracts::migration::v14::Migration<Runtime, Balances>,
-		pallet_contracts::migration::v15::Migration<Runtime>,
-	);
+	type Migrations = ();
 	#[cfg(feature = "runtime-benchmarks")]
 	type Migrations = pallet_contracts::migration::codegen::BenchMigrations;
 	type MaxDelegateDependencies = ConstU32<32>;
@@ -1054,52 +1049,33 @@ parameter_types! {
 }
 
 parameter_types! {
-	pub const NameMaxLength: u32 = 128;
-	pub const CreationDepositAmount: Balance = 5 * AFT;
+	pub const MaxNameLen: u32 = 128;
+	pub const MaxGenres: u32 = 5;
+	pub const MaxContracts: u32 = 512;
+	pub const MaxAssets: u32 = 64;
+	pub const ByteDesposit: Balance = deposit(0, 1);
+	pub const BaseDeposit: Balance = 1 * AFT;
+	pub const UnregisterPeriod: BlockNumber = 7 * DAYS;
 }
 
 impl pallet_artists::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
-	type AdminOrigin = EnsureRoot<Self::AccountId>;
-	type Origin = RuntimeOrigin;
-	type Call = RuntimeCall;
-	type CreationDepositAmount = CreationDepositAmount;
-	type NameMaxLength = NameMaxLength;
-	type WeightInfo = weights::artists::AllfeatWeight<Runtime>;
-}
-
-parameter_types! {
-	pub const CostPerByte: Balance = 1 * AFT;
-	pub const MaxRegisteredStyles: u32 = 5;
-	pub const MaxDefaultStringLength: u32 = 128;
-	pub const MaxDescriptionLength: u32 = 512;
-}
-
-impl pallet_artist_identity::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Currency = Balances;
-	type ArtistOrigin = EnsureArtist<Self::AccountId>;
-	type StylesProvider = MusicStyles;
-	type CostPerByte = CostPerByte;
-	type MaxRegisteredStyles = MaxRegisteredStyles;
-	type MaxDefaultStringLength = MaxDefaultStringLength;
-	type MaxDescriptionLength = MaxDescriptionLength;
-	#[cfg(feature = "runtime-benchmarks")]
-	type StylesHelper = MusicStyles;
-	type Weights = weights::artist_identity::AllfeatWeight<Runtime>;
+	type ByteDeposit = ByteDesposit;
+	type BaseDeposit = BaseDeposit;
+	type UnregisterPeriod = UnregisterPeriod;
+	type RuntimeHoldReason = RuntimeHoldReason;
+	type MaxNameLen = MaxNameLen;
+	type MaxAssets = MaxAssets;
+	type MaxContracts = MaxContracts;
+	type MaxGenres = MaxGenres;
+	type WeightInfo = (); // TODO
 }
 
 parameter_types! {
 	pub const MaxStyleCount: u32 = 30;
 	pub const MaxSubStyleCount: u32 = 50;
 	pub const StyleNameMaxLength: u32 = 64;
-}
-
-impl pallet_music_styles::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type AdminOrigin = EnsureRoot<Self::AccountId>;
-	type Weights = weights::music_styles::AllfeatWeight<Runtime>;
 }
 
 impl pallet_evm_chain_id::Config for Runtime {}
@@ -1223,13 +1199,11 @@ construct_runtime!(
 		Historical: pallet_session_historical::{Pallet},
 		RandomnessCollectiveFlip: pallet_insecure_randomness_collective_flip,
 		Identity: pallet_identity,
-		ArtistIdentity: pallet_artist_identity,
 		Recovery: pallet_recovery,
 		Scheduler: pallet_scheduler,
 		Preimage: pallet_preimage,
 		Proxy: pallet_proxy,
 		Multisig: pallet_multisig,
-		MusicStyles: pallet_music_styles,
 		Artists: pallet_artists,
 		Mmr: pallet_mmr,
 		BagsList: pallet_bags_list::<Instance1>,
@@ -1356,9 +1330,8 @@ impl fp_self_contained::SelfContainedCall for RuntimeCall {
 		len: usize,
 	) -> Option<Result<(), TransactionValidityError>> {
 		match self {
-			RuntimeCall::Ethereum(call) => {
-				call.pre_dispatch_self_contained(info, dispatch_info, len)
-			},
+			RuntimeCall::Ethereum(call) =>
+				call.pre_dispatch_self_contained(info, dispatch_info, len),
 			_ => None,
 		}
 	}
@@ -1368,11 +1341,10 @@ impl fp_self_contained::SelfContainedCall for RuntimeCall {
 		info: Self::SignedInfo,
 	) -> Option<sp_runtime::DispatchResultWithInfo<PostDispatchInfoOf<Self>>> {
 		match self {
-			call @ RuntimeCall::Ethereum(pallet_ethereum::Call::transact { .. }) => {
+			call @ RuntimeCall::Ethereum(pallet_ethereum::Call::transact { .. }) =>
 				Some(call.dispatch(RuntimeOrigin::from(
 					pallet_ethereum::RawOrigin::EthereumTransaction(info),
-				)))
-			},
+				))),
 			_ => None,
 		}
 	}
@@ -1387,7 +1359,6 @@ mod benches {
 	define_benchmarks!(
 		[frame_benchmarking, BaselineBench::<Runtime>]
 		[pallet_artists, Artists]
-		[pallet_artist_identity, ArtistIdentity]
 		[pallet_babe, Babe]
 		[pallet_bags_list, BagsList]
 		[pallet_balances, Balances]
@@ -1400,7 +1371,6 @@ mod benches {
 		[pallet_im_online, ImOnline]
 		[pallet_mmr, Mmr]
 		[pallet_multisig, Multisig]
-		[pallet_music_styles, MusicStyles]
 		[pallet_nomination_pools, NominationPoolsBench::<Runtime>]
 		[pallet_offences, OffencesBench::<Runtime>]
 		[pallet_preimage, Preimage]

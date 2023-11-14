@@ -22,7 +22,7 @@ pub mod genesis;
 pub mod helpers;
 
 use crate::chain_specs::helpers::{authority_keys_from_seed, chain_properties};
-pub use allfeat_primitives::{AccountId, Balance, Signature};
+pub use allfeat_primitives::{AccountId, Signature};
 use grandpa_primitives::AuthorityId as GrandpaId;
 pub use harmonie_runtime::opaque::{Block, SessionKeys};
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
@@ -88,7 +88,7 @@ pub fn development_config() -> HarmonieChainSpec {
 		genesis::harmonie_dev_genesis,
 		vec![],
 		None,
-		None,
+		Some("aft"),
 		None,
 		Some(chain_properties()),
 		Default::default(),
@@ -98,8 +98,10 @@ pub fn development_config() -> HarmonieChainSpec {
 #[cfg(test)]
 pub(crate) mod tests {
 	use super::*;
-	use crate::chain_specs::genesis::harmonie_dev_genesis;
-	use crate::service::{new_full_base, NewFullBase};
+	use crate::{
+		chain_specs::genesis::harmonie_dev_genesis,
+		service::{new_full_base, NewFullBase},
+	};
 	use harmonie_runtime::RuntimeGenesisConfig;
 	use sc_service_test;
 	use sp_runtime::BuildStorage;

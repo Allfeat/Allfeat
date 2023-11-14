@@ -22,9 +22,7 @@ repository = "https://github.com/allfeat/allfeat"
 allfeat-primitives = { version = "1.0.0", default-features = false, path = "./primitives" }
 allfeat-support = { version = "0.1.0-dev", default-features = false, git = "https://github.com/Allfeat/allfeat-support.git", branch = "master" }
 
-pallet-artists = { version = "1.0.0-dev", default-features = false, git = "https://github.com/Allfeat/pallet-artists.git", branch = "master" }
-pallet-music-styles = { version = "0.1.0-dev", default-features = false, git = "https://github.com/Allfeat/pallet-music-styles.git", branch = "master" }
-pallet-artist-identity = { version = "0.1.0-dev", default-features = false, git = "https://github.com/Allfeat/pallet-artist-identity.git", branch = "master" }
+pallet-artists = { package = "pallet-artists-v2", version = "1.0.0-dev", default-features = false, git = "https://github.com/Allfeat/pallet-artists-v2.git", branch = "master" }
 
 # Substrate (wasm)
 parity-scale-codec = { version = "3.6.1", default-features = false, features = [

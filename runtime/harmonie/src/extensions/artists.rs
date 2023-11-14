@@ -21,20 +21,16 @@
 
 use core::marker::PhantomData;
 use frame_support::pallet_prelude::Get;
-use pallet_artists::CandidateOf;
 use pallet_contracts::chain_extension::{
 	BufInBufOutState, ChainExtension, ChargedAmount, Environment, Ext, InitState, RetVal,
 };
 use parity_scale_codec::{Decode, Encode};
-use sp_runtime::{DispatchError, ModuleError};
+use sp_runtime::{BoundedVec, DispatchError, ModuleError};
 
 enum ArtistsFunc {
-	// Constants
-	CreationDepositAmount,
-	NameMaxLength,
 	// Chain State Queries
-	Artists,
-	Candidates,
+	ArtistById,
+	ArtistByName,
 }
 
 impl TryFrom<u16> for ArtistsFunc {
@@ -42,10 +38,8 @@ impl TryFrom<u16> for ArtistsFunc {
 
 	fn try_from(value: u16) -> Result<Self, Self::Error> {
 		match value {
-			1 => Ok(ArtistsFunc::CreationDepositAmount),
-			2 => Ok(ArtistsFunc::NameMaxLength),
-			51 => Ok(ArtistsFunc::Artists),
-			52 => Ok(ArtistsFunc::Candidates),
+			51 => Ok(ArtistsFunc::ArtistById),
+			52 => Ok(ArtistsFunc::ArtistByName),
 			_ => Err(DispatchError::Other("PalletArtistsExtension: Unimplemented func_id")),
 		}
 	}
@@ -71,32 +65,19 @@ where
 		let mut env = env.buf_in_buf_out();
 
 		match func_id {
-			// Constants
-			ArtistsFunc::CreationDepositAmount => {
-				charge_weight_read(&mut env)?;
-				let value = T::CreationDepositAmount::get();
-				env.write(&value.encode(), false, None)?
-			},
-			ArtistsFunc::NameMaxLength => {
-				charge_weight_read(&mut env)?;
-				let value = T::NameMaxLength::get();
-				env.write(&value.encode(), false, None)?
-			},
-
 			// Chain State Queries
-			ArtistsFunc::Artists => {
+			ArtistsFunc::ArtistById => {
 				let account_id: T::AccountId = env.read_as()?;
 
 				charge_weight_read(&mut env)?;
-				let data = pallet_artists::Pallet::<T>::get_artist(account_id);
+				let data = pallet_artists::Pallet::<T>::get_artist_by_id(account_id);
 				env.write(&data.encode(), false, None)?
 			},
-			ArtistsFunc::Candidates => {
-				let account_id: T::AccountId = env.read_as()?;
+			ArtistsFunc::ArtistByName => {
+				let artist_name: BoundedVec<u8, T::MaxNameLen> = env.read_as()?;
 
 				charge_weight_read(&mut env)?;
-				let data: Option<CandidateOf<T>> =
-					pallet_artists::Pallet::<T>::get_candidate(account_id);
+				let data = pallet_artists::Pallet::<T>::get_artist_by_name(artist_name);
 				env.write(&data.encode(), false, None)?
 			},
 		};
@@ -121,37 +102,10 @@ where
 pub enum ArtistsError {
 	/// Success
 	Success = 0,
-
-	// General errors:
-	// ===============
-	/// The caller doesn't have enough funds for the deposit
-	NotEnoughFunds = 1,
-	/// The given string is longer than `T::NameMaxLength`.
-	NameTooLong = 2,
-
-	// Candidate related errors:
-	// =========================
-	/// The account is already in the candidate list
-	AlreadyACandidate = 3,
-	/// The wanted candidate is not found in the Candidates Storage
-	CandidateNotFound = 4,
-	/// The caller isn't in the candidate list.
-	NotACandidate = 5,
-
-	// Artist related errors:
-	// ======================
-	/// This account already is a certificated artist account.
-	AlreadyAnArtist = 6,
-	/// The caller isn't a verified artist.
-	NotAnArtist = 7,
-	/// The wanted artist is not found in the Artists Storage
-	ArtistNotFound = 8,
-
 	/// Unknown error
 	UnknownError = 99,
 }
 
-// TODO: macro to make the implement not verbose that much ?
 impl TryFrom<DispatchError> for ArtistsError {
 	type Error = DispatchError;
 
@@ -161,14 +115,6 @@ impl TryFrom<DispatchError> for ArtistsError {
 			_ => Some("No module error Info"),
 		};
 		return match error_text {
-			Some("NotEnoughFunds") => Ok(Self::NotEnoughFunds),
-			Some("NameTooLong") => Ok(Self::NameTooLong),
-			Some("AlreadyACandidate") => Ok(Self::AlreadyACandidate),
-			Some("CandidateNotFound") => Ok(Self::CandidateNotFound),
-			Some("NotACandidate") => Ok(Self::NotACandidate),
-			Some("AlreadyAnArtist") => Ok(Self::AlreadyAnArtist),
-			Some("NotAnArtist") => Ok(Self::NotAnArtist),
-			Some("ArtistNotFound") => Ok(Self::ArtistNotFound),
 			_ => Ok(ArtistsError::UnknownError),
 		};
 	}

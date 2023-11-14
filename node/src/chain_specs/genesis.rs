@@ -1,9 +1,9 @@
 use super::*;
 use allfeat_primitives::{AccountId, Balance};
 use harmonie_runtime::{
-	constants::currency::*, wasm_binary_unwrap, ArtistsConfig, BabeConfig, BalancesConfig,
-	EVMChainIdConfig, ImOnlineConfig, MaxNominations, MusicStylesConfig, RuntimeGenesisConfig,
-	SessionConfig, StakerStatus, StakingConfig, SudoConfig, SystemConfig,
+	constants::currency::*, wasm_binary_unwrap, BabeConfig, BalancesConfig, EVMChainIdConfig,
+	ImOnlineConfig, MaxNominations, RuntimeGenesisConfig, SessionConfig, StakerStatus,
+	StakingConfig, SudoConfig, SystemConfig,
 };
 use hex_literal::hex;
 use sp_runtime::Perbill;
@@ -95,14 +95,6 @@ pub fn testnet_genesis(
 			stakers,
 			..Default::default()
 		},
-		music_styles: MusicStylesConfig {
-			styles: vec![(
-				b"Test Style".to_vec(),
-				vec![b"Test Sub".to_vec(), b"Test Sub 2".to_vec()],
-			)],
-			phantom: Default::default(),
-		},
-		artists: ArtistsConfig { artists: Default::default(), candidates: Default::default() },
 		sudo: SudoConfig { key: Some(root_key) },
 		babe: BabeConfig {
 			epoch_config: Some(harmonie_runtime::BABE_GENESIS_EPOCH_CONFIG),
