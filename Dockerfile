@@ -1,25 +1,44 @@
-# This is the first stage. Here we install all the dependencies that we need in order to build the Allfeat binary.
-FROM ubuntu:22.04 as builder
+# This is the first stage. Here we install all the dependencies that we need in order to build the Allfeat binary
+# and we create the Allfeat binary in a rust oriented temporary image.
+FROM rustlang/rust:nightly-slim as builder
 
 ADD . ./workdir
 WORKDIR "/workdir"
 
 # This installs all dependencies that we need (besides Rust).
 RUN apt update -y && \
-    apt install build-essential git clang curl libssl-dev llvm libudev-dev make protobuf-compiler -y
+    apt install build-essential git clang curl libssl-dev llvm libudev-dev make protobuf-compiler pkg-config -y
 
 # This installs Rust and updates Rust to the right version.
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rust_install.sh && chmod u+x rust_install.sh && ./rust_install.sh -y && \
-    . $HOME/.cargo/env && rustup update && rustup update nightly && rustup target add wasm32-unknown-unknown --toolchain nightly && rustup show
+RUN rustup target add wasm32-unknown-unknown --toolchain nightly && rustup show
 
 # This builds the binary.
-RUN $HOME/.cargo/bin/cargo build --locked --release
+RUN cargo build --locked --release
 
-# Makes the Allfeat binary accisible from anywhere.
-RUN cp ./target/release/allfeat /usr/local/bin
+# This is the 2nd stage: a very small image where we copy the Allfeat binary."
+FROM docker.io/library/ubuntu:20.04
+
+LABEL io.allfeat.image.type="builder" \
+    io.allfeat.image.authors="tech@allfeat.com" \
+    io.allfeat.image.vendor="Allfeat labs" \
+    io.allfeat.image.description="Multistage Docker image for allfeat-blockchain" \
+    io.allfeat.image.source="https://github.com/allfeat/allfeat/blob/${VCS_REF}/Dockerfile" \
+    io.allfeat.image.documentation="https://github.com/allfeat/allfeat"
+
+COPY --from=builder /workdir/target/release/allfeat /usr/local/bin
+
+RUN useradd -m -u 1000 -U -s /bin/sh -d /workdir allfeat && \
+    mkdir -p /data /workdir/.local/share && \
+    chown -R allfeat:allfeat /data && \
+    ln -s /data /workdir/.local/share/allfeat && \
+# unclutter and minimize the attack surface
+    rm -rf /usr/bin /usr/sbin && \
+# check if executable works in this container
+    /usr/local/bin/allfeat --version
+
+USER allfeat
 
 EXPOSE 30333 9933 9944 9615
 VOLUME ["/data"]
-VOLUME ["/workdir"]
 
-CMD allfeat --chain harmonie --alice -d /data --name MyContainerNode --rpc-external --ws-external --rpc-cors all
+ENTRYPOINT ["/usr/local/bin/allfeat", "--dev"]
