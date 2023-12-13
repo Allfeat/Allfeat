@@ -1056,10 +1056,14 @@ parameter_types! {
 	pub const ByteDesposit: Balance = deposit(0, 1);
 	pub const BaseDeposit: Balance = 1 * AFT;
 	pub const UnregisterPeriod: BlockNumber = 7 * DAYS;
+	pub const ArtistsPalletId: PalletId = PalletId(*b"py/artst");
 }
 
 impl pallet_artists::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
+	type PalletId = ArtistsPalletId;
+	type RootOrigin = EnsureRoot<Self::AccountId>;
+	type Slash = ();
 	type Currency = Balances;
 	type ByteDeposit = ByteDesposit;
 	type BaseDeposit = BaseDeposit;

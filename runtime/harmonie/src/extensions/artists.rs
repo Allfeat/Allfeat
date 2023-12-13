@@ -25,12 +25,11 @@ use pallet_contracts::chain_extension::{
 	BufInBufOutState, ChainExtension, ChargedAmount, Environment, Ext, InitState, RetVal,
 };
 use parity_scale_codec::{Decode, Encode};
-use sp_runtime::{BoundedVec, DispatchError, ModuleError};
+use sp_runtime::{DispatchError, ModuleError};
 
 enum ArtistsFunc {
 	// Chain State Queries
-	ArtistById,
-	ArtistByName,
+	Artist,
 }
 
 impl TryFrom<u16> for ArtistsFunc {
@@ -38,8 +37,7 @@ impl TryFrom<u16> for ArtistsFunc {
 
 	fn try_from(value: u16) -> Result<Self, Self::Error> {
 		match value {
-			51 => Ok(ArtistsFunc::ArtistById),
-			52 => Ok(ArtistsFunc::ArtistByName),
+			51 => Ok(ArtistsFunc::Artist),
 			_ => Err(DispatchError::Other("PalletArtistsExtension: Unimplemented func_id")),
 		}
 	}
@@ -66,18 +64,11 @@ where
 
 		match func_id {
 			// Chain State Queries
-			ArtistsFunc::ArtistById => {
+			ArtistsFunc::Artist => {
 				let account_id: T::AccountId = env.read_as()?;
 
 				charge_weight_read(&mut env)?;
 				let data = pallet_artists::Pallet::<T>::get_artist_by_id(account_id);
-				env.write(&data.encode(), false, None)?
-			},
-			ArtistsFunc::ArtistByName => {
-				let artist_name: BoundedVec<u8, T::MaxNameLen> = env.read_as()?;
-
-				charge_weight_read(&mut env)?;
-				let data = pallet_artists::Pallet::<T>::get_artist_by_name(artist_name);
 				env.write(&data.encode(), false, None)?
 			},
 		};
