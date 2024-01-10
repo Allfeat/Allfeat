@@ -5901,8 +5901,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-identity"
-version = "4.0.0-dev"
-source = "git+https://github.com/paritytech/polkadot-sdk.git?branch=release-polkadot-v1.1.0#c8d2251cafadc108ba2f1f8a3208dc547ff38901"
+version = "0.1.0"
+source = "git+https://github.com/Allfeat/pallet-identity.git?branch=release-polkadot-v1.1.0#98bb51c037b0bfc170b5afda84b53a61d1d39cd7"
 dependencies = [
  "enumflags2",
  "frame-benchmarking",

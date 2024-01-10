@@ -1,14 +1,14 @@
 [workspace]
 resolver = "2"
 members = [
-    "node",
+	"node",
 	"runtime/harmonie",
 	"primitives",
 	"precompiles/balances-erc20",
 ]
 
 [workspace.package]
-authors = [ "Allfeat labs" ]
+authors = ["Allfeat labs"]
 repository = "https://github.com/allfeat/allfeat"
 
 [workspace.dependencies]
@@ -67,7 +67,7 @@ pallet-election-provider-multi-phase = { version = "4.0.0-dev", default-features
 pallet-election-provider-support-benchmarking = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
 pallet-im-online = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
 pallet-indices = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
-pallet-identity = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
+pallet-identity = { version = "0.1.0", default-features = false, git = "https://github.com/Allfeat/pallet-identity.git", branch = "release-polkadot-v1.1.0" }
 pallet-mmr = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
 pallet-multisig = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
 pallet-nomination-pools = { version = "1.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
@@ -119,7 +119,7 @@ sc-offchain = { version = "4.0.0-dev", git = "https://github.com/paritytech/polk
 sc-statement-store = { version = "4.0.0-dev", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
 
 sc-cli = { version = "0.10.0-dev", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
-sc-executor = { version = "0.10.0-dev", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0"}
+sc-executor = { version = "0.10.0-dev", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
 sc-service = { version = "0.10.0-dev", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
 sc-telemetry = { version = "4.0.0-dev", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
 sc-keystore = { version = "4.0.0-dev", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.1.0" }
@@ -194,7 +194,9 @@ fc-mapping-sync = { version = "2.0.0-dev", git = "https://github.com/paritytech/
 fc-rpc = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.1.0" }
 fc-rpc-core = { version = "1.1.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.1.0" }
 fc-storage = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.1.0" }
-fp-dynamic-fee = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.1.0", features = ["default"] }
+fp-dynamic-fee = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.1.0", features = [
+	"default",
+] }
 
 # Speed up compilation with front-end parallelisn
 [build]
@@ -217,7 +219,7 @@ opt-level = 3
 panic = "unwind"
 
 [profile.testnet]
-debug = 1 # debug symbols are useful for profilers
+debug = 1               # debug symbols are useful for profilers
 debug-assertions = true
 inherits = "release"
 overflow-checks = true
