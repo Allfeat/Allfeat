@@ -18,7 +18,7 @@
 use super::command_helper::{
 	inherent_benchmark_data, BenchmarkExtrinsicBuilder, TransferKeepAliveBuilder,
 };
-use crate::chain_specs::helpers::get_account_id_from_seed;
+use crate::chain_specs::{get_account_id_from_seed, DummyChainSpec};
 use crate::{
 	chain_specs,
 	cli::{Cli, Subcommand},
@@ -26,10 +26,10 @@ use crate::{
 	service::{new_partial, FullClient},
 };
 use frame_benchmarking_cli::*;
+use harmonie_runtime::Block;
 use sc_cli::{ChainSpec, Result, SubstrateCli};
 use sc_service::PartialComponents;
 use std::sync::Arc;
-use harmonie_runtime::Block;
 
 #[cfg(feature = "try-runtime")]
 use {
@@ -59,19 +59,23 @@ impl SubstrateCli for Cli {
 	}
 
 	fn copyright_start_year() -> i32 {
-		2022
+		2023
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
-		let spec = match id {
-			"" | "harmonie" => Box::new(chain_specs::harmonie_config()?),
+		Ok(match id {
+			"" | "harmonie-live" | "testnet" => Box::new(DummyChainSpec::from_json_bytes(
+				&include_bytes!("../genesis/harmonie-raw.json")[..],
+			)?),
 			#[cfg(feature = "harmonie-native")]
-			"dev" | "harmonie-dev" => Box::new(chain_specs::development_config()),
-			path => Box::new(chain_specs::HarmonieChainSpec::from_json_file(
+			"dev" | "development" | "harmonie-dev" => Box::new(chain_specs::harmonie::development_chain_spec(None, None)),
+			#[cfg(feature = "harmonie-native")]
+			"harmonie-local" => Box::new(chain_specs::harmonie::get_chain_spec()),
+
+			path => Box::new(chain_specs::DummyChainSpec::from_json_file(
 				std::path::PathBuf::from(path),
 			)?),
-		};
-		Ok(spec)
+		})
 	}
 }
 

@@ -161,6 +161,8 @@ rand = "0.8"
 tempfile = "3.1.0"
 sha3 = { version = "0.10.8", default-features = false }
 libsecp256k1 = { version = "0.7.1", default-features = false }
+bip32 = { version = "0.5.1", default-features = false, features = ["bip39"] }
+tiny-bip39 = { version = "1.0.0", default-features = false }
 
 # Frontier (wasm)
 precompile-utils = { version = "0.1.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "polkadot-v1.1.0", default-features = false }

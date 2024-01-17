@@ -18,20 +18,39 @@
 
 //! Substrate chain configurations.
 
-pub mod genesis;
-pub mod helpers;
-
-use crate::chain_specs::helpers::{authority_keys_from_seed, chain_properties};
+use sha3::{Keccak256, Digest};
+use bip32::ExtendedPrivateKey;
+use bip39::{Mnemonic, Language, Seed};
+use libsecp256k1::{PublicKey, PublicKeyFormat};
+use log::debug;
 pub use allfeat_primitives::{AccountId, Signature};
 use grandpa_primitives::AuthorityId as GrandpaId;
-pub use harmonie_runtime::opaque::{Block, SessionKeys};
+pub use harmonie_runtime::opaque::Block;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
-use sc_chain_spec::{ChainSpecExtension, ChainType};
+use sc_chain_spec::ChainSpecExtension;
 use serde::{Deserialize, Serialize};
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_consensus_babe::AuthorityId as BabeId;
+use sp_core::{ecdsa, Public, Pair, H160, H256};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 type AccountPublic = <Signature as Verify>::Signer;
+
+pub mod account_key;
+
+#[cfg(feature = "harmonie-native")]
+pub mod harmonie;
+
+#[cfg(not(feature = "harmonie-native"))]
+pub mod harmonie {
+    use super::DummyChainSpec;
+
+	pub fn chain_spec_from_json_file(_: std::path::PathBuf) -> Result<DummyChainSpec, String> {
+		panic!("harmoniee runtime not enabled")
+	}
+	pub fn development_chain_spec(_: Option<String>, _: Option<u32>) -> DummyChainSpec {
+		panic!("harmonies runtime not enabled")
+	}
+}
 
 /// Node `ChainSpec` extensions.
 ///
@@ -52,126 +71,93 @@ pub struct Extensions {
 // Dummy chain spec, in case when we don't have the native runtime.
 pub type DummyChainSpec = sc_service::GenericChainSpec<(), Extensions>;
 
-#[cfg(feature = "harmonie-native")]
-pub type HarmonieChainSpec =
-	sc_service::GenericChainSpec<harmonie_runtime::RuntimeGenesisConfig, Extensions>;
-#[cfg(not(feature = "harmonie-native"))]
-pub type HarmonieChainSpec = GenericChainSpec<DummyChainSpec, Extensions>;
+/// Helper function to derive `num_accounts` child pairs from mnemonics
+/// Substrate derive function cannot be used because the derivation is different than Ethereum's
+/// https://substrate.dev/rustdocs/v2.0.0/src/sp_core/ecdsa.rs.html#460-470
+pub fn derive_bip44_pairs_from_mnemonic<TPublic: Public>(
+	mnemonic: &str,
+	num_accounts: u32,
+) -> Vec<TPublic::Pair> {
+	let seed = Mnemonic::from_phrase(mnemonic, Language::English)
+		.map(|x| Seed::new(&x, ""))
+		.expect("Wrong mnemonic provided");
 
-pub fn harmonie_config() -> Result<HarmonieChainSpec, String> {
-	HarmonieChainSpec::from_json_bytes(&include_bytes!("../../genesis/symphonieV2_raw.json")[..])
+	let mut childs = Vec::new();
+	for i in 0..num_accounts {
+		if let Some(child_pair) = format!("m/44'/60'/0'/0/{}", i)
+			.parse()
+			.ok()
+			.and_then(|derivation_path| {
+				ExtendedPrivateKey::<account_key::Secp256k1SecretKey>::derive_from_path(&seed, &derivation_path)
+					.ok()
+			})
+			.and_then(|extended| {
+				TPublic::Pair::from_seed_slice(&extended.private_key().0.serialize()).ok()
+			}) {
+			childs.push(child_pair);
+		} else {
+			log::error!("An error ocurred while deriving key {} from parent", i)
+		}
+	}
+	childs
 }
 
-/*
-pub fn _harmonie_live_config() -> HarmonieChainSpec {
-	HarmonieChainSpec::from_genesis(
-		"Harmonie Testnet Live",
-		"harmonie_live",
-		ChainType::Live,
-		genesis::harmonie_genesis,
-		vec![],
-		None,
-		Some("aft"),
-		None,
-		Some(chain_properties()),
-		Default::default(),
+/// Helper function to get an `AccountId` from an ECDSA Key Pair.
+pub fn get_account_id_from_pair(pair: ecdsa::Pair) -> Option<AccountId> {
+	let decompressed = PublicKey::parse_slice(&pair.public().0, Some(PublicKeyFormat::Compressed))
+		.ok()?
+		.serialize();
+
+	let mut m = [0u8; 64];
+	m.copy_from_slice(&decompressed[1..65]);
+
+	Some(H160::from(H256::from_slice(Keccak256::digest(&m).as_slice())).into())
+}
+
+/// Function to generate accounts given a mnemonic and a number of child accounts to be generated
+/// Defaults to a default mnemonic if no mnemonic is supplied
+pub fn generate_accounts(mnemonic: String, num_accounts: u32) -> Vec<AccountId> {
+	let childs = derive_bip44_pairs_from_mnemonic::<ecdsa::Public>(&mnemonic, num_accounts);
+	debug!("Account Generation");
+	childs
+		.iter()
+		.filter_map(|par| {
+			let account = get_account_id_from_pair(par.clone());
+			debug!(
+				"private_key {} --------> Account {:x?}",
+				sp_core::hexdisplay::HexDisplay::from(&par.clone().seed()),
+				account
+			);
+			account
+		})
+		.collect()
+}
+
+/// Helper function to generate a crypto pair from seed
+pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
+	TPublic::Pair::from_string(&format!("//{}", seed), None)
+		.expect("static values are valid; qed")
+		.public()
+}
+
+/// Helper function to generate an account ID from seed
+pub fn get_account_id_from_seed<TPublic: Public>(seed: &str) -> AccountId
+where
+	AccountPublic: From<<TPublic::Pair as Pair>::Public>,
+{
+	AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
+}
+
+/// Helper function to generate stash, controller and session key from seed
+pub fn authority_keys_from_seed(
+	seed: &str,
+) -> (AccountId, AccountId, GrandpaId, BabeId, ImOnlineId, AuthorityDiscoveryId) {
+	(
+		get_account_id_from_seed::<sp_core::ecdsa::Public>(&format!("{}//stash", seed)),
+		get_account_id_from_seed::<sp_core::ecdsa::Public>(seed),
+		get_from_seed::<GrandpaId>(seed),
+		get_from_seed::<BabeId>(seed),
+		get_from_seed::<ImOnlineId>(seed),
+		get_from_seed::<AuthorityDiscoveryId>(seed),
 	)
-}
-*/
-
-/// Development config (single validator Alice)
-pub fn development_config() -> HarmonieChainSpec {
-	HarmonieChainSpec::from_genesis(
-		"Harmonie Development",
-		"harmonie_dev",
-		ChainType::Development,
-		genesis::harmonie_dev_genesis,
-		vec![],
-		None,
-		Some("aft"),
-		None,
-		Some(chain_properties()),
-		Default::default(),
-	)
-}
-
-#[cfg(test)]
-pub(crate) mod tests {
-	use super::*;
-	use crate::{
-		chain_specs::genesis::harmonie_dev_genesis,
-		service::{new_full_base, NewFullBase},
-	};
-	use harmonie_runtime::RuntimeGenesisConfig;
-	use sc_service_test;
-	use sp_runtime::BuildStorage;
-
-	fn local_testnet_genesis_instant_single() -> RuntimeGenesisConfig {
-		genesis::testnet_genesis(
-			vec![authority_keys_from_seed("Alice")],
-			vec![],
-			helpers::get_account_id_from_seed::<sr25519::Public>("Alice"),
-			None,
-		)
-	}
-
-	/// Local testnet config (single validator - Alice)
-	pub fn integration_test_config_with_single_authority() -> HarmonieChainSpec {
-		HarmonieChainSpec::from_genesis(
-			"Integration Test",
-			"test",
-			ChainType::Development,
-			local_testnet_genesis_instant_single,
-			vec![],
-			None,
-			None,
-			None,
-			None,
-			Default::default(),
-		)
-	}
-
-	/// testnet config (multivalidator Alice + Bob)
-	pub fn integration_test_config_with_two_authorities() -> HarmonieChainSpec {
-		HarmonieChainSpec::from_genesis(
-			"Integration Test",
-			"test",
-			ChainType::Development,
-			harmonie_dev_genesis,
-			vec![],
-			None,
-			None,
-			None,
-			None,
-			Default::default(),
-		)
-	}
-
-	#[test]
-	#[ignore]
-	fn test_connectivity() {
-		sp_tracing::try_init_simple();
-
-		sc_service_test::connectivity(integration_test_config_with_two_authorities(), |config| {
-			let NewFullBase { task_manager, client, network, sync, transaction_pool, .. } =
-				new_full_base(config, false, |_, _| ())?;
-			Ok(sc_service_test::TestNetComponents::new(
-				task_manager,
-				client,
-				network,
-				sync,
-				transaction_pool,
-			))
-		});
-	}
-
-	#[test]
-	fn test_create_development_chain_spec() {
-		development_config().build_storage().unwrap();
-	}
-
-	#[test]
-	fn test_staging_test_net_chain_spec() {
-		harmonie_config().unwrap().build_storage().unwrap();
-	}
 }

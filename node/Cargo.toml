@@ -29,6 +29,10 @@ hex-literal = { workspace = true }
 log = { workspace = true }
 rand = { workspace = true }
 tempfile = { workspace = true }
+bip32 = { workspace = true }
+tiny-bip39 = { workspace = true }
+libsecp256k1 = { workspace = true }
+sha3 = { workspace = true }
 
 sp-authority-discovery = { workspace = true }
 sp-consensus-babe = { workspace = true }
