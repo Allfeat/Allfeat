@@ -1,11 +1,16 @@
+use super::{
+	authority_keys_from_seed, generate_accounts, AuthorityDiscoveryId, BabeId, GrandpaId,
+	ImOnlineId,
+};
 use allfeat_primitives::{AccountId, Balance};
-use harmonie_runtime::{opaque::SessionKeys, RuntimeGenesisConfig, BabeConfig, BalancesConfig, EVMChainIdConfig,
-	ImOnlineConfig, MaxNominations, SessionConfig, StakerStatus,
-	StakingConfig, SudoConfig, SystemConfig, constants::currency::AFT, wasm_binary_unwrap};
+use harmonie_runtime::{
+	constants::currency::AFT, opaque::SessionKeys, wasm_binary_unwrap, BabeConfig, BalancesConfig,
+	EVMChainIdConfig, ImOnlineConfig, MaxNominations, RuntimeGenesisConfig, SessionConfig,
+	StakerStatus, StakingConfig, SudoConfig, SystemConfig,
+};
 use hex_literal::hex;
 use sc_chain_spec::ChainType;
 use sp_runtime::Perbill;
-use super::{GrandpaId, BabeId, AuthorityDiscoveryId, ImOnlineId, generate_accounts, authority_keys_from_seed};
 
 use super::Extensions;
 
@@ -23,50 +28,42 @@ pub fn session_keys(
 
 /// Generate a chain spec for use with the development service.
 pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32>) -> ChainSpec {
-    // Default mnemonic if none was provided
+	// Default mnemonic if none was provided
 	let parent_mnemonic = mnemonic.unwrap_or_else(|| {
 		"bottom drive obey lake curtain smoke basket hold race lonely fit walk".to_string()
 	});
 	// We prefund the standard dev accounts plus Gerald
 	let mut accounts = generate_accounts(parent_mnemonic, num_accounts.unwrap_or(10));
-	accounts.push(AccountId::from(hex!(
-		"6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b"
-	)));
+	accounts.push(AccountId::from(hex!("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")));
 
 	// Prefund the benchmark account for frontier, if compiling for benchmarks
 	#[cfg(feature = "runtime-benchmarks")]
-	accounts.push(AccountId::from(hex!(
-		"1000000000000000000000000000000000000001"
-	)));
+	accounts.push(AccountId::from(hex!("1000000000000000000000000000000000000001")));
 
-    ChainSpec::from_genesis(
-        "Harmonie Testnet Development",
-    "harmonie_live",
-    ChainType::Development,
-    move || {
-        testnet_genesis(
-            vec![authority_keys_from_seed("Alice")],
-		    vec![],
-		    accounts[0],
-		    Some(accounts.clone()),
-		    42,
-        )
-    },
-    vec![],
-    None,
-    Some("aft"),
-    None,
-    Some(
-		serde_json::json!({
-			"isEthereum": true,
-			"ss58Format": 42,
-			"tokenDecimals": 18,
-			"tokenSymbol": "HMY",
-		})
-		.as_object()
-		.expect("Map given; qed").clone()
-	),
-    Default::default(),)
+	ChainSpec::from_genesis(
+		"Harmonie Testnet Development",
+		"harmonie_live",
+		ChainType::Development,
+		move || {
+			testnet_genesis(vec![authority_keys_from_seed("Alice")], vec![], accounts[0], None, 42)
+		},
+		vec![],
+		None,
+		Some("aft"),
+		None,
+		Some(
+			serde_json::json!({
+				"isEthereum": true,
+				"ss58Format": 42,
+				"tokenDecimals": 18,
+				"tokenSymbol": "HMY",
+			})
+			.as_object()
+			.expect("Map given; qed")
+			.clone(),
+		),
+		Default::default(),
+	)
 }
 
 /// Generate a default spec for the parachain service. Use this as a starting point when launching
@@ -78,20 +75,19 @@ pub fn get_chain_spec() -> ChainSpec {
 		ChainType::Live,
 		move || {
 			testnet_genesis(
-				vec![
-					authority_keys_from_seed("Alice"),
-					authority_keys_from_seed("Bob"),
-				],
+				vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
 				vec![],
 				// Alith is Sudo
 				AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
-				Some(// Endowed: Alith, Baltathar, Charleth and Dorothy
+				Some(
+					// Endowed: Alith, Baltathar, Charleth and Dorothy
 					vec![
 						AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
 						AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
 						AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
 						AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
-					]),
+					],
+				),
 				42,
 			)
 		},
@@ -107,7 +103,8 @@ pub fn get_chain_spec() -> ChainSpec {
 				"tokenSymbol": "HMY",
 			})
 			.as_object()
-			.expect("Map given; qed").clone()
+			.expect("Map given; qed")
+			.clone(),
 		),
 		Default::default(),
 	)
@@ -115,11 +112,11 @@ pub fn get_chain_spec() -> ChainSpec {
 
 pub fn testnet_genesis(
 	initial_authorities: Vec<(
-        // Stash
+		// Stash
 		AccountId,
-        // Controller
+		// Controller
 		AccountId,
-        // Session Keys
+		// Session Keys
 		GrandpaId,
 		BabeId,
 		ImOnlineId,
@@ -195,7 +192,6 @@ pub fn testnet_genesis(
 		staking: StakingConfig {
 			validator_count: initial_authorities.len() as u32,
 			minimum_validator_count: initial_authorities.len() as u32,
-			max_validator_count: Some(initial_authorities.len() as u32),
 			invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
 			slash_reward_fraction: Perbill::from_percent(10),
 			stakers,

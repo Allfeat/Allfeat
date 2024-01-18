@@ -200,10 +200,6 @@ fp-dynamic-fee = { version = "1.0.0-dev", git = "https://github.com/Allfeat/fron
 	"default",
 ] }
 
-# Speed up compilation with front-end parallelisn
-[build]
-rustflags = ["-Z", "threads=8"]
-
 # make sure dev builds with backtrace do
 # not slow us down
 [profile.dev.package.backtrace]
