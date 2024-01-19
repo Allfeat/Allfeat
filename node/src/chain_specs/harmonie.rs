@@ -4,13 +4,14 @@ use super::{
 };
 use allfeat_primitives::{AccountId, Balance};
 use harmonie_runtime::{
-	constants::currency::AFT, opaque::SessionKeys, wasm_binary_unwrap, BabeConfig, BalancesConfig,
-	EVMChainIdConfig, ImOnlineConfig, MaxNominations, RuntimeGenesisConfig, SessionConfig,
-	StakerStatus, StakingConfig, SudoConfig, SystemConfig,
+	constants::currency::AFT, opaque::SessionKeys, wasm_binary_unwrap, MaxNominations,
+	RuntimeGenesisConfig, StakerStatus,
 };
 use hex_literal::hex;
 use sc_chain_spec::ChainType;
+use sp_core::{H160, U256};
 use sp_runtime::Perbill;
+use std::{collections::BTreeMap, str::FromStr};
 
 use super::Extensions;
 
@@ -40,18 +41,19 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 	#[cfg(feature = "runtime-benchmarks")]
 	accounts.push(AccountId::from(hex!("1000000000000000000000000000000000000001")));
 
-	ChainSpec::from_genesis(
-		"Harmonie Testnet Development",
-		"harmonie_live",
-		ChainType::Development,
-		move || {
-			testnet_genesis(vec![authority_keys_from_seed("Alice")], vec![], accounts[0], None, 42)
-		},
-		vec![],
-		None,
-		Some("aft"),
-		None,
-		Some(
+	ChainSpec::builder(wasm_binary_unwrap(), Default::default())
+		.with_name("Harmonie Testnet Development")
+		.with_id("harmonie_live")
+		.with_chain_type(ChainType::Development)
+		.with_genesis_config_patch(testnet_genesis(
+			vec![authority_keys_from_seed("Alice")],
+			vec![],
+			accounts[0],
+			None,
+			42,
+		))
+		.with_protocol_id("aft")
+		.with_properties(
 			serde_json::json!({
 				"isEthereum": true,
 				"ss58Format": 42,
@@ -61,41 +63,35 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 			.as_object()
 			.expect("Map given; qed")
 			.clone(),
-		),
-		Default::default(),
-	)
+		)
+		.build()
 }
 
 /// Generate a default spec for the parachain service. Use this as a starting point when launching
 /// a custom chain.
 pub fn get_chain_spec() -> ChainSpec {
-	ChainSpec::from_genesis(
-		"Harmonie Testnet Live",
-		"harmonie_live",
-		ChainType::Live,
-		move || {
-			testnet_genesis(
-				vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
-				vec![],
-				// Alith is Sudo
-				AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
-				Some(
-					// Endowed: Alith, Baltathar, Charleth and Dorothy
-					vec![
-						AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
-						AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
-						AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
-						AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
-					],
-				),
-				42,
-			)
-		},
-		vec![],
-		None,
-		Some("aft"),
-		None,
-		Some(
+	ChainSpec::builder(wasm_binary_unwrap(), Default::default())
+		.with_name("Harmonie Testnet Live")
+		.with_id("harmonie_live")
+		.with_chain_type(ChainType::Live)
+		.with_genesis_config_patch(testnet_genesis(
+			vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
+			vec![],
+			// Alith is Sudo
+			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+			Some(
+				// Endowed: Alith, Baltathar, Charleth and Dorothy
+				vec![
+					AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+					AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
+					AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
+					AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
+				],
+			),
+			42,
+		))
+		.with_protocol_id("aft")
+		.with_properties(
 			serde_json::json!({
 				"isEthereum": true,
 				"ss58Format": 42,
@@ -105,9 +101,8 @@ pub fn get_chain_spec() -> ChainSpec {
 			.as_object()
 			.expect("Map given; qed")
 			.clone(),
-		),
-		Default::default(),
-	)
+		)
+		.build()
 }
 
 pub fn testnet_genesis(
@@ -126,7 +121,7 @@ pub fn testnet_genesis(
 	root_key: AccountId,
 	endowed_accounts: Option<Vec<AccountId>>,
 	chain_id: u64,
-) -> RuntimeGenesisConfig {
+) -> serde_json::Value {
 	let mut endowed_accounts: Vec<AccountId> = endowed_accounts.unwrap_or_else(|| {
 		vec![
 			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")), // Alith
@@ -137,6 +132,40 @@ pub fn testnet_genesis(
 			AccountId::from(hex!("C0F0f4ab324C46e55D02D0033343B4Be8A55532d")), // Faith
 		]
 	});
+
+	let evm_accounts = {
+		let mut map = BTreeMap::new();
+		map.insert(
+			// H160 address of Alice dev account
+			// Derived from SS58 (42 prefix) address
+			// SS58: 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+			// hex: 0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d
+			// Using the full hex key, truncating to the first 20 bytes (the first 40 hex chars)
+			H160::from_str("d43593c715fdd31c61141abd04a99fd6822c8558")
+				.expect("internal H160 is valid; qed"),
+			fp_evm::GenesisAccount {
+				balance: U256::from_str("0xffffffffffffffffffffffffffffffff")
+					.expect("internal U256 is valid; qed"),
+				code: Default::default(),
+				nonce: Default::default(),
+				storage: Default::default(),
+			},
+		);
+		#[cfg(feature = "runtime-benchmarks")]
+		map.insert(
+			// H160 address for benchmark usage
+			H160::from_str("1000000000000000000000000000000000000001")
+				.expect("internal H160 is valid; qed"),
+			fp_evm::GenesisAccount {
+				nonce: U256::from(1),
+				balance: U256::from(1_000_000_000_000_000_000_000_000u128),
+				storage: Default::default(),
+				code: vec![0x00],
+			},
+		);
+		map
+	};
+
 	// endow all authorities and nominators.
 	initial_authorities
 		.iter()
@@ -170,15 +199,14 @@ pub fn testnet_genesis(
 	let _num_endowed_accounts = endowed_accounts.len();
 
 	const ENDOWMENT: Balance = 1_000_000 * AFT;
-	const STASH: Balance = ENDOWMENT / 10;
+	const STASH: Balance = ENDOWMENT / 10000;
 
-	RuntimeGenesisConfig {
-		system: SystemConfig { code: wasm_binary_unwrap().to_vec(), ..Default::default() },
-		balances: BalancesConfig {
-			balances: endowed_accounts.iter().cloned().map(|x| (x, ENDOWMENT)).collect(),
+	serde_json::json!({
+		"balances": {
+			"balances": endowed_accounts.iter().cloned().map(|x| (x, ENDOWMENT)).collect::<Vec<_>>(),
 		},
-		session: SessionConfig {
-			keys: initial_authorities
+		"session": {
+			"keys": initial_authorities
 				.iter()
 				.map(|x| {
 					(
@@ -189,29 +217,19 @@ pub fn testnet_genesis(
 				})
 				.collect::<Vec<_>>(),
 		},
-		staking: StakingConfig {
-			validator_count: initial_authorities.len() as u32,
-			minimum_validator_count: initial_authorities.len() as u32,
-			invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
-			slash_reward_fraction: Perbill::from_percent(10),
-			stakers,
-			..Default::default()
+		"staking": {
+			"validatorCount": initial_authorities.len() as u32,
+			"minimumValidatorCount": initial_authorities.len() as u32,
+			"invulnerables": initial_authorities.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
+			"slashRewardFraction": Perbill::from_percent(10),
+			"stakers": stakers.clone(),
 		},
-		sudo: SudoConfig { key: Some(root_key) },
-		babe: BabeConfig {
-			epoch_config: Some(harmonie_runtime::BABE_GENESIS_EPOCH_CONFIG),
-			..Default::default()
+		"sudo": { "key": Some(root_key.clone()) },
+		"babe": {
+			"epochConfig": Some(harmonie_runtime::BABE_GENESIS_EPOCH_CONFIG),
 		},
-		im_online: ImOnlineConfig { keys: vec![] },
-		authority_discovery: Default::default(),
-		grandpa: Default::default(),
-		transaction_payment: Default::default(),
-		nomination_pools: Default::default(),
 		// EVM compatibility
-		evm_chain_id: EVMChainIdConfig { chain_id, ..Default::default() },
-		evm: Default::default(),
-		ethereum: Default::default(),
-		dynamic_fee: Default::default(),
-		base_fee: Default::default(),
-	}
+		"evm": { "accounts": evm_accounts },
+		"evmChainId": { "chainId": chain_id },
+	})
 }

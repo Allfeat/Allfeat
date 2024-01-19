@@ -43,12 +43,12 @@ sp-staking = { workspace = true }
 sp-io = { workspace = true }
 sp-statement-store = { workspace = true }
 sp-storage = { workspace = true }
+sp-genesis-builder = { workspace = true }
 
 # Allfeat pallets
 pallet-artists = { workspace = true }
 
 pallet-contracts = { workspace = true }
-pallet-contracts-primitives = { workspace = true }
 
 pallet-babe = { workspace = true }
 pallet-authority-discovery = { workspace = true }
@@ -125,7 +125,6 @@ with-tracing = ["frame-executive/with-tracing"]
 std = [
   "sp-authority-discovery/std",
   "pallet-contracts/std",
-  "pallet-contracts-primitives/std",
   "pallet-artists/std",
   "pallet-authority-discovery/std",
   "pallet-authorship/std",

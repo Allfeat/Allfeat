@@ -29,22 +29,21 @@ use fc_consensus::FrontierBlockImport;
 use frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
 use futures::prelude::*;
 use harmonie_runtime::{RuntimeApi, TransactionConverter, SS58_PREFIX};
-use sc_client_api::Backend;
-use sc_client_api::BlockBackend;
+use sc_client_api::{Backend, BlockBackend};
 use sc_consensus_babe::{self, BabeWorkerHandle, SlotProportion};
 use sc_executor::NativeElseWasmExecutor;
 use sc_network::{event::Event, NetworkEventStream, NetworkService};
-use sc_network_sync::warp::WarpSyncParams;
-use sc_network_sync::SyncingService;
+use sc_network_sync::{warp::WarpSyncParams, SyncingService};
 use sc_rpc::SubscriptionTaskExecutor;
 use sc_service::{config::Configuration, error::Error as ServiceError, RpcHandlers, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryWorker};
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
-use sp_core::crypto::{set_default_ss58_version, Ss58AddressFormat};
-use sp_core::U256;
+use sp_core::{
+	crypto::{set_default_ss58_version, Ss58AddressFormat},
+	U256,
+};
 use sp_runtime::traits::Block as BlockT;
-use std::path::Path;
-use std::sync::Arc;
+use std::{path::Path, sync::Arc};
 
 use crate::rpc;
 
@@ -355,24 +354,12 @@ pub async fn new_full_base(
 	let shared_voter_state = grandpa::SharedVoterState::empty();
 	let auth_disc_publish_non_global_ips = config.network.allow_non_globals_in_dht;
 	let mut net_config = sc_network::config::FullNetworkConfiguration::new(&config.network);
+	let genesis_hash = client.block_hash(0).ok().flatten().expect("Genesis block exists; qed");
 
-	let grandpa_protocol_name = grandpa::protocol_standard_name(
-		&client.block_hash(0).ok().flatten().expect("Genesis block exists; qed"),
-		&config.chain_spec,
-	);
-	net_config.add_notification_protocol(grandpa::grandpa_peers_set_config(
-		grandpa_protocol_name.clone(),
-	));
-
-	let statement_handler_proto = sc_network_statement::StatementHandlerPrototype::new(
-		client
-			.block_hash(0u32.into())
-			.ok()
-			.flatten()
-			.expect("Genesis block exists; qed"),
-		config.chain_spec.fork_id(),
-	);
-	net_config.add_notification_protocol(statement_handler_proto.set_config());
+	let grandpa_protocol_name = grandpa::protocol_standard_name(&genesis_hash, &config.chain_spec);
+	let (grandpa_protocol_config, grandpa_notification_service) =
+		grandpa::grandpa_peers_set_config(grandpa_protocol_name.clone());
+	net_config.add_notification_protocol(grandpa_protocol_config);
 
 	let warp_sync = Arc::new(grandpa::warp_proof::NetworkProvider::new(
 		backend.clone(),
@@ -390,6 +377,7 @@ pub async fn new_full_base(
 			import_queue,
 			block_announce_validator_builder: None,
 			warp_sync_params: Some(WarpSyncParams::WithProvider(warp_sync)),
+			block_relay: None,
 		})?;
 
 	let role = config.role.clone();
@@ -406,8 +394,9 @@ pub async fn new_full_base(
 
 	// Sinks for pubsub notifications.
 	// Everytime a new subscription is created, a new mpsc channel is added to the sink pool.
-	// The MappingSyncWorker sends through the channel on block import and the subscription emits a notification to the subscriber on receiving a message through this channel.
-	// This way we avoid race conditions when using native substrate block import notification stream.
+	// The MappingSyncWorker sends through the channel on block import and the subscription emits a
+	// notification to the subscriber on receiving a message through this channel. This way we avoid
+	// race conditions when using native substrate block import notification stream.
 	let pubsub_notification_sinks: fc_mapping_sync::EthereumBlockNotificationSinks<
 		fc_mapping_sync::EthereumBlockNotification<Block>,
 	> = Default::default();
@@ -533,10 +522,14 @@ pub async fn new_full_base(
 
 	if let Some(hwbench) = hwbench {
 		sc_sysinfo::print_hwbench(&hwbench);
-		if !SUBSTRATE_REFERENCE_HARDWARE.check_hardware(&hwbench) && role.is_authority() {
-			log::warn!(
-				"⚠️  The hardware does not meet the minimal requirements for role 'Authority'."
-			);
+		match SUBSTRATE_REFERENCE_HARDWARE.check_hardware(&hwbench) {
+			Err(err) if role.is_authority() => {
+				log::warn!(
+					"⚠️  The hardware does not meet the minimal requirements {} for role 'Authority'.",
+					err
+				);
+			},
+			_ => {},
 		}
 
 		if let Some(ref mut telemetry) = telemetry {
@@ -685,6 +678,7 @@ pub async fn new_full_base(
 			link: grandpa_link,
 			network: network.clone(),
 			sync: Arc::new(sync_service.clone()),
+			notification_service: grandpa_notification_service,
 			telemetry: telemetry.as_ref().map(|x| x.handle()),
 			voting_rule: grandpa::VotingRulesBuilder::default().build(),
 			prometheus_registry: prometheus_registry.clone(),

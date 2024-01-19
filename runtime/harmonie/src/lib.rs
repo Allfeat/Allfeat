@@ -34,11 +34,13 @@ use frame_election_provider_support::{
 use frame_support::{
 	construct_runtime,
 	dispatch::DispatchClass,
+	genesis_builder_helper::{build_config, create_default_config},
 	pallet_prelude::Get,
 	parameter_types,
 	traits::{
-		ConstU16, ConstU32, Contains, Currency, EqualPrivilegeOnly, Everything, FindAuthor,
-		InstanceFilter, KeyOwnerProofSystem, Nothing, OnFinalize,
+		fungible::HoldConsideration, ConstU16, ConstU32, Contains, Currency, EqualPrivilegeOnly,
+		Everything, FindAuthor, InstanceFilter, KeyOwnerProofSystem, LinearStoragePrice, Nothing,
+		OnFinalize,
 	},
 	weights::{
 		constants::{
@@ -52,7 +54,7 @@ use frame_system::{
 	limits::{BlockLength, BlockWeights},
 	EnsureRoot, EnsureSigned,
 };
-use pallet_election_provider_multi_phase::SolutionAccuracyOf;
+use pallet_election_provider_multi_phase::{GeometricDepositBase, SolutionAccuracyOf};
 use pallet_grandpa::{
 	fg_primitives, AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList,
 };
@@ -74,8 +76,8 @@ use sp_runtime::{
 		SaturatedConversion, StaticLookup, UniqueSaturatedInto,
 	},
 	transaction_validity::{TransactionPriority, TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, ConsensusEngineId, FixedPointNumber, FixedU128, Perbill, Permill,
-	Perquintill, RuntimeAppPublic,
+	ApplyExtrinsicResult, ConsensusEngineId, FixedPointNumber, FixedU128, Perbill, Percent,
+	Permill, Perquintill, RuntimeAppPublic,
 };
 use sp_std::prelude::*;
 #[cfg(any(feature = "std", test))]
@@ -93,6 +95,7 @@ use pallet_ethereum::{
 use pallet_evm::{
 	Account as EVMAccount, EnsureAccountId20, GasWeightMapping, IdentityAddressMapping, Runner,
 };
+use pallet_identity::legacy::IdentityInfo;
 #[cfg(any(feature = "std", test))]
 pub use pallet_staking::StakerStatus;
 #[cfg(any(feature = "std", test))]
@@ -402,15 +405,21 @@ parameter_types! {
 	pub const PreimageBaseDeposit: Balance = 1 * AFT;
 	// One cent: $10,000 / MB
 	pub const PreimageByteDeposit: Balance = 1 * MILLIAFT;
+	pub const PreimageHoldReason: RuntimeHoldReason = RuntimeHoldReason::Preimage(pallet_preimage::HoldReason::Preimage);
 }
 
 impl pallet_preimage::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = weights::preimage::AllfeatWeight<Runtime>;
+	//type WeightInfo = weights::preimage::AllfeatWeight<Runtime>;
+	type WeightInfo = pallet_preimage::weights::SubstrateWeight<Runtime>;
 	type Currency = Balances;
 	type ManagerOrigin = EnsureRoot<AccountId>;
-	type BaseDeposit = PreimageBaseDeposit;
-	type ByteDeposit = PreimageByteDeposit;
+	type Consideration = HoldConsideration<
+		AccountId,
+		Balances,
+		PreimageHoldReason,
+		LinearStoragePrice<PreimageBaseDeposit, PreimageByteDeposit, Balance>,
+	>;
 }
 
 parameter_types! {
@@ -436,7 +445,7 @@ impl pallet_babe::Config for Runtime {
 
 	type WeightInfo = ();
 	type MaxAuthorities = MaxAuthorities;
-	type MaxNominators = MaxNominatorRewardedPerValidator;
+	type MaxNominators = MaxNominators;
 }
 
 #[cfg(not(feature = "runtime-benchmarks"))]
@@ -446,8 +455,7 @@ parameter_types! {
 }
 #[cfg(feature = "runtime-benchmarks")]
 parameter_types! {
-	pub const ExistentialDeposit: Balance = 1_000_000_000;
-
+	pub const ExistentialDeposit: Balance = 10 * AFT;
 }
 
 parameter_types! {
@@ -467,9 +475,10 @@ impl pallet_balances::Config for Runtime {
 	type MaxLocks = MaxLocks;
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = [u8; 8];
-	type FreezeIdentifier = [u8; 8];
+	type FreezeIdentifier = RuntimeFreezeReason;
 	type MaxFreezes = ConstU32<50>;
 	type RuntimeHoldReason = RuntimeHoldReason;
+	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type MaxHolds = ConstU32<50>;
 }
 
@@ -557,10 +566,10 @@ pallet_staking_reward_curve::build! {
 parameter_types! {
 	/// An era in 24 hours (6 * epoch)
 	pub const SessionsPerEra: sp_staking::SessionIndex = 6;
-	pub const BondingDuration: sp_staking::EraIndex = 3;
-	pub const SlashDeferDuration: sp_staking::EraIndex = 1; // 1/4 the bonding duration.
+	pub const BondingDuration: sp_staking::EraIndex = 24 * 28;
+	pub const SlashDeferDuration: sp_staking::EraIndex = 24 * 7; // 1/4 the bonding duration.
 	pub const RewardCurve: &'static PiecewiseLinear<'static> = &REWARD_CURVE;
-	pub const MaxNominatorRewardedPerValidator: u32 = 256;
+	pub const MaxNominators: u32 = 64;
 	pub const OffendingValidatorsThreshold: Perbill = Perbill::from_percent(17);
 	pub OffchainRepeat: BlockNumber = 5;
 	pub HistoryDepth: u32 = 84;
@@ -596,7 +605,6 @@ impl pallet_staking::Config for Runtime {
 	type SessionInterface = Self;
 	type EraPayout = pallet_staking::ConvertCurve<RewardCurve>;
 	type NextNewSession = Session;
-	type MaxNominatorRewardedPerValidator = MaxNominatorRewardedPerValidator;
 	type OffendingValidatorsThreshold = OffendingValidatorsThreshold;
 	type VoterList = BagsList;
 	type NominationsQuota = pallet_staking::FixedNominationsQuota<MAX_QUOTA_NOMINATIONS>;
@@ -604,9 +612,11 @@ impl pallet_staking::Config for Runtime {
 	// This a placeholder, to be introduced in the next PR as an instance of bags-list
 	type TargetList = pallet_staking::UseValidatorsMap<Self>;
 	type BenchmarkingConfig = StakingBenchmarkingConfig;
+	type MaxExposurePageSize = ConstU32<256>;
 	type EventListeners = NominationPools;
 	type HistoryDepth = HistoryDepth;
-	type WeightInfo = weights::staking::AllfeatWeight<Runtime>;
+	//type WeightInfo = weights::staking::AllfeatWeight<Runtime>;
+	type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -616,7 +626,8 @@ parameter_types! {
 
 	// signed config
 	pub const SignedRewardBase: Balance = 1 * AFT;
-	pub const SignedDepositBase: Balance = 1 * AFT;
+	pub const SignedFixedDeposit: Balance = 1 * AFT;
+	pub const SignedDepositIncreaseFactor: Percent = Percent::from_percent(10);
 	pub const SignedDepositByte: Balance = 1 * MILLIAFT;
 
 	pub BetterUnsignedThreshold: Perbill = Perbill::from_rational(1u32, 10_000);
@@ -745,7 +756,8 @@ impl pallet_election_provider_multi_phase::Config for Runtime {
 	type SignedMaxWeight = MinerMaxWeight;
 	type SignedMaxRefunds = ConstU32<3>;
 	type SignedRewardBase = SignedRewardBase;
-	type SignedDepositBase = SignedDepositBase;
+	type SignedDepositBase =
+		GeometricDepositBase<Balance, SignedFixedDeposit, SignedDepositIncreaseFactor>;
 	type SignedDepositByte = SignedDepositByte;
 	type SignedDepositWeight = ();
 	type SlashHandler = ();
@@ -812,6 +824,7 @@ impl pallet_nomination_pools::Config for Runtime {
 	type PostUnbondingPoolsWindow = PostUnbondPoolsWindow;
 	type MaxMetadataLen = ConstU32<256>;
 	type MaxUnbonding = ConstU32<8>;
+	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type RewardCounter = FixedU128;
 }
 
@@ -858,12 +871,13 @@ impl pallet_contracts::Config for Runtime {
 	type CodeHashLockupDepositPercent = CodeHashLockupDepositPercent;
 	type Debug = ();
 	type Environment = ();
+	type Xcm = ();
 }
 
 impl pallet_sudo::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
-	type WeightInfo = weights::sudo::AllfeatWeight<Runtime>;
+	type WeightInfo = pallet_sudo::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -964,13 +978,14 @@ impl pallet_grandpa::Config for Runtime {
 
 	type EquivocationReportSystem =
 		pallet_grandpa::EquivocationReportSystem<Self, Offences, Historical, ReportLongevity>;
-	type MaxNominators = MaxNominatorRewardedPerValidator;
+	type MaxNominators = MaxNominators;
 	type WeightInfo = ();
 	type MaxAuthorities = MaxAuthorities;
 	type MaxSetIdSessionEntries = MaxSetIdSessionEntries;
 }
 
 parameter_types! {
+	pub const ByteDeposit: Balance = deposit(0, 1);
 	pub const BasicDeposit: Balance = 10 * AFT;       // 258 bytes on-chain
 	pub const FieldDeposit: Balance = 250 * MILLIAFT;        // 66 bytes on-chain
 	pub const SubAccountDeposit: Balance = 2 * AFT;   // 53 bytes on-chain
@@ -983,15 +998,16 @@ impl pallet_identity::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type BasicDeposit = BasicDeposit;
-	type FieldDeposit = FieldDeposit;
+	type ByteDeposit = ByteDeposit;
 	type SubAccountDeposit = SubAccountDeposit;
 	type MaxSubAccounts = MaxSubAccounts;
-	type MaxAdditionalFields = MaxAdditionalFields;
 	type MaxRegistrars = MaxRegistrars;
+	type IdentityInformation = IdentityInfo<MaxAdditionalFields>;
 	type Slashed = ();
 	type ForceOrigin = EnsureRoot<AccountId>;
 	type RegistrarOrigin = EnsureRoot<AccountId>;
-	type WeightInfo = weights::identity::AllfeatWeight<Runtime>;
+	//type WeightInfo = weights::identity::AllfeatWeight<Runtime>;
+	type WeightInfo = pallet_identity::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -1112,6 +1128,7 @@ parameter_types! {
 	pub const GasLimitPovSizeRatio: u64 = BLOCK_GAS_LIMIT.saturating_div(MAX_POV_SIZE);
 	pub PrecompilesValue: AllfeatPrecompiles<Runtime> = AllfeatPrecompiles::<_>::new();
 	pub WeightPerGas: Weight = Weight::from_parts(weight_per_gas(BLOCK_GAS_LIMIT, NORMAL_DISPATCH_RATIO, WEIGHT_MILLISECS_PER_BLOCK), 0);
+	pub SuicideQuickClearLimit: u32 = 0;
 }
 
 const BLOCK_GAS_LIMIT: u64 = 75_000_000;
@@ -1137,6 +1154,7 @@ impl pallet_evm::Config for Runtime {
 	type FindAuthor = FindAuthorTruncated<Babe>;
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
 	type Timestamp = Timestamp;
+	type SuicideQuickClearLimit = SuicideQuickClearLimit;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Self>;
 }
 
@@ -1575,7 +1593,7 @@ impl_runtime_apis! {
 			gas_limit: Option<Weight>,
 			storage_deposit_limit: Option<Balance>,
 			input_data: Vec<u8>,
-		) -> pallet_contracts_primitives::ContractExecResult<Balance, EventRecord> {
+		) -> pallet_contracts::ContractExecResult<Balance, EventRecord> {
 			let gas_limit = gas_limit.unwrap_or(RuntimeBlockWeights::get().max_block);
 			Contracts::bare_call(
 				origin,
@@ -1595,10 +1613,10 @@ impl_runtime_apis! {
 			value: Balance,
 			gas_limit: Option<Weight>,
 			storage_deposit_limit: Option<Balance>,
-			code: pallet_contracts_primitives::Code<Hash>,
+			code: pallet_contracts::Code<Hash>,
 			data: Vec<u8>,
 			salt: Vec<u8>,
-		) -> pallet_contracts_primitives::ContractInstantiateResult<AccountId, Balance, EventRecord>
+		) -> pallet_contracts::ContractInstantiateResult<AccountId, Balance, EventRecord>
 		{
 			let gas_limit = gas_limit.unwrap_or(RuntimeBlockWeights::get().max_block);
 			Contracts::bare_instantiate(
@@ -1619,7 +1637,7 @@ impl_runtime_apis! {
 			code: Vec<u8>,
 			storage_deposit_limit: Option<Balance>,
 			determinism: pallet_contracts::Determinism,
-		) -> pallet_contracts_primitives::CodeUploadResult<Hash, Balance>
+		) -> pallet_contracts::CodeUploadResult<Hash, Balance>
 		{
 			Contracts::bare_upload_code(
 				origin,
@@ -1632,7 +1650,7 @@ impl_runtime_apis! {
 		fn get_storage(
 			address: AccountId,
 			key: Vec<u8>,
-		) -> pallet_contracts_primitives::GetStorageResult {
+		) -> pallet_contracts::GetStorageResult {
 			Contracts::get_storage(
 				address,
 				key
@@ -2003,6 +2021,16 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_hotfix_sufficients, PalletHotfixSufficientsBench::<Runtime>);
 
 			Ok(batches)
+		}
+	}
+
+	impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
+		fn create_default_config() -> Vec<u8> {
+			create_default_config::<RuntimeGenesisConfig>()
+		}
+
+		fn build_config(config: Vec<u8>) -> sp_genesis_builder::Result {
+			build_config::<RuntimeGenesisConfig>(config)
 		}
 	}
 }

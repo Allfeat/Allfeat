@@ -57,8 +57,8 @@ sp-staking = { version = "4.0.0-dev", default-features = false, git = "https://g
 sp-io = { version = "23.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 sp-statement-store = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 sp-storage = { version = "13.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
+sp-genesis-builder = { version = "0.1.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-contracts = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-contracts-primitives = { version = "24.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-babe = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-authority-discovery = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-authorship = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
@@ -67,7 +67,8 @@ pallet-election-provider-multi-phase = { version = "4.0.0-dev", default-features
 pallet-election-provider-support-benchmarking = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-im-online = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-indices = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-identity = { version = "0.1.0", default-features = false, git = "https://github.com/Allfeat/pallet-identity.git", branch = "allfeat-polkadot-v1.5.0" }
+#pallet-identity = { version = "0.1.0", default-features = false, git = "https://github.com/Allfeat/pallet-identity.git", branch = "allfeat-polkadot-v1.5.0" }
+pallet-identity = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-mmr = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-multisig = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-nomination-pools = { version = "1.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
@@ -155,7 +156,7 @@ harmonie-runtime = { version = "1.0.0-dev", path = "./runtime/harmonie" }
 clap = { version = "4.2.5", features = ["derive"] }
 serde = { version = "1.0.163", features = ["derive"] }
 jsonrpsee = { version = "0.16.2", features = ["server"] }
-serde_json = "1.0.79"
+serde_json = { version = "1.0.108", features = ["alloc", "arbitrary_precision"] }
 futures = "0.3.21"
 rand = "0.8"
 tempfile = "3.1.0"
@@ -212,7 +213,7 @@ inherits = "release"
 lto = true
 
 [profile.release]
-# Moonbeam runtime requires unwinding.
+# Allfeat runtime requires unwinding.
 opt-level = 3
 panic = "unwind"
 

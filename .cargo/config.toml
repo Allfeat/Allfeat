@@ -1,3 +1,0 @@
-# Speed up compilation with front-end parallelisn
-[build]
-rustflags = ["-Z", "threads=8"]
