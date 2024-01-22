@@ -455,7 +455,7 @@ parameter_types! {
 }
 #[cfg(feature = "runtime-benchmarks")]
 parameter_types! {
-	pub const ExistentialDeposit: Balance = 10 * AFT;
+	pub const ExistentialDeposit: Balance = 1_000_000;
 }
 
 parameter_types! {
@@ -628,7 +628,7 @@ parameter_types! {
 	pub const SignedRewardBase: Balance = 1 * AFT;
 	pub const SignedFixedDeposit: Balance = 1 * AFT;
 	pub const SignedDepositIncreaseFactor: Percent = Percent::from_percent(10);
-	pub const SignedDepositByte: Balance = 1 * MILLIAFT;
+	pub const SignedDepositByte: Balance = (1 * AFT) / 10;
 
 	pub BetterUnsignedThreshold: Perbill = Perbill::from_rational(1u32, 10_000);
 
@@ -808,7 +808,7 @@ impl Convert<Balance, sp_core::U256> for BalanceToU256 {
 pub struct U256ToBalance;
 impl Convert<sp_core::U256, Balance> for U256ToBalance {
 	fn convert(n: sp_core::U256) -> Balance {
-		n.try_into().unwrap_or(Balance::MAX)
+		n.try_into().unwrap_or(Balance::max_value())
 	}
 }
 

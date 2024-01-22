@@ -1,6 +1,6 @@
 use super::{
-	authority_keys_from_seed, generate_accounts, AuthorityDiscoveryId, BabeId, GrandpaId,
-	ImOnlineId,
+	authority_keys_from_seed, generate_accounts, AuthorityDiscoveryId, BabeId, Extensions,
+	GrandpaId, ImOnlineId,
 };
 use allfeat_primitives::{AccountId, Balance};
 use harmonie_runtime::{
@@ -9,11 +9,7 @@ use harmonie_runtime::{
 };
 use hex_literal::hex;
 use sc_chain_spec::ChainType;
-use sp_core::{H160, U256};
 use sp_runtime::Perbill;
-use std::{collections::BTreeMap, str::FromStr};
-
-use super::Extensions;
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<RuntimeGenesisConfig, Extensions>;
@@ -133,39 +129,6 @@ pub fn testnet_genesis(
 		]
 	});
 
-	let evm_accounts = {
-		let mut map = BTreeMap::new();
-		map.insert(
-			// H160 address of Alice dev account
-			// Derived from SS58 (42 prefix) address
-			// SS58: 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
-			// hex: 0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d
-			// Using the full hex key, truncating to the first 20 bytes (the first 40 hex chars)
-			H160::from_str("d43593c715fdd31c61141abd04a99fd6822c8558")
-				.expect("internal H160 is valid; qed"),
-			fp_evm::GenesisAccount {
-				balance: U256::from_str("0xffffffffffffffffffffffffffffffff")
-					.expect("internal U256 is valid; qed"),
-				code: Default::default(),
-				nonce: Default::default(),
-				storage: Default::default(),
-			},
-		);
-		#[cfg(feature = "runtime-benchmarks")]
-		map.insert(
-			// H160 address for benchmark usage
-			H160::from_str("1000000000000000000000000000000000000001")
-				.expect("internal H160 is valid; qed"),
-			fp_evm::GenesisAccount {
-				nonce: U256::from(1),
-				balance: U256::from(1_000_000_000_000_000_000_000_000u128),
-				storage: Default::default(),
-				code: vec![0x00],
-			},
-		);
-		map
-	};
-
 	// endow all authorities and nominators.
 	initial_authorities
 		.iter()
@@ -198,8 +161,8 @@ pub fn testnet_genesis(
 
 	let _num_endowed_accounts = endowed_accounts.len();
 
-	const ENDOWMENT: Balance = 1_000_000 * AFT;
-	const STASH: Balance = ENDOWMENT / 10000;
+	const ENDOWMENT: Balance = 10_000_000 * AFT;
+	const STASH: Balance = ENDOWMENT / 1000;
 
 	serde_json::json!({
 		"balances": {
@@ -229,7 +192,6 @@ pub fn testnet_genesis(
 			"epochConfig": Some(harmonie_runtime::BABE_GENESIS_EPOCH_CONFIG),
 		},
 		// EVM compatibility
-		"evm": { "accounts": evm_accounts },
 		"evmChainId": { "chainId": chain_id },
 	})
 }

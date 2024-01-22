@@ -5,6 +5,7 @@ members = [
 	"runtime/harmonie",
 	"primitives",
 	"precompiles/balances-erc20",
+	# "utils/generate_bags",
 ]
 
 [workspace.package]
@@ -164,6 +165,8 @@ sha3 = { version = "0.10.8", default-features = false }
 libsecp256k1 = { version = "0.7.1", default-features = false }
 bip32 = { version = "0.5.1", default-features = false, features = ["bip39"] }
 tiny-bip39 = { version = "1.0.0", default-features = false }
+
+generate-bags = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 
 # Frontier (wasm)
 precompile-utils = { version = "0.1.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0", default-features = false }
