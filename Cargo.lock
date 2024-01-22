@@ -3608,6 +3608,7 @@ version = "1.0.0-dev"
 dependencies = [
  "allfeat-primitives 1.0.0",
  "allfeat-support",
+ "enumflags2",
  "fp-evm",
  "fp-rpc",
  "fp-self-contained",

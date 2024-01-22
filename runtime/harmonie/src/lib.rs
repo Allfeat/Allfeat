@@ -87,6 +87,7 @@ use static_assertions::const_assert;
 
 #[cfg(any(feature = "std", test))]
 pub use frame_system::Call as SystemCall;
+use identity::IdentityInfo;
 #[cfg(any(feature = "std", test))]
 pub use pallet_balances::Call as BalancesCall;
 use pallet_ethereum::{
@@ -95,7 +96,6 @@ use pallet_ethereum::{
 use pallet_evm::{
 	Account as EVMAccount, EnsureAccountId20, GasWeightMapping, IdentityAddressMapping, Runner,
 };
-use pallet_identity::legacy::IdentityInfo;
 #[cfg(any(feature = "std", test))]
 pub use pallet_staking::StakerStatus;
 #[cfg(any(feature = "std", test))]
@@ -119,6 +119,9 @@ use impls::Author;
 pub mod constants;
 use constants::{currency::*, time::*};
 use sp_runtime::generic::Era;
+
+// Identity storing fields that any account can have on-chain.
+mod identity;
 
 /// Generated voter bag information.
 mod voter_bags;

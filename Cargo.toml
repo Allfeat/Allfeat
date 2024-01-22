@@ -68,7 +68,6 @@ pallet-election-provider-multi-phase = { version = "4.0.0-dev", default-features
 pallet-election-provider-support-benchmarking = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-im-online = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-indices = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-#pallet-identity = { version = "0.1.0", default-features = false, git = "https://github.com/Allfeat/pallet-identity.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-identity = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-mmr = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-multisig = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
@@ -99,6 +98,7 @@ frame-system-benchmarking = { version = "4.0.0-dev", default-features = false, g
 
 # Other (wasm)
 num_enum = { version = "0.7.0", default-features = false }
+enumflags2 = { version = "0.7.7" }
 
 # Substrate (client)
 substrate-wasm-builder = { version = "5.0.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
