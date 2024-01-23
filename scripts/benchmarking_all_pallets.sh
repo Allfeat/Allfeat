@@ -114,7 +114,7 @@ for PALLET in "${PALLETS[@]}"; do
 
   EXTRINSIC="*"
   # pallet-evm have only one function to witdhraw and atm "*" is causing a crash.
-    if [ "$PALLET" = "pallet-evm" ]; then
+    if [ "$PALLET" = "pallet_evm" ]; then
       EXTRINSIC="withdraw"
     fi
 

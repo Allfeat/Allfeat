@@ -4,8 +4,9 @@ use super::{
 };
 use allfeat_primitives::{AccountId, Balance};
 use harmonie_runtime::{
-	constants::currency::AFT, opaque::SessionKeys, wasm_binary_unwrap, MaxNominations,
-	RuntimeGenesisConfig, StakerStatus,
+	constants::currency::{AFT, MILLIAFT},
+	opaque::SessionKeys,
+	wasm_binary_unwrap, MaxNominations, RuntimeGenesisConfig, StakerStatus,
 };
 use hex_literal::hex;
 use sc_chain_spec::ChainType;
@@ -190,6 +191,10 @@ pub fn testnet_genesis(
 		"sudo": { "key": Some(root_key.clone()) },
 		"babe": {
 			"epochConfig": Some(harmonie_runtime::BABE_GENESIS_EPOCH_CONFIG),
+		},
+		"nominationPools": {
+			"minCreateBond": 10 * MILLIAFT,
+			"minJoinBond": 1 * MILLIAFT,
 		},
 		// EVM compatibility
 		"evmChainId": { "chainId": chain_id },
