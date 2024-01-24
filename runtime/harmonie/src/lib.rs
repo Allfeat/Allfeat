@@ -618,8 +618,7 @@ impl pallet_staking::Config for Runtime {
 	type MaxExposurePageSize = ConstU32<256>;
 	type EventListeners = NominationPools;
 	type HistoryDepth = HistoryDepth;
-	//type WeightInfo = weights::staking::AllfeatWeight<Runtime>;
-	type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::staking::AllfeatWeight<Runtime>;
 }
 
 parameter_types! {
@@ -880,7 +879,7 @@ impl pallet_contracts::Config for Runtime {
 impl pallet_sudo::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
-	type WeightInfo = pallet_sudo::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::sudo::AllfeatWeight<Runtime>;
 }
 
 parameter_types! {
@@ -1009,8 +1008,7 @@ impl pallet_identity::Config for Runtime {
 	type Slashed = ();
 	type ForceOrigin = EnsureRoot<AccountId>;
 	type RegistrarOrigin = EnsureRoot<AccountId>;
-	//type WeightInfo = weights::identity::AllfeatWeight<Runtime>;
-	type WeightInfo = pallet_identity::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::identity::AllfeatWeight<Runtime>;
 }
 
 parameter_types! {
@@ -1158,7 +1156,7 @@ impl pallet_evm::Config for Runtime {
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
 	type Timestamp = Timestamp;
 	type SuicideQuickClearLimit = SuicideQuickClearLimit;
-	type WeightInfo = pallet_evm::weights::SubstrateWeight<Self>;
+	type WeightInfo = weights::evm::AllfeatWeight<Runtime>;
 }
 
 parameter_types! {
@@ -1207,7 +1205,7 @@ impl pallet_base_fee::Config for Runtime {
 
 impl pallet_hotfix_sufficients::Config for Runtime {
 	type AddressMapping = IdentityAddressMapping;
-	type WeightInfo = pallet_hotfix_sufficients::weights::SubstrateWeight<Self>;
+	type WeightInfo = weights::hotfix_sufficients::AllfeatWeight<Runtime>;
 }
 
 construct_runtime!(

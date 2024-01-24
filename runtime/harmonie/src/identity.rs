@@ -1,4 +1,4 @@
-use enumflags2::{bitflags, BitFlag, BitFlags};
+use enumflags2::{bitflags, BitFlags};
 use frame_election_provider_support::{BoundedVec, Decode, Encode};
 use frame_support::{
 	pallet_prelude::{MaxEncodedLen, TypeInfo},
@@ -8,6 +8,9 @@ use pallet_identity::{Data, IdentityInformationProvider};
 use scale_info::{build::Variants, Path, Type};
 use sp_core::{Get, RuntimeDebug};
 use sp_std::prelude::*;
+
+#[cfg(feature = "runtime-benchmarks")]
+use enumflags2::BitFlag;
 
 /// The fields that we use to identify the owner of an account with. Each corresponds to a field
 /// in the `IdentityInfo` struct.
