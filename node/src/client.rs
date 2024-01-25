@@ -58,7 +58,7 @@ pub trait RuntimeApiCollection:
 	BaseRuntimeApiCollection
 	+ EthCompatRuntimeApiCollection
 	+ sp_consensus_babe::BabeApi<Block>
-	+ grandpa_primitives::GrandpaApi<Block>
+	+ sp_consensus_grandpa::GrandpaApi<Block>
 	+ frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Nonce>
 	+ pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance>
 {
@@ -68,7 +68,7 @@ impl<Api> RuntimeApiCollection for Api where
 	Api: BaseRuntimeApiCollection
 		+ EthCompatRuntimeApiCollection
 		+ sp_consensus_babe::BabeApi<Block>
-		+ grandpa_primitives::GrandpaApi<Block>
+		+ sp_consensus_grandpa::GrandpaApi<Block>
 		+ frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Nonce>
 		+ pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance>
 {

@@ -84,7 +84,7 @@ allfeat-primitives = { workspace = true }
 
 # These dependencies are used for the node template's RPCs
 jsonrpsee = { workspace = true }
-grandpa-primitives = { workspace = true }
+sp-consensus-grandpa = { workspace = true }
 sc-rpc = { workspace = true }
 sp-api = { workspace = true }
 sc-rpc-api = { workspace = true }

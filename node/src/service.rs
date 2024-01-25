@@ -177,7 +177,7 @@ pub fn new_partial(
 	let (grandpa_block_import, grandpa_link) = grandpa::block_import(
 		client.clone(),
 		GRANDPA_JUSTIFICATION_PERIOD,
-		&(client.clone() as Arc<_>),
+		&client,
 		select_chain.clone(),
 		telemetry.as_ref().map(|x| x.handle()),
 	)?;

@@ -18,20 +18,20 @@
 
 //! Substrate chain configurations.
 
-use sha3::{Keccak256, Digest};
+pub use allfeat_primitives::{AccountId, Signature};
 use bip32::ExtendedPrivateKey;
-use bip39::{Mnemonic, Language, Seed};
+use bip39::{Language, Mnemonic, Seed};
+pub use harmonie_runtime::opaque::Block;
 use libsecp256k1::{PublicKey, PublicKeyFormat};
 use log::debug;
-pub use allfeat_primitives::{AccountId, Signature};
-use grandpa_primitives::AuthorityId as GrandpaId;
-pub use harmonie_runtime::opaque::Block;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use sc_chain_spec::ChainSpecExtension;
 use serde::{Deserialize, Serialize};
+use sha3::{Digest, Keccak256};
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_consensus_babe::AuthorityId as BabeId;
-use sp_core::{ecdsa, Public, Pair, H160, H256};
+use sp_consensus_grandpa::AuthorityId as GrandpaId;
+use sp_core::{ecdsa, Pair, Public, H160, H256};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 type AccountPublic = <Signature as Verify>::Signer;
 
@@ -42,7 +42,7 @@ pub mod harmonie;
 
 #[cfg(not(feature = "harmonie-native"))]
 pub mod harmonie {
-    use super::DummyChainSpec;
+	use super::DummyChainSpec;
 
 	pub fn chain_spec_from_json_file(_: std::path::PathBuf) -> Result<DummyChainSpec, String> {
 		panic!("harmoniee runtime not enabled")
@@ -88,8 +88,11 @@ pub fn derive_bip44_pairs_from_mnemonic<TPublic: Public>(
 			.parse()
 			.ok()
 			.and_then(|derivation_path| {
-				ExtendedPrivateKey::<account_key::Secp256k1SecretKey>::derive_from_path(&seed, &derivation_path)
-					.ok()
+				ExtendedPrivateKey::<account_key::Secp256k1SecretKey>::derive_from_path(
+					&seed,
+					&derivation_path,
+				)
+				.ok()
 			})
 			.and_then(|extended| {
 				TPublic::Pair::from_seed_slice(&extended.private_key().0.serialize()).ok()

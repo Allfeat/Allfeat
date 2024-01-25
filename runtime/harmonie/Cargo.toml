@@ -39,6 +39,7 @@ sp-transaction-pool = { workspace = true }
 sp-version = { workspace = true }
 sp-authority-discovery = { workspace = true }
 sp-consensus-babe = { workspace = true }
+sp-consensus-grandpa = { workspace = true }
 allfeat-primitives = { workspace = true }
 sp-staking = { workspace = true }
 sp-io = { workspace = true }
@@ -130,6 +131,7 @@ std = [
   "pallet-authority-discovery/std",
   "pallet-authorship/std",
   "sp-consensus-babe/std",
+  "sp-consensus-grandpa/std",
   "pallet-babe/std",
   "pallet-bags-list/std",
   "pallet-balances/std",

@@ -135,7 +135,7 @@ sp-timestamp = { version = "4.0.0-dev", git = "https://github.com/Allfeat/polkad
 sp-keyring = { version = "24.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 sp-tracing = { version = "10.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 
-grandpa-primitives = { version = "4.0.0-dev", package = "sp-consensus-grandpa", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
+sp-consensus-grandpa = { version = "4.0.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 sc-rpc = { version = "4.0.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 sc-rpc-api = { version = "0.10.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 sc-rpc-spec-v2 = { version = "0.10.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }

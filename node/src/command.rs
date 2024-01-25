@@ -18,9 +18,9 @@
 use super::command_helper::{
 	inherent_benchmark_data, BenchmarkExtrinsicBuilder, TransferKeepAliveBuilder,
 };
-use crate::chain_specs::{get_account_id_from_seed, DummyChainSpec};
 use crate::{
 	chain_specs,
+	chain_specs::{get_account_id_from_seed, DummyChainSpec},
 	cli::{Cli, Subcommand},
 	service,
 	service::{new_partial, FullClient},
@@ -68,7 +68,8 @@ impl SubstrateCli for Cli {
 				&include_bytes!("../genesis/harmonie-raw.json")[..],
 			)?),
 			#[cfg(feature = "harmonie-native")]
-			"dev" | "development" | "harmonie-dev" => Box::new(chain_specs::harmonie::development_chain_spec(None, None)),
+			"dev" | "development" | "harmonie-dev" =>
+				Box::new(chain_specs::harmonie::development_chain_spec(None, None)),
 			#[cfg(feature = "harmonie-native")]
 			"harmonie-local" => Box::new(chain_specs::harmonie::get_chain_spec()),
 
@@ -150,9 +151,8 @@ pub fn run() -> Result<()> {
 
 						cmd.run(client, inherent_benchmark_data()?, Vec::new(), &ext_factory)
 					},
-					BenchmarkCmd::Machine(cmd) => {
-						cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone())
-					},
+					BenchmarkCmd::Machine(cmd) =>
+						cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone()),
 				}
 			})
 		},

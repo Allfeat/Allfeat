@@ -192,10 +192,6 @@ pub fn testnet_genesis(
 		"babe": {
 			"epochConfig": Some(harmonie_runtime::BABE_GENESIS_EPOCH_CONFIG),
 		},
-		"nominationPools": {
-			"minCreateBond": 10 * MILLIAFT,
-			"minJoinBond": 1 * MILLIAFT,
-		},
 		// EVM compatibility
 		"evmChainId": { "chainId": chain_id },
 	})
