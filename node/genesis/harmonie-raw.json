@@ -2,7 +2,9 @@
   "name": "Harmonie Testnet Live",
   "id": "harmonie_live",
   "chainType": "Live",
-  "bootNodes": [],
+  "bootNodes": [
+    "/dns/harmonie-endpoint-01.allfeat.io/tcp/30333/p2p/12D3KooWALXjssuT9JDvvMde1ETh5meAYhwkrZwNHWmVNLz2eTVW"
+  ],
   "telemetryEndpoints": [
     [
       "wss://telemetry.polkadot.io/submit/",
