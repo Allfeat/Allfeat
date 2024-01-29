@@ -3,7 +3,8 @@
   "id": "harmonie_live",
   "chainType": "Live",
   "bootNodes": [
-    "/dns/harmonie-endpoint-01.allfeat.io/tcp/30333/p2p/12D3KooWALXjssuT9JDvvMde1ETh5meAYhwkrZwNHWmVNLz2eTVW"
+    "/dns/harmonie-endpoint-01.allfeat.io/tcp/30333/p2p/12D3KooWALXjssuT9JDvvMde1ETh5meAYhwkrZwNHWmVNLz2eTVW",
+    "/dns/harmonie-endpoint-02.allfeat.io/tcp/30333/p2p/12D3KooWDSYLYRpiNXtqUzJiDXC1nmQ1BZBx6hJ25Yge2cs2JhAB"
   ],
    "telemetryEndpoints": [
     [
