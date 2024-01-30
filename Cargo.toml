@@ -3,6 +3,7 @@ resolver = "2"
 members = [
 	"node",
 	"runtime/harmonie",
+	"runtime/allfeat",
 	"primitives",
 	"precompiles/balances-erc20",
 	# "utils/generate_bags",
@@ -42,6 +43,7 @@ frame-system = { version = "4.0.0-dev", default-features = false, git = "https:/
 frame-try-runtime = { version = "0.10.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 frame-executive = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 
+sp-arithmetic = { version = "16.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 sp-api = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 sp-block-builder = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 sp-core = { version = "21.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
@@ -64,6 +66,10 @@ pallet-babe = { version = "4.0.0-dev", default-features = false, git = "https://
 pallet-authority-discovery = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-authorship = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-bags-list = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
+pallet-collective = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
+pallet-conviction-voting = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
+pallet-democracy = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
+pallet-elections-phragmen = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-election-provider-multi-phase = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-election-provider-support-benchmarking = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-im-online = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
@@ -78,6 +84,7 @@ pallet-offences-benchmarking = { version = "4.0.0-dev", default-features = false
 pallet-preimage = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-proxy = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-recovery = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
+pallet-referenda = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-session = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-session-benchmarking = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-staking = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
@@ -91,6 +98,7 @@ pallet-sudo = { version = "4.0.0-dev", default-features = false, git = "https://
 pallet-timestamp = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-transaction-payment = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-utility = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
+pallet-whitelist = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 frame-system-rpc-runtime-api = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 pallet-transaction-payment-rpc-runtime-api = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 frame-benchmarking = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
@@ -152,6 +160,7 @@ frame-benchmarking-cli = { version = "4.0.0-dev", git = "https://github.com/Allf
 
 # Allfeat (client)
 harmonie-runtime = { version = "1.0.0-dev", path = "./runtime/harmonie" }
+allfeat-runtime = { version = "1.0.0-dev", path = "./runtime/allfeat" }
 
 # Other (client)
 clap = { version = "4.2.5", features = ["derive"] }

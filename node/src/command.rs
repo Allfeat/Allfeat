@@ -64,11 +64,15 @@ impl SubstrateCli for Cli {
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 		Ok(match id {
+			#[cfg(feature = "allfeat-native")]
+			"dev" | "development" | "allfeat-dev" =>
+				Box::new(chain_specs::allfeat::development_chain_spec(None, None)),
+
 			"" | "harmonie-live" | "testnet" => Box::new(DummyChainSpec::from_json_bytes(
 				&include_bytes!("../genesis/harmonie-raw.json")[..],
 			)?),
 			#[cfg(feature = "harmonie-native")]
-			"dev" | "development" | "harmonie-dev" =>
+			"testnet-dev" | "testnet-development" | "harmonie-dev" =>
 				Box::new(chain_specs::harmonie::development_chain_spec(None, None)),
 			#[cfg(feature = "harmonie-native")]
 			"harmonie-local" => Box::new(chain_specs::harmonie::get_chain_spec()),

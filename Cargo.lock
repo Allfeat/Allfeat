@@ -109,6 +109,7 @@ name = "allfeat-node"
 version = "1.0.0-dev"
 dependencies = [
  "allfeat-primitives 1.0.0",
+ "allfeat-runtime",
  "bip32",
  "clap",
  "fc-api",
@@ -189,12 +190,11 @@ dependencies = [
  "sp-session",
  "sp-statement-store",
  "sp-timestamp",
- "sp-tracing 10.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-tracing 10.0.0",
  "sp-transaction-pool",
  "sp-transaction-storage-proof",
  "substrate-build-script-utils",
  "substrate-frame-rpc-system",
- "substrate-state-trie-migration-rpc",
  "tempfile",
  "tiny-bip39",
  "try-runtime-cli",
@@ -220,6 +220,100 @@ dependencies = [
 ]
 
 [[package]]
+name = "allfeat-runtime"
+version = "1.0.0-dev"
+dependencies = [
+ "allfeat-primitives 1.0.0",
+ "allfeat-support",
+ "enumflags2",
+ "fp-evm",
+ "fp-rpc",
+ "fp-self-contained",
+ "frame-benchmarking",
+ "frame-election-provider-support",
+ "frame-executive",
+ "frame-support",
+ "frame-system",
+ "frame-system-benchmarking",
+ "frame-system-rpc-runtime-api",
+ "frame-try-runtime",
+ "hex-literal",
+ "log",
+ "num_enum",
+ "pallet-artists-v2",
+ "pallet-authority-discovery",
+ "pallet-authorship",
+ "pallet-babe",
+ "pallet-bags-list",
+ "pallet-balances",
+ "pallet-base-fee",
+ "pallet-contracts",
+ "pallet-conviction-voting",
+ "pallet-dynamic-fee",
+ "pallet-election-provider-multi-phase",
+ "pallet-election-provider-support-benchmarking",
+ "pallet-ethereum",
+ "pallet-evm",
+ "pallet-evm-chain-id",
+ "pallet-evm-precompile-balances-erc20",
+ "pallet-evm-precompile-blake2",
+ "pallet-evm-precompile-bn128",
+ "pallet-evm-precompile-modexp",
+ "pallet-evm-precompile-sha3fips",
+ "pallet-evm-precompile-simple",
+ "pallet-grandpa",
+ "pallet-hotfix-sufficients",
+ "pallet-identity",
+ "pallet-im-online",
+ "pallet-mmr",
+ "pallet-multisig",
+ "pallet-nomination-pools",
+ "pallet-nomination-pools-benchmarking",
+ "pallet-offences",
+ "pallet-offences-benchmarking",
+ "pallet-preimage",
+ "pallet-proxy",
+ "pallet-recovery",
+ "pallet-referenda",
+ "pallet-scheduler",
+ "pallet-session",
+ "pallet-session-benchmarking",
+ "pallet-staking",
+ "pallet-staking-reward-curve",
+ "pallet-sudo",
+ "pallet-timestamp",
+ "pallet-transaction-payment",
+ "pallet-transaction-payment-rpc-runtime-api",
+ "pallet-utility",
+ "pallet-whitelist",
+ "parity-scale-codec",
+ "precompile-utils",
+ "scale-info",
+ "sha3",
+ "sp-api",
+ "sp-arithmetic",
+ "sp-authority-discovery",
+ "sp-block-builder",
+ "sp-consensus-babe",
+ "sp-consensus-grandpa",
+ "sp-core",
+ "sp-genesis-builder",
+ "sp-inherents",
+ "sp-io",
+ "sp-offchain",
+ "sp-runtime",
+ "sp-session",
+ "sp-staking",
+ "sp-statement-store",
+ "sp-std 8.0.0",
+ "sp-storage 13.0.0",
+ "sp-transaction-pool",
+ "sp-version",
+ "static_assertions",
+ "substrate-wasm-builder",
+]
+
+[[package]]
 name = "allfeat-support"
 version = "0.1.0-dev"
 source = "git+https://github.com/Allfeat/allfeat-support.git?branch=allfeat-polkadot-v1.5.0#5e34d5e85bc801591def36a5b1c0c4c10c887090"
@@ -229,7 +323,7 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -708,6 +802,12 @@ dependencies = [
  "quote",
  "syn 1.0.109",
 ]
+
+[[package]]
+name = "assert_matches"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9b34d609dfbaf33d6889b2b7106d3ca345eacad44200913df5ba02bfd31d2ba9"
 
 [[package]]
 name = "async-channel"
@@ -2596,7 +2696,7 @@ dependencies = [
  "sp-core",
  "sp-database",
  "sp-runtime",
- "sp-storage 13.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-storage 13.0.0",
  "sqlx",
  "tokio",
 ]
@@ -2667,12 +2767,12 @@ dependencies = [
  "sp-consensus",
  "sp-consensus-aura",
  "sp-core",
- "sp-externalities 0.19.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-externalities 0.19.0",
  "sp-inherents",
  "sp-io",
  "sp-runtime",
  "sp-state-machine",
- "sp-storage 13.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-storage 13.0.0",
  "sp-timestamp",
  "substrate-prometheus-endpoint",
  "thiserror",
@@ -2707,7 +2807,7 @@ dependencies = [
  "sp-blockchain",
  "sp-io",
  "sp-runtime",
- "sp-storage 13.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-storage 13.0.0",
 ]
 
 [[package]]
@@ -2889,8 +2989,8 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-runtime-interface 17.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-runtime-interface 17.0.0",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -2902,7 +3002,7 @@ dependencies = [
  "parity-scale-codec",
  "sp-core",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -2925,7 +3025,7 @@ dependencies = [
  "fp-evm",
  "frame-support",
  "parity-scale-codec",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -2941,7 +3041,7 @@ dependencies = [
  "serde",
  "sp-core",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -2958,7 +3058,7 @@ dependencies = [
  "sp-core",
  "sp-runtime",
  "sp-state-machine",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -3007,9 +3107,9 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-runtime-interface 17.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-storage 13.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-runtime-interface 17.0.0",
+ "sp-std 8.0.0",
+ "sp-storage 13.0.0",
  "static_assertions",
 ]
 
@@ -3048,15 +3148,15 @@ dependencies = [
  "sp-blockchain",
  "sp-core",
  "sp-database",
- "sp-externalities 0.19.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-externalities 0.19.0",
  "sp-inherents",
  "sp-io",
  "sp-keystore",
  "sp-runtime",
  "sp-state-machine",
- "sp-storage 13.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-storage 13.0.0",
  "sp-trie",
- "sp-wasm-interface 14.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-wasm-interface 14.0.0",
  "thiserror",
  "thousands",
 ]
@@ -3086,7 +3186,7 @@ dependencies = [
  "sp-core",
  "sp-npos-elections",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -3103,8 +3203,8 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-tracing 10.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
+ "sp-tracing 10.0.0",
 ]
 
 [[package]]
@@ -3166,7 +3266,7 @@ dependencies = [
  "sp-arithmetic",
  "sp-core",
  "sp-core-hashing-proc-macro",
- "sp-debug-derive 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-debug-derive 8.0.0",
  "sp-genesis-builder",
  "sp-inherents",
  "sp-io",
@@ -3174,8 +3274,8 @@ dependencies = [
  "sp-runtime",
  "sp-staking",
  "sp-state-machine",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-tracing 10.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
+ "sp-tracing 10.0.0",
  "sp-weights",
  "static_assertions",
  "tt-call",
@@ -3237,7 +3337,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
  "sp-version",
  "sp-weights",
 ]
@@ -3254,7 +3354,7 @@ dependencies = [
  "scale-info",
  "sp-core",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -3275,7 +3375,7 @@ dependencies = [
  "parity-scale-codec",
  "sp-api",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -3686,8 +3786,8 @@ dependencies = [
  "sp-session",
  "sp-staking",
  "sp-statement-store",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-storage 13.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
+ "sp-storage 13.0.0",
  "sp-transaction-pool",
  "sp-version",
  "static_assertions",
@@ -5852,7 +5952,7 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -5868,7 +5968,7 @@ dependencies = [
  "sp-application-crypto",
  "sp-authority-discovery",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -5882,7 +5982,7 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -5906,7 +6006,7 @@ dependencies = [
  "sp-runtime",
  "sp-session",
  "sp-staking",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -5927,8 +6027,8 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-tracing 10.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
+ "sp-tracing 10.0.0",
 ]
 
 [[package]]
@@ -5943,7 +6043,7 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -5985,7 +6085,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
  "staging-xcm",
  "staging-xcm-builder",
  "wasm-instrument 0.4.0",
@@ -6014,6 +6114,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-conviction-voting"
+version = "4.0.0-dev"
+source = "git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0#5a5b6f97333cf0bb7ffa3722234e6e585d0ba7a7"
+dependencies = [
+ "assert_matches",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-io",
+ "sp-runtime",
+ "sp-std 8.0.0",
+]
+
+[[package]]
 name = "pallet-dynamic-fee"
 version = "4.0.0-dev"
 source = "git+https://github.com/Allfeat/frontier.git?branch=allfeat-polkadot-v1.5.0#b1070aa3dad3bcce217dfe39b6b7bc1cd0e23540"
@@ -6026,7 +6143,7 @@ dependencies = [
  "scale-info",
  "sp-core",
  "sp-inherents",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -6048,7 +6165,7 @@ dependencies = [
  "sp-io",
  "sp-npos-elections",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
  "strum 0.24.1",
 ]
 
@@ -6063,7 +6180,7 @@ dependencies = [
  "parity-scale-codec",
  "sp-npos-elections",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -6086,7 +6203,7 @@ dependencies = [
  "scale-info",
  "sp-io",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -6112,7 +6229,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -6148,7 +6265,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -6217,7 +6334,7 @@ dependencies = [
  "sp-runtime",
  "sp-session",
  "sp-staking",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -6233,7 +6350,7 @@ dependencies = [
  "scale-info",
  "sp-core",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -6249,7 +6366,7 @@ dependencies = [
  "scale-info",
  "sp-io",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -6269,7 +6386,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-staking",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -6283,7 +6400,7 @@ dependencies = [
  "safe-mix",
  "scale-info",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -6301,7 +6418,7 @@ dependencies = [
  "sp-io",
  "sp-mmr-primitives",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -6317,7 +6434,7 @@ dependencies = [
  "scale-info",
  "sp-io",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -6335,8 +6452,8 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-staking",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-tracing 10.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
+ "sp-tracing 10.0.0",
 ]
 
 [[package]]
@@ -6354,9 +6471,9 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "sp-runtime",
- "sp-runtime-interface 17.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-runtime-interface 17.0.0",
  "sp-staking",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -6373,7 +6490,7 @@ dependencies = [
  "serde",
  "sp-runtime",
  "sp-staking",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -6397,7 +6514,7 @@ dependencies = [
  "scale-info",
  "sp-runtime",
  "sp-staking",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -6414,7 +6531,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -6429,7 +6546,7 @@ dependencies = [
  "scale-info",
  "sp-io",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -6444,7 +6561,26 @@ dependencies = [
  "scale-info",
  "sp-io",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
+]
+
+[[package]]
+name = "pallet-referenda"
+version = "4.0.0-dev"
+source = "git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0#5a5b6f97333cf0bb7ffa3722234e6e585d0ba7a7"
+dependencies = [
+ "assert_matches",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-arithmetic",
+ "sp-io",
+ "sp-runtime",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -6461,7 +6597,7 @@ dependencies = [
  "scale-info",
  "sp-io",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
  "sp-weights",
 ]
 
@@ -6483,7 +6619,7 @@ dependencies = [
  "sp-session",
  "sp-staking",
  "sp-state-machine",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
  "sp-trie",
 ]
 
@@ -6501,7 +6637,7 @@ dependencies = [
  "rand 0.8.5",
  "sp-runtime",
  "sp-session",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -6524,7 +6660,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-staking",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -6552,7 +6688,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -6568,7 +6704,7 @@ dependencies = [
  "scale-info",
  "sp-io",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -6586,8 +6722,8 @@ dependencies = [
  "sp-inherents",
  "sp-io",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-storage 13.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
+ "sp-storage 13.0.0",
  "sp-timestamp",
 ]
 
@@ -6604,7 +6740,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -6648,7 +6784,22 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
+]
+
+[[package]]
+name = "pallet-whitelist"
+version = "4.0.0-dev"
+source = "git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0#5a5b6f97333cf0bb7ffa3722234e6e585d0ba7a7"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-api",
+ "sp-runtime",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -6950,7 +7101,7 @@ dependencies = [
  "scale-info",
  "sp-core",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -6966,7 +7117,7 @@ dependencies = [
  "serde",
  "sp-core",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
  "sp-weights",
 ]
 
@@ -7050,7 +7201,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
  "sp-weights",
  "staging-xcm",
 ]
@@ -7936,7 +8087,7 @@ source = "git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkado
 dependencies = [
  "log",
  "sp-core",
- "sp-wasm-interface 14.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-wasm-interface 14.0.0",
  "thiserror",
 ]
 
@@ -8101,11 +8252,11 @@ dependencies = [
  "sp-consensus",
  "sp-core",
  "sp-database",
- "sp-externalities 0.19.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-externalities 0.19.0",
  "sp-runtime",
  "sp-state-machine",
  "sp-statement-store",
- "sp-storage 13.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-storage 13.0.0",
  "sp-trie",
  "substrate-prometheus-endpoint",
 ]
@@ -8357,13 +8508,13 @@ dependencies = [
  "schnellru",
  "sp-api",
  "sp-core",
- "sp-externalities 0.19.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-externalities 0.19.0",
  "sp-io",
  "sp-panic-handler",
- "sp-runtime-interface 17.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-runtime-interface 17.0.0",
  "sp-trie",
  "sp-version",
- "sp-wasm-interface 14.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-wasm-interface 14.0.0",
  "tracing",
 ]
 
@@ -8374,7 +8525,7 @@ source = "git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkado
 dependencies = [
  "sc-allocator",
  "sp-maybe-compressed-blob",
- "sp-wasm-interface 14.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-wasm-interface 14.0.0",
  "thiserror",
  "wasm-instrument 0.3.0",
 ]
@@ -8392,8 +8543,8 @@ dependencies = [
  "rustix 0.36.17",
  "sc-allocator",
  "sc-executor-common",
- "sp-runtime-interface 17.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-wasm-interface 14.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-runtime-interface 17.0.0",
+ "sp-wasm-interface 14.0.0",
  "wasmtime",
 ]
 
@@ -8677,7 +8828,7 @@ dependencies = [
  "sc-utils",
  "sp-api",
  "sp-core",
- "sp-externalities 0.19.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-externalities 0.19.0",
  "sp-keystore",
  "sp-offchain",
  "sp-runtime",
@@ -8834,12 +8985,12 @@ dependencies = [
  "sp-blockchain",
  "sp-consensus",
  "sp-core",
- "sp-externalities 0.19.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-externalities 0.19.0",
  "sp-keystore",
  "sp-runtime",
  "sp-session",
  "sp-state-machine",
- "sp-storage 13.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-storage 13.0.0",
  "sp-transaction-pool",
  "sp-transaction-storage-proof",
  "sp-trie",
@@ -8881,8 +9032,8 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-state-machine",
- "sp-storage 13.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-tracing 10.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-storage 13.0.0",
+ "sp-tracing 10.0.0",
  "sp-trie",
  "substrate-test-runtime",
  "substrate-test-runtime-client",
@@ -8956,7 +9107,7 @@ dependencies = [
  "serde_json",
  "sp-core",
  "sp-io",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -9001,7 +9152,7 @@ dependencies = [
  "sp-core",
  "sp-rpc",
  "sp-runtime",
- "sp-tracing 10.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-tracing 10.0.0",
  "thiserror",
  "tracing",
  "tracing-log",
@@ -9039,7 +9190,7 @@ dependencies = [
  "sp-blockchain",
  "sp-core",
  "sp-runtime",
- "sp-tracing 10.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-tracing 10.0.0",
  "sp-transaction-pool",
  "substrate-prometheus-endpoint",
  "thiserror",
@@ -9539,11 +9690,11 @@ dependencies = [
  "scale-info",
  "sp-api-proc-macro",
  "sp-core",
- "sp-externalities 0.19.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-externalities 0.19.0",
  "sp-metadata-ir",
  "sp-runtime",
  "sp-state-machine",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
  "sp-trie",
  "sp-version",
  "thiserror",
@@ -9573,7 +9724,7 @@ dependencies = [
  "serde",
  "sp-core",
  "sp-io",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -9586,7 +9737,7 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
  "static_assertions",
 ]
 
@@ -9618,7 +9769,7 @@ dependencies = [
  "sp-api",
  "sp-application-crypto",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -9629,7 +9780,7 @@ dependencies = [
  "sp-api",
  "sp-inherents",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -9678,7 +9829,7 @@ dependencies = [
  "sp-consensus-slots",
  "sp-inherents",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
  "sp-timestamp",
 ]
 
@@ -9697,7 +9848,7 @@ dependencies = [
  "sp-core",
  "sp-inherents",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
  "sp-timestamp",
 ]
 
@@ -9716,7 +9867,7 @@ dependencies = [
  "sp-core",
  "sp-keystore",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -9727,7 +9878,7 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
  "sp-timestamp",
 ]
 
@@ -9764,11 +9915,11 @@ dependencies = [
  "secrecy",
  "serde",
  "sp-core-hashing",
- "sp-debug-derive 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-externalities 0.19.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-runtime-interface 17.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-storage 13.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-debug-derive 8.0.0",
+ "sp-externalities 0.19.0",
+ "sp-runtime-interface 17.0.0",
+ "sp-std 8.0.0",
+ "sp-storage 13.0.0",
  "ss58-registry",
  "substrate-bip39",
  "thiserror",
@@ -9802,8 +9953,8 @@ dependencies = [
 
 [[package]]
 name = "sp-crypto-ec-utils"
-version = "0.4.1"
-source = "git+https://github.com/paritytech/polkadot-sdk#5c79ed37dc6485d2b3f4fc69b8cf8456b86b4e17"
+version = "0.10.0"
+source = "git+https://github.com/paritytech/polkadot-sdk#b8f55d1b7698b90a88d4514bdd97feaf140479b9"
 dependencies = [
  "ark-bls12-377",
  "ark-bls12-377-ext",
@@ -9817,8 +9968,8 @@ dependencies = [
  "ark-ed-on-bls12-381-bandersnatch",
  "ark-ed-on-bls12-381-bandersnatch-ext",
  "ark-scale 0.0.12",
- "sp-runtime-interface 17.0.0 (git+https://github.com/paritytech/polkadot-sdk)",
- "sp-std 8.0.0 (git+https://github.com/paritytech/polkadot-sdk)",
+ "sp-runtime-interface 24.0.0",
+ "sp-std 14.0.0",
 ]
 
 [[package]]
@@ -9842,8 +9993,8 @@ dependencies = [
 
 [[package]]
 name = "sp-debug-derive"
-version = "8.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#5c79ed37dc6485d2b3f4fc69b8cf8456b86b4e17"
+version = "14.0.0"
+source = "git+https://github.com/paritytech/polkadot-sdk#b8f55d1b7698b90a88d4514bdd97feaf140479b9"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -9857,19 +10008,19 @@ source = "git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkado
 dependencies = [
  "environmental",
  "parity-scale-codec",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-storage 13.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
+ "sp-storage 13.0.0",
 ]
 
 [[package]]
 name = "sp-externalities"
-version = "0.19.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#5c79ed37dc6485d2b3f4fc69b8cf8456b86b4e17"
+version = "0.25.0"
+source = "git+https://github.com/paritytech/polkadot-sdk#b8f55d1b7698b90a88d4514bdd97feaf140479b9"
 dependencies = [
  "environmental",
  "parity-scale-codec",
- "sp-std 8.0.0 (git+https://github.com/paritytech/polkadot-sdk)",
- "sp-storage 13.0.0 (git+https://github.com/paritytech/polkadot-sdk)",
+ "sp-std 14.0.0",
+ "sp-storage 19.0.0",
 ]
 
 [[package]]
@@ -9880,7 +10031,7 @@ dependencies = [
  "serde_json",
  "sp-api",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -9893,7 +10044,7 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
  "thiserror",
 ]
 
@@ -9910,12 +10061,12 @@ dependencies = [
  "rustversion",
  "secp256k1",
  "sp-core",
- "sp-externalities 0.19.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-externalities 0.19.0",
  "sp-keystore",
- "sp-runtime-interface 17.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-runtime-interface 17.0.0",
  "sp-state-machine",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-tracing 10.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
+ "sp-tracing 10.0.0",
  "sp-trie",
  "tracing",
  "tracing-core",
@@ -9940,7 +10091,7 @@ dependencies = [
  "parity-scale-codec",
  "parking_lot 0.12.1",
  "sp-core",
- "sp-externalities 0.19.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-externalities 0.19.0",
  "thiserror",
 ]
 
@@ -9961,7 +10112,7 @@ dependencies = [
  "frame-metadata",
  "parity-scale-codec",
  "scale-info",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -9973,7 +10124,7 @@ dependencies = [
  "scale-info",
  "sp-api",
  "sp-application-crypto",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -9988,9 +10139,9 @@ dependencies = [
  "serde",
  "sp-api",
  "sp-core",
- "sp-debug-derive 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-debug-derive 8.0.0",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
  "thiserror",
 ]
 
@@ -10005,7 +10156,7 @@ dependencies = [
  "sp-arithmetic",
  "sp-core",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -10058,7 +10209,7 @@ dependencies = [
  "sp-arithmetic",
  "sp-core",
  "sp-io",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
  "sp-weights",
 ]
 
@@ -10071,30 +10222,30 @@ dependencies = [
  "impl-trait-for-tuples",
  "parity-scale-codec",
  "primitive-types",
- "sp-externalities 0.19.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-runtime-interface-proc-macro 11.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-storage 13.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-tracing 10.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-wasm-interface 14.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-externalities 0.19.0",
+ "sp-runtime-interface-proc-macro 11.0.0",
+ "sp-std 8.0.0",
+ "sp-storage 13.0.0",
+ "sp-tracing 10.0.0",
+ "sp-wasm-interface 14.0.0",
  "static_assertions",
 ]
 
 [[package]]
 name = "sp-runtime-interface"
-version = "17.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#5c79ed37dc6485d2b3f4fc69b8cf8456b86b4e17"
+version = "24.0.0"
+source = "git+https://github.com/paritytech/polkadot-sdk#b8f55d1b7698b90a88d4514bdd97feaf140479b9"
 dependencies = [
  "bytes",
  "impl-trait-for-tuples",
  "parity-scale-codec",
  "primitive-types",
- "sp-externalities 0.19.0 (git+https://github.com/paritytech/polkadot-sdk)",
- "sp-runtime-interface-proc-macro 11.0.0 (git+https://github.com/paritytech/polkadot-sdk)",
- "sp-std 8.0.0 (git+https://github.com/paritytech/polkadot-sdk)",
- "sp-storage 13.0.0 (git+https://github.com/paritytech/polkadot-sdk)",
- "sp-tracing 10.0.0 (git+https://github.com/paritytech/polkadot-sdk)",
- "sp-wasm-interface 14.0.0 (git+https://github.com/paritytech/polkadot-sdk)",
+ "sp-externalities 0.25.0",
+ "sp-runtime-interface-proc-macro 17.0.0",
+ "sp-std 14.0.0",
+ "sp-storage 19.0.0",
+ "sp-tracing 16.0.0",
+ "sp-wasm-interface 20.0.0",
  "static_assertions",
 ]
 
@@ -10113,8 +10264,8 @@ dependencies = [
 
 [[package]]
 name = "sp-runtime-interface-proc-macro"
-version = "11.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#5c79ed37dc6485d2b3f4fc69b8cf8456b86b4e17"
+version = "17.0.0"
+source = "git+https://github.com/paritytech/polkadot-sdk#b8f55d1b7698b90a88d4514bdd97feaf140479b9"
 dependencies = [
  "Inflector",
  "expander",
@@ -10136,7 +10287,7 @@ dependencies = [
  "sp-keystore",
  "sp-runtime",
  "sp-staking",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -10150,7 +10301,7 @@ dependencies = [
  "serde",
  "sp-core",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -10165,9 +10316,9 @@ dependencies = [
  "rand 0.8.5",
  "smallvec",
  "sp-core",
- "sp-externalities 0.19.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-externalities 0.19.0",
  "sp-panic-handler",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
  "sp-trie",
  "thiserror",
  "tracing",
@@ -10190,10 +10341,10 @@ dependencies = [
  "sp-api",
  "sp-application-crypto",
  "sp-core",
- "sp-externalities 0.19.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-externalities 0.19.0",
  "sp-runtime",
- "sp-runtime-interface 17.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-runtime-interface 17.0.0",
+ "sp-std 8.0.0",
  "thiserror",
  "x25519-dalek 2.0.0",
 ]
@@ -10205,8 +10356,8 @@ source = "git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkado
 
 [[package]]
 name = "sp-std"
-version = "8.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#5c79ed37dc6485d2b3f4fc69b8cf8456b86b4e17"
+version = "14.0.0"
+source = "git+https://github.com/paritytech/polkadot-sdk#b8f55d1b7698b90a88d4514bdd97feaf140479b9"
 
 [[package]]
 name = "sp-storage"
@@ -10217,21 +10368,21 @@ dependencies = [
  "parity-scale-codec",
  "ref-cast",
  "serde",
- "sp-debug-derive 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-debug-derive 8.0.0",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
 name = "sp-storage"
-version = "13.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#5c79ed37dc6485d2b3f4fc69b8cf8456b86b4e17"
+version = "19.0.0"
+source = "git+https://github.com/paritytech/polkadot-sdk#b8f55d1b7698b90a88d4514bdd97feaf140479b9"
 dependencies = [
  "impl-serde",
  "parity-scale-codec",
  "ref-cast",
  "serde",
- "sp-debug-derive 8.0.0 (git+https://github.com/paritytech/polkadot-sdk)",
- "sp-std 8.0.0 (git+https://github.com/paritytech/polkadot-sdk)",
+ "sp-debug-derive 14.0.0",
+ "sp-std 14.0.0",
 ]
 
 [[package]]
@@ -10243,7 +10394,7 @@ dependencies = [
  "parity-scale-codec",
  "sp-inherents",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
  "thiserror",
 ]
 
@@ -10253,7 +10404,7 @@ version = "10.0.0"
 source = "git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0#5a5b6f97333cf0bb7ffa3722234e6e585d0ba7a7"
 dependencies = [
  "parity-scale-codec",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
  "tracing",
  "tracing-core",
  "tracing-subscriber",
@@ -10261,11 +10412,11 @@ dependencies = [
 
 [[package]]
 name = "sp-tracing"
-version = "10.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#5c79ed37dc6485d2b3f4fc69b8cf8456b86b4e17"
+version = "16.0.0"
+source = "git+https://github.com/paritytech/polkadot-sdk#b8f55d1b7698b90a88d4514bdd97feaf140479b9"
 dependencies = [
  "parity-scale-codec",
- "sp-std 8.0.0 (git+https://github.com/paritytech/polkadot-sdk)",
+ "sp-std 14.0.0",
  "tracing",
  "tracing-core",
  "tracing-subscriber",
@@ -10291,7 +10442,7 @@ dependencies = [
  "sp-core",
  "sp-inherents",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
  "sp-trie",
 ]
 
@@ -10312,8 +10463,8 @@ dependencies = [
  "scale-info",
  "schnellru",
  "sp-core",
- "sp-externalities 0.19.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-externalities 0.19.0",
+ "sp-std 8.0.0",
  "thiserror",
  "tracing",
  "trie-db",
@@ -10332,7 +10483,7 @@ dependencies = [
  "serde",
  "sp-core-hashing-proc-macro",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
  "sp-version-proc-macro",
  "thiserror",
 ]
@@ -10357,20 +10508,20 @@ dependencies = [
  "impl-trait-for-tuples",
  "log",
  "parity-scale-codec",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
  "wasmtime",
 ]
 
 [[package]]
 name = "sp-wasm-interface"
-version = "14.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#5c79ed37dc6485d2b3f4fc69b8cf8456b86b4e17"
+version = "20.0.0"
+source = "git+https://github.com/paritytech/polkadot-sdk#b8f55d1b7698b90a88d4514bdd97feaf140479b9"
 dependencies = [
  "anyhow",
  "impl-trait-for-tuples",
  "log",
  "parity-scale-codec",
- "sp-std 8.0.0 (git+https://github.com/paritytech/polkadot-sdk)",
+ "sp-std 14.0.0",
  "wasmtime",
 ]
 
@@ -10385,8 +10536,8 @@ dependencies = [
  "serde",
  "smallvec",
  "sp-arithmetic",
- "sp-debug-derive 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-debug-derive 8.0.0",
+ "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -10602,7 +10753,7 @@ dependencies = [
  "sp-arithmetic",
  "sp-io",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
  "sp-weights",
  "staging-xcm",
  "staging-xcm-executor",
@@ -10624,7 +10775,7 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
  "sp-weights",
  "staging-xcm",
 ]
@@ -10799,23 +10950,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "substrate-state-trie-migration-rpc"
-version = "4.0.0-dev"
-source = "git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0#5a5b6f97333cf0bb7ffa3722234e6e585d0ba7a7"
-dependencies = [
- "jsonrpsee",
- "parity-scale-codec",
- "sc-client-api",
- "sc-rpc-api",
- "serde",
- "sp-core",
- "sp-runtime",
- "sp-state-machine",
- "sp-trie",
- "trie-db",
-]
-
-[[package]]
 name = "substrate-test-client"
 version = "2.0.1"
 source = "git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0#5a5b6f97333cf0bb7ffa3722234e6e585d0ba7a7"
@@ -10865,7 +10999,7 @@ dependencies = [
  "sp-consensus-babe",
  "sp-consensus-grandpa",
  "sp-core",
- "sp-externalities 0.19.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-externalities 0.19.0",
  "sp-genesis-builder",
  "sp-inherents",
  "sp-io",
@@ -10874,7 +11008,7 @@ dependencies = [
  "sp-runtime",
  "sp-session",
  "sp-state-machine",
- "sp-std 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-std 8.0.0",
  "sp-transaction-pool",
  "sp-trie",
  "sp-version",
@@ -11541,8 +11675,8 @@ dependencies = [
  "sp-consensus-aura",
  "sp-consensus-babe",
  "sp-core",
- "sp-debug-derive 8.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
- "sp-externalities 0.19.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.5.0)",
+ "sp-debug-derive 8.0.0",
+ "sp-externalities 0.19.0",
  "sp-inherents",
  "sp-io",
  "sp-keystore",

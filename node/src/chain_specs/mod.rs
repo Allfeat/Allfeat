@@ -18,10 +18,9 @@
 
 //! Substrate chain configurations.
 
-pub use allfeat_primitives::{AccountId, Signature};
+pub use allfeat_primitives::{AccountId, Block, Signature};
 use bip32::ExtendedPrivateKey;
 use bip39::{Language, Mnemonic, Seed};
-pub use harmonie_runtime::opaque::Block;
 use libsecp256k1::{PublicKey, PublicKeyFormat};
 use log::debug;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
@@ -40,15 +39,30 @@ pub mod account_key;
 #[cfg(feature = "harmonie-native")]
 pub mod harmonie;
 
+#[cfg(feature = "allfeat-native")]
+pub mod allfeat;
+
 #[cfg(not(feature = "harmonie-native"))]
 pub mod harmonie {
 	use super::DummyChainSpec;
 
 	pub fn chain_spec_from_json_file(_: std::path::PathBuf) -> Result<DummyChainSpec, String> {
-		panic!("harmoniee runtime not enabled")
+		panic!("harmonie runtime not enabled")
 	}
 	pub fn development_chain_spec(_: Option<String>, _: Option<u32>) -> DummyChainSpec {
-		panic!("harmonies runtime not enabled")
+		panic!("harmonie runtime not enabled")
+	}
+}
+
+#[cfg(not(feature = "allfeat-native"))]
+pub mod allfeat {
+	use super::DummyChainSpec;
+
+	pub fn chain_spec_from_json_file(_: std::path::PathBuf) -> Result<DummyChainSpec, String> {
+		panic!("Allfeat runtime not enabled")
+	}
+	pub fn development_chain_spec(_: Option<String>, _: Option<u32>) -> DummyChainSpec {
+		panic!("Allfeat runtime not enabled")
 	}
 }
 

@@ -147,7 +147,6 @@ where
 	use sc_rpc_spec_v2::chain_spec::{ChainSpec, ChainSpecApiServer};
 	use sc_sync_state_rpc::{SyncState, SyncStateApiServer};
 	use substrate_frame_rpc_system::{System, SystemApiServer};
-	use substrate_state_trie_migration_rpc::{StateMigration, StateMigrationApiServer};
 
 	let mut io = RpcModule::new(());
 	let FullDeps {
@@ -158,7 +157,7 @@ where
 		deny_unsafe,
 		babe,
 		grandpa,
-		backend,
+		backend: _,
 		eth,
 	} = deps;
 
@@ -201,7 +200,6 @@ where
 			.into_rpc(),
 	)?;
 
-	io.merge(StateMigration::new(client.clone(), backend, deny_unsafe).into_rpc())?;
 	io.merge(Dev::new(client, deny_unsafe).into_rpc())?;
 
 	// Ethereum compatibility RPCs

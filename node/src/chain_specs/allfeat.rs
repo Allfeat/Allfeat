@@ -3,7 +3,7 @@ use super::{
 	GrandpaId, ImOnlineId,
 };
 use allfeat_primitives::{AccountId, Balance};
-use harmonie_runtime::{
+use allfeat_runtime::{
 	constants::currency::AFT, opaque::SessionKeys, wasm_binary_unwrap, MaxNominations,
 	RuntimeGenesisConfig, StakerStatus,
 };
@@ -38,61 +38,22 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 	accounts.push(AccountId::from(hex!("1000000000000000000000000000000000000001")));
 
 	ChainSpec::builder(wasm_binary_unwrap(), Default::default())
-		.with_name("Harmonie Testnet Development")
-		.with_id("harmonie_live")
+		.with_name("Allfeat Mainnet Development")
+		.with_id("allfeat_dev")
 		.with_chain_type(ChainType::Development)
 		.with_genesis_config_patch(testnet_genesis(
 			vec![authority_keys_from_seed("Alice")],
 			vec![],
 			accounts[0],
 			None,
-			42,
+			442,
 		))
 		.with_protocol_id("aft")
 		.with_properties(
 			serde_json::json!({
 				"isEthereum": true,
-				"ss58Format": 42,
 				"tokenDecimals": 18,
-				"tokenSymbol": "HMY",
-			})
-			.as_object()
-			.expect("Map given; qed")
-			.clone(),
-		)
-		.build()
-}
-
-/// Generate a default spec for the parachain service. Use this as a starting point when launching
-/// a custom chain.
-pub fn get_chain_spec() -> ChainSpec {
-	ChainSpec::builder(wasm_binary_unwrap(), Default::default())
-		.with_name("Harmonie Testnet Live")
-		.with_id("harmonie_live")
-		.with_chain_type(ChainType::Live)
-		.with_genesis_config_patch(testnet_genesis(
-			vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
-			vec![],
-			// Alith is Sudo
-			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
-			Some(
-				// Endowed: Alith, Baltathar, Charleth and Dorothy
-				vec![
-					AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
-					AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
-					AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
-					AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
-				],
-			),
-			42,
-		))
-		.with_protocol_id("aft")
-		.with_properties(
-			serde_json::json!({
-				"isEthereum": true,
-				"ss58Format": 42,
-				"tokenDecimals": 18,
-				"tokenSymbol": "HMY",
+				"tokenSymbol": "AFT",
 			})
 			.as_object()
 			.expect("Map given; qed")
