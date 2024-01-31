@@ -126,6 +126,7 @@ try-runtime-cli = { workspace = true, optional = true }
 
 [build-dependencies]
 substrate-build-script-utils = { workspace = true }
+frame-benchmarking-cli = { workspace = true, optional = true }
 
 [features]
 default = ["harmonie-native", "allfeat-native", "sql", "txpool", "rocksdb"]

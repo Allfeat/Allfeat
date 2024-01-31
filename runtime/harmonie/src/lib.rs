@@ -52,7 +52,7 @@ use frame_support::{
 };
 use frame_system::{
 	limits::{BlockLength, BlockWeights},
-	EnsureRoot, EnsureSigned,
+	EnsureRoot,
 };
 use pallet_election_provider_multi_phase::{GeometricDepositBase, SolutionAccuracyOf};
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
@@ -204,10 +204,8 @@ const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_percent(10);
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 /// We allow for 4 seconds of compute with a 12 second average block time, with maximum proof size
 pub const WEIGHT_MILLISECS_PER_BLOCK: u64 = 4000;
-const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
-	WEIGHT_MILLISECS_PER_BLOCK * WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2),
-	u64::MAX,
-);
+const MAXIMUM_BLOCK_WEIGHT: Weight =
+	Weight::from_parts(WEIGHT_MILLISECS_PER_BLOCK * WEIGHT_REF_TIME_PER_SECOND, u64::MAX);
 
 pub const SS58_PREFIX: u16 = 42;
 
@@ -289,8 +287,6 @@ impl frame_system::Config for Runtime {
 	type OnSetCode = ();
 	type MaxConsumers = ConstU32<16>;
 }
-
-impl pallet_insecure_randomness_collective_flip::Config for Runtime {}
 
 impl pallet_utility::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
@@ -838,7 +834,7 @@ parameter_types! {
 
 impl pallet_contracts::Config for Runtime {
 	type Time = Timestamp;
-	type Randomness = RandomnessCollectiveFlip;
+	type Randomness = pallet_babe::RandomnessFromOneEpochAgo<Runtime>;
 	type Currency = Balances;
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
@@ -1047,27 +1043,6 @@ impl pallet_mmr::Config for Runtime {
 }
 
 parameter_types! {
-	pub const MigrationSignedDepositPerItem: Balance = 1 * MILLIAFT;
-	pub const MigrationSignedDepositBase: Balance = 20 * AFT;
-	pub const MaxNumberOfBytesThatAKeyCanHave: u32 = 512;
-}
-
-impl pallet_state_trie_migration::Config for Runtime {
-	type ControlOrigin = EnsureRoot<AccountId>;
-	// Warning: this is not advised, as it might allow the chain to be temporarily DOS-ed.
-	// Preferably, if the chain's governance/maintenance team is planning on using a specific
-	// account for the migration, put it here to make sure only that account can trigger the signed
-	// migrations.
-	type SignedFilter = EnsureSigned<Self::AccountId>;
-	type RuntimeEvent = RuntimeEvent;
-	type Currency = Balances;
-	type SignedDepositPerItem = MigrationSignedDepositPerItem;
-	type SignedDepositBase = MigrationSignedDepositBase;
-	type WeightInfo = weights::state_trie_migration::AllfeatWeight<Runtime>;
-	type MaxKeyLen = MaxNumberOfBytesThatAKeyCanHave;
-}
-
-parameter_types! {
 	pub const ArtistMotionDuration: BlockNumber = 7 * DAYS;
 	pub const ArtistMaxProposals: u32 = 100;
 	pub const ArtistMaxMembers: u32 = 10000;
@@ -1207,45 +1182,55 @@ impl pallet_hotfix_sufficients::Config for Runtime {
 }
 
 construct_runtime!(
-	pub struct Runtime
+	pub enum Runtime
 	{
-		System: frame_system,
-		Utility: pallet_utility,
-		Babe: pallet_babe,
-		Timestamp: pallet_timestamp,
-		// Authorship must be before session in order to note author in the correct session and era
-		// for im-online and staking.
-		Authorship: pallet_authorship,
-		Balances: pallet_balances,
-		TransactionPayment: pallet_transaction_payment,
-		ElectionProviderMultiPhase: pallet_election_provider_multi_phase,
-		Staking: pallet_staking,
-		Session: pallet_session,
-		Grandpa: pallet_grandpa,
-		Contracts: pallet_contracts,
-		Sudo: pallet_sudo,
-		ImOnline: pallet_im_online,
-		AuthorityDiscovery: pallet_authority_discovery,
-		Offences: pallet_offences,
-		Historical: pallet_session_historical::{Pallet},
-		RandomnessCollectiveFlip: pallet_insecure_randomness_collective_flip,
-		Identity: pallet_identity,
-		Recovery: pallet_recovery,
-		Scheduler: pallet_scheduler,
-		Preimage: pallet_preimage,
-		Proxy: pallet_proxy,
-		Multisig: pallet_multisig,
-		Artists: pallet_artists,
-		Mmr: pallet_mmr,
-		BagsList: pallet_bags_list::<Instance1>,
-		StateTrieMigration: pallet_state_trie_migration,
-		NominationPools: pallet_nomination_pools,
-		Ethereum: pallet_ethereum,
-		EVM: pallet_evm,
-		EVMChainId: pallet_evm_chain_id,
-		DynamicFee: pallet_dynamic_fee,
-		BaseFee: pallet_base_fee,
-		HotfixSufficients: pallet_hotfix_sufficients,
+		// Basic stuff; balances is uncallable initially.
+		System: frame_system = 0,
+		// Babe must be before session.
+		Babe: pallet_babe = 1,
+		Timestamp: pallet_timestamp = 2,
+		Balances: pallet_balances = 3,
+		TransactionPayment: pallet_transaction_payment = 26,
+
+		// Consensus support.
+		// Authorship must be before session in order to note author in the correct session and era.
+		ImOnline: pallet_im_online = 4,
+		Authorship: pallet_authorship = 5,
+		Staking: pallet_staking = 6,
+		Offences: pallet_offences = 7,
+		Historical: pallet_session_historical = 27,
+		// MMR leaf construction must be before session in order to have leaf contents refer to
+		// block<N-1> consistently. see substrate issue #11797 for details.
+		Mmr: pallet_mmr = 201,
+		Session: pallet_session = 8,
+		Grandpa: pallet_grandpa = 10,
+		AuthorityDiscovery: pallet_authority_discovery = 12,
+		Utility: pallet_utility = 16,
+		Identity: pallet_identity = 17,
+		Recovery: pallet_recovery = 18,
+
+		Scheduler: pallet_scheduler = 20,
+		Preimage: pallet_preimage = 28,
+
+		Sudo: pallet_sudo = 21,
+		Proxy: pallet_proxy = 22,
+		Multisig: pallet_multisig = 23,
+		ElectionProviderMultiPhase: pallet_election_provider_multi_phase = 24,
+		BagsList: pallet_bags_list::<Instance1> = 25,
+		NominationPools: pallet_nomination_pools = 29,
+
+		Contracts: pallet_contracts = 40,
+
+		// Frontier
+		Ethereum: pallet_ethereum = 50,
+		EVM: pallet_evm = 51,
+		EVMChainId: pallet_evm_chain_id = 52,
+		DynamicFee: pallet_dynamic_fee = 53,
+		BaseFee: pallet_base_fee = 54,
+		HotfixSufficients: pallet_hotfix_sufficients = 55,
+
+		// Allfeat related
+		Artists: pallet_artists = 100,
 	}
 );
 
@@ -1411,7 +1396,6 @@ mod benches {
 		[pallet_session, SessionBench::<Runtime>]
 		[pallet_staking, Staking]
 		[pallet_sudo, Sudo]
-		[pallet_state_trie_migration, StateTrieMigration]
 		[frame_system, SystemBench::<Runtime>]
 		[pallet_timestamp, Timestamp]
 		[pallet_utility, Utility]

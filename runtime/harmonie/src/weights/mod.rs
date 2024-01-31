@@ -15,7 +15,6 @@ pub mod recovery;
 pub mod scheduler;
 pub mod session;
 pub mod staking;
-pub mod state_trie_migration;
 pub mod sudo;
 pub mod timestamp;
 pub mod utility;
