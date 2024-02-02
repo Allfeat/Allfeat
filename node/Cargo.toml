@@ -118,6 +118,7 @@ frame-benchmarking = { workspace = true }
 frame-benchmarking-cli = { workspace = true }
 
 # Local Dependencies
+shared-runtime = { workspace = true }
 harmonie-runtime = { workspace = true }
 allfeat-runtime = { workspace= true }
 

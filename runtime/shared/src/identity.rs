@@ -1,12 +1,11 @@
 use enumflags2::{bitflags, BitFlags};
-use frame_election_provider_support::{BoundedVec, Decode, Encode};
 use frame_support::{
 	pallet_prelude::{MaxEncodedLen, TypeInfo},
-	CloneNoBound, EqNoBound, PartialEqNoBound, RuntimeDebugNoBound,
+	BoundedVec, CloneNoBound, EqNoBound, PartialEqNoBound, RuntimeDebugNoBound,
 };
 use pallet_identity::{Data, IdentityInformationProvider};
 use scale_info::{build::Variants, Path, Type};
-use sp_core::{Get, RuntimeDebug};
+use sp_core::{Decode, Encode, Get, RuntimeDebug};
 use sp_std::prelude::*;
 
 #[cfg(feature = "runtime-benchmarks")]
@@ -40,10 +39,14 @@ impl TypeInfo for IdentityField {
 				.variant("Display", |v| v.index(0))
 				.variant("Legal", |v| v.index(1))
 				.variant("Web", |v| v.index(2))
-				.variant("Riot", |v| v.index(3))
+				.variant("Matrix", |v| v.index(3))
 				.variant("Email", |v| v.index(4))
-				.variant("Image", |v| v.index(6))
-				.variant("Twitter", |v| v.index(7)),
+				.variant("Twitter", |v| v.index(5))
+				.variant("Instagram", |v| v.index(6))
+				.variant("Youtube", |v| v.index(7))
+				.variant("Tiktok", |v| v.index(8))
+				.variant("Discord", |v| v.index(9))
+				.variant("Telegram", |v| v.index(10)),
 		)
 	}
 }

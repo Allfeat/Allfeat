@@ -1,0 +1,49 @@
+[package]
+name = "shared-runtime"
+version = "1.0.0-dev"
+edition = "2021"
+description = "Shared stuff used in runtimes."
+authors.workspace = true
+
+[dependencies]
+enumflags2 = { workspace = true }
+parity-scale-codec = { workspace = true, features = ["derive", "max-encoded-len"] }
+scale-info = { workspace = true, features = ["derive"] }
+
+sp-core = { workspace = true }
+sp-runtime = { workspace = true }
+sp-std = { workspace = true }
+frame-system = { workspace = true }
+frame-support = { workspace = true }
+
+pallet-identity = { workspace = true }
+pallet-transaction-payment = { workspace = true }
+
+allfeat-primitives = { workspace = true }
+
+[features]
+default = ["std"]
+no_std = []
+std = [
+    "frame-system/std",
+    "frame-support/std",
+    "pallet-identity/std",
+    "scale-info/std",
+    "enumflags2/std",
+    "sp-std/std",
+    "sp-core/std",
+    "sp-runtime/std",
+    "allfeat-primitives/std",
+    "pallet-transaction-payment/std"
+]
+runtime-benchmarks = [
+    "frame-system/runtime-benchmarks",
+    "frame-support/runtime-benchmarks",
+    "pallet-identity/runtime-benchmarks",
+]
+try-runtime = [
+    "frame-system/try-runtime",
+    "frame-support/try-runtime",
+    "pallet-identity/try-runtime",
+    "pallet-transaction-payment/try-runtime"
+]

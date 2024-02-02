@@ -13,11 +13,11 @@ use precompile_utils::precompile_set::{
 pub struct NativeErc20Metadata;
 impl Erc20Metadata for NativeErc20Metadata {
 	fn name() -> &'static str {
-		"HARMONY token"
+		"ALLFEAT token"
 	}
 
 	fn symbol() -> &'static str {
-		"HMY"
+		"AFT"
 	}
 
 	fn decimals() -> u8 {

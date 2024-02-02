@@ -38,9 +38,9 @@ use frame_support::{
 	pallet_prelude::Get,
 	parameter_types,
 	traits::{
-		fungible::HoldConsideration, ConstU16, ConstU32, Contains, Currency, EqualPrivilegeOnly,
-		Everything, FindAuthor, InstanceFilter, KeyOwnerProofSystem, LinearStoragePrice, Nothing,
-		OnFinalize,
+		fungible::HoldConsideration, ConstU16, ConstU32, Contains, Currency, EitherOf,
+		EqualPrivilegeOnly, Everything, FindAuthor, InstanceFilter, KeyOwnerProofSystem,
+		LinearStoragePrice, Nothing, OnFinalize,
 	},
 	weights::{
 		constants::{
@@ -50,10 +50,7 @@ use frame_support::{
 	},
 	PalletId,
 };
-use frame_system::{
-	limits::{BlockLength, BlockWeights},
-	EnsureRoot, EnsureSigned,
-};
+use frame_system::{limits::BlockWeights, EnsureRoot, EnsureSigned};
 use pallet_election_provider_multi_phase::{GeometricDepositBase, SolutionAccuracyOf};
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use pallet_session::historical::{self as pallet_session_historical};
@@ -70,12 +67,12 @@ use sp_runtime::{
 	curve::PiecewiseLinear,
 	generic, impl_opaque_keys,
 	traits::{
-		self, BlakeTwo256, Block as BlockT, Bounded, Dispatchable, NumberFor, OpaqueKeys,
+		self, BlakeTwo256, Block as BlockT, Dispatchable, NumberFor, OpaqueKeys,
 		SaturatedConversion, StaticLookup, UniqueSaturatedInto,
 	},
 	transaction_validity::{TransactionPriority, TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, ConsensusEngineId, FixedPointNumber, FixedU128, Perbill, Percent,
-	Permill, Perquintill, RuntimeAppPublic,
+	ApplyExtrinsicResult, ConsensusEngineId, FixedU128, Perbill, Percent, Permill,
+	RuntimeAppPublic,
 };
 use sp_std::prelude::*;
 #[cfg(any(feature = "std", test))]
@@ -85,7 +82,6 @@ use static_assertions::const_assert;
 
 #[cfg(any(feature = "std", test))]
 pub use frame_system::Call as SystemCall;
-use identity::IdentityInfo;
 #[cfg(any(feature = "std", test))]
 pub use pallet_balances::Call as BalancesCall;
 use pallet_ethereum::{
@@ -117,9 +113,6 @@ use impls::Author;
 pub mod constants;
 use constants::{currency::*, time::*};
 use sp_runtime::generic::Era;
-
-// Identity storing fields that any account can have on-chain.
-mod identity;
 
 /// Generated voter bag information.
 mod voter_bags;
@@ -200,12 +193,6 @@ pub fn native_version() -> NativeVersion {
 
 type NegativeImbalance = <Balances as Currency<AccountId>>::NegativeImbalance;
 
-/// We assume that ~10% of the block weight is consumed by `on_initialize` handlers.
-/// This is used to limit the maximal weight of a single extrinsic.
-const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_percent(5);
-/// We allow `Normal` extrinsics to fill up the block up to 75%, the rest can be used
-/// by  Operational  extrinsics.
-const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 /// We allow for 2 seconds of compute with a 6 second average block time.
 /// The storage proof size is not limited so far.
 pub const MAXIMUM_BLOCK_WEIGHT: Weight =
@@ -216,10 +203,7 @@ const_assert!(NORMAL_DISPATCH_RATIO.deconstruct() >= AVERAGE_ON_INITIALIZE_RATIO
 pub const SS58_PREFIX: u16 = 440;
 
 parameter_types! {
-	pub const BlockHashCount: BlockNumber = 2400;
 	pub const Version: RuntimeVersion = VERSION;
-	pub RuntimeBlockLength: BlockLength =
-		BlockLength::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
 	pub RuntimeBlockWeights: BlockWeights = BlockWeights::builder()
 		.base_block(BlockExecutionWeight::get())
 		.for_class(DispatchClass::all(), |weights| {
@@ -344,7 +328,12 @@ parameter_types! {
 pub enum ProxyType {
 	Any,
 	NonTransfer,
+	Governance,
 	Staking,
+	SudoBalances,
+	IdentityJudgement,
+	CancelProxy,
+	NominationPools,
 }
 impl Default for ProxyType {
 	fn default() -> Self {
@@ -356,7 +345,40 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 		match self {
 			ProxyType::Any => true,
 			ProxyType::NonTransfer => !matches!(c, RuntimeCall::Balances(..)),
-			ProxyType::Staking => matches!(c, RuntimeCall::Staking(..)),
+			ProxyType::Staking => {
+				matches!(
+					c,
+					RuntimeCall::Staking(..) |
+						RuntimeCall::Session(..) | RuntimeCall::Utility(..) |
+						RuntimeCall::BagsList(..) |
+						RuntimeCall::NominationPools(..)
+				)
+			},
+			ProxyType::SudoBalances => match c {
+				RuntimeCall::Sudo(pallet_sudo::Call::sudo { call: ref x }) => {
+					matches!(x.as_ref(), &RuntimeCall::Balances(..))
+				},
+				RuntimeCall::Utility(..) => true,
+				_ => false,
+			},
+			ProxyType::Governance => matches!(
+				c,
+				// OpenGov calls
+				RuntimeCall::ConvictionVoting(..) |
+					RuntimeCall::Referenda(..) |
+					RuntimeCall::Whitelist(..)
+			),
+			ProxyType::IdentityJudgement => matches!(
+				c,
+				RuntimeCall::Identity(pallet_identity::Call::provide_judgement { .. }) |
+					RuntimeCall::Utility(..)
+			),
+			ProxyType::CancelProxy => {
+				matches!(c, RuntimeCall::Proxy(pallet_proxy::Call::reject_announcement { .. }))
+			},
+			ProxyType::NominationPools => {
+				matches!(c, RuntimeCall::NominationPools(..) | RuntimeCall::Utility(..))
+			},
 		}
 	}
 	fn is_superset(&self, o: &Self) -> bool {
@@ -488,10 +510,6 @@ impl pallet_balances::Config for Runtime {
 parameter_types! {
 	pub const TransactionByteFee: Balance = 10 * MICROAFT;
 	pub const OperationalFeeMultiplier: u8 = 5;
-	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
-	pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(1, 100_000);
-	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000_000u128); // TODO
-	pub MaximumMultiplier: Multiplier = Bounded::max_value();
 }
 
 impl pallet_transaction_payment::Config for Runtime {
@@ -500,13 +518,7 @@ impl pallet_transaction_payment::Config for Runtime {
 	type OperationalFeeMultiplier = OperationalFeeMultiplier;
 	type WeightToFee = IdentityFee<Balance>;
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
-	type FeeMultiplierUpdate = TargetedFeeAdjustment<
-		Self,
-		TargetBlockFullness,
-		AdjustmentVariable,
-		MinimumMultiplier,
-		MaximumMultiplier,
-	>;
+	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
 }
 
 parameter_types! {
@@ -603,8 +615,7 @@ impl pallet_staking::Config for Runtime {
 	type SessionsPerEra = SessionsPerEra;
 	type BondingDuration = BondingDuration;
 	type SlashDeferDuration = SlashDeferDuration;
-	/// A super-majority of the council can cancel the slash.
-	type AdminOrigin = EnsureRoot<AccountId>;
+	type AdminOrigin = EitherOf<EnsureRoot<Self::AccountId>, StakingAdmin>;
 	type SessionInterface = Self;
 	type EraPayout = pallet_staking::ConvertCurve<RewardCurve>;
 	type NextNewSession = Session;
@@ -795,24 +806,18 @@ parameter_types! {
 	pub const MaxPointsToBalance: u8 = 10;
 }
 
-use crate::extensions::artists::ArtistsExtension;
+use crate::{
+	extensions::artists::ArtistsExtension,
+	governance::pallet_custom_origins::{ArtistAdmin, GeneralAdmin, StakingAdmin},
+};
+use shared_runtime::{
+	identity::IdentityInfo, BalanceToU256, BlockHashCount, RuntimeBlockLength,
+	SlowAdjustingFeeUpdate, U256ToBalance, AVERAGE_ON_INITIALIZE_RATIO, NORMAL_DISPATCH_RATIO,
+};
 use sp_runtime::{
-	traits::{Convert, DispatchInfoOf, PostDispatchInfoOf},
+	traits::{DispatchInfoOf, PostDispatchInfoOf},
 	transaction_validity::TransactionValidityError,
 };
-
-pub struct BalanceToU256;
-impl Convert<Balance, sp_core::U256> for BalanceToU256 {
-	fn convert(balance: Balance) -> sp_core::U256 {
-		sp_core::U256::from(balance)
-	}
-}
-pub struct U256ToBalance;
-impl Convert<sp_core::U256, Balance> for U256ToBalance {
-	fn convert(n: sp_core::U256) -> Balance {
-		n.try_into().unwrap_or(Balance::max_value())
-	}
-}
 
 impl pallet_nomination_pools::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
@@ -1006,8 +1011,8 @@ impl pallet_identity::Config for Runtime {
 	type MaxRegistrars = MaxRegistrars;
 	type IdentityInformation = IdentityInfo<MaxAdditionalFields>;
 	type Slashed = ();
-	type ForceOrigin = EnsureRoot<AccountId>;
-	type RegistrarOrigin = EnsureRoot<AccountId>;
+	type ForceOrigin = EitherOf<EnsureRoot<AccountId>, GeneralAdmin>;
+	type RegistrarOrigin = EitherOf<EnsureRoot<AccountId>, GeneralAdmin>;
 	type WeightInfo = weights::identity::AllfeatWeight<Runtime>;
 }
 
@@ -1074,7 +1079,7 @@ parameter_types! {
 impl pallet_artists::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type PalletId = ArtistsPalletId;
-	type RootOrigin = EnsureRoot<Self::AccountId>;
+	type RootOrigin = EitherOf<EnsureRoot<AccountId>, ArtistAdmin>;
 	type Slash = ();
 	type Currency = Balances;
 	type ByteDeposit = ByteDesposit;

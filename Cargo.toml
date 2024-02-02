@@ -2,10 +2,11 @@
 resolver = "2"
 members = [
 	"node",
+	"runtime/shared",
 	"runtime/harmonie",
 	"runtime/allfeat",
 	"primitives",
-	"precompiles/balances-erc20",
+	"precompiles/balances-erc20", "runtime/shared",
 	# "utils/generate_bags",
 ]
 
@@ -159,6 +160,7 @@ substrate-build-script-utils = { version = "3.0.0", git = "https://github.com/Al
 frame-benchmarking-cli = { version = "4.0.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
 
 # Allfeat (client)
+shared-runtime = { version = "1.0.0-dev", path = "./runtime/shared" }
 harmonie-runtime = { version = "1.0.0-dev", path = "./runtime/harmonie" }
 allfeat-runtime = { version = "1.0.0-dev", path = "./runtime/allfeat" }
 

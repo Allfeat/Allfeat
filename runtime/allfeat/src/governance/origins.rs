@@ -15,6 +15,8 @@ pub mod pallet_custom_origins {
 	#[derive(PartialEq, Eq, Clone, MaxEncodedLen, Encode, Decode, TypeInfo, RuntimeDebug)]
 	#[pallet::origin]
 	pub enum Origin {
+		/// Origin for managing artists stored on-chain.
+		ArtistAdmin,
 		/// Origin for cancelling slashes.
 		StakingAdmin,
 		/// Origin for managing the composition of the fellowship.
@@ -86,6 +88,7 @@ pub mod pallet_custom_origins {
 		() => {}
 	}
 	decl_unit_ensures!(
+		ArtistAdmin,
 		StakingAdmin,
 		FellowshipAdmin,
 		GeneralAdmin,

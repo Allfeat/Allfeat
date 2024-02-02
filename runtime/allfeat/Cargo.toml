@@ -27,6 +27,8 @@ frame-system = { workspace = true }
 frame-try-runtime = { workspace = true, optional = true }
 frame-executive = { workspace = true }
 
+shared-runtime = { workspace = true }
+
 sp-arithmetic = { workspace = true }
 sp-api = { workspace = true }
 sp-block-builder = { workspace = true }
@@ -187,6 +189,7 @@ std = [
   "frame-try-runtime?/std",
   "sp-io/std",
   "sp-statement-store/std",
+  "shared-runtime/std",
   # Frontier
   "fp-evm/std",
   "fp-rpc/std",
@@ -207,6 +210,7 @@ std = [
   "pallet-evm-precompile-balances-erc20/std"
 ]
 runtime-benchmarks = [
+  "shared-runtime/runtime-benchmarks",
   "frame-benchmarking/runtime-benchmarks",
   "frame-support/runtime-benchmarks",
   "frame-system/runtime-benchmarks",
@@ -243,6 +247,7 @@ runtime-benchmarks = [
   "pallet-whitelist/runtime-benchmarks",
 ]
 try-runtime = [
+  "shared-runtime/try-runtime",
   "frame-election-provider-support/try-runtime",
   "frame-executive/try-runtime",
   "frame-try-runtime/try-runtime",
