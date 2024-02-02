@@ -60,7 +60,9 @@ use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_api::impl_runtime_apis;
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
-use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, RuntimeDebug, H160, H256, U256};
+use sp_core::{
+	crypto::KeyTypeId, ConstBool, ConstU64, OpaqueMetadata, RuntimeDebug, H160, H256, U256,
+};
 use sp_inherents::{CheckInherentsResult, InherentData};
 use sp_runtime::{
 	create_runtime_str,
@@ -88,7 +90,8 @@ use pallet_ethereum::{
 	Call::transact, EthereumBlockHashMapping, PostLogContent, Transaction as EthereumTransaction,
 };
 use pallet_evm::{
-	Account as EVMAccount, EnsureAccountId20, GasWeightMapping, IdentityAddressMapping, Runner,
+	Account as EVMAccount, EVMCurrencyAdapter, EnsureAccountId20, GasWeightMapping,
+	IdentityAddressMapping, Runner,
 };
 #[cfg(any(feature = "std", test))]
 pub use pallet_staking::StakerStatus;
@@ -167,7 +170,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	// and set impl_version to 0. If only runtime
 	// implementation changes and behavior does not, then leave spec_version as
 	// is and increment impl_version.
-	spec_version: 110,
+	spec_version: 120,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -194,7 +197,7 @@ pub const WEIGHT_MILLISECS_PER_BLOCK: u64 = 4000;
 const MAXIMUM_BLOCK_WEIGHT: Weight =
 	Weight::from_parts(WEIGHT_MILLISECS_PER_BLOCK * WEIGHT_REF_TIME_PER_SECOND, u64::MAX);
 
-pub const SS58_PREFIX: u16 = 42;
+pub const SS58_PREFIX: u16 = 441;
 
 parameter_types! {
 	pub const Version: RuntimeVersion = VERSION;
@@ -1047,7 +1050,6 @@ parameter_types! {
 	pub const StyleNameMaxLength: u32 = 64;
 }
 
-impl pallet_evm_chain_id::Config for Runtime {}
 pub struct FindAuthorTruncated<F>(PhantomData<F>);
 impl<F: FindAuthor<u32>> FindAuthor<H160> for FindAuthorTruncated<F> {
 	fn find_author<'a, I>(digests: I) -> Option<H160>
@@ -1085,10 +1087,10 @@ impl pallet_evm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type PrecompilesType = AllfeatPrecompiles<Self>;
 	type PrecompilesValue = PrecompilesValue;
-	type ChainId = EVMChainId;
+	type ChainId = ConstU64<441>;
 	type BlockGasLimit = BlockGasLimit;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type OnChargeTransaction = ();
+	type OnChargeTransaction = EVMCurrencyAdapter<Balances, Author>;
 	type OnCreate = ();
 	type FindAuthor = FindAuthorTruncated<Babe>;
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
@@ -1189,7 +1191,6 @@ construct_runtime!(
 		// Frontier
 		Ethereum: pallet_ethereum = 50,
 		EVM: pallet_evm = 51,
-		EVMChainId: pallet_evm_chain_id = 52,
 		DynamicFee: pallet_dynamic_fee = 53,
 		BaseFee: pallet_base_fee = 54,
 		HotfixSufficients: pallet_hotfix_sufficients = 55,

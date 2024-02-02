@@ -23,7 +23,6 @@ allfeat-primitives = { workspace = true }
 
 [features]
 default = ["std"]
-no_std = []
 std = [
     "frame-system/std",
     "frame-support/std",
@@ -34,6 +33,7 @@ std = [
     "sp-core/std",
     "sp-runtime/std",
     "allfeat-primitives/std",
+    "parity-scale-codec/std",
     "pallet-transaction-payment/std"
 ]
 runtime-benchmarks = [

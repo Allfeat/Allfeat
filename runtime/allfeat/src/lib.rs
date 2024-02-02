@@ -60,7 +60,9 @@ use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_api::impl_runtime_apis;
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
-use sp_core::{crypto::KeyTypeId, ConstBool, OpaqueMetadata, RuntimeDebug, H160, H256, U256};
+use sp_core::{
+	crypto::KeyTypeId, ConstBool, ConstU64, OpaqueMetadata, RuntimeDebug, H160, H256, U256,
+};
 use sp_inherents::{CheckInherentsResult, InherentData};
 use sp_runtime::{
 	create_runtime_str,
@@ -88,7 +90,8 @@ use pallet_ethereum::{
 	Call::transact, EthereumBlockHashMapping, PostLogContent, Transaction as EthereumTransaction,
 };
 use pallet_evm::{
-	Account as EVMAccount, EnsureAccountId20, GasWeightMapping, IdentityAddressMapping, Runner,
+	Account as EVMAccount, EVMCurrencyAdapter, EnsureAccountId20, GasWeightMapping,
+	IdentityAddressMapping, Runner,
 };
 #[cfg(any(feature = "std", test))]
 pub use pallet_staking::StakerStatus;
@@ -1093,13 +1096,6 @@ impl pallet_artists::Config for Runtime {
 	type WeightInfo = (); // TODO
 }
 
-parameter_types! {
-	pub const MaxStyleCount: u32 = 30;
-	pub const MaxSubStyleCount: u32 = 50;
-	pub const StyleNameMaxLength: u32 = 64;
-}
-
-impl pallet_evm_chain_id::Config for Runtime {}
 pub struct FindAuthorTruncated<F>(PhantomData<F>);
 impl<F: FindAuthor<u32>> FindAuthor<H160> for FindAuthorTruncated<F> {
 	fn find_author<'a, I>(digests: I) -> Option<H160>
@@ -1138,10 +1134,10 @@ impl pallet_evm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type PrecompilesType = AllfeatPrecompiles<Self>;
 	type PrecompilesValue = PrecompilesValue;
-	type ChainId = EVMChainId;
+	type ChainId = ConstU64<440>;
 	type BlockGasLimit = BlockGasLimit;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type OnChargeTransaction = ();
+	type OnChargeTransaction = EVMCurrencyAdapter<Balances, Author>;
 	type OnCreate = ();
 	type FindAuthor = FindAuthorTruncated<Babe>;
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
@@ -1248,7 +1244,6 @@ construct_runtime!(
 		// Frontier
 		Ethereum: pallet_ethereum = 50,
 		EVM: pallet_evm = 51,
-		EVMChainId: pallet_evm_chain_id = 52,
 		DynamicFee: pallet_dynamic_fee = 53,
 		BaseFee: pallet_base_fee = 54,
 		HotfixSufficients: pallet_hotfix_sufficients = 55,
