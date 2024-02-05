@@ -46,7 +46,6 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 			vec![],
 			accounts[0],
 			None,
-			442,
 		))
 		.with_protocol_id("aft")
 		.with_properties(
@@ -77,7 +76,6 @@ pub fn testnet_genesis(
 	initial_nominators: Vec<AccountId>,
 	root_key: AccountId,
 	endowed_accounts: Option<Vec<AccountId>>,
-	chain_id: u64,
 ) -> serde_json::Value {
 	let mut endowed_accounts: Vec<AccountId> = endowed_accounts.unwrap_or_else(|| {
 		vec![
@@ -152,7 +150,5 @@ pub fn testnet_genesis(
 		"babe": {
 			"epochConfig": Some(harmonie_runtime::BABE_GENESIS_EPOCH_CONFIG),
 		},
-		// EVM compatibility
-		"evmChainId": { "chainId": chain_id },
 	})
 }
