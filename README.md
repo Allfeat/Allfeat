@@ -46,8 +46,10 @@ All the examples in this document assume that you use a Ubuntu like system. If t
   sudo apt update -y
   # Installing all dependencies (but not Rust).
   sudo apt install build-essential git clang curl libssl-dev llvm libudev-dev cmake make protobuf-compiler -y
-  # Installing Rust.
+  # Installing Rust and required stuff.
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+  rustup target add wasm32-unknown-unknown
+  rustup component add rust-src
   # Starting a new bash environment so we have access to cargo and rust commands.
   exec bash
 ```
@@ -82,12 +84,11 @@ All the examples in this document assume that you use a Ubuntu like system. If t
 
 # Run
 Node flag explanation:
-- `--chain harmonie`: There are a couple of chain configurations that we provide and each configuration has a drastic impact on how the chain behaves and what features it has. For testing purposes it's best to stick with harmonie configuration.
+- `--chain harmonie-live`: There are a couple of chain configurations that we provide and each configuration has a drastic impact on how the chain behaves and what features it has. For testing purposes it's best to stick with harmonie configuration.
 - `--alice`: This sets a couple of flags for us. It sets the `--validator` flag so that the client is running in a validator mode, it makes Alice a validator and it inserts Alice's keys into the local keystore.
 - `--tmp`: Makes is so that the blockchain data is stored in a temporary location. Usually this data is deleted on reboot.
 - `--name MyLocalNode`: Sets the name of the name. This should be something unique.
 - `--rpc-external`: Listen to all RPC interfaces. This should be used only during testing.
-- `--ws-external`: Listen to all Websocket interfaces. This should be used only during testing.
 - `--rpc-cors all`: Specifies browser Origins allowed to access the HTTP && WS RPC servers. This should be used only during testing.
 - `--telemetry-url "wss://telemetry.polkadot.io/submit/ 0"`: Tells the node to send node telemetry data to `telemetry.polkadot.io`.
 
@@ -99,7 +100,7 @@ Docker flag explanation:
 ## Run Locally
 ```bash
   # Make sure that you have built a binary from the "Build Locally" step.
-  ./target/release/allfeat --chain harmonie --alice --tmp --name MyLocalNode --rpc-external --ws-external --rpc-cors all
+  ./target/release/allfeat --chain harmonie-live --alice --tmp --name MyLocalNode --rpc-external --rpc-cors all
 ```
 
 ## Run With Docker
@@ -116,7 +117,7 @@ Depending on what binary you downloaded certain features might not be available 
   # Makes the binary executable
   chmod u+x allfeat
   # Runs the chain
-  ./allfeat --chain harmonie --alice --tmp --name MyLocalNode --rpc-external --ws-external --rpc-cors all
+  ./allfeat --chain harmonie-live --alice --tmp --name MyLocalNode --rpc-external --rpc-cors all
 ```
 
 # Running Benchmarks
@@ -124,7 +125,7 @@ Depending on what binary you downloaded certain features might not be available 
   # Building the Allfeat Binary.
   cargo build --locked --release --features runtime-benchmarks
   # Run the benchmarks for the balances pallet.
-  ./target/release/allfeat benchmark pallet --chain harmonie --steps=50 --repeat=20 --extrinsic=* --execution=wasm --wasm-execution=compiled --heap-pages=4096 --output=./weights/ --pallet=pallet_balances
+  ./target/release/allfeat benchmark pallet --chain harmonie-live --steps=50 --repeat=20 --extrinsic=* --execution=wasm --wasm-execution=compiled --heap-pages=4096 --output=./weights/ --pallet=pallet_balances
 ```
 
 # Running Unit Tests
