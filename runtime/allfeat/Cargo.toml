@@ -101,6 +101,7 @@ pallet-evm-precompile-sha3fips = { workspace = true }
 pallet-evm-precompile-simple = { workspace = true }
 pallet-evm-precompile-bn128 = { workspace = true }
 pallet-evm-precompile-blake2 = { workspace = true }
+pallet-evm-precompile-artists = { workspace = true }
 pallet-hotfix-sufficients = { workspace = true }
 precompile-utils = { workspace = true }
 
@@ -205,7 +206,8 @@ std = [
   "pallet-evm-precompile-blake2/std",
   "pallet-hotfix-sufficients/std",
   "precompile-utils/std",
-  "pallet-evm-precompile-balances-erc20/std"
+  "pallet-evm-precompile-balances-erc20/std",
+  "pallet-evm-precompile-artists/std",
 ]
 runtime-benchmarks = [
   "shared-runtime/runtime-benchmarks",

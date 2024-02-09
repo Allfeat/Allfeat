@@ -35,7 +35,10 @@ mod multiplier_tests {
 		dispatch::DispatchClass,
 		weights::{Weight, WeightToFee},
 	};
-	use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
+	use pallet_transaction_payment::Multiplier;
+	use shared_runtime::{
+		AdjustmentVariable, MinimumMultiplier, SlowAdjustingFeeUpdate, TargetBlockFullness,
+	};
 	use sp_runtime::{
 		assert_eq_error_rate,
 		traits::{Convert, One, Zero},
@@ -44,8 +47,7 @@ mod multiplier_tests {
 
 	use crate::{
 		constants::{currency::*, time::*},
-		AdjustmentVariable, MaximumMultiplier, MinimumMultiplier, Runtime,
-		RuntimeBlockWeights as BlockWeights, System, TargetBlockFullness, TransactionPayment,
+		Runtime, RuntimeBlockWeights as BlockWeights, System, TransactionPayment,
 	};
 
 	fn max_normal() -> Weight {
@@ -65,13 +67,7 @@ mod multiplier_tests {
 
 	// update based on runtime impl.
 	fn runtime_multiplier_update(fm: Multiplier) -> Multiplier {
-		TargetedFeeAdjustment::<
-			Runtime,
-			TargetBlockFullness,
-			AdjustmentVariable,
-			MinimumMultiplier,
-			MaximumMultiplier,
-		>::convert(fm)
+		SlowAdjustingFeeUpdate::<Runtime>::convert(fm)
 	}
 
 	// update based on reference impl.
@@ -194,7 +190,7 @@ mod multiplier_tests {
 				let next = runtime_multiplier_update(fm);
 				fm = next;
 				if fm == min_multiplier() {
-					break;
+					break
 				}
 				iterations += 1;
 			}
@@ -222,8 +218,8 @@ mod multiplier_tests {
 		// `cargo test congested_chain_simulation -- --nocapture` to get some insight.
 
 		// almost full. The entire quota of normal transactions is taken.
-		let block_weight = BlockWeights::get().get(DispatchClass::Normal).max_total.unwrap()
-			- Weight::from_parts(100, 0);
+		let block_weight = BlockWeights::get().get(DispatchClass::Normal).max_total.unwrap() -
+			Weight::from_parts(100, 0);
 
 		// Default substrate weight.
 		let tx_weight = frame_support::weights::constants::ExtrinsicBaseWeight::get();
@@ -248,14 +244,14 @@ mod multiplier_tests {
 					);
 				let adjusted_fee = fm.saturating_mul_acc_int(fee);
 				println!(
-					"iteration {}, new fm = {:?}. Fee at this point is: {} units / {} millicents, \
-					{} cents, {} dollars",
+					"iteration {}, new fm = {:?}. Fee at this point is: {} units / {} MICROAFT, \
+					{} MILLIAFT, {} AFT",
 					iterations,
 					fm,
 					adjusted_fee,
-					adjusted_fee / MILLICENTS,
-					adjusted_fee / CENTS,
-					adjusted_fee / DOLLARS,
+					adjusted_fee / MICROAFT,
+					adjusted_fee / MILLIAFT,
+					adjusted_fee / AFT,
 				);
 			}
 		});

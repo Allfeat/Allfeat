@@ -4,11 +4,15 @@ use super::*;
 
 use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
-use precompile_utils::precompile_set::{AddressU64, PrecompileAt, PrecompileSetBuilder};
-use precompile_utils::testing::MockAccount;
+use precompile_utils::{
+	precompile_set::{AddressU64, PrecompileAt, PrecompileSetBuilder},
+	testing::MockAccount,
+};
 use sp_core::{H256, U256};
-use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
-use sp_runtime::BuildStorage;
+use sp_runtime::{
+	traits::{BlakeTwo256, IdentityLookup},
+	BuildStorage,
+};
 
 pub type AccountId = MockAccount;
 pub type Balance = u128;
@@ -75,6 +79,7 @@ impl pallet_balances::Config for Runtime {
 	type ReserveIdentifier = ();
 	type WeightInfo = ();
 	type RuntimeHoldReason = ();
+	type RuntimeFreezeReason = ();
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
 	type MaxHolds = ();
@@ -119,6 +124,7 @@ impl pallet_evm::Config for Runtime {
 	type FindAuthor = ();
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
 	type Timestamp = Timestamp;
+	type SuicideQuickClearLimit = ();
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
 }
 

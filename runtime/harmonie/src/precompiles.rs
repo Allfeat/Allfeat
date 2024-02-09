@@ -1,3 +1,4 @@
+use pallet_evm_precompile_artists::ArtistsPrecompile;
 use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
 use pallet_evm_precompile_blake2::Blake2F;
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
@@ -51,6 +52,11 @@ type AllfeatPrecompilesAt<R> = (
 	PrecompileAt<
 		AddressU64<2048>,
 		Erc20BalancesPrecompile<R, NativeErc20Metadata>,
+		(CallableByContract, CallableByPrecompile),
+	>,
+	PrecompileAt<
+		AddressU64<2049>,
+		ArtistsPrecompile<R>,
 		(CallableByContract, CallableByPrecompile),
 	>,
 );

@@ -6,7 +6,9 @@ members = [
 	"runtime/harmonie",
 	"runtime/allfeat",
 	"primitives",
-	"precompiles/balances-erc20", "runtime/shared",
+	"precompiles/balances-erc20",
+	"precompiles/artists",
+	"runtime/shared",
 	# "utils/generate_bags",
 ]
 
@@ -200,6 +202,7 @@ pallet-hotfix-sufficients = { version = "1.0.0-dev", git = "https://github.com/A
 pallet-evm-precompile-bn128 = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0", default-features = false }
 pallet-evm-precompile-blake2 = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0", default-features = false }
 pallet-evm-precompile-balances-erc20 = { path = "./precompiles/balances-erc20", default-features = false }
+pallet-evm-precompile-artists = { path = "./precompiles/artists", default-features = false }
 
 # Frontier (client)
 fc-api = { version = "1.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0" }
