@@ -61,7 +61,8 @@ use sp_api::impl_runtime_apis;
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
 use sp_core::{
-	crypto::KeyTypeId, ConstBool, ConstU64, OpaqueMetadata, RuntimeDebug, H160, H256, U256,
+	crypto::KeyTypeId, ConstBool, ConstU128, ConstU64, OpaqueMetadata, RuntimeDebug, H160, H256,
+	U256,
 };
 use sp_inherents::{CheckInherentsResult, InherentData};
 use sp_runtime::{
@@ -170,7 +171,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	// and set impl_version to 0. If only runtime
 	// implementation changes and behavior does not, then leave spec_version as
 	// is and increment impl_version.
-	spec_version: 120,
+	spec_version: 130,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -337,7 +338,8 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 		match self {
 			ProxyType::Any => true,
 			ProxyType::NonTransfer => !matches!(c, RuntimeCall::Balances(..)),
-			ProxyType::Staking => matches!(c, RuntimeCall::Staking(..)),
+			ProxyType::Staking =>
+				matches!(c, RuntimeCall::Staking(..) | RuntimeCall::FastUnstake(..)),
 		}
 	}
 	fn is_superset(&self, o: &Self) -> bool {
@@ -590,6 +592,17 @@ impl pallet_staking::Config for Runtime {
 	type EventListeners = NominationPools;
 	type HistoryDepth = HistoryDepth;
 	type WeightInfo = weights::staking::AllfeatWeight<Runtime>;
+}
+
+impl pallet_fast_unstake::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type BatchSize = ConstU32<64>;
+	type Deposit = ConstU128<{ AFT }>;
+	type ControlOrigin = EnsureRoot<AccountId>;
+	type Staking = Staking;
+	type MaxErasToCheckPerBlock = ConstU32<1>;
+	type WeightInfo = pallet_fast_unstake::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -1185,6 +1198,8 @@ construct_runtime!(
 		ElectionProviderMultiPhase: pallet_election_provider_multi_phase = 24,
 		BagsList: pallet_bags_list::<Instance1> = 25,
 		NominationPools: pallet_nomination_pools = 29,
+		// Fast unstake pallet: extension to staking.
+		FastUnstake: pallet_fast_unstake = 30,
 
 		Contracts: pallet_contracts = 40,
 
@@ -1347,6 +1362,7 @@ mod benches {
 		[pallet_contracts, Contracts]
 		[pallet_election_provider_multi_phase, ElectionProviderMultiPhase]
 		[pallet_election_provider_support_benchmarking, EPSBench::<Runtime>]
+		[pallet_fast_unstake, FastUnstake]
 		[pallet_evm, EVM]
 		[pallet_grandpa, Grandpa]
 		[pallet_identity, Identity]
