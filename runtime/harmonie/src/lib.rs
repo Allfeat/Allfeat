@@ -28,8 +28,8 @@ use core::marker::PhantomData;
 use fp_evm::{weight_per_gas, FeeCalculator};
 use fp_rpc::TransactionStatus;
 use frame_election_provider_support::{
-	bounds::{ElectionBounds, ElectionBoundsBuilder},
-	onchain, BalancingConfig, ElectionDataProvider, SequentialPhragmen, VoteWeight,
+	bounds::ElectionBoundsBuilder, onchain, BalancingConfig, ElectionDataProvider,
+	SequentialPhragmen, VoteWeight,
 };
 use frame_support::{
 	construct_runtime,
@@ -46,7 +46,7 @@ use frame_support::{
 		constants::{
 			BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND,
 		},
-		ConstantMultiplier, IdentityFee, Weight,
+		ConstantMultiplier, Weight,
 	},
 	PalletId,
 };
@@ -171,7 +171,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	// and set impl_version to 0. If only runtime
 	// implementation changes and behavior does not, then leave spec_version as
 	// is and increment impl_version.
-	spec_version: 130,
+	spec_version: 140,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -288,6 +288,7 @@ parameter_types! {
 	pub const DepositBase: Balance = deposit(1, 88);
 	// Additional storage item size of 32 bytes.
 	pub const DepositFactor: Balance = deposit(0, 32);
+	pub const MaxSignatories: u32 = 100;
 }
 
 impl pallet_multisig::Config for Runtime {
@@ -296,7 +297,7 @@ impl pallet_multisig::Config for Runtime {
 	type Currency = Balances;
 	type DepositBase = DepositBase;
 	type DepositFactor = DepositFactor;
-	type MaxSignatories = ConstU32<100>;
+	type MaxSignatories = MaxSignatories;
 	type WeightInfo = weights::multisig::AllfeatWeight<Runtime>;
 }
 
@@ -307,6 +308,8 @@ parameter_types! {
 	pub const ProxyDepositFactor: Balance = deposit(0, 33);
 	pub const AnnouncementDepositBase: Balance = deposit(1, 8);
 	pub const AnnouncementDepositFactor: Balance = deposit(0, 66);
+	pub const MaxProxies: u16 = 32;
+	pub const MaxPending: u16 = 32;
 }
 
 /// The type used to represent the kinds of proxying allowed.
@@ -360,9 +363,9 @@ impl pallet_proxy::Config for Runtime {
 	type ProxyType = ProxyType;
 	type ProxyDepositBase = ProxyDepositBase;
 	type ProxyDepositFactor = ProxyDepositFactor;
-	type MaxProxies = ConstU32<32>;
+	type MaxProxies = MaxProxies;
 	type WeightInfo = weights::proxy::AllfeatWeight<Runtime>;
-	type MaxPending = ConstU32<32>;
+	type MaxPending = MaxPending;
 	type CallHasher = BlakeTwo256;
 	type AnnouncementDepositBase = AnnouncementDepositBase;
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
@@ -387,11 +390,10 @@ impl pallet_scheduler::Config for Runtime {
 }
 
 parameter_types! {
-	pub const PreimageMaxSize: u32 = 4096 * 1024;
-	pub const PreimageBaseDeposit: Balance = 1 * AFT;
-	// One cent: $10,000 / MB
-	pub const PreimageByteDeposit: Balance = 1 * MILLIAFT;
-	pub const PreimageHoldReason: RuntimeHoldReason = RuntimeHoldReason::Preimage(pallet_preimage::HoldReason::Preimage);
+	pub const PreimageBaseDeposit: Balance = deposit(2, 64);
+	pub const PreimageByteDeposit: Balance = deposit(0, 1);
+	pub const PreimageHoldReason: RuntimeHoldReason =
+		RuntimeHoldReason::Preimage(pallet_preimage::HoldReason::Preimage);
 }
 
 impl pallet_preimage::Config for Runtime {
@@ -411,9 +413,13 @@ impl pallet_preimage::Config for Runtime {
 parameter_types! {
 	// NOTE: Currently it is not possible to change the epoch duration after the chain has started.
 	//       Attempting to do so will brick block production.
-	pub const EpochDuration: u64 = EPOCH_DURATION_IN_SLOTS;
+	pub EpochDuration: u64 = prod_or_fast!(
+		EPOCH_DURATION_IN_SLOTS as u64,
+		2 * MINUTES as u64,
+		"AFT_EPOCH_DURATION"
+	);
 	pub const ExpectedBlockTime: Moment = MILLISECS_PER_BLOCK;
-	pub const ReportLongevity: u64 =
+	pub ReportLongevity: u64 =
 		BondingDuration::get() as u64 * SessionsPerEra::get() as u64 * EpochDuration::get();
 }
 
@@ -431,7 +437,7 @@ impl pallet_babe::Config for Runtime {
 
 	type WeightInfo = ();
 	type MaxAuthorities = MaxAuthorities;
-	type MaxNominators = MaxNominators;
+	type MaxNominators = MaxNominatorRewardedPerValidator;
 }
 
 #[cfg(not(feature = "runtime-benchmarks"))]
@@ -477,7 +483,7 @@ impl pallet_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type OnChargeTransaction = CurrencyAdapter<Balances, Author>;
 	type OperationalFeeMultiplier = OperationalFeeMultiplier;
-	type WeightToFee = IdentityFee<Balance>;
+	type WeightToFee = WeightToFee;
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
 }
@@ -540,19 +546,26 @@ pallet_staking_reward_curve::build! {
 }
 
 parameter_types! {
-	/// An era in 24 hours (6 * epoch)
-	pub const SessionsPerEra: sp_staking::SessionIndex = 6;
-	pub const BondingDuration: sp_staking::EraIndex = 24 * 28;
-	pub const SlashDeferDuration: sp_staking::EraIndex = 24 * 7; // 1/4 the bonding duration.
+	// Six sessions in an era (24 hours).
+	pub const SessionsPerEra: SessionIndex = prod_or_fast!(6, 1);
+	// 28 eras for unbonding (28 days).
+	pub BondingDuration: sp_staking::EraIndex = prod_or_fast!(
+		28,
+		28,
+		"AFT_BONDING_DURATION"
+	);
+	pub SlashDeferDuration: sp_staking::EraIndex = prod_or_fast!(
+		27,
+		27,
+		"AFT_SLASH_DEFER_DURATION"
+	);
 	pub const RewardCurve: &'static PiecewiseLinear<'static> = &REWARD_CURVE;
-	pub const MaxNominators: u32 = 64;
+	pub const MaxNominatorRewardedPerValidator: u32 = 512;
 	pub const OffendingValidatorsThreshold: Perbill = Perbill::from_percent(17);
-	pub OffchainRepeat: BlockNumber = 5;
+	// 4 hour session, 1 hour unsigned phase, 32 offchain executions.
+	pub OffchainRepeat: BlockNumber = UnsignedPhase::get() / 32;
 	pub HistoryDepth: u32 = 84;
 }
-
-/// Upper limit on the number of NPOS nominations.
-const MAX_QUOTA_NOMINATIONS: u32 = 16;
 
 pub struct StakingBenchmarkingConfig;
 impl pallet_staking::BenchmarkingConfig for StakingBenchmarkingConfig {
@@ -583,7 +596,7 @@ impl pallet_staking::Config for Runtime {
 	type NextNewSession = Session;
 	type OffendingValidatorsThreshold = OffendingValidatorsThreshold;
 	type VoterList = BagsList;
-	type NominationsQuota = pallet_staking::FixedNominationsQuota<MAX_QUOTA_NOMINATIONS>;
+	type NominationsQuota = pallet_staking::FixedNominationsQuota<{ MaxNominations::get() }>;
 	type MaxUnlockingChunks = ConstU32<32>;
 	// This a placeholder, to be introduced in the next PR as an instance of bags-list
 	type TargetList = pallet_staking::UseValidatorsMap<Self>;
@@ -597,7 +610,7 @@ impl pallet_staking::Config for Runtime {
 impl pallet_fast_unstake::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
-	type BatchSize = ConstU32<64>;
+	type BatchSize = ConstU32<16>;
 	type Deposit = ConstU128<{ AFT }>;
 	type ControlOrigin = EnsureRoot<AccountId>;
 	type Staking = Staking;
@@ -606,20 +619,31 @@ impl pallet_fast_unstake::Config for Runtime {
 }
 
 parameter_types! {
-	// phase durations. 1/4 of the last session for each.
-	pub const SignedPhase: u32 = EPOCH_DURATION_IN_BLOCKS / 4;
-	pub const UnsignedPhase: u32 = EPOCH_DURATION_IN_BLOCKS / 4;
+	// in testing: 1min or half of the session for each
+	pub SignedPhase: u32 = prod_or_fast!(
+		EPOCH_DURATION_IN_SLOTS / 4,
+		(1 * MINUTES).min(EpochDuration::get().saturated_into::<u32>() / 2),
+		"AFT_SIGNED_PHASE"
+	);
+	pub UnsignedPhase: u32 = prod_or_fast!(
+		EPOCH_DURATION_IN_SLOTS / 4,
+		(1 * MINUTES).min(EpochDuration::get().saturated_into::<u32>() / 2),
+		"AFT_UNSIGNED_PHASE"
+	);
 
 	// signed config
 	pub const SignedRewardBase: Balance = 1 * AFT;
-	pub const SignedFixedDeposit: Balance = 1 * AFT;
+	pub const SignedFixedDeposit: Balance = deposit(2, 0);
 	pub const SignedDepositIncreaseFactor: Percent = Percent::from_percent(10);
-	pub const SignedDepositByte: Balance = (1 * AFT) / 10;
+	// 0.01 AFT per KB of solution data.
+	pub const SignedDepositByte: Balance = deposit(0, 10) / 1024;
 
-	pub BetterUnsignedThreshold: Perbill = Perbill::from_rational(1u32, 10_000);
+	pub BetterUnsignedThreshold: Perbill = Perbill::from_rational(5u32, 10_000);
+
+	pub NposSolutionPriority: TransactionPriority =
+		Perbill::from_percent(90) * TransactionPriority::max_value();
 
 	// miner configs
-	pub const MultiPhaseUnsignedPriority: TransactionPriority = StakingUnsignedPriority::get() - 1u64;
 	pub MinerMaxWeight: Weight = RuntimeBlockWeights::get()
 		.get(DispatchClass::Normal)
 		.max_extrinsic.expect("Normal extrinsics have a weight limit configured; qed")
@@ -642,15 +666,15 @@ frame_election_provider_support::generate_solution_type!(
 );
 
 parameter_types! {
-	// Note: the EPM in this runtime runs the election on-chain. The election bounds must be
-	// carefully set so that an election round fits in one block.
-	pub ElectionBoundsMultiPhase: ElectionBounds = ElectionBoundsBuilder::default()
-		.voters_count(10_000.into()).targets_count(1_500.into()).build();
-	pub ElectionBoundsOnChain: ElectionBounds = ElectionBoundsBuilder::default()
-		.voters_count(5_000.into()).targets_count(1_250.into()).build();
-	pub MaxNominations: u32 = <NposSolution16 as frame_election_provider_support::NposSolution>::LIMIT as u32;
-	pub MaxElectingVoters: u32 = 40_000;
-	pub MaxActiveValidators: u32 = 1000;
+	pub const MaxNominations: u32 = <NposSolution16 as frame_election_provider_support::NposSolution>::LIMIT as u32;
+	pub MaxElectingVoters: u32 = 25_000;
+	pub MaxActiveValidators: u32 = 1200;
+
+	/// We take the top 22500 nominators as electing voters and all of the validators as electable
+	/// targets. Whilst this is the case, we cannot and shall not increase the size of the
+	/// validator intentions.
+	pub ElectionBounds: frame_election_provider_support::bounds::ElectionBounds =
+		ElectionBoundsBuilder::default().voters_count(MaxElectingVoters::get().into()).build();
 }
 
 /// The numbers configured here could always be more than the the maximum limits of staking pallet
@@ -696,14 +720,11 @@ pub struct OnChainSeqPhragmen;
 
 impl onchain::Config for OnChainSeqPhragmen {
 	type System = Runtime;
-	type Solver = SequentialPhragmen<
-		AccountId,
-		pallet_election_provider_multi_phase::SolutionAccuracyOf<Runtime>,
-	>;
-	type DataProvider = <Runtime as pallet_election_provider_multi_phase::Config>::DataProvider;
+	type Solver = SequentialPhragmen<AccountId, OnChainAccuracy>;
+	type DataProvider = Staking;
 	type WeightInfo = frame_election_provider_support::weights::SubstrateWeight<Runtime>;
-	type MaxWinners = <Runtime as pallet_election_provider_multi_phase::Config>::MaxWinners;
-	type Bounds = ElectionBoundsOnChain;
+	type MaxWinners = MaxActiveValidators;
+	type Bounds = ElectionBounds;
 }
 
 impl pallet_election_provider_multi_phase::MinerConfig for Runtime {
@@ -735,7 +756,7 @@ impl pallet_election_provider_multi_phase::Config for Runtime {
 	type BetterSignedThreshold = ();
 	type BetterUnsignedThreshold = BetterUnsignedThreshold;
 	type OffchainRepeat = OffchainRepeat;
-	type MinerTxPriority = MultiPhaseUnsignedPriority;
+	type MinerTxPriority = NposSolutionPriority;
 	type MinerConfig = Self;
 	type MaxWinners = MaxActiveValidators;
 	type SignedMaxSubmissions = ConstU32<10>;
@@ -751,11 +772,19 @@ impl pallet_election_provider_multi_phase::Config for Runtime {
 	type RewardHandler = ();
 	// nothing to do upon rewards
 	type DataProvider = Staking;
+	#[cfg(any(feature = "fast-runtime", feature = "runtime-benchmarks"))]
 	type Fallback = onchain::OnChainExecution<OnChainSeqPhragmen>;
+	#[cfg(not(any(feature = "fast-runtime", feature = "runtime-benchmarks")))]
+	type Fallback = frame_election_provider_support::NoElection<(
+		AccountId,
+		BlockNumber,
+		Staking,
+		MaxActiveValidators,
+	)>;
 	type GovernanceFallback = onchain::OnChainExecution<OnChainSeqPhragmen>;
-	type Solver = SequentialPhragmen<AccountId, SolutionAccuracyOf<Self>, OffchainRandomBalancing>;
-	type ForceOrigin = EnsureRoot<AccountId>;
-	type ElectionBounds = ElectionBoundsMultiPhase;
+	type Solver = SequentialPhragmen<AccountId, SolutionAccuracyOf<Self>, ()>;
+	type ForceOrigin = EnsureRoot<Self::AccountId>;
+	type ElectionBounds = ElectionBounds;
 	type BenchmarkingConfig = ElectionProviderBenchmarkConfig;
 	type WeightInfo = weights::election_provider_multi_phase::AllfeatWeight<Runtime>;
 }
@@ -779,19 +808,21 @@ parameter_types! {
 	pub const MaxPointsToBalance: u8 = 10;
 }
 
-use crate::extensions::artists::ArtistsExtension;
+use crate::{constants::WeightToFee, extensions::artists::ArtistsExtension};
 use shared_runtime::{
-	identity::IdentityInfo, BalanceToU256, BlockHashCount, RuntimeBlockLength,
-	SlowAdjustingFeeUpdate, U256ToBalance, AVERAGE_ON_INITIALIZE_RATIO, NORMAL_DISPATCH_RATIO,
+	elections::OnChainAccuracy, identity::IdentityInfo, prod_or_fast, BalanceToU256,
+	BlockHashCount, RuntimeBlockLength, SlowAdjustingFeeUpdate, U256ToBalance,
+	AVERAGE_ON_INITIALIZE_RATIO, NORMAL_DISPATCH_RATIO,
 };
 use sp_runtime::{
 	traits::{DispatchInfoOf, PostDispatchInfoOf},
 	transaction_validity::TransactionValidityError,
 };
+use sp_staking::SessionIndex;
 
 impl pallet_nomination_pools::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = ();
+	type WeightInfo = pallet_nomination_pools::weights::SubstrateWeight<Runtime>;
 	type Currency = Balances;
 	type Staking = Staking;
 	type PalletId = NominationPoolsPalletId;
@@ -800,7 +831,8 @@ impl pallet_nomination_pools::Config for Runtime {
 	type U256ToBalance = U256ToBalance;
 	type PostUnbondingPoolsWindow = PostUnbondPoolsWindow;
 	type MaxMetadataLen = ConstU32<256>;
-	type MaxUnbonding = ConstU32<8>;
+	// we use the same number of allowed unlocking chunks as with staking.
+	type MaxUnbonding = <Self as pallet_staking::Config>::MaxUnlockingChunks;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type RewardCounter = FixedU128;
 }
@@ -861,7 +893,7 @@ parameter_types! {
 	pub const ImOnlineUnsignedPriority: TransactionPriority = TransactionPriority::max_value();
 	/// We prioritize im-online heartbeats over election solution submission.
 	pub const StakingUnsignedPriority: TransactionPriority = TransactionPriority::max_value() / 2;
-	pub const MaxAuthorities: u32 = 100;
+	pub const MaxAuthorities: u32 = 100_000;
 	pub const MaxKeys: u32 = 10_000;
 	pub const MaxPeerInHeartbeats: u32 = 10_000;
 	pub const MaxPeerDataEncodingSize: u32 = 1_000;
@@ -945,7 +977,7 @@ impl pallet_authority_discovery::Config for Runtime {
 }
 
 parameter_types! {
-	pub const MaxSetIdSessionEntries: u32 = BondingDuration::get() * SessionsPerEra::get();
+	pub MaxSetIdSessionEntries: u32 = BondingDuration::get() * SessionsPerEra::get();
 }
 
 impl pallet_grandpa::Config for Runtime {
@@ -955,17 +987,17 @@ impl pallet_grandpa::Config for Runtime {
 
 	type EquivocationReportSystem =
 		pallet_grandpa::EquivocationReportSystem<Self, Offences, Historical, ReportLongevity>;
-	type MaxNominators = MaxNominators;
+	type MaxNominators = MaxNominatorRewardedPerValidator;
 	type WeightInfo = ();
 	type MaxAuthorities = MaxAuthorities;
 	type MaxSetIdSessionEntries = MaxSetIdSessionEntries;
 }
 
 parameter_types! {
+	// Minimum 4 MILLIAFT/byte
 	pub const ByteDeposit: Balance = deposit(0, 1);
-	pub const BasicDeposit: Balance = 10 * AFT;       // 258 bytes on-chain
-	pub const FieldDeposit: Balance = 250 * MILLIAFT;        // 66 bytes on-chain
-	pub const SubAccountDeposit: Balance = 2 * AFT;   // 53 bytes on-chain
+	pub const BasicDeposit: Balance = deposit(1, 258);
+	pub const SubAccountDeposit: Balance = deposit(1, 53);
 	pub const MaxSubAccounts: u32 = 100;
 	pub const MaxAdditionalFields: u32 = 100;
 	pub const MaxRegistrars: u32 = 20;
@@ -987,24 +1019,6 @@ impl pallet_identity::Config for Runtime {
 }
 
 parameter_types! {
-	pub const ConfigDepositBase: Balance = 5 * AFT;
-	pub const FriendDepositFactor: Balance = 50 * MILLIAFT;
-	pub const MaxFriends: u16 = 9;
-	pub const RecoveryDeposit: Balance = 5 * AFT;
-}
-
-impl pallet_recovery::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = weights::recovery::AllfeatWeight<Runtime>;
-	type RuntimeCall = RuntimeCall;
-	type Currency = Balances;
-	type ConfigDepositBase = ConfigDepositBase;
-	type FriendDepositFactor = FriendDepositFactor;
-	type MaxFriends = MaxFriends;
-	type RecoveryDeposit = RecoveryDeposit;
-}
-
-parameter_types! {
 	pub const CandidateDeposit: Balance = 10 * AFT;
 	pub const WrongSideDeduction: Balance = 2 * AFT;
 	pub const MaxStrikes: u32 = 10;
@@ -1021,12 +1035,6 @@ impl pallet_mmr::Config for Runtime {
 	type LeafData = pallet_mmr::ParentNumberAndHash<Self>;
 	type OnNewRoot = ();
 	type WeightInfo = ();
-}
-
-parameter_types! {
-	pub const ArtistMotionDuration: BlockNumber = 7 * DAYS;
-	pub const ArtistMaxProposals: u32 = 100;
-	pub const ArtistMaxMembers: u32 = 10000;
 }
 
 parameter_types! {
@@ -1055,12 +1063,6 @@ impl pallet_artists::Config for Runtime {
 	type MaxContracts = MaxContracts;
 	type MaxGenres = MaxGenres;
 	type WeightInfo = (); // TODO
-}
-
-parameter_types! {
-	pub const MaxStyleCount: u32 = 30;
-	pub const MaxSubStyleCount: u32 = 50;
-	pub const StyleNameMaxLength: u32 = 64;
 }
 
 pub struct FindAuthorTruncated<F>(PhantomData<F>);
@@ -1187,7 +1189,6 @@ construct_runtime!(
 		AuthorityDiscovery: pallet_authority_discovery = 12,
 		Utility: pallet_utility = 16,
 		Identity: pallet_identity = 17,
-		Recovery: pallet_recovery = 18,
 
 		Scheduler: pallet_scheduler = 20,
 		Preimage: pallet_preimage = 28,
@@ -1373,7 +1374,6 @@ mod benches {
 		[pallet_offences, OffencesBench::<Runtime>]
 		[pallet_preimage, Preimage]
 		[pallet_proxy, Proxy]
-		[pallet_recovery, Recovery]
 		[pallet_scheduler, Scheduler]
 		[pallet_session, SessionBench::<Runtime>]
 		[pallet_staking, Staking]

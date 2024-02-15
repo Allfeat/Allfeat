@@ -19,6 +19,7 @@ log = { workspace = true }
 num_enum = { workspace = true }
 hex-literal = { workspace = true }
 enumflags2 = { workspace = true }
+smallvec = { workspace = true }
 
 allfeat-support = { workspace = true }
 frame-support = { workspace = true }
@@ -72,7 +73,6 @@ pallet-offences = { workspace = true }
 pallet-offences-benchmarking = { workspace = true, optional = true }
 pallet-preimage = { workspace = true }
 pallet-proxy = { workspace = true }
-pallet-recovery = { workspace = true }
 pallet-referenda = { workspace = true }
 pallet-session = { workspace = true }
 pallet-session-benchmarking = { workspace = true, optional = true }
@@ -85,7 +85,9 @@ pallet-sudo = { workspace = true }
 pallet-timestamp = { workspace = true }
 pallet-transaction-payment = { workspace = true }
 pallet-utility = { workspace = true }
+pallet-vesting = { workspace = true }
 pallet-whitelist = { workspace = true }
+pallet-fast-unstake = { workspace = true }
 
 # Frontier
 fp-evm = { workspace = true, features = ["serde"] }
@@ -119,6 +121,8 @@ frame-system-benchmarking = { workspace = true, optional = true }
 # Local Dependencies
 [dev-dependencies]
 sha3 = { workspace = true, features = [ "std" ] }
+sp-keyring = { workspace = true }
+separator = "0.4.1"
 
 precompile-utils = { workspace = true, features = [ "std", "testing" ] }
 
@@ -183,13 +187,14 @@ std = [
   "sp-transaction-pool/std",
   "pallet-utility/std",
   "sp-version/std",
-  "pallet-recovery/std",
   "pallet-conviction-voting/std",
   "log/std",
   "frame-try-runtime?/std",
   "sp-io/std",
   "sp-statement-store/std",
   "shared-runtime/std",
+  "pallet-fast-unstake/std",
+  "pallet-vesting/std",
   # Frontier
   "fp-evm/std",
   "fp-rpc/std",
@@ -231,7 +236,6 @@ runtime-benchmarks = [
   "pallet-preimage/runtime-benchmarks",
   "pallet-proxy/runtime-benchmarks",
   "pallet-scheduler/runtime-benchmarks",
-  "pallet-recovery/runtime-benchmarks",
   "pallet-session-benchmarking/runtime-benchmarks",
   "pallet-staking/runtime-benchmarks",
   "pallet-timestamp/runtime-benchmarks",
@@ -245,6 +249,8 @@ runtime-benchmarks = [
   "pallet-referenda/runtime-benchmarks",
   "pallet-conviction-voting/runtime-benchmarks",
   "pallet-whitelist/runtime-benchmarks",
+  "pallet-fast-unstake/runtime-benchmarks",
+  "pallet-vesting/runtime-benchmarks"
 ]
 try-runtime = [
   "shared-runtime/try-runtime",
@@ -267,7 +273,6 @@ try-runtime = [
   "pallet-offences/try-runtime",
   "pallet-preimage/try-runtime",
   "pallet-proxy/try-runtime",
-  "pallet-recovery/try-runtime",
   "pallet-scheduler/try-runtime",
   "pallet-session/try-runtime",
   "pallet-staking/try-runtime",
@@ -286,6 +291,16 @@ try-runtime = [
   "pallet-conviction-voting/try-runtime",
   "pallet-whitelist/try-runtime",
   "pallet-referenda/try-runtime",
+  "pallet-fast-unstake/try-runtime",
+  "pallet-vesting/try-runtime",
   "sp-runtime/try-runtime",
   "fp-self-contained/try-runtime",
 ]
+
+# A feature that should be enabled when the runtime should be built for on-chain
+# deployment. This will disable stuff that shouldn't be part of the on-chain wasm
+# to make it smaller, like logging for example.
+on-chain-release-build = [ "sp-api/disable-logging" ]
+
+# Set timing constants (e.g. session period) to faster versions to speed up testing.
+fast-runtime = []

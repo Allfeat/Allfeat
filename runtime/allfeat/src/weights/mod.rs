@@ -11,7 +11,6 @@ pub mod im_online;
 pub mod multisig;
 pub mod preimage;
 pub mod proxy;
-pub mod recovery;
 pub mod scheduler;
 pub mod session;
 pub mod staking;

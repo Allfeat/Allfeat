@@ -16,12 +16,17 @@
 // limitations under the License.
 
 //! A set of constant values used in substrate runtime.
+use allfeat_primitives::Balance;
+use frame_support::weights::{
+	constants::ExtrinsicBaseWeight, WeightToFeeCoefficient, WeightToFeeCoefficients,
+	WeightToFeePolynomial,
+};
+use smallvec::smallvec;
+use sp_arithmetic::Perbill;
+
 /// Money matters.
 pub mod currency {
 	use allfeat_primitives::Balance;
-
-	// Provide a common factor between runtimes based on a supply of 10_000_000 tokens.
-	pub const SUPPLY_FACTOR: Balance = 100;
 
 	pub const WEI: Balance = 1;
 	pub const KILOWEI: Balance = 1_000;
@@ -32,16 +37,15 @@ pub mod currency {
 
 	pub const AFT: Balance = 1_000_000_000_000_000_000;
 
-	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROAFT * SUPPLY_FACTOR;
-
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 100 * MILLIAFT * SUPPLY_FACTOR + (bytes as Balance) * STORAGE_BYTE_FEE
+		items as Balance * 20 * AFT + (bytes as Balance) * 100 * MICROAFT
 	}
 }
 
 /// Time.
 pub mod time {
 	use allfeat_primitives::{BlockNumber, Moment};
+	use shared_runtime::prod_or_fast;
 
 	/// Since BABE is probabilistic this is the average expected block time that
 	/// we are targeting. Blocks will be produced at a minimum duration defined
@@ -72,15 +76,37 @@ pub mod time {
 
 	// NOTE: Currently it is not possible to change the epoch duration after the chain has started.
 	//       Attempting to do so will brick block production.
-	pub const EPOCH_DURATION_IN_BLOCKS: BlockNumber = 2 * HOURS;
-	pub const EPOCH_DURATION_IN_SLOTS: u64 = {
-		const SLOT_FILL_RATE: f64 = MILLISECS_PER_BLOCK as f64 / SLOT_DURATION as f64;
-
-		(EPOCH_DURATION_IN_BLOCKS as f64 * SLOT_FILL_RATE) as u64
-	};
+	pub const EPOCH_DURATION_IN_SLOTS: u32 = prod_or_fast!(2 * HOURS, 1 * MINUTES);
 
 	// These time units are defined in number of blocks.
 	pub const MINUTES: BlockNumber = 60 / (SECS_PER_BLOCK as BlockNumber);
 	pub const HOURS: BlockNumber = MINUTES * 60;
 	pub const DAYS: BlockNumber = HOURS * 24;
+	pub const WEEKS: BlockNumber = DAYS * 7;
+}
+
+/// Handles converting a weight scalar to a fee value, based on the scale and granularity of the
+/// node's balance type.
+///
+/// This should typically create a mapping between the following ranges:
+///   - [0, `MAXIMUM_BLOCK_WEIGHT`]
+///   - [Balance::min, Balance::max]
+///
+/// Yet, it can be used for any other sort of change to weight-fee. Some examples being:
+///   - Setting it to `0` will essentially disable the weight fee.
+///   - Setting it to `1` will cause the literal `#[weight = x]` values to be charged.
+pub struct WeightToFee;
+impl WeightToFeePolynomial for WeightToFee {
+	type Balance = Balance;
+	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
+		// in Allfeat, extrinsic base weight (smallest non-zero weight) is mapped to 1/10 MILLIAFT:
+		let p = currency::MILLIAFT;
+		let q = 10 * Balance::from(ExtrinsicBaseWeight::get().ref_time());
+		smallvec![WeightToFeeCoefficient {
+			degree: 1,
+			negative: false,
+			coeff_frac: Perbill::from_rational(p % q, q),
+			coeff_integer: p / q,
+		}]
+	}
 }
