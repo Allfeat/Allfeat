@@ -1,7 +1,6 @@
 pub mod artists;
 pub mod bags_list;
 pub mod balances;
-pub mod contracts;
 pub mod election_provider_multi_phase;
 pub mod evm;
 pub mod frame_system;
