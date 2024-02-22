@@ -38,8 +38,9 @@ use frame_support::{
 	pallet_prelude::Get,
 	parameter_types,
 	traits::{
-		fungible::HoldConsideration, ConstU16, ConstU32, Currency, EqualPrivilegeOnly, Everything,
-		FindAuthor, InstanceFilter, KeyOwnerProofSystem, LinearStoragePrice, OnFinalize,
+		fungible::HoldConsideration, AsEnsureOriginWithArg, ConstU16, ConstU32, Currency,
+		EqualPrivilegeOnly, Everything, FindAuthor, InstanceFilter, KeyOwnerProofSystem,
+		LinearStoragePrice, OnFinalize,
 	},
 	weights::{
 		constants::{
@@ -49,7 +50,7 @@ use frame_support::{
 	},
 	PalletId,
 };
-use frame_system::{limits::BlockWeights, EnsureRoot};
+use frame_system::{limits::BlockWeights, EnsureRoot, EnsureSigned};
 use pallet_election_provider_multi_phase::{GeometricDepositBase, SolutionAccuracyOf};
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use pallet_session::historical::{self as pallet_session_historical};
@@ -92,6 +93,7 @@ use pallet_evm::{
 	Account as EVMAccount, EVMCurrencyAdapter, EnsureAccountId20, GasWeightMapping,
 	IdentityAddressMapping, Runner,
 };
+use pallet_nfts::PalletFeatures;
 #[cfg(any(feature = "std", test))]
 pub use pallet_staking::StakerStatus;
 #[cfg(any(feature = "std", test))]
@@ -1087,6 +1089,48 @@ impl pallet_hotfix_sufficients::Config for Runtime {
 	type WeightInfo = weights::hotfix_sufficients::AllfeatWeight<Runtime>;
 }
 
+parameter_types! {
+	pub Features: PalletFeatures = PalletFeatures::all_enabled();
+	pub const MaxAttributesPerCall: u32 = 10;
+	pub const CollectionDeposit: Balance = 10 * AFT;
+	pub const ItemDeposit: Balance = deposit(1,0);
+	pub const ApprovalsLimit: u32 = 20;
+	pub const ItemAttributesApprovalsLimit: u32 = 20;
+	pub const MaxTips: u32 = 10;
+	pub const MaxDeadlineDuration: BlockNumber = 12 * 30 * DAYS;
+	pub const MetadataDepositBase: Balance = 1 * AFT;
+	pub const MetadataDepositPerByte: Balance = deposit(0,1);
+}
+
+impl pallet_nfts::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type CollectionId = u128;
+	type ItemId = u128;
+	type Currency = Balances;
+	type ForceOrigin = EnsureRoot<AccountId>;
+	type CollectionDeposit = CollectionDeposit;
+	type ItemDeposit = ItemDeposit;
+	type MetadataDepositBase = MetadataDepositBase;
+	type AttributeDepositBase = MetadataDepositBase;
+	type DepositPerByte = MetadataDepositPerByte;
+	type StringLimit = ConstU32<256>;
+	type KeyLimit = ConstU32<64>;
+	type ValueLimit = ConstU32<256>;
+	type ApprovalsLimit = ApprovalsLimit;
+	type ItemAttributesApprovalsLimit = ItemAttributesApprovalsLimit;
+	type MaxTips = MaxTips;
+	type MaxDeadlineDuration = MaxDeadlineDuration;
+	type MaxAttributesPerCall = MaxAttributesPerCall;
+	type Features = Features;
+	type OffchainSignature = Signature;
+	type OffchainPublic = <Signature as traits::Verify>::Signer;
+	type WeightInfo = pallet_nfts::weights::SubstrateWeight<Runtime>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type Helper = ();
+	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
+	type Locker = ();
+}
+
 construct_runtime!(
 	pub enum Runtime
 	{
@@ -1113,6 +1157,7 @@ construct_runtime!(
 		AuthorityDiscovery: pallet_authority_discovery = 12,
 		Utility: pallet_utility = 16,
 		Identity: pallet_identity = 17,
+		Nfts: pallet_nfts = 18,
 
 		Scheduler: pallet_scheduler = 20,
 		Preimage: pallet_preimage = 28,
@@ -1287,6 +1332,7 @@ mod benches {
 		[pallet_mmr, Mmr]
 		[pallet_multisig, Multisig]
 		[pallet_nomination_pools, NominationPoolsBench::<Runtime>]
+		[pallet_nfts, Nfts]
 		[pallet_offences, OffencesBench::<Runtime>]
 		[pallet_preimage, Preimage]
 		[pallet_proxy, Proxy]

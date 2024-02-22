@@ -15,34 +15,34 @@ Artists constant ARTISTS_CONTRACT = Artists(
 /// - 0x0000000000000000000000000000000000000803: Artists
 interface Artists {
     struct Verification {
-        bool is_verified,
-        uint32 verified_at,
+        bool is_verified;
+        uint32 verified_at;
     }
 
     struct Alias {
-        bool has_alias,
-        string alias,
+        bool has_alias;
+        string alias;
     }
 
     struct DescriptionPreimage {
-        bool has_preimage,
-        bytes32 preimage,
+        bool has_preimage;
+        bytes32 preimage;
     }
 
     struct ArtistData {
-        address owner,
-        uint32 registered_at,
-        Verification verification,
-        string main_name,
-        Alias alias,
-        bytes[] genres,
-        DescriptionPreimage description,
-        bytes32[] assets,
-        address[] contracts,
+        address owner;
+        uint32 registered_at;
+        Verification verification;
+        string main_name;
+        Alias alias;
+        bytes[] genres;
+        DescriptionPreimage description
+        bytes32[] assets;
+        address[] contracts;
     }
 
     struct Artist {
-        bool is_artist,
+        bool is_artist;
         ArtistData data
     }
 

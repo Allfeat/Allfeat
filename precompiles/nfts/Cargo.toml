@@ -1,6 +1,6 @@
 [package]
-name = "pallet-evm-precompile-balances-erc20"
-description = "A Precompile to expose a Balances pallet through an ERC20-compliant interface."
+name = "pallet-evm-precompile-nfts"
+description = "A Precompile to expose a Nfts pallet through a Solidity interface."
 version = "0.1.0"
 edition = "2021"
 authors.workspace = true
@@ -14,9 +14,9 @@ log = { workspace = true }
 # Substrate
 frame-support = { workspace = true }
 frame-system = { workspace = true }
-pallet-balances = { workspace = true, features = ["insecure_zero_ed"] }
+pallet-nfts = { workspace = true }
 pallet-timestamp = { workspace = true }
-parity-scale-codec = { workspace = true, features = [ "max-encoded-len" ] }
+parity-scale-codec = { workspace = true, features = ["max-encoded-len"] }
 sp-core = { workspace = true }
 sp-io = { workspace = true }
 sp-std = { workspace = true }
@@ -25,7 +25,7 @@ sp-runtime = { workspace = true }
 # Frontier
 precompile-utils = { workspace = true, default-features = false }
 fp-evm = { workspace = true }
-pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 
 num_enum = { workspace = true }
 
@@ -35,19 +35,22 @@ serde = { workspace = true }
 libsecp256k1 = { workspace = true }
 sha3 = { workspace = true }
 
-precompile-utils = { workspace = true, features = [ "testing" ] }
+precompile-utils = { workspace = true, features = ["testing"] }
+allfeat-primitives = { workspace = true, features = ["std"] }
 
-pallet-timestamp = { workspace = true, features = [ "std" ] }
-scale-info = { workspace = true, features = [ "derive" ] }
+pallet-timestamp = { workspace = true, features = ["std"] }
+pallet-balances = { workspace = true, features = ["std", "insecure_zero_ed"] }
+
+scale-info = { workspace = true, features = ["derive"] }
 sp-runtime = { workspace = true }
 
 [features]
-default = [ "std" ]
+default = ["std"]
 std = [
     "fp-evm/std",
     "frame-support/std",
     "frame-system/std",
-    "pallet-balances/std",
+    "pallet-nfts/std",
     "pallet-evm/std",
     "parity-scale-codec/std",
     "sp-core/std",
