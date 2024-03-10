@@ -193,7 +193,7 @@ type NegativeImbalance = <Balances as Currency<AccountId>>::NegativeImbalance;
 
 /// We allow for 4 seconds of compute with a 12 second average block time, with maximum proof size
 pub const WEIGHT_MILLISECS_PER_BLOCK: u64 = 4000;
-const MAXIMUM_BLOCK_WEIGHT: Weight =
+pub const MAXIMUM_BLOCK_WEIGHT: Weight =
 	Weight::from_parts(WEIGHT_MILLISECS_PER_BLOCK * WEIGHT_REF_TIME_PER_SECOND, u64::MAX);
 
 pub const SS58_PREFIX: u16 = 441;
@@ -1929,7 +1929,7 @@ mod tests {
 		);
 	}
 
-	use super::{Runtime, WeightPerGas};
+	use super::Runtime;
 	#[test]
 	fn configured_base_extrinsic_weight_is_evm_compatible() {
 		let min_ethereum_transaction_weight = WeightPerGas::get() * 21_000;

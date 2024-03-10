@@ -16,6 +16,7 @@
 // limitations under the License.
 
 //! A set of constant values used in substrate runtime.
+use super::MAXIMUM_BLOCK_WEIGHT;
 use allfeat_primitives::Balance;
 use frame_support::weights::{
 	constants::ExtrinsicBaseWeight, WeightToFeeCoefficient, WeightToFeeCoefficients,
@@ -43,7 +44,7 @@ pub mod currency {
 	pub const STORAGE_BYTE_FEE: Balance = 100 * MICROAFT * SUPPLY_FACTOR;
 
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 20 * AFT + (bytes as Balance) * 100 * MICROAFT
+		items as Balance * 20 * AFT + (bytes as Balance) * 100 * (MICROAFT * 10)
 	}
 }
 
@@ -119,29 +120,28 @@ impl WeightToFeePolynomial for WeightToFee {
 #[cfg(test)]
 mod tests {
 	use super::{
-		currency::{CENTS, DOLLARS, MILLICENTS},
-		fee::WeightToFee,
+		currency::{AFT, MILLIAFT},
+		WeightToFee, MAXIMUM_BLOCK_WEIGHT,
 	};
-	use crate::weights::ExtrinsicBaseWeight;
+	use crate::ExtrinsicBaseWeight;
 	use frame_support::weights::WeightToFee as WeightToFeeT;
-	use shared_runtime::MAXIMUM_BLOCK_WEIGHT;
 
 	#[test]
 	// Test that the fee for `MAXIMUM_BLOCK_WEIGHT` of weight has sane bounds.
 	fn full_block_fee_is_correct() {
-		// A full block should cost between 10 and 100 DOLLARS.
+		// A full block should cost between 10 and 100 AFT.
 		let full_block = WeightToFee::weight_to_fee(&MAXIMUM_BLOCK_WEIGHT);
-		assert!(full_block >= 10 * DOLLARS);
-		assert!(full_block <= 100 * DOLLARS);
+		assert!(full_block >= 10 * AFT);
+		assert!(full_block <= 100 * AFT);
 	}
 
 	#[test]
 	// This function tests that the fee for `ExtrinsicBaseWeight` of weight is correct
 	fn extrinsic_base_fee_is_correct() {
-		// `ExtrinsicBaseWeight` should cost 1/10 of a CENT
+		// `ExtrinsicBaseWeight` should cost 1/10 of a MILLIAFT
 		println!("Base: {}", ExtrinsicBaseWeight::get());
 		let x = WeightToFee::weight_to_fee(&ExtrinsicBaseWeight::get());
-		let y = CENTS / 10;
-		assert!(x.max(y) - x.min(y) < MILLICENTS);
+		let y = MILLIAFT / 10;
+		assert!(x.max(y) - x.min(y) < MILLIAFT);
 	}
 }

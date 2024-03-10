@@ -199,7 +199,7 @@ type NegativeImbalance = <Balances as Currency<AccountId>>::NegativeImbalance;
 
 /// We allow for 2 seconds of compute with a 6 second average block time.
 /// The storage proof size is not limited so far.
-pub const MAXIMUM_BLOCK_WEIGHT: Weight =
+const MAXIMUM_BLOCK_WEIGHT: Weight =
 	Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2), u64::MAX);
 
 const_assert!(NORMAL_DISPATCH_RATIO.deconstruct() >= AVERAGE_ON_INITIALIZE_RATIO.deconstruct());
@@ -2084,11 +2084,10 @@ impl_runtime_apis! {
 #[cfg(test)]
 mod test_fees {
 	use super::*;
-	use frame_support::{dispatch::GetDispatchInfo, weights::WeightToFee as WeightToFeeT};
-	use pallet_transaction_payment::Multiplier;
+	use frame_support::weights::WeightToFee as WeightToFeeT;
 	use separator::Separatable;
 	use shared_runtime::MinimumMultiplier;
-	use sp_runtime::{assert_eq_error_rate, FixedPointNumber, MultiAddress, MultiSignature};
+	use sp_runtime::{assert_eq_error_rate, FixedPointNumber};
 
 	#[test]
 	fn payout_weight_portion() {
@@ -2158,7 +2157,7 @@ mod test_fees {
 	#[test]
 	fn signed_deposit_is_sensible() {
 		// ensure this number does not change, or that it is checked after each change.
-		// a 1 MB solution should take (40 + 10) DOTs of deposit.
+		// a 1 MB solution should take (40 + 10) AFTs of deposit.
 		let deposit = SignedFixedDeposit::get() + (SignedDepositByte::get() * 1024 * 1024);
 		assert_eq_error_rate!(deposit, 50 * AFT, AFT);
 	}
@@ -2170,7 +2169,6 @@ mod test {
 
 	use super::*;
 	use frame_support::traits::WhitelistedStorageKeys;
-	use scale_info::TypeInfo;
 	use sp_core::hexdisplay::HexDisplay;
 
 	#[test]
@@ -2211,10 +2209,7 @@ mod test {
 #[cfg(test)]
 mod multiplier_tests {
 	use super::*;
-	use frame_support::{
-		dispatch::DispatchInfo,
-		traits::{OnFinalize, PalletInfoAccess},
-	};
+	use frame_support::dispatch::DispatchInfo;
 	use separator::Separatable;
 	use shared_runtime::{MinimumMultiplier, TargetBlockFullness};
 	use sp_runtime::traits::Convert;

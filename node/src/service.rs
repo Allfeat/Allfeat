@@ -30,7 +30,7 @@ use frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
 use futures::prelude::*;
 use harmonie_runtime::{RuntimeApi, TransactionConverter, SS58_PREFIX};
 use sc_client_api::{Backend, BlockBackend};
-use sc_consensus_babe::{self, BabeWorkerHandle, SlotProportion};
+use sc_consensus_babe::{BabeWorkerHandle, SlotProportion};
 use sc_executor::NativeElseWasmExecutor;
 use sc_network::{event::Event, NetworkEventStream, NetworkService};
 use sc_network_sync::{warp::WarpSyncParams, SyncingService};

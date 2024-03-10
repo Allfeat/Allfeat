@@ -1,5 +1,4 @@
 use super::*;
-use frame_support::traits::EitherOf;
 
 mod origins;
 pub use origins::{pallet_custom_origins, ReferendumCanceller, ReferendumKiller};

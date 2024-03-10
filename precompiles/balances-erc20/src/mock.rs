@@ -8,7 +8,6 @@ use precompile_utils::{
 	precompile_set::{AddressU64, PrecompileAt, PrecompileSetBuilder},
 	testing::MockAccount,
 };
-use sp_core::{H256, U256};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	BuildStorage,

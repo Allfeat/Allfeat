@@ -5,7 +5,6 @@ use crate::{mock::*, *};
 use libsecp256k1::{sign, Message, SecretKey};
 use precompile_utils::testing::*;
 use sha3::{Digest, Keccak256};
-use sp_core::{H256, U256};
 
 // No test of invalid selectors since we have a fallback behavior (deposit).
 fn precompiles() -> Precompiles<Runtime> {
@@ -290,8 +289,8 @@ fn transfer_not_enough_funds() {
 					PCall::transfer { to: Address(Bob.into()), value: 1400.into() },
 				)
 				.execute_reverts(|output| {
-					from_utf8(&output).unwrap().contains("Dispatched call failed with error: ")
-						&& from_utf8(&output).unwrap().contains("FundsUnavailable")
+					from_utf8(&output).unwrap().contains("Dispatched call failed with error: ") &&
+						from_utf8(&output).unwrap().contains("FundsUnavailable")
 				});
 		});
 }
@@ -401,7 +400,8 @@ fn transfer_from_self() {
 		.execute_with(|| {
 			precompiles()
 				.prepare_test(
-					CryptoAlith, // CryptoAlith sending transferFrom herself, no need for allowance.
+					CryptoAlith, /* CryptoAlith sending transferFrom herself, no need for
+					              * allowance. */
 					Precompile1,
 					PCall::transfer_from {
 						from: Address(CryptoAlith.into()),

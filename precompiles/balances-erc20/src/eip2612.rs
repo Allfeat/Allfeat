@@ -1,8 +1,6 @@
 use super::*;
 use frame_support::{ensure, traits::Get};
-use sp_core::H256;
 use sp_io::hashing::keccak_256;
-use sp_std::vec::Vec;
 
 /// EIP2612 permit typehash.
 pub const PERMIT_TYPEHASH: [u8; 32] = keccak256!(
