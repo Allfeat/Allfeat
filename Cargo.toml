@@ -7,9 +7,13 @@ members = [
     "runtime/allfeat",
     "primitives",
     "precompiles/balances-erc20",
-    "precompiles/nfts",
+    "precompiles/nfts/collections",
+    "precompiles/nfts/factory",
+    "precompiles/nfts/swap",
     "precompiles/artists",
     "runtime/shared",
+    "precompiles/nfts/tests",
+    "precompiles/nfts/types",
     # "utils/generate_bags",
 ]
 
@@ -208,6 +212,11 @@ pallet-evm-precompile-bn128 = { version = "2.0.0-dev", git = "https://github.com
 pallet-evm-precompile-blake2 = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0", default-features = false }
 pallet-evm-precompile-balances-erc20 = { path = "./precompiles/balances-erc20", default-features = false }
 pallet-evm-precompile-artists = { path = "./precompiles/artists", default-features = false }
+pallet-evm-precompile-nfts-factory = { path = "./precompiles/nfts/factory", default-features = false }
+pallet-evm-precompile-nfts-collections = { path = "./precompiles/nfts/collections", default-features = false }
+pallet-evm-precompile-nfts-swap = { path = "./precompiles/nfts/swap", default-features = false }
+pallet-evm-precompile-nfts-tests = { path = "./precompiles/nfts/tests", default-features = false }
+pallet-evm-precompile-nfts-types = { path = "./precompiles/nfts/types", default-features = false }
 
 # Frontier (client)
 fc-api = { version = "1.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0" }

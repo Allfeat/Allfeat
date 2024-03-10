@@ -222,6 +222,30 @@ parameter_types! {
 
 const_assert!(NORMAL_DISPATCH_RATIO.deconstruct() >= AVERAGE_ON_INITIALIZE_RATIO.deconstruct());
 
+impl AddressToCollectionId<<Runtime as pallet_nfts::Config>::CollectionId> for Runtime {
+	fn address_to_collection_id(
+		address: H160,
+	) -> Option<<Runtime as pallet_nfts::Config>::CollectionId> {
+		let mut data = [0u8; 16];
+		let address_bytes: [u8; 20] = address.into();
+		if NFTS_PRECOMPILE_ADDRESS_PREFIX.eq(&address_bytes[0..4]) {
+			data.copy_from_slice(&address_bytes[4..20]);
+			Some(u128::from_be_bytes(data))
+		} else {
+			None
+		}
+	}
+
+	fn collection_id_to_address(
+		collection_id: <Runtime as pallet_nfts::Config>::CollectionId,
+	) -> H160 {
+		let mut data = [0u8; 20];
+		data[0..4].copy_from_slice(NFTS_PRECOMPILE_ADDRESS_PREFIX);
+		data[4..20].copy_from_slice(&collection_id.to_be_bytes());
+		H160::from(data)
+	}
+}
+
 impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type BlockWeights = RuntimeBlockWeights;
@@ -313,8 +337,9 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 		match self {
 			ProxyType::Any => true,
 			ProxyType::NonTransfer => !matches!(c, RuntimeCall::Balances(..)),
-			ProxyType::Staking =>
-				matches!(c, RuntimeCall::Staking(..) | RuntimeCall::FastUnstake(..)),
+			ProxyType::Staking => {
+				matches!(c, RuntimeCall::Staking(..) | RuntimeCall::FastUnstake(..))
+			},
 		}
 	}
 	fn is_superset(&self, o: &Self) -> bool {
@@ -780,7 +805,8 @@ parameter_types! {
 	pub const MaxPointsToBalance: u8 = 10;
 }
 
-use crate::constants::WeightToFee;
+use crate::{constants::WeightToFee, precompiles::NFTS_PRECOMPILE_ADDRESS_PREFIX};
+use pallet_evm_precompile_nfts_collections::AddressToCollectionId;
 use shared_runtime::{
 	elections::OnChainAccuracy, identity::IdentityInfo, prod_or_fast, BalanceToU256,
 	BlockHashCount, RuntimeBlockLength, SlowAdjustingFeeUpdate, U256ToBalance,

@@ -1,6 +1,6 @@
 [package]
-name = "pallet-evm-precompile-nfts"
-description = "A Precompile to expose a Nfts pallet through a Solidity interface."
+name = "pallet-evm-precompile-nfts-factory"
+description = "A Precompile to expose the Nfts pallet through a Solidity interface to create collections."
 version = "0.1.0"
 edition = "2021"
 authors.workspace = true
@@ -23,6 +23,7 @@ sp-std = { workspace = true }
 sp-runtime = { workspace = true }
 
 # Frontier
+pallet-evm-precompile-nfts-types = { workspace = true, default-features = false }
 precompile-utils = { workspace = true, default-features = false }
 fp-evm = { workspace = true }
 pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
@@ -44,6 +45,8 @@ pallet-balances = { workspace = true, features = ["std", "insecure_zero_ed"] }
 scale-info = { workspace = true, features = ["derive"] }
 sp-runtime = { workspace = true }
 
+pallet-evm-precompile-nfts-tests = { workspace = true, features = ["std"] }
+
 [features]
 default = ["std"]
 std = [
@@ -58,5 +61,6 @@ std = [
     "sp-std/std",
     "sp-runtime/std",
     "precompile-utils/std",
+    "pallet-evm-precompile-nfts-types/std",
 ]
 runtime-benchmarks = []

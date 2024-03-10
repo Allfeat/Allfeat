@@ -10,9 +10,35 @@ library NFTS_TYPES {
         uint256 value;
     }
 
+    struct OptionalAddress {
+        bool has_value;
+        address value;
+    }
+
+    struct OptionalPriceWithDirection {
+        bool has_direction_price;
+        PriceWithDirection data;
+    }
+
     struct OptionalMintWitness {
         bool has_witness;
         MintWitness data;
+    }
+
+    struct CollectionDetails {
+        address owner;
+        uint256 owner_deposit;
+        uint32 items;
+        uint32 item_metadatas;
+        uint32 item_configs;
+        uint32 attributes;
+    }
+
+    struct ItemTip {
+        uint256 collection_id;
+        uint256 item_id;
+        address receiver;
+        uint256 amount;
     }
 
     struct CollectionSettings {
@@ -27,6 +53,26 @@ library NFTS_TYPES {
         bool is_transferable;
         bool is_unlocked_metadata;
         bool is_unlocked_attributes;
+    }
+
+    enum AttributeNamespace {
+        /// An attribute was set by the pallet.
+        Pallet,
+        /// An attribute was set by collection's owner.
+        CollectionOwner,
+        /// An attribute was set by item's owner.
+        ItemOwner,
+        /// An attribute was set by pre-approved account.
+        Account
+    }
+
+    struct AttributeNamespaceInfo {
+        AttributeNamespace attribute_namespace;
+        address account; // Only used if type is Account
+    }
+
+    struct CancelAttributesApprovalWitness {
+        uint256 account_attributes;
     }
 
     enum MintType {
@@ -57,5 +103,15 @@ library NFTS_TYPES {
     struct MintWitness {
         OptionalU256 owned_item;
         OptionalU256 mint_price;
+    }
+
+    enum PriceDirection {
+        Send,
+        Receive
+    }
+
+    struct PriceWithDirection {
+        uint256 amount;
+        PriceDirection direction;
     }
 }

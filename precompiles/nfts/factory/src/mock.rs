@@ -1,8 +1,4 @@
-use crate::{
-	types::{CollectionConfig, CollectionSettings, MintSettings},
-	AddressToCollectionId, NftsPrecompileSet, NftsPrecompileSetCall,
-};
-use core::marker::PhantomData;
+use crate::NftsFactoryPrecompile;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{AsEnsureOriginWithArg, Everything},
@@ -10,50 +6,17 @@ use frame_support::{
 };
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, IdentityAddressMapping};
 use pallet_nfts::PalletFeatures;
-use precompile_utils::{
-	mock_account,
-	precompile_set::{AddressU64, PrecompileAt, PrecompileSetBuilder},
-	testing::{AddressInPrefixedSet, MockAccount},
-};
-use sp_core::{ConstU128, ConstU32, ConstU64, H160, H256, U256};
-use sp_runtime::{
-	traits::{BlakeTwo256, IdentityLookup, Verify},
-	BuildStorage,
-};
+use precompile_utils::precompile_set::{AddressU64, PrecompileAt, PrecompileSetBuilder};
+use sp_core::{ConstU128, ConstU32, ConstU64, H256, U256};
+use sp_runtime::traits::{BlakeTwo256, IdentityLookup, Verify};
 
-pub(super) type AccountId = allfeat_primitives::AccountId;
+type AccountId = allfeat_primitives::AccountId;
 type Signature = allfeat_primitives::Signature;
 type AccountPublic = <Signature as Verify>::Signer;
 
 pub type CollectionId = u128;
 pub type Balance = u128;
 pub type Block = frame_system::mocking::MockBlock<Runtime>;
-
-/// The local Nfts precompile address prefix. Addresses that match against this prefix will
-/// be routed to NftsPrecompileSet being marked as local
-pub const NFTS_PRECOMPILE_ADDRESS_PREFIX: u32 = 0xfffffffe;
-
-mock_account!(LocalCollectionId(CollectionId), |value: LocalCollectionId| {
-	AddressInPrefixedSet(NFTS_PRECOMPILE_ADDRESS_PREFIX, value.0).into()
-});
-
-// Implement the trait, where we convert AccountId to CollectionId
-impl AddressToCollectionId<CollectionId> for Runtime {
-	/// The way to convert an account to collectionId is by ensuring that the prefix is 0XFFFFFFFF
-	/// and by taking the lowest 128 bits as the collectionId
-	fn address_to_collection_id(address: H160) -> Option<CollectionId> {
-		let address: MockAccount = address.into();
-		if address.has_prefix_u32(NFTS_PRECOMPILE_ADDRESS_PREFIX) {
-			return Some(address.without_prefix());
-		} else {
-			None
-		}
-	}
-
-	fn collection_id_to_address(collection_id: CollectionId) -> H160 {
-		LocalCollectionId(collection_id).into()
-	}
-}
 
 parameter_types! {
 	pub BlockWeights: frame_system::limits::BlockWeights =
@@ -124,7 +87,8 @@ impl pallet_balances::Config for Runtime {
 
 const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
 
-pub type PCall = NftsPrecompileSetCall<Runtime>;
+pub type Precompiles<R> =
+	PrecompileSetBuilder<R, (PrecompileAt<AddressU64<1>, NftsFactoryPrecompile<R>>,)>;
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::from(u64::MAX);
@@ -133,8 +97,7 @@ parameter_types! {
 		block_gas_limit.saturating_div(MAX_POV_SIZE)
 	};
 	pub WeightPerGas: Weight = Weight::from_parts(1, 0);
-	pub PrecompilesValue: NftsPrecompileSet<Runtime> =
-		NftsPrecompileSet(PhantomData);
+	pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
 }
 
 impl pallet_evm::Config for Runtime {
@@ -147,7 +110,7 @@ impl pallet_evm::Config for Runtime {
 	type AddressMapping = IdentityAddressMapping;
 	type Currency = Balances;
 	type RuntimeEvent = RuntimeEvent;
-	type PrecompilesType = NftsPrecompileSet<Self>;
+	type PrecompilesType = Precompiles<Runtime>;
 	type PrecompilesValue = PrecompilesValue;
 	type ChainId = ();
 	type BlockGasLimit = BlockGasLimit;
@@ -206,45 +169,3 @@ construct_runtime!(
 		Nfts: pallet_nfts,
 	}
 );
-
-pub(crate) struct ExtBuilder {
-	// endowed accounts with balances
-	balances: Vec<(AccountId, Balance)>,
-}
-
-impl Default for ExtBuilder {
-	fn default() -> ExtBuilder {
-		ExtBuilder { balances: vec![] }
-	}
-}
-
-impl ExtBuilder {
-	pub(crate) fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
-		self.balances = balances;
-		self
-	}
-
-	pub(crate) fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::<Runtime>::default()
-			.build_storage()
-			.expect("Frame system builds valid default genesis config");
-
-		pallet_balances::GenesisConfig::<Runtime> { balances: self.balances }
-			.assimilate_storage(&mut t)
-			.expect("Pallet balances storage can be assimilated");
-
-		let mut ext = sp_io::TestExternalities::new(t);
-		ext.execute_with(|| System::set_block_number(1));
-		ext
-	}
-}
-
-pub const ALICE: H160 = H160::repeat_byte(0xAA);
-
-pub fn mock_collection_config() -> CollectionConfig {
-	CollectionConfig {
-		settings: CollectionSettings::all_enabled(),
-		max_supply: Default::default(),
-		mint_settings: MintSettings::item_settings_all_enabled(),
-	}
-}

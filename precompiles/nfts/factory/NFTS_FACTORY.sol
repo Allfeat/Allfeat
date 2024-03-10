@@ -10,18 +10,18 @@ import "./NFTS_TYPES.sol";
  */
 interface NFTS_FACTORY {
     /**
-     * @dev Emitted when `collection_id` NFT collection are created from account (`creator`) with
-     * (`owner`) being the owner/administrator.
-     *
-     */
-    /// @custom:selector ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef
-    event Collection_created(address indexed owner, address indexed creator, uint256 collection_id);
-
-    /**
      * @notice Create a new collection from the caller address.
      * @param admin The address which is admin of everything in the collection at the creation
      * @param config The configuration of the collection
      */
-    /// @custom:selector cd568c38
+    /// @custom:selector 28d66e67
     function create(address admin, CollectionConfig calldata config) external returns (bool);
+
+    /**
+     * @notice Set the acceptance of ownership for a particular account.
+     * @param collection The identifier of the collection whose ownership the caller is
+	 * willing to accept
+     */
+    /// @custom:selector 8c462cc0
+    function set_accept_ownership(uint256 collection) external returns (bool);
 }
