@@ -39,28 +39,137 @@ fn selectors() {
 	assert!(PCall::buy_item_selectors().contains(&0x0a6169cf));
 }
 
-/*#[test]
-fn create_works() {
-	ExtBuilder::default()
-		.with_balances(vec![(ALICE.into(), 1000)])
-		.build()
-		.execute_with(|| {
-			precompiles()
-				.prepare_test(
-					ALICE,
-					Precompile1,
-					PCall::create { admin: ALICE.into(), config: mock_collection_config() },
-				)
-				.expect_log(log3(
-					Precompile1,
-					SELECTOR_LOG_COLLECTION_CREATED,
-					ALICE,
-					ALICE,
-					solidity::encode_event_data(U256::from(0)),
-				))
-				.execute_returns(true);
-		})
-}*/
+#[test]
+fn get_details_works() {
+	todo!()
+}
 
-// TODO mint_works
-// TODO burn_works
+#[test]
+fn mint_works() {
+	todo!()
+}
+
+#[test]
+fn burn_works() {
+	todo!()
+}
+
+#[test]
+fn transfer_works() {
+	todo!()
+}
+
+#[test]
+fn lock_item_transfer_works() {
+	todo!()
+}
+
+#[test]
+fn unlock_item_transfer_works() {
+	todo!()
+}
+
+#[test]
+fn seal_collection_works() {
+	todo!()
+}
+
+#[test]
+fn transfer_ownership_works() {
+	todo!()
+}
+
+#[test]
+fn set_team_works() {
+	todo!()
+}
+
+#[test]
+fn approve_transfer_works() {
+	todo!()
+}
+
+#[test]
+fn cancel_approval_works() {
+	todo!()
+}
+
+#[test]
+fn clear_all_transfer_approvals_works() {
+	todo!()
+}
+
+#[test]
+fn lock_item_properties_works() {
+	todo!()
+}
+
+#[test]
+fn set_collection_attribute_works() {
+	todo!()
+}
+
+#[test]
+fn set_item_attribute_works() {
+	todo!()
+}
+
+#[test]
+fn clear_collection_attribute_works() {
+	todo!()
+}
+
+#[test]
+fn clear_item_attribute_works() {
+	todo!()
+}
+
+#[test]
+fn approve_item_attributes_works() {
+	todo!()
+}
+
+#[test]
+fn cancel_item_attributes_approval_works() {
+	todo!()
+}
+
+#[test]
+fn set_metadata_works() {
+	todo!()
+}
+
+#[test]
+fn clear_metadata_works() {
+	todo!()
+}
+
+#[test]
+fn set_collection_metadata_works() {
+	todo!()
+}
+
+#[test]
+fn clear_collection_metadata_works() {
+	todo!()
+}
+
+#[test]
+fn set_collection_max_supply_works() {
+	todo!()
+}
+
+#[test]
+fn update_mint_settings_works() {
+	todo!()
+}
+
+#[test]
+fn set_price_works() {
+	todo!()
+}
+
+#[test]
+fn buy_item_works() {
+	todo!()
+}

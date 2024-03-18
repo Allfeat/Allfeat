@@ -12,3 +12,18 @@ fn selectors() {
 	assert!(PCall::cancel_swap_selectors().contains(&0x83698d19));
 	assert!(PCall::claim_swap_selectors().contains(&0x0406ab6c));
 }
+
+#[test]
+fn create_swap_works() {
+	todo!()
+}
+
+#[test]
+fn cancel_swap_works() {
+	todo!()
+}
+
+#[test]
+fn claim_swap_works() {
+	todo!()
+}
