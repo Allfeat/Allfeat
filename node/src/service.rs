@@ -1,7 +1,7 @@
-// This file is part of Substrate.
+// This file is part of Allfeat.
 
-// Copyright (C) 2018-2022 Parity Technologies (UK) Ltd.
-// SPDX-License-Identifier: GPL-3.0-or-later WITH Classpath-exception-2.0
+// Copyright (C) 2022-2024 Allfeat.
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
