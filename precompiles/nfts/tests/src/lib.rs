@@ -16,28 +16,46 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#![cfg_attr(not(feature = "std"), no_std)]
+
+use enumflags2::BitFlags;
+use frame_support::traits::{Currency, OriginTrait};
 use frame_system::pallet_prelude::BlockNumberFor;
+use pallet_evm::AddressMapping;
 use pallet_evm_precompile_nfts_types::solidity::{
 	CollectionConfig, CollectionSettings, MintSettings,
 };
+use pallet_nfts::CollectionSetting;
 use sp_core::H160;
-use sp_runtime::BuildStorage;
+use sp_runtime::{traits::StaticLookup, BuildStorage};
 
 type AccountIdOf<R> = <R as frame_system::Config>::AccountId;
 
 type BalanceOf<R> = <R as pallet_balances::Config>::Balance;
 
+type NftsBalanceOf<R> = <<R as pallet_nfts::Config>::Currency as Currency<
+	<R as frame_system::Config>::AccountId,
+>>::Balance;
+
 pub const ALICE: H160 = H160::repeat_byte(0xAA);
 pub const BOB: H160 = H160::repeat_byte(0xBB);
 pub const CHARLIE: H160 = H160::repeat_byte(0xCC);
 
-pub fn mock_collection_config() -> CollectionConfig {
+pub fn solidity_collection_config_all_enabled() -> CollectionConfig {
 	CollectionConfig {
 		settings: CollectionSettings::all_enabled(),
 		max_supply: Default::default(),
 		mint_settings: MintSettings::item_settings_all_enabled(),
 	}
 }
+
+type OriginOf<R> = <R as frame_system::Config>::RuntimeOrigin;
+
+type CollectionConfigFor<R> = pallet_nfts::CollectionConfig<
+	NftsBalanceOf<R>,
+	BlockNumberFor<R>,
+	<R as pallet_nfts::Config>::CollectionId,
+>;
 
 pub struct ExtBuilder<R>
 where
@@ -58,7 +76,7 @@ where
 
 impl<R> ExtBuilder<R>
 where
-	R: pallet_balances::Config,
+	R: pallet_balances::Config + frame_system::Config + pallet_nfts::Config + pallet_evm::Config,
 	BlockNumberFor<R>: From<u32>,
 {
 	pub fn with_balances(mut self, balances: Vec<(AccountIdOf<R>, BalanceOf<R>)>) -> Self {
@@ -78,5 +96,42 @@ where
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| frame_system::Pallet::<R>::set_block_number(1u32.into()));
 		ext
+	}
+
+	/// Same as `build` but also create two mock collections to work with for testing.
+	pub fn build_with_collections(self) -> sp_io::TestExternalities {
+		let mut ext = self.build();
+		ext.execute_with(|| {
+			let alice: AccountIdOf<R> = R::AddressMapping::into_account_id(ALICE);
+			let bob: AccountIdOf<R> = R::AddressMapping::into_account_id(BOB);
+
+			pallet_nfts::Pallet::<R>::force_create(
+				OriginOf::<R>::root(),
+				<R as frame_system::Config>::Lookup::unlookup(alice),
+				Self::default_collection_config(),
+			)
+			.expect("mocking call");
+			pallet_nfts::Pallet::<R>::force_create(
+				OriginOf::<R>::root(),
+				<R as frame_system::Config>::Lookup::unlookup(bob),
+				Self::default_collection_config(),
+			)
+			.expect("mocking call 2");
+		});
+		ext
+	}
+
+	fn collection_config_from_disabled_settings(
+		settings: BitFlags<CollectionSetting>,
+	) -> CollectionConfigFor<R> {
+		pallet_nfts::CollectionConfig {
+			settings: pallet_nfts::CollectionSettings::from_disabled(settings),
+			max_supply: None,
+			mint_settings: pallet_nfts::MintSettings::default(),
+		}
+	}
+
+	fn default_collection_config() -> CollectionConfigFor<R> {
+		Self::collection_config_from_disabled_settings(CollectionSetting::DepositRequired.into())
 	}
 }

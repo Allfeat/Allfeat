@@ -17,7 +17,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{mock::*, NftsFactoryPrecompileCall};
-use pallet_evm_precompile_nfts_tests::{mock_collection_config, ExtBuilder, ALICE};
+use pallet_evm_precompile_nfts_tests::{solidity_collection_config_all_enabled, ExtBuilder, ALICE};
 use precompile_utils::testing::*;
 
 type PCall = NftsFactoryPrecompileCall<Runtime>;
@@ -41,7 +41,10 @@ fn create_works() {
 				.prepare_test(
 					ALICE,
 					Precompile1,
-					PCall::create { admin: ALICE.into(), config: mock_collection_config() },
+					PCall::create {
+						admin: ALICE.into(),
+						config: solidity_collection_config_all_enabled(),
+					},
 				)
 				.execute_returns(true);
 		})

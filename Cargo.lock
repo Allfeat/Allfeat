@@ -6329,6 +6329,7 @@ dependencies = [
 name = "pallet-evm-precompile-nfts-tests"
 version = "0.1.0"
 dependencies = [
+ "enumflags2",
  "fp-evm",
  "frame-support",
  "frame-system",
