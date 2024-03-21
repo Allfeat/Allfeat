@@ -51,6 +51,12 @@ impl OptionalU256 {
 	}
 }
 
+impl From<U256> for OptionalU256 {
+	fn from(value: U256) -> Self {
+		Self { has_value: true, value }
+	}
+}
+
 /// Helper struct used to encode Optional MintWitness Solidity types.
 #[derive(Default, Debug, Clone, solidity::Codec)]
 pub struct OptionalMintWitness {
