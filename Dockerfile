@@ -1,6 +1,6 @@
 # This is the first stage. Here we install all the dependencies that we need in order to build the Allfeat binary
 # and we create the Allfeat binary in a rust oriented temporary image.
-FROM rustlang/rust:nightly-slim as builder
+FROM rust:slim-buster as builder
 
 ADD . ./workdir
 WORKDIR "/workdir"
@@ -8,12 +8,6 @@ WORKDIR "/workdir"
 # This installs all dependencies that we need (besides Rust).
 RUN apt update -y && \
     apt install build-essential git clang curl libssl-dev llvm libudev-dev make protobuf-compiler pkg-config -y
-
-# This installs Rust and updates Rust to the right version.
-RUN rustup target add wasm32-unknown-unknown --toolchain nightly && rustup show
-
-# Install the rust-src component
-RUN rustup component add rust-src
 
 # This builds the binary.
 RUN cargo build --locked --release
