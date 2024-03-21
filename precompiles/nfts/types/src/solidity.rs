@@ -51,9 +51,12 @@ impl OptionalU256 {
 	}
 }
 
-impl From<U256> for OptionalU256 {
-	fn from(value: U256) -> Self {
-		Self { has_value: true, value }
+impl From<Option<U256>> for OptionalU256 {
+	fn from(value: Option<U256>) -> Self {
+		match value {
+			Some(value) => Self { has_value: true, value },
+			None => Self { has_value: false, value: Default::default() },
+		}
 	}
 }
 
@@ -84,6 +87,15 @@ where
 pub struct OptionalPriceWithDirection {
 	pub has_price_direction: bool,
 	pub value: PriceWithDirection,
+}
+
+impl From<Option<PriceWithDirection>> for OptionalPriceWithDirection {
+	fn from(value: Option<PriceWithDirection>) -> Self {
+		match value {
+			Some(value) => Self { has_price_direction: true, value },
+			None => Self { has_price_direction: false, value: Default::default() },
+		}
+	}
 }
 
 impl<Amount> TryFrom<OptionalPriceWithDirection> for Option<pallet_nfts::PriceWithDirection<Amount>>
@@ -390,6 +402,12 @@ impl From<PriceDirection> for pallet_nfts::PriceDirection {
 pub struct PriceWithDirection {
 	amount: U256,
 	direction: PriceDirection,
+}
+
+impl PriceWithDirection {
+	pub fn new(amount: U256, direction: PriceDirection) -> Self {
+		Self { amount, direction }
+	}
 }
 
 impl<Amount> TryFrom<PriceWithDirection> for pallet_nfts::PriceWithDirection<Amount>
