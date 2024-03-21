@@ -1,19 +1,19 @@
 # This is the first stage. Here we install all the dependencies that we need in order to build the Allfeat binary
 # and we create the Allfeat binary in a rust oriented temporary image.
-FROM rust:slim-buster as builder
-
-ADD . ./workdir
-WORKDIR "/workdir"
+FROM rust:1.76.0-slim-bookworm as builder
 
 # This installs all dependencies that we need (besides Rust).
 RUN apt update -y && \
-    apt install build-essential git clang curl libssl-dev llvm libudev-dev make protobuf-compiler pkg-config -y
+    apt install -y build-essential git clang curl libssl-dev llvm libudev-dev make protobuf-compiler pkg-config
+
+WORKDIR "/workdir"
+COPY . .
 
 # This builds the binary.
 RUN cargo build --locked --release
 
 # This is the 2nd stage: a very small image where we copy the Allfeat binary."
-FROM docker.io/library/ubuntu:20.04
+FROM docker.io/library/debian:bookworm
 
 LABEL io.allfeat.image.type="builder" \
     io.allfeat.image.authors="tech@allfeat.com" \
