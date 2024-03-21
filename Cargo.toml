@@ -30,8 +30,6 @@ repository = "https://github.com/allfeat/allfeat"
 
 # Allfeat (wasm)
 allfeat-primitives = { version = "1.0.0", default-features = false, path = "./primitives" }
-allfeat-support = { version = "0.1.0-dev", default-features = false, git = "https://github.com/Allfeat/allfeat-support.git", branch = "allfeat-polkadot-v1.5.0" }
-
 pallet-artists = { package = "pallet-artists-v2", version = "1.0.0-dev", default-features = false, git = "https://github.com/Allfeat/pallet-artists-v2.git", branch = "allfeat-polkadot-v1.5.0" }
 
 # Substrate (wasm)

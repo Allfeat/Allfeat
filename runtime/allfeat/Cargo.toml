@@ -21,7 +21,6 @@ hex-literal = { workspace = true }
 enumflags2 = { workspace = true }
 smallvec = { workspace = true }
 
-allfeat-support = { workspace = true }
 frame-support = { workspace = true }
 frame-election-provider-support = { workspace = true }
 frame-system = { workspace = true }
@@ -169,7 +168,6 @@ std = [
     "pallet-staking/std",
     "sp-session/std",
     "pallet-sudo/std",
-    "allfeat-support/std",
     "frame-support/std",
     "frame-benchmarking?/std",
     "frame-system-benchmarking?/std",

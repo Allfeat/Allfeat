@@ -108,7 +108,7 @@ dependencies = [
 name = "allfeat-node"
 version = "1.0.0-dev"
 dependencies = [
- "allfeat-primitives 1.0.0",
+ "allfeat-primitives",
  "allfeat-runtime",
  "bip32",
  "clap",
@@ -211,21 +211,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "allfeat-primitives"
-version = "1.0.0"
-source = "git+https://github.com/allfeat/Allfeat?branch=allfeat-polkadot-v1.5.0#a814c056a6e3aa617d1ba21defaa6b7ea35a12e0"
-dependencies = [
- "fp-account",
- "sp-core",
- "sp-runtime",
-]
-
-[[package]]
 name = "allfeat-runtime"
 version = "1.0.0-dev"
 dependencies = [
- "allfeat-primitives 1.0.0",
- "allfeat-support",
+ "allfeat-primitives",
  "enumflags2",
  "fp-evm",
  "fp-rpc",
@@ -316,19 +305,6 @@ dependencies = [
  "sp-version",
  "static_assertions",
  "substrate-wasm-builder",
-]
-
-[[package]]
-name = "allfeat-support"
-version = "0.1.0-dev"
-source = "git+https://github.com/Allfeat/allfeat-support.git?branch=allfeat-polkadot-v1.5.0#5e34d5e85bc801591def36a5b1c0c4c10c887090"
-dependencies = [
- "allfeat-primitives 1.0.0 (git+https://github.com/allfeat/Allfeat?branch=allfeat-polkadot-v1.5.0)",
- "frame-support",
- "parity-scale-codec",
- "scale-info",
- "sp-runtime",
- "sp-std 8.0.0",
 ]
 
 [[package]]
@@ -3695,8 +3671,7 @@ dependencies = [
 name = "harmonie-runtime"
 version = "1.0.0-dev"
 dependencies = [
- "allfeat-primitives 1.0.0",
- "allfeat-support",
+ "allfeat-primitives",
  "enumflags2",
  "fp-evm",
  "fp-rpc",
@@ -6242,7 +6217,7 @@ dependencies = [
 name = "pallet-evm-precompile-nfts-collections"
 version = "0.1.0"
 dependencies = [
- "allfeat-primitives 1.0.0",
+ "allfeat-primitives",
  "fp-evm",
  "frame-support",
  "frame-system",
@@ -6271,7 +6246,7 @@ dependencies = [
 name = "pallet-evm-precompile-nfts-factory"
 version = "0.1.0"
 dependencies = [
- "allfeat-primitives 1.0.0",
+ "allfeat-primitives",
  "fp-evm",
  "frame-support",
  "frame-system",
@@ -6300,7 +6275,7 @@ dependencies = [
 name = "pallet-evm-precompile-nfts-swap"
 version = "0.1.0"
 dependencies = [
- "allfeat-primitives 1.0.0",
+ "allfeat-primitives",
  "fp-evm",
  "frame-support",
  "frame-system",
@@ -9629,7 +9604,7 @@ dependencies = [
 name = "shared-runtime"
 version = "1.0.0-dev"
 dependencies = [
- "allfeat-primitives 1.0.0",
+ "allfeat-primitives",
  "enumflags2",
  "frame-support",
  "frame-system",
