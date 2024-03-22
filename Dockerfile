@@ -6,8 +6,8 @@ FROM rust:1.76.0-slim-bookworm as builder
 RUN apt update -y && \
     apt install -y build-essential git clang curl libssl-dev llvm libudev-dev make protobuf-compiler pkg-config
 
-WORKDIR "/workdir"
-COPY . .
+ADD . /workdir
+WORKDIR /workdir
 
 # This builds the binary.
 RUN cargo build --locked --release
