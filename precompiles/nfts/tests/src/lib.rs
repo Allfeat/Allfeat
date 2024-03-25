@@ -21,6 +21,7 @@
 use enumflags2::BitFlags;
 use frame_support::traits::{Currency, OriginTrait};
 use frame_system::pallet_prelude::BlockNumberFor;
+use hex_literal::hex;
 use pallet_evm::AddressMapping;
 use pallet_evm_precompile_nfts_types::solidity::{
 	CollectionConfig, CollectionSettings, MintSettings,
@@ -40,6 +41,11 @@ type NftsBalanceOf<R> = <<R as pallet_nfts::Config>::Currency as Currency<
 pub const ALICE: H160 = H160::repeat_byte(0xAA);
 pub const BOB: H160 = H160::repeat_byte(0xBB);
 pub const CHARLIE: H160 = H160::repeat_byte(0xCC);
+
+pub const ALICE_COLLECTION_PRECOMPILE_ADDRESS: [u8; 20] =
+	hex!("FFFFFFFF00000000000000000000000000000001");
+pub const BOB_COLLECTION_PRECOMPILE_ADDRESS: [u8; 20] =
+	hex!("FFFFFFFF00000000000000000000000000000002");
 
 pub fn solidity_collection_config_all_enabled() -> CollectionConfig {
 	CollectionConfig {
