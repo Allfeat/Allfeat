@@ -27,7 +27,7 @@ use frame_system::pallet_prelude::OriginFor;
 
 type PCall = NftsSwapPrecompileCall<Runtime>;
 
-fn _precompiles() -> Precompiles<Runtime> {
+fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
 }
 
@@ -46,6 +46,8 @@ fn mint_each_collections() {
 		BOB.into(),
 		None
 	));
+	assert_eq!(get_owner_of_item(0, 1), Some(ALICE.into()));
+	assert_eq!(get_owner_of_item(1, 1), Some(BOB.into()));
 }
 
 fn get_owner_of_item(collection_id: u128, item_id: u128) -> Option<AccountId> {
@@ -67,22 +69,30 @@ fn create_swap_works() {
         .with_balances(vec![(ALICE.into(), 1000), (BOB.into(), 1000)])
         .build_with_collections()
         .execute_with(|| {
-			mint_each_collections();
+			let collection_id = 0;
+			let item_id = 1;
+			let desired_collection = 1;
+			let maybe_desired_item = OptionalU256::from(Some(U256::from(1)));
+			let maybe_price = OptionalPriceWithDirection::from(Some(PriceWithDirection::new(U256::from(100), PriceDirection::Receive)));
+			let duration = 100;
 
-			assert_eq!(get_owner_of_item(0, 1), Some(ALICE.into()));
-			_precompiles().prepare_test(
+			mint_each_collections();
+			assert_eq!(pallet_nfts::PendingSwapOf::<Runtime>::get(collection_id, item_id).is_none(), true);
+			precompiles().prepare_test(
 				ALICE,
 				Precompile1,
 				PCall::create_swap {
-					offered_collection: 0.into(),
-					offered_item: 1.into(),
-					desired_collection: 1.into(),
-					maybe_desired_item: OptionalU256::from(Some(U256::from(1))),
-					maybe_price: OptionalPriceWithDirection::from(Some(PriceWithDirection::new(U256::from(100), PriceDirection::Receive))),
-					duration: 100.into(),
+					offered_collection: collection_id.into(),
+					offered_item: item_id.into(),
+					desired_collection: desired_collection.into(),
+					maybe_desired_item: maybe_desired_item,
+					maybe_price: maybe_price,
+					duration: duration.into(),
 				},
 			).execute_returns(true);
-			assert_eq!(get_owner_of_item(0, 1), Some(ALICE.into()));
+
+			assert_eq!(get_owner_of_item(0, 1), Some(ALICE.into())); // check that the item is still owned by ALICE
+			assert_eq!(pallet_nfts::PendingSwapOf::<Runtime>::get(collection_id, item_id).is_some(), true);
         });
 }
 
@@ -92,29 +102,36 @@ fn cancel_swap_works() {
         .with_balances(vec![(ALICE.into(), 1000), (BOB.into(), 1000)])
         .build_with_collections()
         .execute_with(|| {
-			mint_each_collections();
+			let collection_id = 0;
+			let item_id = 1;
+			let desired_collection = 1;
+			let maybe_desired_item = Some(1);
+			let maybe_price = OptionalPriceWithDirection::from(Some(PriceWithDirection::new(U256::from(100), PriceDirection::Receive)));
+			let duration = 100;
 
-			assert_eq!(get_owner_of_item(0, 1), Some(ALICE.into()));
-			_precompiles().prepare_test(
+			mint_each_collections();
+			assert_eq!(pallet_nfts::PendingSwapOf::<Runtime>::get(collection_id, item_id).is_none(), true);
+			assert_ok!(NftsPallet::<Runtime>::create_swap(
+				OriginFor::<Runtime>::signed(ALICE.into()),
+				collection_id,
+				item_id,
+				desired_collection,
+				maybe_desired_item,
+				maybe_price.try_into().unwrap(),
+				duration
+			));
+			assert_eq!(pallet_nfts::PendingSwapOf::<Runtime>::get(collection_id, item_id).is_some(), true);
+
+			precompiles().prepare_test(
 				ALICE,
 				Precompile1,
-				PCall::create_swap {
+				PCall::cancel_swap {
 					offered_collection: 0.into(),
 					offered_item: 1.into(),
-					desired_collection: 1.into(),
-					maybe_desired_item: OptionalU256::from(Some(U256::from(1))),
-					maybe_price: OptionalPriceWithDirection::from(Some(PriceWithDirection::new(U256::from(100), PriceDirection::Receive))),
-					duration: 100.into(),
 				},
 			).execute_returns(true);
-			_precompiles().prepare_test(
-				ALICE,
-                Precompile1,
-                PCall::cancel_swap {
-                    offered_collection: 0.into(),
-                    offered_item: 1.into(),
-                },
-			).execute_returns(true);
+
+			assert_eq!(pallet_nfts::PendingSwapOf::<Runtime>::get(collection_id, item_id).is_none(), true);
 			assert_eq!(get_owner_of_item(0, 1), Some(ALICE.into()));
         });
 }
@@ -125,22 +142,25 @@ fn claim_swap_works() {
 		.with_balances(vec![(ALICE.into(), 1000), (BOB.into(), 1000)])
 		.build_with_collections()
 		.execute_with(|| {
-			mint_each_collections();
+			let collection_id = 0;
+			let item_id = 1;
+			let desired_collection = 1;
+			let maybe_desired_item = Some(1);
+			let maybe_price = OptionalPriceWithDirection::from(Some(PriceWithDirection::new(U256::from(100), PriceDirection::Receive)));
+			let duration = 100;
 
-			assert_eq!(get_owner_of_item(0, 1), Some(ALICE.into()));
-			_precompiles().prepare_test(
-				ALICE,
-				Precompile1,
-				PCall::create_swap {
-					offered_collection: 0.into(),
-					offered_item: 1.into(),
-					desired_collection: 1.into(),
-					maybe_desired_item: OptionalU256::from(Some(U256::from(1))),
-					maybe_price: OptionalPriceWithDirection::from(Some(PriceWithDirection::new(U256::from(100), PriceDirection::Receive))),
-					duration: 100.into(),
-				},
-			).execute_returns(true);
-			_precompiles().prepare_test(
+			mint_each_collections();
+			assert_ok!(NftsPallet::<Runtime>::create_swap(
+				OriginFor::<Runtime>::signed(ALICE.into()),
+				collection_id,
+				item_id,
+				desired_collection,
+				maybe_desired_item,
+				maybe_price.try_into().unwrap(),
+				duration
+			));
+
+			precompiles().prepare_test(
 				BOB,
 				Precompile1,
 				PCall::claim_swap {
@@ -151,6 +171,8 @@ fn claim_swap_works() {
 					witness_price: OptionalPriceWithDirection::from(Some(PriceWithDirection::new(U256::from(100), PriceDirection::Receive))),
 				},
 			).execute_returns(true);
+
+			assert_eq!(pallet_nfts::PendingSwapOf::<Runtime>::get(collection_id, item_id).is_none(), true);
 			assert_eq!(get_owner_of_item(0, 1), Some(BOB.into()));
 		});
 }
