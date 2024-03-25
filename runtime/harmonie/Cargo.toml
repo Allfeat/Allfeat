@@ -23,7 +23,7 @@ smallvec = { workspace = true }
 
 frame-support = { workspace = true }
 frame-election-provider-support = { workspace = true }
-frame-system = { workspace = true }
+frame-system = { workspace = true, features = ["experimental"] }
 frame-try-runtime = { workspace = true, optional = true }
 frame-executive = { workspace = true }
 

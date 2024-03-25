@@ -23,7 +23,7 @@
 #![recursion_limit = "512"]
 
 pub use allfeat_primitives::{AccountId, Signature};
-use allfeat_primitives::{Balance, BlockNumber, Hash, Moment, Nonce};
+use allfeat_primitives::{Balance, BlockNumber, Hash, Hashing, Moment, Nonce};
 use core::marker::PhantomData;
 use fp_evm::{weight_per_gas, FeeCalculator};
 use fp_rpc::TransactionStatus;
@@ -32,7 +32,7 @@ use frame_election_provider_support::{
 	SequentialPhragmen, VoteWeight,
 };
 use frame_support::{
-	construct_runtime,
+	derive_impl,
 	dispatch::DispatchClass,
 	genesis_builder_helper::{build_config, create_default_config},
 	pallet_prelude::Get,
@@ -246,6 +246,7 @@ impl AddressToCollectionId<<Runtime as pallet_nfts::Config>::CollectionId> for R
 	}
 }
 
+#[derive_impl(frame_system::config_preludes::SolochainDefaultConfig as frame_system::DefaultConfig)]
 impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type BlockWeights = RuntimeBlockWeights;
@@ -255,7 +256,7 @@ impl frame_system::Config for Runtime {
 	type Nonce = Nonce;
 	type Block = Block;
 	type Hash = Hash;
-	type Hashing = BlakeTwo256;
+	type Hashing = Hashing;
 	type AccountId = AccountId;
 	type Lookup = sp_runtime::traits::IdentityLookup<AccountId>;
 	type RuntimeEvent = RuntimeEvent;
@@ -266,7 +267,8 @@ impl frame_system::Config for Runtime {
 	type AccountData = pallet_balances::AccountData<Balance>;
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
-	type SystemWeightInfo = weights::frame_system::AllfeatWeight<Runtime>;
+	//type SystemWeightInfo = weights::frame_system::AllfeatWeight<Runtime>;
+	type SystemWeightInfo = frame_system::weights::SubstrateWeight<Runtime>;
 	type SS58Prefix = ConstU16<SS58_PREFIX>;
 	type OnSetCode = ();
 	type MaxConsumers = ConstU32<16>;
@@ -382,7 +384,8 @@ impl pallet_scheduler::Config for Runtime {
 	type ScheduleOrigin = EnsureRoot<AccountId>;
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
 	type MaxScheduledPerBlock = ConstU32<50>;
-	type WeightInfo = weights::scheduler::AllfeatWeight<Runtime>;
+	//type WeightInfo = weights::scheduler::AllfeatWeight<Runtime>;
+	type WeightInfo = pallet_scheduler::weights::SubstrateWeight<Runtime>;
 	type Preimages = Preimage;
 }
 
@@ -460,7 +463,8 @@ impl pallet_balances::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = frame_system::Pallet<Runtime>;
-	type WeightInfo = weights::balances::AllfeatWeight<Runtime>;
+	//type WeightInfo = weights::balances::AllfeatWeight<Runtime>;
+	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
 	type MaxLocks = MaxLocks;
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = [u8; 8];
@@ -468,7 +472,6 @@ impl pallet_balances::Config for Runtime {
 	type MaxFreezes = ConstU32<50>;
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
-	type MaxHolds = ConstU32<50>;
 }
 
 parameter_types! {
@@ -561,6 +564,7 @@ parameter_types! {
 	pub const OffendingValidatorsThreshold: Perbill = Perbill::from_percent(17);
 	// 4 hour session, 1 hour unsigned phase, 32 offchain executions.
 	pub OffchainRepeat: BlockNumber = UnsignedPhase::get() / 32;
+	pub const MaxControllersInDeprecationBatch: u32 = 5900;
 	pub HistoryDepth: u32 = 84;
 }
 
@@ -601,7 +605,9 @@ impl pallet_staking::Config for Runtime {
 	type MaxExposurePageSize = ConstU32<256>;
 	type EventListeners = NominationPools;
 	type HistoryDepth = HistoryDepth;
-	type WeightInfo = weights::staking::AllfeatWeight<Runtime>;
+	type MaxControllersInDeprecationBatch = MaxControllersInDeprecationBatch;
+	//type WeightInfo = weights::staking::AllfeatWeight<Runtime>;
+	type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
 }
 
 impl pallet_fast_unstake::Config for Runtime {
@@ -751,7 +757,6 @@ impl pallet_election_provider_multi_phase::Config for Runtime {
 	type UnsignedPhase = UnsignedPhase;
 	type SignedPhase = SignedPhase;
 	type BetterSignedThreshold = ();
-	type BetterUnsignedThreshold = BetterUnsignedThreshold;
 	type OffchainRepeat = OffchainRepeat;
 	type MinerTxPriority = NposSolutionPriority;
 	type MinerConfig = Self;
@@ -967,7 +972,14 @@ impl pallet_identity::Config for Runtime {
 	type Slashed = ();
 	type ForceOrigin = EnsureRoot<AccountId>;
 	type RegistrarOrigin = EnsureRoot<AccountId>;
-	type WeightInfo = weights::identity::AllfeatWeight<Runtime>;
+	type OffchainSignature = Signature;
+	type SigningPublicKey = <Signature as traits::Verify>::Signer;
+	type UsernameAuthorityOrigin = EnsureRoot<Self::AccountId>;
+	type PendingUsernameExpiration = ConstU32<{ 7 * DAYS }>;
+	type MaxSuffixLength = ConstU32<7>;
+	type MaxUsernameLength = ConstU32<32>;
+	//type WeightInfo = weights::identity::AllfeatWeight<Runtime>;
+	type WeightInfo = pallet_identity::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -1157,57 +1169,120 @@ impl pallet_nfts::Config for Runtime {
 	type Locker = ();
 }
 
-construct_runtime!(
-	pub enum Runtime
-	{
-		// Basic stuff; balances is uncallable initially.
-		System: frame_system = 0,
-		// Babe must be before session.
-		Babe: pallet_babe = 1,
-		Timestamp: pallet_timestamp = 2,
-		Balances: pallet_balances = 3,
-		TransactionPayment: pallet_transaction_payment = 26,
+#[frame_support::runtime]
+mod runtime {
+	#[runtime::runtime]
+	#[runtime::derive(
+		RuntimeCall,
+		RuntimeEvent,
+		RuntimeError,
+		RuntimeOrigin,
+		RuntimeFreezeReason,
+		RuntimeHoldReason,
+		RuntimeSlashReason,
+		RuntimeLockId,
+		RuntimeTask
+	)]
+	pub struct Runtime;
 
-		// Consensus support.
-		// Authorship must be before session in order to note author in the correct session and era.
-		ImOnline: pallet_im_online = 4,
-		Authorship: pallet_authorship = 5,
-		Staking: pallet_staking = 6,
-		Offences: pallet_offences = 7,
-		Historical: pallet_session_historical = 27,
-		// MMR leaf construction must be before session in order to have leaf contents refer to
-		// block<N-1> consistently. see substrate issue #11797 for details.
-		Mmr: pallet_mmr = 201,
-		Session: pallet_session = 8,
-		Grandpa: pallet_grandpa = 10,
-		AuthorityDiscovery: pallet_authority_discovery = 12,
-		Utility: pallet_utility = 16,
-		Identity: pallet_identity = 17,
-		Nfts: pallet_nfts = 18,
+	#[runtime::pallet_index(0)]
+	pub type System = frame_system;
 
-		Scheduler: pallet_scheduler = 20,
-		Preimage: pallet_preimage = 28,
+	#[runtime::pallet_index(1)]
+	pub type Babe = pallet_babe;
 
-		Sudo: pallet_sudo = 21,
-		Proxy: pallet_proxy = 22,
-		Multisig: pallet_multisig = 23,
-		ElectionProviderMultiPhase: pallet_election_provider_multi_phase = 24,
-		BagsList: pallet_bags_list::<Instance1> = 25,
-		NominationPools: pallet_nomination_pools = 29,
-		// Fast unstake pallet: extension to staking.
-		FastUnstake: pallet_fast_unstake = 30,
+	#[runtime::pallet_index(2)]
+	pub type Timestamp = pallet_timestamp;
 
-		// Frontier
-		Ethereum: pallet_ethereum = 50,
-		EVM: pallet_evm = 51,
-		DynamicFee: pallet_dynamic_fee = 53,
-		BaseFee: pallet_base_fee = 54,
-		HotfixSufficients: pallet_hotfix_sufficients = 55,
+	#[runtime::pallet_index(3)]
+	pub type Balances = pallet_balances;
 
-		// Allfeat related
-		Artists: pallet_artists = 100,
-	}
-);
+	#[runtime::pallet_index(26)]
+	pub type TransactionPayment = pallet_transaction_payment;
+
+	#[runtime::pallet_index(4)]
+	pub type ImOnline = pallet_im_online;
+
+	#[runtime::pallet_index(5)]
+	pub type Authorship = pallet_authorship;
+
+	#[runtime::pallet_index(6)]
+	pub type Staking = pallet_staking;
+
+	#[runtime::pallet_index(7)]
+	pub type Offences = pallet_offences;
+
+	#[runtime::pallet_index(27)]
+	pub type Historical = pallet_session_historical;
+
+	#[runtime::pallet_index(201)]
+	pub type Mmr = pallet_mmr;
+
+	#[runtime::pallet_index(8)]
+	pub type Session = pallet_session;
+
+	#[runtime::pallet_index(10)]
+	pub type Grandpa = pallet_grandpa;
+
+	#[runtime::pallet_index(12)]
+	pub type AuthorityDiscovery = pallet_authority_discovery;
+
+	#[runtime::pallet_index(16)]
+	pub type Utility = pallet_utility;
+
+	#[runtime::pallet_index(17)]
+	pub type Identity = pallet_identity;
+
+	#[runtime::pallet_index(18)]
+	pub type Nfts = pallet_nfts;
+
+	#[runtime::pallet_index(20)]
+	pub type Scheduler = pallet_scheduler;
+
+	#[runtime::pallet_index(28)]
+	pub type Preimage = pallet_preimage;
+
+	#[runtime::pallet_index(21)]
+	pub type Sudo = pallet_sudo;
+
+	#[runtime::pallet_index(22)]
+	pub type Proxy = pallet_proxy;
+
+	#[runtime::pallet_index(23)]
+	pub type Multisig = pallet_multisig;
+
+	#[runtime::pallet_index(24)]
+	pub type ElectionProviderMultiPhase = pallet_election_provider_multi_phase;
+
+	#[runtime::pallet_index(25)]
+	pub type BagsList = pallet_bags_list<Instance1>;
+
+	#[runtime::pallet_index(29)]
+	pub type NominationPools = pallet_nomination_pools;
+
+	#[runtime::pallet_index(30)]
+	pub type FastUnstake = pallet_fast_unstake;
+
+	// Frontier
+	#[runtime::pallet_index(50)]
+	pub type Ethereum = pallet_ethereum;
+
+	#[runtime::pallet_index(51)]
+	pub type Evm = pallet_evm;
+
+	#[runtime::pallet_index(53)]
+	pub type DynamicFee = pallet_dynamic_fee;
+
+	#[runtime::pallet_index(54)]
+	pub type BaseFee = pallet_base_fee;
+
+	#[runtime::pallet_index(55)]
+	pub type HotfixSufficients = pallet_hotfix_sufficients;
+
+	// Allfeat related
+	#[runtime::pallet_index(100)]
+	pub type Artists = pallet_artists;
+}
 
 #[derive(Clone)]
 pub struct TransactionConverter;
@@ -1382,7 +1457,7 @@ impl_runtime_apis! {
 			Executive::execute_block(block);
 		}
 
-		fn initialize_block(header: &<Block as BlockT>::Header) {
+		fn initialize_block(header: &<Block as BlockT>::Header) -> sp_runtime::ExtrinsicInclusionMode {
 			Executive::initialize_block(header)
 		}
 	}

@@ -32,7 +32,7 @@ use frame_election_provider_support::{
 	SequentialPhragmen, VoteWeight,
 };
 use frame_support::{
-	construct_runtime,
+	construct_runtime, derive_impl,
 	dispatch::DispatchClass,
 	genesis_builder_helper::{build_config, create_default_config},
 	pallet_prelude::Get,
@@ -227,6 +227,7 @@ parameter_types! {
 
 const_assert!(NORMAL_DISPATCH_RATIO.deconstruct() >= AVERAGE_ON_INITIALIZE_RATIO.deconstruct());
 
+#[derive_impl(frame_system::config_preludes::SolochainDefaultConfig)]
 impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type BlockWeights = RuntimeBlockWeights;
@@ -247,7 +248,7 @@ impl frame_system::Config for Runtime {
 	type AccountData = pallet_balances::AccountData<Balance>;
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
-	type SystemWeightInfo = weights::frame_system::AllfeatWeight<Runtime>;
+	type SystemWeightInfo = frame_system::weights::SubstrateWeight<Runtime>;
 	type SS58Prefix = ConstU16<SS58_PREFIX>;
 	type OnSetCode = ();
 	type MaxConsumers = ConstU32<16>;
@@ -400,7 +401,8 @@ impl pallet_scheduler::Config for Runtime {
 	type ScheduleOrigin = EnsureRoot<AccountId>;
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
 	type MaxScheduledPerBlock = ConstU32<50>;
-	type WeightInfo = weights::scheduler::AllfeatWeight<Runtime>;
+	//type WeightInfo = weights::scheduler::AllfeatWeight<Runtime>;
+	type WeightInfo = pallet_scheduler::weights::SubstrateWeight<Runtime>;
 	type Preimages = Preimage;
 }
 
@@ -478,7 +480,7 @@ impl pallet_balances::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = frame_system::Pallet<Runtime>;
-	type WeightInfo = weights::balances::AllfeatWeight<Runtime>;
+	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
 	type MaxLocks = MaxLocks;
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = [u8; 8];
@@ -486,7 +488,6 @@ impl pallet_balances::Config for Runtime {
 	type MaxFreezes = ConstU32<1024>;
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
-	type MaxHolds = ConstU32<1024>;
 }
 
 parameter_types! {
@@ -579,6 +580,7 @@ parameter_types! {
 	pub const OffendingValidatorsThreshold: Perbill = Perbill::from_percent(17);
 	// 4 hour session, 1 hour unsigned phase, 32 offchain executions.
 	pub OffchainRepeat: BlockNumber = UnsignedPhase::get() / 32;
+	pub const MaxControllersInDeprecationBatch: u32 = 5900;
 	pub HistoryDepth: u32 = 84;
 }
 
@@ -618,7 +620,8 @@ impl pallet_staking::Config for Runtime {
 	type MaxExposurePageSize = ConstU32<512>;
 	type EventListeners = NominationPools;
 	type HistoryDepth = HistoryDepth;
-	type WeightInfo = weights::staking::AllfeatWeight<Runtime>;
+	type MaxControllersInDeprecationBatch = MaxControllersInDeprecationBatch;
+	type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
 }
 
 impl pallet_fast_unstake::Config for Runtime {
@@ -769,7 +772,6 @@ impl pallet_election_provider_multi_phase::Config for Runtime {
 	type UnsignedPhase = UnsignedPhase;
 	type SignedPhase = SignedPhase;
 	type BetterSignedThreshold = ();
-	type BetterUnsignedThreshold = BetterUnsignedThreshold;
 	type OffchainRepeat = OffchainRepeat;
 	type MinerTxPriority = NposSolutionPriority;
 	type MinerConfig = Self;
@@ -987,7 +989,14 @@ impl pallet_identity::Config for Runtime {
 	type Slashed = ();
 	type ForceOrigin = EitherOf<EnsureRoot<AccountId>, GeneralAdmin>;
 	type RegistrarOrigin = EitherOf<EnsureRoot<AccountId>, GeneralAdmin>;
-	type WeightInfo = weights::identity::AllfeatWeight<Runtime>;
+	type OffchainSignature = Signature;
+	type SigningPublicKey = <Signature as traits::Verify>::Signer;
+	type UsernameAuthorityOrigin = EnsureRoot<Self::AccountId>;
+	type PendingUsernameExpiration = ConstU32<{ 7 * DAYS }>;
+	type MaxSuffixLength = ConstU32<7>;
+	type MaxUsernameLength = ConstU32<32>;
+	//type WeightInfo = weights::identity::AllfeatWeight<Runtime>;
+	type WeightInfo = pallet_identity::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -1053,6 +1062,7 @@ impl pallet_vesting::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type BlockNumberToBalance = ConvertInto;
+	type BlockNumberProvider = System;
 	type MinVestedTransfer = MinVestedTransfer;
 	type WeightInfo = pallet_vesting::weights::SubstrateWeight<Runtime>;
 	type UnvestedFundsAllowedWithdrawReasons = UnvestedFundsAllowedWithdrawReasons;
@@ -1391,7 +1401,7 @@ impl_runtime_apis! {
 			Executive::execute_block(block);
 		}
 
-		fn initialize_block(header: &<Block as BlockT>::Header) {
+		fn initialize_block(header: &<Block as BlockT>::Header) -> sp_runtime::ExtrinsicInclusionMode {
 			Executive::initialize_block(header)
 		}
 	}

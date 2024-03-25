@@ -33,9 +33,11 @@ use sc_client_api::{Backend, BlockBackend};
 use sc_consensus_babe::{BabeWorkerHandle, SlotProportion};
 use sc_executor::NativeElseWasmExecutor;
 use sc_network::{event::Event, NetworkEventStream, NetworkService};
-use sc_network_sync::{warp::WarpSyncParams, SyncingService};
+use sc_network_sync::SyncingService;
 use sc_rpc::SubscriptionTaskExecutor;
-use sc_service::{config::Configuration, error::Error as ServiceError, RpcHandlers, TaskManager};
+use sc_service::{
+	config::Configuration, error::Error as ServiceError, RpcHandlers, TaskManager, WarpSyncParams,
+};
 use sc_telemetry::{Telemetry, TelemetryWorker};
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
 use sp_core::{

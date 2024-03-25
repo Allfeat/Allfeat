@@ -140,6 +140,25 @@ pub struct IdentityInfo<FieldLimit: Get<u32>> {
 	pub telegram: Data,
 }
 
+impl<FieldLimit: Get<u32>> Default for IdentityInfo<FieldLimit> {
+	fn default() -> Self {
+		IdentityInfo {
+			additional: BoundedVec::default(),
+			display: Data::None,
+			legal: Data::None,
+			web: Data::None,
+			matrix: Data::None,
+			email: Data::None,
+			twitter: Data::None,
+			instagram: Data::None,
+			youtube: Data::None,
+			tiktok: Data::None,
+			discord: Data::None,
+			telegram: Data::None,
+		}
+	}
+}
+
 impl<FieldLimit: Get<u32> + 'static> IdentityInformationProvider for IdentityInfo<FieldLimit> {
 	type FieldsIdentifier = u64;
 

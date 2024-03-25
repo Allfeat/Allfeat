@@ -30,7 +30,7 @@ repository = "https://github.com/allfeat/allfeat"
 
 # Allfeat (wasm)
 allfeat-primitives = { version = "1.0.0", default-features = false, path = "./primitives" }
-pallet-artists = { package = "pallet-artists-v2", version = "1.0.0-dev", default-features = false, git = "https://github.com/Allfeat/pallet-artists-v2.git", branch = "allfeat-polkadot-v1.5.0" }
+pallet-artists = { package = "pallet-artists-v2", version = "1.0.0-dev", default-features = false, git = "https://github.com/Allfeat/pallet-artists-v2.git", branch = "allfeat-polkadot-v1.9.0" }
 
 # Substrate (wasm)
 parity-scale-codec = { version = "3.6.1", default-features = false, features = [
@@ -44,128 +44,128 @@ log = { version = "0.4.17", default-features = false }
 hex-literal = "0.4.1"
 smallvec = "1.13.1"
 
-frame-support = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-frame-election-provider-support = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-frame-system = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-frame-try-runtime = { version = "0.10.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-frame-executive = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
+frame-support = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+frame-election-provider-support = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+frame-system = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+frame-try-runtime = { version = "0.34.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+frame-executive = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
 
-sp-arithmetic = { version = "16.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sp-api = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sp-block-builder = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sp-core = { version = "21.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sp-inherents = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sp-offchain = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sp-runtime = { version = "24.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sp-session = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sp-std = { version = "8.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sp-transaction-pool = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sp-version = { version = "22.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sp-authority-discovery = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sp-consensus-babe = { version = "0.10.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sp-staking = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sp-io = { version = "23.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sp-statement-store = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sp-storage = { version = "13.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sp-genesis-builder = { version = "0.1.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-babe = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-authority-discovery = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-authorship = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-bags-list = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-collective = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-conviction-voting = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-democracy = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-elections-phragmen = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-election-provider-multi-phase = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-election-provider-support-benchmarking = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-im-online = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-indices = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-identity = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-mmr = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-multisig = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-nfts = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-nomination-pools = { version = "1.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-nomination-pools-benchmarking = { version = "1.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-offences = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-offences-benchmarking = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-preimage = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-proxy = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-recovery = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-referenda = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-session = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-session-benchmarking = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-staking = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-fast-unstake = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-staking-reward-curve = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-state-trie-migration = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-scheduler = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-balances = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-grandpa = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-insecure-randomness-collective-flip = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-sudo = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-timestamp = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-transaction-payment = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-utility = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-vesting = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-whitelist = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-frame-system-rpc-runtime-api = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-transaction-payment-rpc-runtime-api = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-frame-benchmarking = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-frame-system-benchmarking = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
+sp-arithmetic = { version = "23.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sp-api = { version = "26.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sp-block-builder = { version = "26.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sp-core = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sp-inherents = { version = "26.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sp-offchain = { version = "26.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sp-runtime = { version = "31.0.1", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sp-session = { version = "27.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sp-std = { version = "14.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sp-transaction-pool = { version = "26.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sp-version = { version = "29.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sp-authority-discovery = { version = "26.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sp-consensus-babe = { version = "0.32.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sp-staking = { version = "26.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sp-io = { version = "30.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sp-statement-store = { version = "10.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sp-storage = { version = "19.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sp-genesis-builder = { version = "0.7.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-babe = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-authority-discovery = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-authorship = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-bags-list = { version = "27.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-collective = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-conviction-voting = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-democracy = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-elections-phragmen = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-election-provider-multi-phase = { version = "27.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-election-provider-support-benchmarking = { version = "27.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-im-online = { version = "27.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-indices = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-identity = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-mmr = { version = "27.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-multisig = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-nfts = { version = "22.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-nomination-pools = { version = "25.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-nomination-pools-benchmarking = { version = "26.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-offences = { version = "27.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-offences-benchmarking = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-preimage = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-proxy = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-recovery = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-referenda = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-session = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-session-benchmarking = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-staking = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-fast-unstake = { version = "27.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-staking-reward-curve = { version = "11.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-state-trie-migration = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-scheduler = { version = "29.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-balances = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-grandpa = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-insecure-randomness-collective-flip = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-sudo = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-timestamp = { version = "27.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-transaction-payment = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-utility = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-vesting = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-whitelist = { version = "27.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+frame-system-rpc-runtime-api = { version = "26.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-transaction-payment-rpc-runtime-api = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+frame-benchmarking = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+frame-system-benchmarking = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
 
 # Other (wasm)
 num_enum = { version = "0.7.0", default-features = false }
 enumflags2 = { version = "0.7.7" }
 
 # Substrate (client)
-substrate-wasm-builder = { version = "5.0.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-consensus-epochs = { version = "0.10.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sp-transaction-storage-proof = { version = "4.0.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sp-keystore = { version = "0.27.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
+substrate-wasm-builder = { version = "17.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-consensus-epochs = { version = "0.33.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sp-transaction-storage-proof = { version = "26.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sp-keystore = { version = "0.34.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
 
-sc-chain-spec = { version = "4.0.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-sync-state-rpc = { version = "0.10.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-network = { version = "0.10.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-network-common = { version = "0.10.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-network-sync = { version = "0.10.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-network-statement = { version = "0.10.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-consensus-slots = { version = "0.10.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-consensus-babe = { version = "0.10.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-grandpa = { version = "0.10.0-dev", package = "sc-consensus-grandpa", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-authority-discovery = { version = "0.10.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-sysinfo = { version = "6.0.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-offchain = { version = "4.0.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-statement-store = { version = "4.0.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
+sc-chain-spec = { version = "27.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-sync-state-rpc = { version = "0.34.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-network = { version = "0.34.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-network-common = { version = "0.33.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-network-sync = { version = "0.33.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-network-statement = { version = "0.16.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-consensus-slots = { version = "0.33.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-consensus-babe = { version = "0.34.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+grandpa = { version = "0.19.0", package = "sc-consensus-grandpa", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-authority-discovery = { version = "0.34.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-sysinfo = { version = "27.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-offchain = { version = "29.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-statement-store = { version = "10.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
 
-sc-cli = { version = "0.10.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-executor = { version = "0.10.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-service = { version = "0.10.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-telemetry = { version = "4.0.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-keystore = { version = "4.0.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-transaction-pool = { version = "4.0.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-transaction-pool-api = { version = "4.0.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sp-consensus = { version = "0.10.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-consensus = { version = "0.10.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-client-api = { version = "4.0.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-service-test = { version = "2.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sp-timestamp = { version = "4.0.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sp-keyring = { version = "24.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sp-tracing = { version = "10.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
+sc-cli = { version = "0.36.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-executor = { version = "0.32.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-service = { version = "0.35.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-telemetry = { version = "15.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-keystore = { version = "25.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-transaction-pool = { version = "28.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-transaction-pool-api = { version = "28.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sp-consensus = { version = "0.32.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-consensus = { version = "0.33.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-client-api = { version = "28.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-service-test = { version = "2.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sp-timestamp = { version = "26.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sp-keyring = { version = "31.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sp-tracing = { version = "16.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
 
-sp-consensus-grandpa = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-rpc = { version = "4.0.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-rpc-api = { version = "0.10.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-rpc-spec-v2 = { version = "0.10.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sp-blockchain = { version = "4.0.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-basic-authorship = { version = "0.10.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-consensus-babe-rpc = { version = "0.10.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-sc-consensus-grandpa-rpc = { version = "0.10.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-substrate-frame-rpc-system = { version = "4.0.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-transaction-payment-rpc = { version = "4.0.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-substrate-state-trie-migration-rpc = { version = "4.0.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-try-runtime-cli = { version = "0.10.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-substrate-build-script-utils = { version = "3.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
-frame-benchmarking-cli = { version = "4.0.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
+sp-consensus-grandpa = { version = "13.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-rpc = { version = "29.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-rpc-api = { version = "0.33.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-rpc-spec-v2 = { version = "0.34.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sp-blockchain = { version = "28.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-basic-authorship = { version = "0.34.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-consensus-babe-rpc = { version = "0.34.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+sc-consensus-grandpa-rpc = { version = "0.19.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+substrate-frame-rpc-system = { version = "28.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-transaction-payment-rpc = { version = "30.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+substrate-state-trie-migration-rpc = { version = "4.0.0-dev", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+try-runtime-cli = { version = "0.38.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+substrate-build-script-utils = { version = "11.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+frame-benchmarking-cli = { version = "32.0.0", git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
 
 # Allfeat (client)
 shared-runtime = { version = "1.0.0-dev", path = "./runtime/shared", default-features = false }
@@ -175,7 +175,7 @@ allfeat-runtime = { version = "1.0.0-dev", path = "./runtime/allfeat" }
 # Other (client)
 clap = { version = "4.2.5", features = ["derive"] }
 serde = { version = "1.0.163", features = ["derive"] }
-jsonrpsee = { version = "0.16.2", features = ["server"] }
+jsonrpsee = { version = "0.22.3", features = ["server", "macros"] }
 serde_json = { version = "1.0.108", features = ["alloc", "arbitrary_precision"] }
 futures = "0.3.21"
 rand = "0.8"
@@ -185,28 +185,28 @@ libsecp256k1 = { version = "0.7.1", default-features = false }
 bip32 = { version = "0.5.1", default-features = false, features = ["bip39"] }
 tiny-bip39 = { version = "1.0.0", default-features = false }
 
-generate-bags = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.5.0" }
+generate-bags = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
 
 # Frontier (wasm)
-precompile-utils = { version = "0.1.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0", default-features = false }
-fp-evm = { version = "3.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0", default-features = false }
-fp-rpc = { version = "3.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0", default-features = false }
-fp-self-contained = { version = "1.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0", default-features = false }
-fp-account = { version = "1.0.0-dev", default-features = false, git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0" }
-pallet-base-fee = { version = "1.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0", default-features = false }
-pallet-dynamic-fee = { version = "4.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0", default-features = false }
-pallet-ethereum = { version = "4.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0", default-features = false, features = [
+precompile-utils = { version = "0.1.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0", default-features = false }
+fp-evm = { version = "3.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0", default-features = false }
+fp-rpc = { version = "3.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0", default-features = false }
+fp-self-contained = { version = "1.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0", default-features = false }
+fp-account = { version = "1.0.0-dev", default-features = false, git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-base-fee = { version = "1.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0", default-features = false }
+pallet-dynamic-fee = { version = "4.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0", default-features = false }
+pallet-ethereum = { version = "4.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0", default-features = false, features = [
     "forbid-evm-reentrancy",
 ] }
-pallet-evm = { version = "6.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0", default-features = false, features = [
+pallet-evm = { version = "6.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0", default-features = false, features = [
     "forbid-evm-reentrancy",
 ] }
-pallet-evm-precompile-modexp = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0", default-features = false }
-pallet-evm-precompile-sha3fips = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0", default-features = false }
-pallet-evm-precompile-simple = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0", default-features = false }
-pallet-hotfix-sufficients = { version = "1.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0", default-features = false }
-pallet-evm-precompile-bn128 = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0", default-features = false }
-pallet-evm-precompile-blake2 = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0", default-features = false }
+pallet-evm-precompile-modexp = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0", default-features = false }
+pallet-evm-precompile-sha3fips = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0", default-features = false }
+pallet-evm-precompile-simple = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0", default-features = false }
+pallet-hotfix-sufficients = { version = "1.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0", default-features = false }
+pallet-evm-precompile-bn128 = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0", default-features = false }
+pallet-evm-precompile-blake2 = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0", default-features = false }
 pallet-evm-precompile-balances-erc20 = { path = "./precompiles/balances-erc20", default-features = false }
 pallet-evm-precompile-artists = { path = "./precompiles/artists", default-features = false }
 pallet-evm-precompile-nfts-factory = { path = "./precompiles/nfts/factory", default-features = false }
@@ -216,15 +216,15 @@ pallet-evm-precompile-nfts-tests = { path = "./precompiles/nfts/tests", default-
 pallet-evm-precompile-nfts-types = { path = "./precompiles/nfts/types", default-features = false }
 
 # Frontier (client)
-fc-api = { version = "1.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0" }
-fc-cli = { version = "1.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0" }
-fc-consensus = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0" }
-fc-db = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0" }
-fc-mapping-sync = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0" }
-fc-rpc = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0" }
-fc-rpc-core = { version = "1.1.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0" }
-fc-storage = { version = "1.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0" }
-fp-dynamic-fee = { version = "1.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.5.0", features = [
+fc-api = { version = "1.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0" }
+fc-cli = { version = "1.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0" }
+fc-consensus = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0" }
+fc-db = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0" }
+fc-mapping-sync = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0" }
+fc-rpc = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0" }
+fc-rpc-core = { version = "1.1.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0" }
+fc-storage = { version = "1.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0" }
+fp-dynamic-fee = { version = "1.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0", features = [
     "default",
 ] }
 

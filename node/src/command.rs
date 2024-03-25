@@ -28,6 +28,7 @@ use crate::{
 	service,
 	service::{new_partial, FullClient},
 };
+use allfeat_primitives::Hashing;
 use frame_benchmarking_cli::*;
 use harmonie_runtime::Block;
 use sc_cli::{ChainSpec, Result, SubstrateCli};
@@ -110,7 +111,7 @@ pub fn run() -> Result<()> {
 							);
 						}
 
-						cmd.run::<Block, sp_statement_store::runtime_api::HostFunctions>(config)
+						cmd.run::<Hashing, sp_statement_store::runtime_api::HostFunctions>(config)
 					},
 					BenchmarkCmd::Block(cmd) => {
 						// ensure that we keep the task manager alive

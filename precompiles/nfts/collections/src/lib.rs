@@ -324,7 +324,7 @@ where
 			let owner: Runtime::AccountId = Runtime::AddressMapping::into_account_id(owner);
 			let transfer_ownership_call = pallet_nfts::Call::<Runtime>::transfer_ownership {
 				collection: collection_id,
-				owner: Runtime::Lookup::unlookup(owner),
+				new_owner: Runtime::Lookup::unlookup(owner),
 			};
 
 			RuntimeHelper::<Runtime>::try_dispatch(
