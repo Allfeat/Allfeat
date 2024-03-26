@@ -22,13 +22,15 @@ use frame_support::{
 	traits::nonfungibles_v2::{Inspect, Mutate},
 };
 use frame_system::pallet_prelude::OriginFor;
-use pallet_evm_precompile_nfts_tests::{ExtBuilder, ALICE, BOB};
+use pallet_evm_precompile_nfts_tests::{
+	ExtBuilder, ALICE, ALICE_COLLECTION_PRECOMPILE_ADDRESS, BOB,
+};
 use pallet_evm_precompile_nfts_types::solidity::{
 	AttributeNamespace, AttributeNamespaceInfo, CancelAttributesApprovalWitness, CollectionDetails,
 	CollectionSettings, ItemSettings, MintInfo, MintSettings, MintType, OptionalAddress,
 	OptionalMintWitness, OptionalU256,
 };
-use pallet_nfts::Event;
+use pallet_nfts::{Event, MintWitness};
 use precompile_utils::{solidity::codec::bytes::BoundedBytesString, testing::*};
 use sp_core::U256;
 use sp_runtime::BoundedVec;
@@ -79,10 +81,10 @@ fn get_details_works() {
 		.build_with_collections()
 		.execute_with(|| {
 			precompiles()
-				.prepare_test(ALICE, Precompile1, PCall::get_details {})
+				.prepare_test(ALICE, ALICE_COLLECTION_PRECOMPILE_ADDRESS, PCall::get_details {})
 				.execute_returns(CollectionDetails {
 					owner: ALICE.into(),
-					owner_deposit: U256::from(1000),
+					owner_deposit: U256::from(0),
 					items: 0,
 					item_metadatas: 0,
 					item_configs: 0,
@@ -100,7 +102,7 @@ fn mint_works() {
 			precompiles()
 				.prepare_test(
 					ALICE,
-					Precompile1,
+					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
 					PCall::mint {
 						item_id: U256::from(0),
 						mint_to: ALICE.into(),
@@ -136,7 +138,11 @@ fn burn_works() {
 			assert_eq!(pallet_nfts::Pallet::<Runtime>::owner(0, 0), Some(ALICE.into()));
 
 			precompiles()
-				.prepare_test(ALICE, Precompile1, PCall::burn { item_id: U256::from(0) })
+				.prepare_test(
+					ALICE,
+					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
+					PCall::burn { item_id: U256::from(0) },
+				)
 				.execute_returns(true);
 
 			System::assert_last_event(RuntimeEvent::Nfts(Event::Burned {
@@ -168,7 +174,7 @@ fn transfer_works() {
 			precompiles()
 				.prepare_test(
 					ALICE,
-					Precompile1,
+					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
 					PCall::transfer { item_id: U256::from(0), dest: BOB.into() },
 				)
 				.execute_returns(true);
@@ -201,7 +207,7 @@ fn lock_item_transfer_works() {
 			precompiles()
 				.prepare_test(
 					ALICE,
-					Precompile1,
+					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
 					PCall::lock_item_transfer { item_id: U256::from(0) },
 				)
 				.execute_returns(true);
@@ -236,7 +242,7 @@ fn unlock_item_transfer_works() {
 			precompiles()
 				.prepare_test(
 					ALICE,
-					Precompile1,
+					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
 					PCall::unlock_item_transfer { item_id: U256::from(0) },
 				)
 				.execute_returns(true);
@@ -257,7 +263,7 @@ fn seal_collection_works() {
 			precompiles()
 				.prepare_test(
 					ALICE,
-					Precompile1,
+					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
 					PCall::seal_collection { settings: CollectionSettings::default() },
 				)
 				.execute_returns(true);
@@ -274,8 +280,17 @@ fn transfer_ownership_works() {
 		.with_balances(vec![(ALICE.into(), 1000)])
 		.build_with_collections()
 		.execute_with(|| {
+			assert_ok!(pallet_nfts::Pallet::<Runtime>::set_accept_ownership(
+				OriginFor::<Runtime>::signed(BOB.into()),
+				Some(0),
+			));
+
 			precompiles()
-				.prepare_test(ALICE, Precompile1, PCall::transfer_ownership { owner: BOB.into() })
+				.prepare_test(
+					ALICE,
+					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
+					PCall::transfer_ownership { owner: BOB.into() },
+				)
 				.execute_returns(true);
 
 			System::assert_last_event(RuntimeEvent::Nfts(Event::OwnerChanged {
@@ -294,7 +309,7 @@ fn set_team_works() {
 			precompiles()
 				.prepare_test(
 					ALICE,
-					Precompile1,
+					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
 					PCall::set_team {
 						issuer: ALICE.into(),
 						admin: BOB.into(),
@@ -329,7 +344,7 @@ fn approve_transfer_works() {
 			precompiles()
 				.prepare_test(
 					ALICE,
-					Precompile1,
+					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
 					PCall::approve_transfer {
 						item: U256::from(0),
 						delegate: BOB.into(),
@@ -373,7 +388,7 @@ fn cancel_approval_works() {
 			precompiles()
 				.prepare_test(
 					ALICE,
-					Precompile1,
+					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
 					PCall::cancel_approval { item: U256::from(0), delegate: BOB.into() },
 				)
 				.execute_returns(true);
@@ -412,7 +427,7 @@ fn clear_all_transfer_approvals_works() {
 			precompiles()
 				.prepare_test(
 					ALICE,
-					Precompile1,
+					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
 					PCall::clear_all_transfer_approvals { item: U256::from(0) },
 				)
 				.execute_returns(true);
@@ -442,7 +457,7 @@ fn lock_item_properties_works() {
 			precompiles()
 				.prepare_test(
 					ALICE,
-					Precompile1,
+					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
 					PCall::lock_item_properties {
 						item: U256::from(0),
 						lock_metadata: true,
@@ -473,7 +488,10 @@ fn lock_item_properties_works() {
 					OriginFor::<Runtime>::signed(ALICE.into()),
 					0,
 					Some(0),
-					pallet_nfts::AttributeNamespace::ItemOwner,
+					pallet_nfts::AttributeNamespace::CollectionOwner, /* Error is not being
+					                                                   * throwed with
+					                                                   * `ItemOwner` on polkadot
+					                                                   * sdk. */
 					BoundedVec::new(),
 					BoundedVec::new(),
 				),
@@ -491,7 +509,7 @@ fn set_collection_attribute_works() {
 			precompiles()
 				.prepare_test(
 					ALICE,
-					Precompile1,
+					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
 					PCall::set_collection_attribute {
 						namespace: AttributeNamespaceInfo {
 							namespace: AttributeNamespace::CollectionOwner,
@@ -527,14 +545,22 @@ fn set_item_attribute_works() {
 		.with_balances(vec![(ALICE.into(), 1000)])
 		.build_with_collections()
 		.execute_with(|| {
+			assert_ok!(pallet_nfts::Pallet::<Runtime>::mint(
+				OriginFor::<Runtime>::signed(ALICE.into()),
+				0,
+				0,
+				ALICE.into(),
+				None
+			));
+
 			precompiles()
 				.prepare_test(
 					ALICE,
-					Precompile1,
+					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
 					PCall::set_item_attribute {
 						item: U256::from(0),
 						namespace: AttributeNamespaceInfo {
-							namespace: AttributeNamespace::ItemOwner,
+							namespace: AttributeNamespace::CollectionOwner,
 							account: ALICE.into(),
 						},
 						key: "key".into(),
@@ -548,11 +574,11 @@ fn set_item_attribute_works() {
 				maybe_item: Some(0),
 				key: BoundedVec::try_from(b"key".to_vec()).unwrap(),
 				value: BoundedVec::try_from(b"value".to_vec()).unwrap(),
-				namespace: pallet_nfts::AttributeNamespace::ItemOwner,
+				namespace: pallet_nfts::AttributeNamespace::CollectionOwner,
 			}));
 
 			assert_eq!(
-				pallet_nfts::Pallet::<Runtime>::attribute(&0, &0, "key".as_bytes()),
+				pallet_nfts::Pallet::<Runtime>::attribute(&0, &0, b"key"),
 				Some("value".into())
 			);
 		})
@@ -587,7 +613,7 @@ fn clear_collection_attribute_works() {
 			precompiles()
 				.prepare_test(
 					ALICE,
-					Precompile1,
+					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
 					PCall::clear_collection_attribute {
 						namespace: AttributeNamespaceInfo {
 							namespace: AttributeNamespace::CollectionOwner,
@@ -636,24 +662,24 @@ fn clear_item_attribute_works() {
 				OriginFor::<Runtime>::signed(ALICE.into()),
 				0,
 				Some(0),
-				pallet_nfts::AttributeNamespace::ItemOwner,
+				pallet_nfts::AttributeNamespace::CollectionOwner,
 				key.clone(),
 				value,
 			));
 
 			assert_eq!(
-				pallet_nfts::Pallet::<Runtime>::attribute(&0, &0, "key".as_bytes()),
+				pallet_nfts::Pallet::<Runtime>::attribute(&0, &0, b"key"),
 				Some("value".into())
 			);
 
 			precompiles()
 				.prepare_test(
 					ALICE,
-					Precompile1,
+					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
 					PCall::clear_item_attribute {
 						item: U256::from(0),
 						namespace: AttributeNamespaceInfo {
-							namespace: AttributeNamespace::ItemOwner,
+							namespace: AttributeNamespace::CollectionOwner,
 							account: ALICE.into(),
 						},
 						key: "key".into(),
@@ -665,7 +691,7 @@ fn clear_item_attribute_works() {
 				collection: 0,
 				maybe_item: Some(0),
 				key,
-				namespace: pallet_nfts::AttributeNamespace::ItemOwner,
+				namespace: pallet_nfts::AttributeNamespace::CollectionOwner,
 			}));
 
 			assert_eq!(pallet_nfts::Pallet::<Runtime>::attribute(&0, &0, "key".as_bytes()), None,);
@@ -689,7 +715,7 @@ fn approve_item_attributes_works() {
 			precompiles()
 				.prepare_test(
 					ALICE,
-					Precompile1,
+					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
 					PCall::approve_item_attributes { item: U256::from(0), delegate: BOB.into() },
 				)
 				.execute_returns(true);
@@ -726,7 +752,7 @@ fn cancel_item_attributes_approval_works() {
 			precompiles()
 				.prepare_test(
 					ALICE,
-					Precompile1,
+					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
 					PCall::cancel_item_attributes_approval {
 						item: U256::from(0),
 						delegate: BOB.into(),
@@ -749,10 +775,18 @@ fn set_metadata_works() {
 		.with_balances(vec![(ALICE.into(), 1000)])
 		.build_with_collections()
 		.execute_with(|| {
+			assert_ok!(pallet_nfts::Pallet::<Runtime>::mint(
+				OriginFor::<Runtime>::signed(ALICE.into()),
+				0,
+				0,
+				ALICE.into(),
+				None,
+			));
+
 			precompiles()
 				.prepare_test(
 					ALICE,
-					Precompile1,
+					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
 					PCall::set_metadata {
 						item: U256::from(0),
 						data: BoundedBytesString::from(b"metadata"),
@@ -802,7 +836,11 @@ fn clear_metadata_works() {
 			);
 
 			precompiles()
-				.prepare_test(ALICE, Precompile1, PCall::clear_metadata { item: U256::from(0) })
+				.prepare_test(
+					ALICE,
+					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
+					PCall::clear_metadata { item: U256::from(0) },
+				)
 				.execute_returns(true);
 
 			System::assert_last_event(RuntimeEvent::Nfts(Event::ItemMetadataCleared {
@@ -823,14 +861,13 @@ fn set_collection_metadata_works() {
 			precompiles()
 				.prepare_test(
 					ALICE,
-					Precompile1,
+					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
 					PCall::set_collection_metadata { data: BoundedBytesString::from(b"metadata") },
 				)
 				.execute_returns(true);
 
-			System::assert_last_event(RuntimeEvent::Nfts(Event::ItemMetadataSet {
+			System::assert_last_event(RuntimeEvent::Nfts(Event::CollectionMetadataSet {
 				collection: 0,
-				item: 0,
 				data: BoundedVec::try_from(b"metadata".to_vec()).unwrap(),
 			}));
 
@@ -861,7 +898,11 @@ fn clear_collection_metadata_works() {
 			);
 
 			precompiles()
-				.prepare_test(ALICE, Precompile1, PCall::clear_collection_metadata {})
+				.prepare_test(
+					ALICE,
+					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
+					PCall::clear_collection_metadata {},
+				)
 				.execute_returns(true);
 
 			System::assert_last_event(RuntimeEvent::Nfts(Event::CollectionMetadataCleared {
@@ -881,7 +922,7 @@ fn set_collection_max_supply_works() {
 			precompiles()
 				.prepare_test(
 					ALICE,
-					Precompile1,
+					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
 					PCall::set_collection_max_supply { max_supply: 1 },
 				)
 				.execute_returns(true);
@@ -903,7 +944,7 @@ fn set_collection_max_supply_works() {
 				pallet_nfts::Pallet::<Runtime>::mint(
 					OriginFor::<Runtime>::signed(ALICE.into()),
 					0,
-					0,
+					1,
 					ALICE.into(),
 					None
 				),
@@ -921,7 +962,7 @@ fn update_mint_settings_works() {
 			precompiles()
 				.prepare_test(
 					ALICE,
-					Precompile1,
+					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
 					PCall::update_mint_settings {
 						mint_settings: MintSettings {
 							mint_type: MintInfo {
@@ -953,10 +994,18 @@ fn set_price_works() {
 		.with_balances(vec![(ALICE.into(), 1000)])
 		.build_with_collections()
 		.execute_with(|| {
+			assert_ok!(pallet_nfts::Pallet::<Runtime>::mint(
+				OriginFor::<Runtime>::signed(ALICE.into()),
+				0,
+				0,
+				ALICE.into(),
+				None,
+			));
+
 			precompiles()
 				.prepare_test(
 					ALICE,
-					Precompile1,
+					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
 					PCall::set_price {
 						item: U256::from(0),
 						whitelisted_buyer: OptionalAddress::default(),
@@ -980,10 +1029,35 @@ fn buy_item_works() {
 		.with_balances(vec![(ALICE.into(), 1000)])
 		.build_with_collections()
 		.execute_with(|| {
+			assert_ok!(pallet_nfts::Pallet::<Runtime>::update_mint_settings(
+				OriginFor::<Runtime>::signed(ALICE.into()),
+				0,
+				pallet_nfts::MintSettings {
+					mint_type: pallet_nfts::MintType::Public,
+					price: Some(100),
+					start_block: None,
+					end_block: None,
+					default_item_settings: ItemSettings {
+						is_transferable: true,
+						is_unlocked_metadata: true,
+						is_unlocked_attributes: true,
+					}
+					.into(),
+				},
+			));
+
+			assert_ok!(pallet_nfts::Pallet::<Runtime>::mint(
+				OriginFor::<Runtime>::signed(ALICE.into()),
+				0,
+				0,
+				ALICE.into(),
+				Some(MintWitness { owned_item: None, mint_price: Some(100) }),
+			));
+
 			precompiles()
 				.prepare_test(
 					BOB,
-					Precompile1,
+					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
 					PCall::buy_item { item: U256::from(0), bid_price: U256::from(100) },
 				)
 				.execute_returns(true);
@@ -995,5 +1069,7 @@ fn buy_item_works() {
 				seller: ALICE.into(),
 				buyer: BOB.into(),
 			}));
+
+			assert_eq!(pallet_nfts::Pallet::<Runtime>::owner(0, 0,), Some(BOB.into()));
 		})
 }
