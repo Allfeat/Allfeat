@@ -42,7 +42,7 @@ pub type Block = frame_system::mocking::MockBlock<Runtime>;
 
 /// The local Nfts precompile address prefix. Addresses that match against this prefix will
 /// be routed to NftsPrecompileSet being marked as local
-pub const NFTS_PRECOMPILE_ADDRESS_PREFIX: u32 = 0xfffffffe;
+pub const NFTS_PRECOMPILE_ADDRESS_PREFIX: u32 = 0xffffffff;
 
 mock_account!(LocalCollectionId(CollectionId), |value: LocalCollectionId| {
 	AddressInPrefixedSet(NFTS_PRECOMPILE_ADDRESS_PREFIX, value.0).into()
