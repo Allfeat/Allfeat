@@ -1,6 +1,6 @@
 # This is the first stage. Here we install all the dependencies that we need in order to build the Allfeat binary
 # and we create the Allfeat binary in a rust oriented temporary image.
-FROM rust:1.76.0-slim-bookworm as builder
+FROM rustlang/rust:nightly-bookworm-slim as builder
 
 # This installs all dependencies that we need (besides Rust).
 RUN apt update -y && \
