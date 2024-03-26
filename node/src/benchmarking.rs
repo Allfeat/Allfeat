@@ -19,13 +19,14 @@
 //! Contains code to setup the command invocations in [`super::command`] which would
 //! otherwise bloat that module.
 
-use crate::service::FullClient;
+use crate::client::Client;
 use allfeat_primitives::Balance;
 use fp_account::AccountId20;
 use harmonie_runtime as runtime;
 use runtime::{AccountId, BalancesCall, SystemCall};
 use sc_cli::Result;
 use sc_client_api::BlockBackend;
+use sha3::digest::Mac;
 use sp_core::{ecdsa, Encode, Pair};
 use sp_inherents::{InherentData, InherentDataProvider};
 use sp_runtime::{OpaqueExtrinsic, SaturatedConversion};
@@ -34,18 +35,18 @@ use std::{sync::Arc, time::Duration};
 /// Generates extrinsics for the `benchmark overhead` command.
 ///
 /// Note: Should only be used for benchmarking.
-pub struct BenchmarkExtrinsicBuilder {
-	client: Arc<FullClient>,
+pub struct RemarkBuilder {
+	client: Arc<Client>,
 }
 
-impl BenchmarkExtrinsicBuilder {
+impl RemarkBuilder {
 	/// Creates a new [`Self`] from the given client.
-	pub fn new(client: Arc<FullClient>) -> Self {
+	pub fn new(client: Arc<Client>) -> Self {
 		Self { client }
 	}
 }
 
-impl frame_benchmarking_cli::ExtrinsicBuilder for BenchmarkExtrinsicBuilder {
+impl frame_benchmarking_cli::ExtrinsicBuilder for RemarkBuilder {
 	fn pallet(&self) -> &str {
 		"system"
 	}
@@ -72,14 +73,14 @@ impl frame_benchmarking_cli::ExtrinsicBuilder for BenchmarkExtrinsicBuilder {
 ///
 /// Note: Should only be used for benchmarking.
 pub struct TransferKeepAliveBuilder {
-	client: Arc<FullClient>,
+	client: Arc<Client>,
 	dest: AccountId,
 	value: Balance,
 }
 
 impl TransferKeepAliveBuilder {
 	/// Creates a new [`Self`] from the given client.
-	pub fn new(client: Arc<FullClient>, dest: AccountId, value: Balance) -> Self {
+	pub fn new(client: Arc<Client>, dest: AccountId, value: Balance) -> Self {
 		Self { client, dest, value }
 	}
 }
@@ -115,7 +116,7 @@ impl frame_benchmarking_cli::ExtrinsicBuilder for TransferKeepAliveBuilder {
 ///
 /// Note: Should only be used for benchmarking.
 pub fn create_benchmark_extrinsic(
-	client: &FullClient,
+	client: &Client,
 	sender: ecdsa::Pair,
 	call: runtime::RuntimeCall,
 	nonce: u32,
@@ -159,10 +160,10 @@ pub fn create_benchmark_extrinsic(
 	let signature = raw_payload.using_encoded(|e| sender.sign(e));
 
 	runtime::UncheckedExtrinsic::new_signed(
-		call.clone(),
-		AccountId20::from(sender.public()).into(),
-		runtime::Signature::new(signature.clone()),
-		extra.clone(),
+		call,
+		AccountId20::from(sender.public()),
+		runtime::Signature::new(signature),
+		extra,
 	)
 }
 

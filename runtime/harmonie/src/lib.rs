@@ -1954,7 +1954,6 @@ impl_runtime_apis! {
 			use frame_system_benchmarking::Pallet as SystemBench;
 			use baseline::Pallet as BaselineBench;
 			use pallet_nomination_pools_benchmarking::Pallet as NominationPoolsBench;
-			use pallet_evm::Pallet as PalletEvmBench;
 			use pallet_hotfix_sufficients::Pallet as PalletHotfixSufficientsBench;
 
 

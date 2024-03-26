@@ -94,8 +94,6 @@ pub struct FullDeps<C, P, SC, B, A: ChainApi, CT, CIDP> {
 	pub babe: BabeDeps,
 	/// GRANDPA specific dependencies.
 	pub grandpa: GrandpaDeps<B>,
-	/// The backend used by the node.
-	pub backend: Arc<B>,
 	/// Ethereum-compatibility specific dependencies.
 	pub eth: EthDeps<Block, C, P, A, CT, CIDP>,
 }
@@ -150,17 +148,7 @@ where
 	use substrate_frame_rpc_system::{System, SystemApiServer};
 
 	let mut io = RpcModule::new(());
-	let FullDeps {
-		client,
-		pool,
-		select_chain,
-		chain_spec,
-		deny_unsafe,
-		babe,
-		grandpa,
-		backend: _,
-		eth,
-	} = deps;
+	let FullDeps { client, pool, select_chain, chain_spec, deny_unsafe, babe, grandpa, eth } = deps;
 
 	let BabeDeps { keystore, babe_worker_handle } = babe;
 	let GrandpaDeps {

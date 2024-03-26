@@ -16,19 +16,14 @@ targets = ["x86_64-unknown-linux-gnu"]
 name = "allfeat"
 path = "src/main.rs"
 
-[lib]
-crate-type = ["cdylib", "rlib"]
-
 [dependencies]
 clap = { workspace = true }
-parity-scale-codec = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 futures = { workspace = true }
 hex-literal = { workspace = true }
 log = { workspace = true }
 rand = { workspace = true }
-tempfile = { workspace = true }
 bip32 = { workspace = true }
 tiny-bip39 = { workspace = true }
 libsecp256k1 = { workspace = true }
@@ -36,7 +31,6 @@ sha3 = { workspace = true }
 
 sp-authority-discovery = { workspace = true }
 sp-consensus-babe = { workspace = true }
-sc-consensus-epochs = { workspace = true }
 sp-transaction-pool = { workspace = true }
 sp-transaction-storage-proof = { workspace = true }
 sp-keystore = { workspace = true }
@@ -44,41 +38,33 @@ sp-keystore = { workspace = true }
 sc-chain-spec = { workspace = true }
 sc-sync-state-rpc = { workspace = true }
 sc-network = { workspace = true }
-sc-network-common = { workspace = true }
 sc-network-sync = { workspace = true }
-sc-network-statement = { workspace = true }
 sc-consensus-slots = { workspace = true }
 sc-consensus-babe = { workspace = true }
 grandpa = { workspace = true }
 sc-authority-discovery = { workspace = true }
 sc-sysinfo = { workspace = true }
 sc-offchain = { workspace = true }
-sc-statement-store = { workspace = true }
 
 sc-cli = { workspace = true }
 sp-core = { workspace = true }
 sc-executor = { workspace = true }
 sc-service = { workspace = true }
 sc-telemetry = { workspace = true }
-sc-keystore = { workspace = true }
 sc-transaction-pool = { workspace = true }
 sc-transaction-pool-api = { workspace = true }
 sp-consensus = { workspace = true }
 sc-consensus = { workspace = true }
 sc-client-api = { workspace = true }
 sp-runtime = { workspace = true }
-sc-service-test = { workspace = true }
 sp-timestamp = { workspace = true }
 sp-inherents = { workspace = true }
-sp-keyring = { workspace = true }
 sp-tracing = { workspace = true }
 sp-offchain = { workspace = true }
 sp-session = { workspace = true }
 frame-system = { workspace = true }
 frame-system-rpc-runtime-api = { workspace = true }
 pallet-transaction-payment = { workspace = true }
-sp-statement-store = { workspace = true }
-sp-io = { workspace = true }
 
 allfeat-primitives = { workspace = true }
 
@@ -110,7 +96,6 @@ fc-rpc-core = { workspace = true }
 fc-storage = { workspace = true }
 fp-account = { workspace = true }
 fp-dynamic-fee = { workspace = true }
-fp-evm = { workspace = true }
 fp-rpc = { workspace = true }
 
 # These dependencies are used for runtime benchmarking
@@ -120,7 +105,7 @@ frame-benchmarking-cli = { workspace = true }
 # Local Dependencies
 shared-runtime = { workspace = true }
 harmonie-runtime = { workspace = true }
-allfeat-runtime = { workspace= true }
+allfeat-runtime = { workspace = true }
 
 # CLI-specific dependencies
 try-runtime-cli = { workspace = true, optional = true }
@@ -132,9 +117,9 @@ frame-benchmarking-cli = { workspace = true, optional = true }
 [features]
 default = ["harmonie-native", "allfeat-native", "sql", "txpool", "rocksdb"]
 runtime-benchmarks = [
-	"allfeat-runtime/runtime-benchmarks",
-	"harmonie-runtime/runtime-benchmarks",
-	"frame-benchmarking-cli/runtime-benchmarks"
+    "allfeat-runtime/runtime-benchmarks",
+    "harmonie-runtime/runtime-benchmarks",
+    "frame-benchmarking-cli/runtime-benchmarks"
 ]
 harmonie-native = []
 allfeat-native = []
@@ -142,16 +127,16 @@ allfeat-native = []
 # in the near future.
 try-runtime = ["allfeat-runtime/try-runtime", "harmonie-runtime/try-runtime", "try-runtime-cli/try-runtime"]
 rocksdb = [
-	"sc-cli/rocksdb",
-	"sc-service/rocksdb",
-	"fc-cli/rocksdb",
-	"fc-db/rocksdb",
-	"fc-mapping-sync/rocksdb",
-	"fc-rpc/rocksdb",
+    "sc-cli/rocksdb",
+    "sc-service/rocksdb",
+    "fc-cli/rocksdb",
+    "fc-db/rocksdb",
+    "fc-mapping-sync/rocksdb",
+    "fc-rpc/rocksdb",
 ]
 sql = [
-	"fc-db/sql",
-	"fc-mapping-sync/sql",
+    "fc-db/sql",
+    "fc-mapping-sync/sql",
 ]
 txpool = ["fc-rpc/txpool"]
 rpc-binary-search-estimate = ["fc-rpc/rpc-binary-search-estimate"]
