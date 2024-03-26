@@ -16,9 +16,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{NftsSwapPrecompile, NftsSwapPrecompileCall};
+use crate::NftsSwapPrecompile;
 use frame_support::{
-	construct_runtime, parameter_types,
+	construct_runtime, derive_impl, parameter_types,
 	traits::{AsEnsureOriginWithArg, Everything},
 	weights::Weight,
 };
@@ -26,10 +26,7 @@ use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, IdentityAddressMapping};
 use pallet_nfts::PalletFeatures;
 use precompile_utils::precompile_set::{AddressU64, PrecompileAt, PrecompileSetBuilder};
 use sp_core::{ConstU128, ConstU32, ConstU64, H256, U256};
-use sp_runtime::{
-	traits::{BlakeTwo256, IdentityLookup, Verify},
-	BuildStorage,
-};
+use sp_runtime::traits::{BlakeTwo256, IdentityLookup, Verify};
 
 pub(super) type AccountId = allfeat_primitives::AccountId;
 type Signature = allfeat_primitives::Signature;
@@ -48,6 +45,7 @@ parameter_types! {
 	pub const SS58Prefix: u8 = 42;
 }
 
+#[derive_impl(frame_system::config_preludes::TestDefaultConfig as frame_system::DefaultConfig)]
 impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type BlockWeights = BlockWeights;
@@ -103,7 +101,6 @@ impl pallet_balances::Config for Runtime {
 	type RuntimeFreezeReason = ();
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
-	type MaxHolds = ();
 }
 
 const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;

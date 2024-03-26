@@ -18,7 +18,7 @@
 
 use crate::NftsFactoryPrecompile;
 use frame_support::{
-	construct_runtime, parameter_types,
+	construct_runtime, derive_impl, parameter_types,
 	traits::{AsEnsureOriginWithArg, Everything},
 	weights::Weight,
 };
@@ -45,6 +45,7 @@ parameter_types! {
 	pub const SS58Prefix: u8 = 42;
 }
 
+#[derive_impl(frame_system::config_preludes::TestDefaultConfig as frame_system::DefaultConfig)]
 impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type BlockWeights = BlockWeights;
@@ -100,7 +101,6 @@ impl pallet_balances::Config for Runtime {
 	type RuntimeFreezeReason = ();
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
-	type MaxHolds = ();
 }
 
 const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
