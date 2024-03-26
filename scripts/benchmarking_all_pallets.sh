@@ -59,11 +59,11 @@ done
 if [ "$skip_build" != true ]
 then
   echo "[+] Compiling Substrate benchmarks..."
-  cargo build --release --locked --features=runtime-benchmarks --bin allfeat
+  cargo build --profile=production --locked --features runtime-benchmarks --bin allfeat
 fi
 
 # The executable to use.
-SUBSTRATE=./target/release/allfeat
+SUBSTRATE=./target/production/allfeat
 
 # Manually exclude some pallets.
 EXCLUDED_PALLETS=(
@@ -80,11 +80,7 @@ EXCLUDED_PALLETS=(
 
 # Load all pallet names in an array.
 ALL_PALLETS=($(
-  $SUBSTRATE benchmark pallet --list --chain=dev |\
-    tail -n+2 |\
-    cut -d',' -f1 |\
-    sort |\
-    uniq
+  $SUBSTRATE benchmark pallet --list=pallets --no-csv-header --chain=harmonie-dev
 ))
 
 # Filter out the excluded pallets by concatenating the arrays and discarding duplicates.
@@ -120,7 +116,7 @@ for PALLET in "${PALLETS[@]}"; do
 
   OUTPUT=$(
     $SUBSTRATE benchmark pallet \
-    --chain=dev \
+    --chain=harmonie-dev \
     --steps=50 \
     --repeat=20 \
     --pallet="$PALLET" \
@@ -128,6 +124,7 @@ for PALLET in "${PALLETS[@]}"; do
     --wasm-execution=compiled \
     --heap-pages=4096 \
     --output="$WEIGHT_FILE" \
+    --header="./HEADER" \
     --template=./.maintain/frame-weight-template.hbs 2>&1
   )
   if [ $? -ne 0 ]; then
@@ -140,9 +137,10 @@ done
 echo "[+] Benchmarking block and extrinsic overheads..."
 OUTPUT=$(
   $SUBSTRATE benchmark overhead \
-  --chain=dev \
+  --chain=harmonie-dev \
   --wasm-execution=compiled \
-  --weight-path="./frame/support/src/weights/" \
+  --weight-path="./runtime/harmonie/src/weights/" \
+  --header="./HEADER" \
   --warmup=10 \
   --repeat=100 2>&1
 )
@@ -153,7 +151,7 @@ fi
 
 echo "[+] Benchmarking the machine..."
 OUTPUT=$(
-  $SUBSTRATE benchmark machine --chain=dev 2>&1
+  $SUBSTRATE benchmark machine --chain=harmonie-dev 2>&1
 )
 if [ $? -ne 0 ]; then
   # Do not write the error to the error file since it is not a benchmarking error.
