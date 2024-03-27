@@ -18,11 +18,13 @@
 
 use crate::{mock::*, NftsFactoryPrecompileCall};
 type OriginOf<R> = <R as frame_system::Config>::RuntimeOrigin;
-use pallet_evm_precompile_nfts_tests::{solidity_collection_config_all_enabled, ExtBuilder, ALICE, BOB};
+use frame_support::assert_ok;
+use pallet_evm_precompile_nfts_tests::{
+	solidity_collection_config_all_enabled, ExtBuilder, ALICE, BOB,
+};
 use precompile_utils::testing::*;
 use sp_core::U256;
 use sp_runtime::traits::StaticLookup;
-use frame_support::assert_ok;
 
 type PCall = NftsFactoryPrecompileCall<Runtime>;
 fn precompiles() -> Precompiles<Runtime> {
@@ -56,24 +58,21 @@ fn create_works() {
 
 #[test]
 fn set_accept_ownership_works() {
-    ExtBuilder::<Runtime>::default()
-        .with_balances(vec![(ALICE.into(), 1000)])
-        .build_with_collections()
-        .execute_with(|| {
-            precompiles()
-                .prepare_test(
-                    ALICE,
-                    Precompile1,
-                    PCall::set_accept_ownership {
-						collection: U256::from(1),
-					},
-                )
-                .execute_returns(true);
-			assert_ok!(
-			pallet_nfts::Pallet::<Runtime>::transfer_ownership(
+	ExtBuilder::<Runtime>::default()
+		.with_balances(vec![(ALICE.into(), 1000)])
+		.build_with_collections()
+		.execute_with(|| {
+			precompiles()
+				.prepare_test(
+					ALICE,
+					Precompile1,
+					PCall::set_accept_ownership { collection: U256::from(1) },
+				)
+				.execute_returns(true);
+			assert_ok!(pallet_nfts::Pallet::<Runtime>::transfer_ownership(
 				OriginOf::<Runtime>::signed(BOB.into()),
 				1,
 				<Runtime as frame_system::Config>::Lookup::unlookup(ALICE.into())
 			));
-        })
+		})
 }

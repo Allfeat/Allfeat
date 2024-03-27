@@ -60,9 +60,7 @@ use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_api::impl_runtime_apis;
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
-use sp_core::{
-	crypto::KeyTypeId, ConstU64, OpaqueMetadata, RuntimeDebug, H160, H256, U256,
-};
+use sp_core::{crypto::KeyTypeId, ConstU64, OpaqueMetadata, RuntimeDebug, H160, H256, U256};
 use sp_inherents::{CheckInherentsResult, InherentData};
 use sp_runtime::{
 	create_runtime_str,
