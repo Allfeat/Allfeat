@@ -26,7 +26,6 @@ use harmonie_runtime as runtime;
 use runtime::{AccountId, BalancesCall, SystemCall};
 use sc_cli::Result;
 use sc_client_api::BlockBackend;
-use sha3::digest::Mac;
 use sp_core::{ecdsa, Encode, Pair};
 use sp_inherents::{InherentData, InherentDataProvider};
 use sp_runtime::{OpaqueExtrinsic, SaturatedConversion};
