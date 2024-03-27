@@ -27,7 +27,7 @@ use frame_support::{
 use frame_system::EnsureRoot;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
 use precompile_utils::{mock_account, precompile_set::*, testing::MockAccount};
-use sp_core::{ConstU128, ConstU32, H256, U256};
+use sp_core::{ConstU128, ConstU32};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	BuildStorage, Perbill,
@@ -98,7 +98,6 @@ impl pallet_balances::Config for Runtime {
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type FreezeIdentifier = ();
 	type RuntimeFreezeReason = ();
-	type MaxHolds = ConstU32<10>;
 	type MaxFreezes = ();
 }
 
