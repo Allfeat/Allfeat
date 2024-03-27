@@ -27,7 +27,7 @@ RUN rustup component add rust-src
 # PLANNER #
 ###########
 
-# planner is where chef prepare its recipe using a local cache for the target
+# planner is where chef prepares its recipe using a local cache for the target
 
 FROM base AS planner
 COPY . .
@@ -37,7 +37,7 @@ RUN --mount=type=cache,mode=0755,target=/app/target cargo chef prepare --recipe-
 # CACHER #
 ##########
 
-# cacher is where chef will cook all the deps from the recipe inside the local cache
+# cacher is where chef cooks all the deps from the recipe inside the local cache
 
 FROM base as cacher
 COPY --from=planner /app/recipe.json recipe.json
@@ -49,7 +49,7 @@ RUN --mount=type=cache,mode=0755,target=/app/target cargo chef cook --release --
 # BUILDER #
 ###########
 
-# builder is where chef build the binary using the deps of the cache
+# builder is where chef builds the binary using the deps of the cache
 
 FROM cacher AS builder
 COPY . .
