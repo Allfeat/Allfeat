@@ -2,11 +2,11 @@
 # BASE #
 ########
 
-# base is the first stage where we install all the debian dependencies 
-# that we need to build the Allfeat binary, plus cargo-check to
-# optimize rust dependency management and then speedup re-build
+# base is the first stage where all the debian dependencies 
+# needed to build the Allfeat binary are installed, 
+# plus cargo-check to optimize rust dependency management and then speedup any re-build
 
-FROM rustlang/rust:nightly-bookworm-slim as builder
+FROM rustlang/rust:nightly-bookworm-slim as base
 
 WORKDIR /app
 
@@ -27,46 +27,41 @@ RUN rustup component add rust-src
 # PLANNER #
 ###########
 
-# planner is where chef prepare its recipe
+# planner is where chef prepare its recipe using a local cache for the target
 
 FROM base AS planner
-WORKDIR /app
 COPY . .
-RUN cargo chef prepare --recipe-path recipe.json
+RUN --mount=type=cache,mode=0755,target=/app/target cargo chef prepare --recipe-path recipe.json
 
 ##########
 # CACHER #
 ##########
 
-FROM base as cacher
-WORKDIR /app
+# cacher is where chef will cook all the deps from the recipe inside the local cache
 
+FROM base as cacher
 COPY --from=planner /app/recipe.json recipe.json
 
 # Build dependencies - this is the caching Docker layer!
-RUN cargo chef cook --release --recipe-path recipe.json
-
-RUN ls -tl /app/target
+RUN --mount=type=cache,mode=0755,target=/app/target cargo chef cook --release --recipe-path recipe.json
 
 ###########
 # BUILDER #
 ###########
 
-# builder is where chef build all the deps
-# and then create the Allfeat binary in a rust oriented temporary image.
+# builder is where chef build the binary using the deps of the cache
 
-FROM base AS builder
-WORKDIR /app
-
-COPY --from=cacher /app/target target
+FROM cacher AS builder
 COPY . .
-RUN cargo build --locked --release
+RUN --mount=type=cache,mode=0755,target=/app/target cargo build --locked --release
+RUN --mount=type=cache,mode=0755,target=/app/target cp /app/target/release/allfeat /usr/local/bin
 
 ###########
 # RUNTIME #
 ###########
 
-# This is the 2nd stage: a very small image where we copy the Allfeat binary."
+# runtime is where the Allfeat binary is finally copied from the builder 
+# inside an autonomous slim and secured image.
 
 FROM debian:bookworm-slim AS runtime
 
@@ -79,7 +74,7 @@ LABEL io.allfeat.image.type="builder" \
     io.allfeat.image.source="https://github.com/allfeat/allfeat/blob/${VCS_REF}/Dockerfile" \
     io.allfeat.image.documentation="https://github.com/allfeat/allfeat"
 
-COPY --from=builder /app/target/release/allfeat /usr/local/bin
+COPY --from=builder /usr/local/bin/allfeat /usr/local/bin
 
 RUN useradd -m -u 1000 -U -s /bin/sh -d /app allfeat && \
     mkdir -p /data /app/.local/share && \
