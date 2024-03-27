@@ -44,6 +44,8 @@ use parity_scale_codec::MaxEncodedLen;
 use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
 use sp_runtime::traits::{Dispatchable, StaticLookup};
+
+#[cfg(not(feature = "std"))]
 use sp_std::vec::Vec;
 
 /// Alias for the key limit type for the provided Runtime.
