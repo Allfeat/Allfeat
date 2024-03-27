@@ -60,9 +60,7 @@ use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_api::impl_runtime_apis;
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
-use sp_core::{
-	crypto::KeyTypeId, ConstU128, ConstU64, OpaqueMetadata, RuntimeDebug, H160, H256, U256,
-};
+use sp_core::{crypto::KeyTypeId, ConstU64, OpaqueMetadata, RuntimeDebug, H160, H256, U256};
 use sp_inherents::{CheckInherentsResult, InherentData};
 use sp_runtime::{
 	create_runtime_str,
@@ -340,7 +338,7 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 			ProxyType::Any => true,
 			ProxyType::NonTransfer => !matches!(c, RuntimeCall::Balances(..)),
 			ProxyType::Staking => {
-				matches!(c, RuntimeCall::Staking(..) | RuntimeCall::FastUnstake(..))
+				matches!(c, RuntimeCall::Staking(..))
 			},
 		}
 	}
@@ -608,17 +606,6 @@ impl pallet_staking::Config for Runtime {
 	type MaxControllersInDeprecationBatch = MaxControllersInDeprecationBatch;
 	//type WeightInfo = weights::staking::AllfeatWeight<Runtime>;
 	type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
-}
-
-impl pallet_fast_unstake::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Currency = Balances;
-	type BatchSize = ConstU32<16>;
-	type Deposit = ConstU128<{ AFT }>;
-	type ControlOrigin = EnsureRoot<AccountId>;
-	type Staking = Staking;
-	type MaxErasToCheckPerBlock = ConstU32<1>;
-	type WeightInfo = pallet_fast_unstake::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -1260,9 +1247,6 @@ mod runtime {
 	#[runtime::pallet_index(29)]
 	pub type NominationPools = pallet_nomination_pools;
 
-	#[runtime::pallet_index(30)]
-	pub type FastUnstake = pallet_fast_unstake;
-
 	// Frontier
 	#[runtime::pallet_index(50)]
 	pub type Ethereum = pallet_ethereum;
@@ -1425,7 +1409,6 @@ mod benches {
 		[pallet_balances, Balances]
 		[pallet_election_provider_multi_phase, ElectionProviderMultiPhase]
 		[pallet_election_provider_support_benchmarking, EPSBench::<Runtime>]
-		[pallet_fast_unstake, FastUnstake]
 		[pallet_evm, Evm]
 		[pallet_grandpa, Grandpa]
 		[pallet_identity, Identity]

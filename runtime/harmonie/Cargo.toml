@@ -81,7 +81,6 @@ pallet-sudo = { workspace = true }
 pallet-timestamp = { workspace = true }
 pallet-transaction-payment = { workspace = true }
 pallet-utility = { workspace = true }
-pallet-fast-unstake = { workspace = true }
 
 # Frontier
 fp-evm = { workspace = true, features = ["serde"] }
@@ -184,7 +183,6 @@ std = [
     "sp-io/std",
     "sp-statement-store/std",
     "shared-runtime/std",
-    "pallet-fast-unstake/std",
     "pallet-nfts/std",
     # Frontier
     "fp-evm/std",
@@ -231,7 +229,6 @@ runtime-benchmarks = [
     "pallet-scheduler/runtime-benchmarks",
     "pallet-session-benchmarking/runtime-benchmarks",
     "pallet-staking/runtime-benchmarks",
-    "pallet-fast-unstake/runtime-benchmarks",
     "pallet-timestamp/runtime-benchmarks",
     "pallet-utility/runtime-benchmarks",
     "pallet-sudo/runtime-benchmarks",
@@ -265,7 +262,6 @@ try-runtime = [
     "pallet-scheduler/try-runtime",
     "pallet-session/try-runtime",
     "pallet-staking/try-runtime",
-    "pallet-fast-unstake/try-runtime",
     "pallet-sudo/try-runtime",
     "pallet-timestamp/try-runtime",
     "pallet-transaction-payment/try-runtime",
