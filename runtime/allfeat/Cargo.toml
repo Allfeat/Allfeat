@@ -84,7 +84,6 @@ pallet-transaction-payment = { workspace = true }
 pallet-utility = { workspace = true }
 pallet-vesting = { workspace = true }
 pallet-whitelist = { workspace = true }
-pallet-fast-unstake = { workspace = true }
 
 # Frontier
 fp-evm = { workspace = true, features = ["serde"] }
@@ -188,7 +187,6 @@ std = [
     "sp-io/std",
     "sp-statement-store/std",
     "shared-runtime/std",
-    "pallet-fast-unstake/std",
     "pallet-vesting/std",
     # Frontier
     "fp-evm/std",
@@ -243,7 +241,6 @@ runtime-benchmarks = [
     "pallet-referenda/runtime-benchmarks",
     "pallet-conviction-voting/runtime-benchmarks",
     "pallet-whitelist/runtime-benchmarks",
-    "pallet-fast-unstake/runtime-benchmarks",
     "pallet-vesting/runtime-benchmarks"
 ]
 try-runtime = [
@@ -284,7 +281,6 @@ try-runtime = [
     "pallet-conviction-voting/try-runtime",
     "pallet-whitelist/try-runtime",
     "pallet-referenda/try-runtime",
-    "pallet-fast-unstake/try-runtime",
     "pallet-vesting/try-runtime",
     "sp-runtime/try-runtime",
     "fp-self-contained/try-runtime",

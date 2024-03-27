@@ -61,7 +61,7 @@ use sp_api::impl_runtime_apis;
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
 use sp_core::{
-	crypto::KeyTypeId, ConstU128, ConstU64, OpaqueMetadata, RuntimeDebug, H160, H256, U256,
+	crypto::KeyTypeId, ConstU64, OpaqueMetadata, RuntimeDebug, H160, H256, U256,
 };
 use sp_inherents::{CheckInherentsResult, InherentData};
 use sp_runtime::{
@@ -330,8 +330,7 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 					RuntimeCall::Staking(..) |
 						RuntimeCall::Session(..) | RuntimeCall::Utility(..) |
 						RuntimeCall::BagsList(..) |
-						RuntimeCall::NominationPools(..) |
-						RuntimeCall::FastUnstake(..)
+						RuntimeCall::NominationPools(..)
 				)
 			},
 			ProxyType::SudoBalances => match c {
@@ -622,17 +621,6 @@ impl pallet_staking::Config for Runtime {
 	type HistoryDepth = HistoryDepth;
 	type MaxControllersInDeprecationBatch = MaxControllersInDeprecationBatch;
 	type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
-}
-
-impl pallet_fast_unstake::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Currency = Balances;
-	type BatchSize = ConstU32<16>;
-	type Deposit = ConstU128<{ AFT }>;
-	type ControlOrigin = EnsureRoot<AccountId>;
-	type Staking = Staking;
-	type MaxErasToCheckPerBlock = ConstU32<1>;
-	type WeightInfo = pallet_fast_unstake::weights::SubstrateWeight<Runtime>;
 }
 
 parameter_types! {
@@ -1204,8 +1192,6 @@ construct_runtime!(
 		ElectionProviderMultiPhase: pallet_election_provider_multi_phase = 24,
 		BagsList: pallet_bags_list::<Instance1> = 25,
 		NominationPools: pallet_nomination_pools = 29,
-		// Fast unstake pallet: extension to staking.
-		FastUnstake: pallet_fast_unstake = 30,
 
 		// OpenGov (governance)
 		ConvictionVoting: pallet_conviction_voting = 31,
@@ -1370,7 +1356,6 @@ mod benches {
 		[pallet_election_provider_multi_phase, ElectionProviderMultiPhase]
 		[pallet_election_provider_support_benchmarking, EPSBench::<Runtime>]
 		[pallet_evm, EVM]
-		[pallet_fast_unstake, FastUnstake]
 		[pallet_grandpa, Grandpa]
 		[pallet_identity, Identity]
 		[pallet_im_online, ImOnline]
@@ -2091,19 +2076,6 @@ mod multiplier_tests {
 			let next = SlowAdjustingFeeUpdate::<Runtime>::convert(minimum_multiplier);
 			assert!(next > minimum_multiplier, "{:?} !>= {:?}", next, minimum_multiplier);
 		})
-	}
-
-	#[test]
-	fn fast_unstake_estimate() {
-		use pallet_fast_unstake::WeightInfo;
-		let block_time = RuntimeBlockWeights::get().max_block.ref_time() as f32;
-		let on_idle = pallet_fast_unstake::weights::SubstrateWeight::<Runtime>::on_idle_check(
-			300,
-			<Runtime as pallet_fast_unstake::Config>::BatchSize::get(),
-		)
-		.ref_time() as f32;
-		println!("ratio of block weight for full batch fast-unstake {}", on_idle / block_time);
-		assert!(on_idle / block_time <= 0.5f32)
 	}
 
 	#[test]

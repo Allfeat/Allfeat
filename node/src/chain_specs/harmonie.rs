@@ -22,8 +22,9 @@ use super::{
 };
 use allfeat_primitives::{AccountId, Balance};
 use harmonie_runtime::{
-	constants::currency::AFT, opaque::SessionKeys, wasm_binary_unwrap, MaxNominations,
-	RuntimeGenesisConfig, StakerStatus,
+	constants::currency::{AFT, MILLIAFT},
+	opaque::SessionKeys,
+	wasm_binary_unwrap, MaxNominations, RuntimeGenesisConfig, StakerStatus,
 };
 use hex_literal::hex;
 use sc_chain_spec::ChainType;
@@ -179,7 +180,7 @@ pub fn testnet_genesis(
 	const ENDOWMENT: Balance = 10_000_000 * AFT;
 	const STASH: Balance = ENDOWMENT / 1000;
 
-	serde_json::json!({
+	let mut genesis = serde_json::json!({
 		"balances": {
 			"balances": endowed_accounts.iter().cloned().map(|x| (x, ENDOWMENT)).collect::<Vec<_>>(),
 		},
@@ -206,5 +207,21 @@ pub fn testnet_genesis(
 		"babe": {
 			"epochConfig": Some(harmonie_runtime::BABE_GENESIS_EPOCH_CONFIG),
 		},
-	})
+	});
+
+	// Nomination pools benchmarks fail if we don't set this
+	#[cfg(feature = "runtime-benchmarks")]
+	{
+		let nomination_pools = serde_json::json!({
+			"minCreateBond": 10 * MILLIAFT,
+			"minJoinBond": 1 * MILLIAFT,
+		});
+
+		genesis
+			.as_object_mut()
+			.unwrap()
+			.insert("nominationPools".to_string(), nomination_pools);
+	}
+
+	genesis
 }
