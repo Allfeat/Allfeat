@@ -1,19 +1,71 @@
-# This is the first stage. Here we install all the dependencies that we need in order to build the Allfeat binary
-# and we create the Allfeat binary in a rust oriented temporary image.
-FROM rustlang/rust:nightly-bookworm-slim as builder
+########
+# BASE #
+########
 
-# This installs all dependencies that we need (besides Rust).
+# base is the first stage where all the debian dependencies 
+# needed to build the Allfeat binary are installed, 
+# plus cargo-check to optimize rust dependency management and then speedup any re-build
+
+FROM rustlang/rust:nightly-bookworm-slim as base
+
+WORKDIR /app
+
+# This installs all debian dependencies we need (besides Rust).
 RUN apt update -y && \
-    apt install -y build-essential git clang curl libssl-dev llvm libudev-dev make protobuf-compiler pkg-config
+    apt install -y build-essential git clang curl libssl-dev \
+    llvm libudev-dev make protobuf-compiler pkg-config
 
-ADD . /workdir
-WORKDIR /workdir
+# Using cargo-chef to only pay the deps installation cost once,
+# it will be cached from the second build onwards
+RUN cargo install cargo-chef 
 
-# This builds the binary.
-RUN cargo build --locked --release
+# FIXME: chef raises an error if those 2 deps are not pre-installed
+RUN rustup target add wasm32-unknown-unknown
+RUN rustup component add rust-src
 
-# This is the 2nd stage: a very small image where we copy the Allfeat binary."
-FROM docker.io/library/debian:bookworm
+###########
+# PLANNER #
+###########
+
+# planner is where chef prepares its recipe using a local cache for the target
+
+FROM base AS planner
+COPY . .
+RUN --mount=type=cache,mode=0755,target=/app/target cargo chef prepare --recipe-path recipe.json
+
+##########
+# CACHER #
+##########
+
+# cacher is where chef cooks all the deps from the recipe inside the local cache
+
+FROM base as cacher
+COPY --from=planner /app/recipe.json recipe.json
+
+# Build dependencies - this is the caching Docker layer!
+RUN --mount=type=cache,mode=0755,target=/app/target cargo chef cook --release --recipe-path recipe.json
+
+###########
+# BUILDER #
+###########
+
+# builder is where chef builds the binary using the deps of the cache
+
+FROM cacher AS builder
+COPY . .
+RUN --mount=type=cache,mode=0755,target=/app/target cargo build --locked --release
+RUN --mount=type=cache,mode=0755,target=/app/target cp /app/target/release/allfeat /usr/local/bin
+
+###########
+# RUNTIME #
+###########
+
+# runtime is where the Allfeat binary is finally copied from the builder 
+# inside an autonomous slim and secured image.
+
+FROM debian:bookworm-slim AS runtime
+
+WORKDIR /app
 
 LABEL io.allfeat.image.type="builder" \
     io.allfeat.image.authors="tech@allfeat.com" \
@@ -22,20 +74,21 @@ LABEL io.allfeat.image.type="builder" \
     io.allfeat.image.source="https://github.com/allfeat/allfeat/blob/${VCS_REF}/Dockerfile" \
     io.allfeat.image.documentation="https://github.com/allfeat/allfeat"
 
-COPY --from=builder /workdir/target/release/allfeat /usr/local/bin
+COPY --from=builder /usr/local/bin/allfeat /usr/local/bin
 
-RUN useradd -m -u 1000 -U -s /bin/sh -d /workdir allfeat && \
-    mkdir -p /data /workdir/.local/share && \
+RUN useradd -m -u 1000 -U -s /bin/sh -d /app allfeat && \
+    mkdir -p /data /app/.local/share && \
     chown -R allfeat:allfeat /data && \
-    ln -s /data /workdir/.local/share/allfeat && \
-# unclutter and minimize the attack surface
+    ln -s /data /app/.local/share/allfeat && \
+    # unclutter and minimize the attack surface
     rm -rf /usr/bin /usr/sbin && \
-# check if executable works in this container
+    # check if executable works in this container
     /usr/local/bin/allfeat --version
 
 USER allfeat
 
 EXPOSE 30333 9933 9944 9615
+
 VOLUME ["/data"]
 
 ENTRYPOINT ["/usr/local/bin/allfeat", "--dev"]
