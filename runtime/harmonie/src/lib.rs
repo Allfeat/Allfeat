@@ -96,14 +96,12 @@ use pallet_nfts::PalletFeatures;
 pub use pallet_staking::StakerStatus;
 #[cfg(any(feature = "std", test))]
 pub use pallet_sudo::Call as SudoCall;
+use shared_runtime::weights;
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
 mod precompiles;
 use precompiles::AllfeatPrecompiles;
-
-/// Custom weights for Harmonie
-pub mod weights;
 
 /// Implementations of some helper traits passed into runtime modules as associated types.
 pub mod impls;

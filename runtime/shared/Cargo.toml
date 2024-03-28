@@ -17,7 +17,24 @@ frame-system = { workspace = true }
 frame-support = { workspace = true }
 
 pallet-identity = { workspace = true }
+pallet-artists = { workspace = true }
+pallet-bags-list = { workspace = true }
+pallet-election-provider-multi-phase = { workspace = true }
+pallet-im-online = { workspace = true }
+pallet-multisig = { workspace = true }
+pallet-nomination-pools = { workspace = true }
+pallet-preimage = { workspace = true }
+pallet-proxy = { workspace = true }
+pallet-session = { workspace = true }
+pallet-staking = { workspace = true }
+pallet-scheduler = { workspace = true }
+pallet-balances = { workspace = true, features = ["insecure_zero_ed"] }
+pallet-sudo = { workspace = true }
+pallet-timestamp = { workspace = true }
+pallet-utility = { workspace = true }
 pallet-transaction-payment = { workspace = true }
+pallet-evm = { workspace = true }
+pallet-hotfix-sufficients = { workspace = true }
 
 allfeat-primitives = { workspace = true }
 
@@ -34,16 +51,24 @@ std = [
     "sp-runtime/std",
     "allfeat-primitives/std",
     "parity-scale-codec/std",
-    "pallet-transaction-payment/std"
+    "pallet-artists/std",
+    "pallet-transaction-payment/std",
+    "pallet-bags-list/std",
+    "pallet-election-provider-multi-phase/std",
+    "pallet-im-online/std",
+    "pallet-multisig/std",
+    "pallet-nomination-pools/std",
+    "pallet-preimage/std",
+    "pallet-proxy/std",
+    "pallet-session/std",
+    "pallet-staking/std",
+    "pallet-scheduler/std",
+    "pallet-balances/std",
+    "pallet-sudo/std",
+    "pallet-timestamp/std",
+    "pallet-utility/std",
+    "pallet-evm/std",
+    "pallet-hotfix-sufficients/std"
 ]
-runtime-benchmarks = [
-    "frame-system/runtime-benchmarks",
-    "frame-support/runtime-benchmarks",
-    "pallet-identity/runtime-benchmarks",
-]
-try-runtime = [
-    "frame-system/try-runtime",
-    "frame-support/try-runtime",
-    "pallet-identity/try-runtime",
-    "pallet-transaction-payment/try-runtime"
-]
+runtime-benchmarks = []
+try-runtime = []
