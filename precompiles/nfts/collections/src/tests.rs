@@ -277,7 +277,7 @@ fn seal_collection_works() {
 #[test]
 fn transfer_ownership_works() {
 	ExtBuilder::<Runtime>::default()
-		.with_balances(vec![(ALICE.into(), 1000)])
+		.with_balances(vec![(BOB.into(), 1000)])
 		.build_with_collections()
 		.execute_with(|| {
 			assert_ok!(pallet_nfts::Pallet::<Runtime>::set_accept_ownership(
@@ -1026,32 +1026,23 @@ fn set_price_works() {
 #[test]
 fn buy_item_works() {
 	ExtBuilder::<Runtime>::default()
-		.with_balances(vec![(ALICE.into(), 1000)])
+		.with_balances(vec![(ALICE.into(), 1000), (BOB.into(), 1000)])
 		.build_with_collections()
 		.execute_with(|| {
-			assert_ok!(pallet_nfts::Pallet::<Runtime>::update_mint_settings(
-				OriginFor::<Runtime>::signed(ALICE.into()),
-				0,
-				pallet_nfts::MintSettings {
-					mint_type: pallet_nfts::MintType::Public,
-					price: Some(100),
-					start_block: None,
-					end_block: None,
-					default_item_settings: ItemSettings {
-						is_transferable: true,
-						is_unlocked_metadata: true,
-						is_unlocked_attributes: true,
-					}
-					.into(),
-				},
-			));
-
 			assert_ok!(pallet_nfts::Pallet::<Runtime>::mint(
 				OriginFor::<Runtime>::signed(ALICE.into()),
 				0,
 				0,
 				ALICE.into(),
 				Some(MintWitness { owned_item: None, mint_price: Some(100) }),
+			));
+
+			assert_ok!(pallet_nfts::Pallet::<Runtime>::set_price(
+				OriginFor::<Runtime>::signed(ALICE.into()),
+				0,
+				0,
+				Some(100),
+				None,
 			));
 
 			precompiles()
