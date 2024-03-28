@@ -19,18 +19,18 @@
 use crate::{mock::*, NftsPrecompileSet, NftsPrecompileSetCall};
 use frame_support::{
 	assert_err, assert_ok,
-	traits::nonfungibles_v2::{Inspect, Mutate},
+	traits::nonfungibles_v2::{Inspect, InspectEnumerable, InspectRole, Mutate, Trading},
 };
 use frame_system::pallet_prelude::OriginFor;
 use pallet_evm_precompile_nfts_tests::{
-	ExtBuilder, ALICE, ALICE_COLLECTION_PRECOMPILE_ADDRESS, BOB,
+	ExtBuilder, ALICE, ALICE_COLLECTION_PRECOMPILE_ADDRESS, BOB, CHARLIE,
 };
 use pallet_evm_precompile_nfts_types::solidity::{
 	AttributeNamespace, AttributeNamespaceInfo, CancelAttributesApprovalWitness, CollectionDetails,
 	CollectionSettings, ItemSettings, MintInfo, MintSettings, MintType, OptionalAddress,
 	OptionalMintWitness, OptionalU256,
 };
-use pallet_nfts::{Event, MintWitness};
+use pallet_nfts::{CollectionConfig, CollectionConfigOf, CollectionSetting, Event, MintWitness};
 use precompile_utils::{solidity::codec::bytes::BoundedBytesString, testing::*};
 use sp_core::U256;
 use sp_runtime::BoundedVec;
@@ -216,6 +216,16 @@ fn lock_item_transfer_works() {
 				collection: 0,
 				item: 0,
 			}));
+
+			assert_err!(
+				pallet_nfts::Pallet::<Runtime>::transfer(
+					OriginFor::<Runtime>::signed(ALICE.into()),
+					0,
+					0,
+					BOB.into(),
+				),
+				pallet_nfts::Error::<Runtime>::ItemLocked
+			);
 		})
 }
 
@@ -239,6 +249,16 @@ fn unlock_item_transfer_works() {
 				0,
 			));
 
+			assert_err!(
+				pallet_nfts::Pallet::<Runtime>::transfer(
+					OriginFor::<Runtime>::signed(ALICE.into()),
+					0,
+					0,
+					BOB.into(),
+				),
+				pallet_nfts::Error::<Runtime>::ItemLocked
+			);
+
 			precompiles()
 				.prepare_test(
 					ALICE,
@@ -251,6 +271,13 @@ fn unlock_item_transfer_works() {
 				collection: 0,
 				item: 0,
 			}));
+
+			assert_ok!(pallet_nfts::Pallet::<Runtime>::transfer(
+				OriginFor::<Runtime>::signed(ALICE.into()),
+				0,
+				0,
+				BOB.into(),
+			));
 		})
 }
 
@@ -264,13 +291,65 @@ fn seal_collection_works() {
 				.prepare_test(
 					ALICE,
 					ALICE_COLLECTION_PRECOMPILE_ADDRESS,
-					PCall::seal_collection { settings: CollectionSettings::default() },
+					PCall::seal_collection {
+						settings: CollectionSettings {
+							is_transferable_items: false,
+							is_unlocked_metadata: false,
+							is_unlocked_attributes: false,
+							is_unlocked_max_supply: false,
+							is_deposit_required: false,
+						},
+					},
 				)
 				.execute_returns(true);
 
 			System::assert_last_event(RuntimeEvent::Nfts(Event::CollectionLocked {
 				collection: 0,
 			}));
+
+			assert_err!(
+				pallet_nfts::Pallet::<Runtime>::set_collection_metadata(
+					OriginFor::<Runtime>::signed(ALICE.into()),
+					0,
+					BoundedVec::try_from(b"metadata".to_vec()).unwrap()
+				),
+				pallet_nfts::Error::<Runtime>::LockedCollectionMetadata
+			);
+
+			assert_err!(
+				pallet_nfts::Pallet::<Runtime>::set_attribute(
+					OriginFor::<Runtime>::signed(ALICE.into()),
+					0,
+					None,
+					pallet_nfts::AttributeNamespace::CollectionOwner,
+					BoundedVec::new(),
+					BoundedVec::new(),
+				),
+				pallet_nfts::Error::<Runtime>::LockedCollectionAttributes
+			);
+
+			assert_err!(
+				pallet_nfts::Pallet::<Runtime>::set_collection_max_supply(
+					OriginFor::<Runtime>::signed(ALICE.into()),
+					0,
+					0,
+				),
+				pallet_nfts::Error::<Runtime>::MaxSupplyLocked
+			);
+
+			assert_ok!(pallet_nfts::Pallet::<Runtime>::set_accept_ownership(
+				OriginFor::<Runtime>::signed(BOB.into()),
+				Some(0),
+			));
+
+			assert_err!(
+				pallet_nfts::Pallet::<Runtime>::transfer_ownership(
+					OriginFor::<Runtime>::signed(ALICE.into()),
+					0,
+					BOB.into()
+				),
+				pallet_nfts::Error::<Runtime>::ItemLocked
+			);
 		})
 }
 
@@ -297,6 +376,8 @@ fn transfer_ownership_works() {
 				collection: 0,
 				new_owner: BOB.into(),
 			}));
+
+			// TODO: assert
 		})
 }
 
@@ -324,6 +405,12 @@ fn set_team_works() {
 				admin: Some(BOB.into()),
 				freezer: Some(BOB.into()),
 			}));
+
+			assert!(pallet_nfts::Pallet::<Runtime>::is_issuer(&0, &ALICE.into(),));
+
+			assert!(pallet_nfts::Pallet::<Runtime>::is_freezer(&0, &BOB.into(),));
+
+			assert!(pallet_nfts::Pallet::<Runtime>::is_admin(&0, &BOB.into(),));
 		})
 }
 
@@ -360,6 +447,15 @@ fn approve_transfer_works() {
 				delegate: BOB.into(),
 				deadline: None,
 			}));
+
+			assert_ok!(pallet_nfts::Pallet::<Runtime>::transfer(
+				OriginFor::<Runtime>::signed(BOB.into()),
+				0,
+				0,
+				CHARLIE.into(),
+			));
+
+			assert_eq!(pallet_nfts::Pallet::<Runtime>::owner(0, 0), Some(CHARLIE.into()));
 		})
 }
 
@@ -399,6 +495,16 @@ fn cancel_approval_works() {
 				owner: ALICE.into(),
 				delegate: BOB.into(),
 			}));
+
+			assert_err!(
+				pallet_nfts::Pallet::<Runtime>::transfer(
+					OriginFor::<Runtime>::signed(BOB.into()),
+					0,
+					0,
+					CHARLIE.into(),
+				),
+				pallet_nfts::Error::<Runtime>::NoPermission
+			);
 		})
 }
 
@@ -437,6 +543,16 @@ fn clear_all_transfer_approvals_works() {
 				item: 0,
 				owner: ALICE.into(),
 			}));
+
+			assert_err!(
+				pallet_nfts::Pallet::<Runtime>::transfer(
+					OriginFor::<Runtime>::signed(BOB.into()),
+					0,
+					0,
+					CHARLIE.into(),
+				),
+				pallet_nfts::Error::<Runtime>::NoPermission
+			);
 		})
 }
 
@@ -488,10 +604,7 @@ fn lock_item_properties_works() {
 					OriginFor::<Runtime>::signed(ALICE.into()),
 					0,
 					Some(0),
-					pallet_nfts::AttributeNamespace::CollectionOwner, /* Error is not being
-					                                                   * throwed with
-					                                                   * `ItemOwner` on polkadot
-					                                                   * sdk. */
+					pallet_nfts::AttributeNamespace::CollectionOwner,
 					BoundedVec::new(),
 					BoundedVec::new(),
 				),
@@ -701,7 +814,7 @@ fn clear_item_attribute_works() {
 #[test]
 fn approve_item_attributes_works() {
 	ExtBuilder::<Runtime>::default()
-		.with_balances(vec![(ALICE.into(), 1000)])
+		.with_balances(vec![(ALICE.into(), 1000), (BOB.into(), 1000)])
 		.build_with_collections()
 		.execute_with(|| {
 			assert_ok!(pallet_nfts::Pallet::<Runtime>::mint(
@@ -725,6 +838,15 @@ fn approve_item_attributes_works() {
 				item: 0,
 				delegate: BOB.into(),
 			}));
+
+			assert_ok!(pallet_nfts::Pallet::<Runtime>::set_attribute(
+				OriginFor::<Runtime>::signed(BOB.into()),
+				0,
+				Some(0),
+				pallet_nfts::AttributeNamespace::Account(BOB.into()),
+				BoundedVec::try_from(b"key".to_vec()).unwrap(),
+				BoundedVec::try_from(b"value".to_vec()).unwrap(),
+			));
 		})
 }
 
@@ -766,6 +888,18 @@ fn cancel_item_attributes_approval_works() {
 				item: 0,
 				delegate: BOB.into(),
 			}));
+
+			assert_err!(
+				pallet_nfts::Pallet::<Runtime>::set_attribute(
+					OriginFor::<Runtime>::signed(BOB.into()),
+					0,
+					Some(0),
+					pallet_nfts::AttributeNamespace::Account(BOB.into()),
+					BoundedVec::try_from(b"key".to_vec()).unwrap(),
+					BoundedVec::try_from(b"value".to_vec()).unwrap(),
+				),
+				pallet_nfts::Error::<Runtime>::NoPermission
+			);
 		})
 }
 
@@ -969,7 +1103,7 @@ fn update_mint_settings_works() {
 								collection_id: U256::from(0),
 								mint_type: MintType::Public,
 							},
-							price: OptionalU256::default(),
+							price: OptionalU256 { has_value: true, value: U256::from(100) },
 							start_block: OptionalU256::default(),
 							end_block: OptionalU256::default(),
 							default_item_settings: ItemSettings {
@@ -985,6 +1119,22 @@ fn update_mint_settings_works() {
 			System::assert_last_event(RuntimeEvent::Nfts(Event::CollectionMintSettingsUpdated {
 				collection: 0,
 			}));
+
+			assert_eq!(
+				CollectionConfigOf::<Runtime>::get(0).unwrap().mint_settings,
+				pallet_nfts::MintSettings {
+					mint_type: pallet_nfts::MintType::Public,
+					price: Some(100),
+					start_block: None,
+					end_block: None,
+					default_item_settings: ItemSettings {
+						is_transferable: true,
+						is_unlocked_metadata: true,
+						is_unlocked_attributes: true,
+					}
+					.into(),
+				}
+			);
 		})
 }
 
@@ -1020,6 +1170,8 @@ fn set_price_works() {
 				whitelisted_buyer: None,
 				price: 100,
 			}));
+
+			assert_eq!(pallet_nfts::Pallet::<Runtime>::item_price(&0, &0), Some(100));
 		})
 }
 
