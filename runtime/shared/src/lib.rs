@@ -29,6 +29,9 @@ use sp_runtime::{traits::Bounded, FixedPointNumber, Perbill, Perquintill};
 pub mod elections;
 pub mod identity;
 
+/// Custom weights for Allfeat runtimes
+pub mod weights;
+
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 2400;
 	/// The portion of the `NORMAL_DISPATCH_RATIO` that we adjust the fees with. Blocks filled less
