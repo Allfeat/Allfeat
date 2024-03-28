@@ -19,6 +19,8 @@
 use super::*;
 use frame_support::{ensure, traits::Get};
 use sp_io::hashing::keccak_256;
+
+#[cfg(not(feature = "std"))]
 use sp_std::vec::Vec;
 
 /// EIP2612 permit typehash.

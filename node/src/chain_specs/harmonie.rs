@@ -22,13 +22,15 @@ use super::{
 };
 use allfeat_primitives::{AccountId, Balance};
 use harmonie_runtime::{
-	constants::currency::{AFT, MILLIAFT},
-	opaque::SessionKeys,
-	wasm_binary_unwrap, MaxNominations, RuntimeGenesisConfig, StakerStatus,
+	constants::currency::AFT, opaque::SessionKeys, wasm_binary_unwrap, MaxNominations,
+	RuntimeGenesisConfig, StakerStatus,
 };
 use hex_literal::hex;
 use sc_chain_spec::ChainType;
 use sp_runtime::Perbill;
+
+#[cfg(feature = "runtime-benchmarks")]
+use harmonie_runtime::constants::currency::MILLIAFT;
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<RuntimeGenesisConfig, Extensions>;
@@ -180,6 +182,7 @@ pub fn testnet_genesis(
 	const ENDOWMENT: Balance = 10_000_000 * AFT;
 	const STASH: Balance = ENDOWMENT / 1000;
 
+	#[allow(unused_mut)]
 	let mut genesis = serde_json::json!({
 		"balances": {
 			"balances": endowed_accounts.iter().cloned().map(|x| (x, ENDOWMENT)).collect::<Vec<_>>(),

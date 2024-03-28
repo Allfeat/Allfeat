@@ -20,14 +20,16 @@
 
 extern crate alloc;
 
-use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::AddressMapping;
 use parity_scale_codec::Encode;
 use precompile_utils::prelude::*;
 use sp_core::{MaxEncodedLen, H160, H256, U256};
 use sp_runtime::{traits::Dispatchable, SaturatedConversion};
-use sp_std::{marker::PhantomData, vec, vec::Vec};
+use sp_std::{marker::PhantomData, vec};
+
+#[cfg(not(feature = "std"))]
+use sp_std::vec::Vec;
 
 #[cfg(test)]
 mod mock;

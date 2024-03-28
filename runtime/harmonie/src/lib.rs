@@ -265,8 +265,7 @@ impl frame_system::Config for Runtime {
 	type AccountData = pallet_balances::AccountData<Balance>;
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
-	//type SystemWeightInfo = weights::frame_system::AllfeatWeight<Runtime>;
-	type SystemWeightInfo = frame_system::weights::SubstrateWeight<Runtime>;
+	type SystemWeightInfo = weights::system::AllfeatWeight<Runtime>;
 	type SS58Prefix = ConstU16<SS58_PREFIX>;
 	type OnSetCode = ();
 	type MaxConsumers = ConstU32<16>;
@@ -382,8 +381,7 @@ impl pallet_scheduler::Config for Runtime {
 	type ScheduleOrigin = EnsureRoot<AccountId>;
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
 	type MaxScheduledPerBlock = ConstU32<50>;
-	//type WeightInfo = weights::scheduler::AllfeatWeight<Runtime>;
-	type WeightInfo = pallet_scheduler::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::scheduler::AllfeatWeight<Runtime>;
 	type Preimages = Preimage;
 }
 
@@ -396,8 +394,7 @@ parameter_types! {
 
 impl pallet_preimage::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	//type WeightInfo = weights::preimage::AllfeatWeight<Runtime>;
-	type WeightInfo = pallet_preimage::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::preimage::AllfeatWeight<Runtime>;
 	type Currency = Balances;
 	type ManagerOrigin = EnsureRoot<AccountId>;
 	type Consideration = HoldConsideration<
@@ -461,8 +458,7 @@ impl pallet_balances::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = frame_system::Pallet<Runtime>;
-	//type WeightInfo = weights::balances::AllfeatWeight<Runtime>;
-	type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::balances::AllfeatWeight<Runtime>;
 	type MaxLocks = MaxLocks;
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = [u8; 8];
@@ -604,8 +600,7 @@ impl pallet_staking::Config for Runtime {
 	type EventListeners = NominationPools;
 	type HistoryDepth = HistoryDepth;
 	type MaxControllersInDeprecationBatch = MaxControllersInDeprecationBatch;
-	//type WeightInfo = weights::staking::AllfeatWeight<Runtime>;
-	type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::staking::AllfeatWeight<Runtime>;
 }
 
 parameter_types! {
@@ -812,7 +807,7 @@ use sp_staking::SessionIndex;
 
 impl pallet_nomination_pools::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = pallet_nomination_pools::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::nomination_pools::AllfeatWeight<Runtime>;
 	type Currency = Balances;
 	type Staking = Staking;
 	type PalletId = NominationPoolsPalletId;

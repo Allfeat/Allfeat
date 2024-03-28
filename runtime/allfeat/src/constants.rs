@@ -17,7 +17,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A set of constant values used in substrate runtime.
-use super::MAXIMUM_BLOCK_WEIGHT;
 use allfeat_primitives::Balance;
 use frame_support::weights::{
 	constants::ExtrinsicBaseWeight, WeightToFeeCoefficient, WeightToFeeCoefficients,
@@ -122,9 +121,9 @@ impl WeightToFeePolynomial for WeightToFee {
 mod tests {
 	use super::{
 		currency::{AFT, MILLIAFT},
-		WeightToFee, MAXIMUM_BLOCK_WEIGHT,
+		WeightToFee,
 	};
-	use crate::ExtrinsicBaseWeight;
+	use crate::{ExtrinsicBaseWeight, MAXIMUM_BLOCK_WEIGHT};
 	use frame_support::weights::WeightToFee as WeightToFeeT;
 
 	#[test]
