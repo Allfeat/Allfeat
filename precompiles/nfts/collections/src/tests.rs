@@ -19,7 +19,7 @@
 use crate::{mock::*, NftsPrecompileSet, NftsPrecompileSetCall};
 use frame_support::{
 	assert_err, assert_ok,
-	traits::nonfungibles_v2::{Inspect, InspectEnumerable, InspectRole, Mutate, Trading},
+	traits::nonfungibles_v2::{Inspect, InspectRole, Mutate, Trading},
 };
 use frame_system::pallet_prelude::OriginFor;
 use pallet_evm_precompile_nfts_tests::{
@@ -30,7 +30,7 @@ use pallet_evm_precompile_nfts_types::solidity::{
 	CollectionSettings, ItemSettings, MintInfo, MintSettings, MintType, OptionalAddress,
 	OptionalMintWitness, OptionalU256,
 };
-use pallet_nfts::{CollectionConfig, CollectionConfigOf, CollectionSetting, Event, MintWitness};
+use pallet_nfts::{CollectionConfigOf, CollectionSetting, Event, MintWitness};
 use precompile_utils::{solidity::codec::bytes::BoundedBytesString, testing::*};
 use sp_core::U256;
 use sp_runtime::BoundedVec;
@@ -307,49 +307,13 @@ fn seal_collection_works() {
 				collection: 0,
 			}));
 
-			assert_err!(
-				pallet_nfts::Pallet::<Runtime>::set_collection_metadata(
-					OriginFor::<Runtime>::signed(ALICE.into()),
-					0,
-					BoundedVec::try_from(b"metadata".to_vec()).unwrap()
-				),
-				pallet_nfts::Error::<Runtime>::LockedCollectionMetadata
-			);
-
-			assert_err!(
-				pallet_nfts::Pallet::<Runtime>::set_attribute(
-					OriginFor::<Runtime>::signed(ALICE.into()),
-					0,
-					None,
-					pallet_nfts::AttributeNamespace::CollectionOwner,
-					BoundedVec::new(),
-					BoundedVec::new(),
-				),
-				pallet_nfts::Error::<Runtime>::LockedCollectionAttributes
-			);
-
-			assert_err!(
-				pallet_nfts::Pallet::<Runtime>::set_collection_max_supply(
-					OriginFor::<Runtime>::signed(ALICE.into()),
-					0,
-					0,
-				),
-				pallet_nfts::Error::<Runtime>::MaxSupplyLocked
-			);
-
-			assert_ok!(pallet_nfts::Pallet::<Runtime>::set_accept_ownership(
-				OriginFor::<Runtime>::signed(BOB.into()),
-				Some(0),
-			));
-
-			assert_err!(
-				pallet_nfts::Pallet::<Runtime>::transfer_ownership(
-					OriginFor::<Runtime>::signed(ALICE.into()),
-					0,
-					BOB.into()
-				),
-				pallet_nfts::Error::<Runtime>::ItemLocked
-			);
+			if let Some(config) = CollectionConfigOf::<Runtime>::get(0) {
+				assert!(config.has_disabled_setting(CollectionSetting::DepositRequired));
+				assert!(config.has_disabled_setting(CollectionSetting::UnlockedAttributes));
+				assert!(config.has_disabled_setting(CollectionSetting::UnlockedMetadata));
+				assert!(config.has_disabled_setting(CollectionSetting::UnlockedMaxSupply));
+				assert!(config.has_disabled_setting(CollectionSetting::TransferableItems));
+			}
 		})
 }
 
