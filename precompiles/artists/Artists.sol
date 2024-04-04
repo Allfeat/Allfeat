@@ -7,7 +7,7 @@ address constant ARTISTS_ADDRESS = 0x0000000000000000000000000000000000000803;
 /// @dev The Artists contract's instance.
 Artists constant ARTISTS_CONTRACT = Artists(
     ARTISTS_ADDRESS
-)
+);
 
 /// @title Artists precompile
 /// Allows to interact with the artists pallet from the EVM.
@@ -21,7 +21,7 @@ interface Artists {
 
     struct Alias {
         bool has_alias;
-        string alias;
+        string _alias;
     }
 
     struct DescriptionPreimage {
@@ -34,20 +34,20 @@ interface Artists {
         uint32 registered_at;
         Verification verification;
         string main_name;
-        Alias alias;
+        Alias _alias;
         bytes[] genres;
-        DescriptionPreimage description
+        DescriptionPreimage description;
         bytes32[] assets;
         address[] contracts;
     }
 
     struct Artist {
         bool is_artist;
-        ArtistData data
+        ArtistData data;
     }
 
     /// @dev Retrieve artist data of the specified account.
     /// @custom:selector e27e4da4
-    /// @param who The requested account
-    function get_artist(address account) external view returns (Artist memory)
+    /// @param account The requested account
+    function get_artist(address account) external view returns (Artist memory);
 }
