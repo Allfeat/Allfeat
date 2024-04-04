@@ -297,7 +297,7 @@ fn seal_collection_works() {
 							is_unlocked_metadata: false,
 							is_unlocked_attributes: false,
 							is_unlocked_max_supply: false,
-							is_deposit_required: false,
+							is_deposit_required: true,
 						},
 					},
 				)
@@ -308,7 +308,7 @@ fn seal_collection_works() {
 			}));
 
 			if let Some(config) = CollectionConfigOf::<Runtime>::get(0) {
-				assert!(config.has_disabled_setting(CollectionSetting::DepositRequired));
+				assert!(config.has_disabled_setting(CollectionSetting::DepositRequired)); // Still disabled as it was force_created
 				assert!(config.has_disabled_setting(CollectionSetting::UnlockedAttributes));
 				assert!(config.has_disabled_setting(CollectionSetting::UnlockedMetadata));
 				assert!(config.has_disabled_setting(CollectionSetting::UnlockedMaxSupply));
