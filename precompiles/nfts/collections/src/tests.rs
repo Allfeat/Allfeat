@@ -320,7 +320,7 @@ fn seal_collection_works() {
 #[test]
 fn transfer_ownership_works() {
 	ExtBuilder::<Runtime>::default()
-		.with_balances(vec![(BOB.into(), 1000)])
+		.with_balances(vec![(ALICE.into(), 1000), (BOB.into(), 1000)])
 		.build_with_collections()
 		.execute_with(|| {
 			assert_ok!(pallet_nfts::Pallet::<Runtime>::set_accept_ownership(
@@ -341,7 +341,7 @@ fn transfer_ownership_works() {
 				new_owner: BOB.into(),
 			}));
 
-			// TODO: assert
+			assert_eq!(pallet_nfts::Pallet::<Runtime>::collection_owner(0), Some(BOB.into()));
 		})
 }
 
