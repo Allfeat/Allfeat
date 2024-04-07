@@ -164,19 +164,19 @@ impl Into<pallet_nfts::CollectionSettings> for CollectionSettings {
 		let mut s = pallet_nfts::CollectionSettings::all_enabled();
 
 		if !self.is_transferable_items {
-			s.0.set(pallet_nfts::CollectionSetting::TransferableItems, false)
+			s.0.insert(pallet_nfts::CollectionSetting::TransferableItems)
 		}
 		if !self.is_unlocked_metadata {
-			s.0.set(pallet_nfts::CollectionSetting::UnlockedMetadata, false)
+			s.0.insert(pallet_nfts::CollectionSetting::UnlockedMetadata)
 		}
 		if !self.is_unlocked_attributes {
-			s.0.set(pallet_nfts::CollectionSetting::UnlockedAttributes, false)
+			s.0.insert(pallet_nfts::CollectionSetting::UnlockedAttributes)
 		}
 		if !self.is_unlocked_max_supply {
-			s.0.set(pallet_nfts::CollectionSetting::UnlockedMaxSupply, false)
+			s.0.insert(pallet_nfts::CollectionSetting::UnlockedMaxSupply)
 		}
 		if !self.is_deposit_required {
-			s.0.set(pallet_nfts::CollectionSetting::DepositRequired, false)
+			s.0.insert(pallet_nfts::CollectionSetting::DepositRequired)
 		}
 
 		s
