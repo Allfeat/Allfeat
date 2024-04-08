@@ -1,0 +1,28 @@
+name: Allfeat Rust CI
+
+on:
+  push:
+    branches:
+      - master
+      - add-ci-for-format-checker
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  check-format:
+    name: Check code format 🗒️
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          components: rustfmt
+
+      - name: Check format
+        run: cargo fmt --check --all
