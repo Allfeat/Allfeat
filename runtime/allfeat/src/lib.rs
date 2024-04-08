@@ -1143,11 +1143,6 @@ impl pallet_base_fee::Config for Runtime {
 	type DefaultElasticity = DefaultElasticity;
 }
 
-impl pallet_hotfix_sufficients::Config for Runtime {
-	type AddressMapping = IdentityAddressMapping;
-	type WeightInfo = pallet_hotfix_sufficients::weights::SubstrateWeight<Runtime>;
-}
-
 construct_runtime!(
 	pub enum Runtime
 	{
@@ -1199,7 +1194,6 @@ construct_runtime!(
 		EVM: pallet_evm = 51,
 		DynamicFee: pallet_dynamic_fee = 53,
 		BaseFee: pallet_base_fee = 54,
-		HotfixSufficients: pallet_hotfix_sufficients = 55,
 
 		// Allfeat related
 		Artists: pallet_artists = 100,
@@ -1848,12 +1842,9 @@ impl_runtime_apis! {
 			use frame_system_benchmarking::Pallet as SystemBench;
 			use baseline::Pallet as BaselineBench;
 			use pallet_nomination_pools_benchmarking::Pallet as NominationPoolsBench;
-			use pallet_hotfix_sufficients::Pallet as PalletHotfixSufficients;
-
 
 			let mut list = Vec::<BenchmarkList>::new();
 			list_benchmarks!(list, extra);
-			list_benchmark!(list, extra, pallet_hotfix_sufficients, PalletHotfixSufficients::<Runtime>);
 
 			let storage_info = AllPalletsWithSystem::storage_info();
 
@@ -1876,8 +1867,6 @@ impl_runtime_apis! {
 			use baseline::Pallet as BaselineBench;
 			use pallet_nomination_pools_benchmarking::Pallet as NominationPoolsBench;
 			use pallet_evm::Pallet as PalletEvmBench;
-			use pallet_hotfix_sufficients::Pallet as PalletHotfixSufficientsBench;
-
 
 			impl pallet_session_benchmarking::Config for Runtime {}
 			impl pallet_offences_benchmarking::Config for Runtime {}
@@ -1893,7 +1882,6 @@ impl_runtime_apis! {
 			let params = (&config, &whitelist);
 			add_benchmarks!(params, batches);
 			add_benchmark!(params, batches, pallet_evm, PalletEvmBench::<Runtime>);
-			add_benchmark!(params, batches, pallet_hotfix_sufficients, PalletHotfixSufficientsBench::<Runtime>);
 
 			Ok(batches)
 		}

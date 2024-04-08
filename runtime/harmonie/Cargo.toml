@@ -96,7 +96,6 @@ pallet-evm-precompile-sha3fips = { workspace = true }
 pallet-evm-precompile-simple = { workspace = true }
 pallet-evm-precompile-bn128 = { workspace = true }
 pallet-evm-precompile-blake2 = { workspace = true }
-pallet-hotfix-sufficients = { workspace = true }
 precompile-utils = { workspace = true }
 
 # Allfeat precompiles
@@ -198,7 +197,6 @@ std = [
     "pallet-evm-precompile-simple/std",
     "pallet-evm-precompile-bn128/std",
     "pallet-evm-precompile-blake2/std",
-    "pallet-hotfix-sufficients/std",
     "precompile-utils/std",
     "pallet-evm-precompile-balances-erc20/std",
     "pallet-evm-precompile-artists/std",
@@ -237,7 +235,6 @@ runtime-benchmarks = [
     "frame-system-benchmarking/runtime-benchmarks",
     "pallet-ethereum/runtime-benchmarks",
     "pallet-evm/runtime-benchmarks",
-    "pallet-hotfix-sufficients/runtime-benchmarks",
 ]
 try-runtime = [
     "shared-runtime/try-runtime",
@@ -272,7 +269,6 @@ try-runtime = [
     "pallet-nfts/try-runtime",
     "pallet-evm/try-runtime",
     "pallet-ethereum/try-runtime",
-    "pallet-hotfix-sufficients/try-runtime",
     "pallet-base-fee/try-runtime",
     "pallet-dynamic-fee/try-runtime",
     "sp-runtime/try-runtime",

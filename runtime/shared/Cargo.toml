@@ -34,7 +34,6 @@ pallet-timestamp = { workspace = true }
 pallet-utility = { workspace = true }
 pallet-transaction-payment = { workspace = true }
 pallet-evm = { workspace = true }
-pallet-hotfix-sufficients = { workspace = true }
 
 allfeat-primitives = { workspace = true }
 
@@ -68,7 +67,6 @@ std = [
     "pallet-timestamp/std",
     "pallet-utility/std",
     "pallet-evm/std",
-    "pallet-hotfix-sufficients/std"
 ]
 runtime-benchmarks = []
 try-runtime = []

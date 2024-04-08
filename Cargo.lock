@@ -238,7 +238,6 @@ dependencies = [
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
  "pallet-grandpa",
- "pallet-hotfix-sufficients",
  "pallet-identity",
  "pallet-im-online",
  "pallet-mmr",
@@ -3643,7 +3642,6 @@ dependencies = [
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
  "pallet-grandpa",
- "pallet-hotfix-sufficients",
  "pallet-identity",
  "pallet-im-online",
  "pallet-mmr",
@@ -6330,22 +6328,6 @@ dependencies = [
  "sp-runtime",
  "sp-session",
  "sp-staking",
- "sp-std 14.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.9.0)",
-]
-
-[[package]]
-name = "pallet-hotfix-sufficients"
-version = "1.0.0"
-source = "git+https://github.com/Allfeat/frontier.git?branch=allfeat-polkadot-v1.9.0#35d49546bbf522e91cf05fa3b94af246703b38ec"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "pallet-evm",
- "parity-scale-codec",
- "scale-info",
- "sp-core",
- "sp-runtime",
  "sp-std 14.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.9.0)",
 ]
 
@@ -9643,7 +9625,6 @@ dependencies = [
  "pallet-balances",
  "pallet-election-provider-multi-phase",
  "pallet-evm",
- "pallet-hotfix-sufficients",
  "pallet-identity",
  "pallet-im-online",
  "pallet-multisig",

@@ -21,7 +21,6 @@ pub mod bags_list;
 pub mod balances;
 pub mod election_provider_multi_phase;
 pub mod evm;
-pub mod hotfix_sufficients;
 pub mod system;
 // pub mod identity;
 pub mod im_online;
