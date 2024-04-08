@@ -21,7 +21,7 @@ use std::sync::Arc;
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::{
 	chain_specs,
-	chain_specs::DummyChainSpec,
+	chain_specs::{get_account_id_from_seed, DummyChainSpec},
 	cli::{Cli, Subcommand},
 	client::Client,
 	eth::db_config_dir,
