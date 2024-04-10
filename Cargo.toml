@@ -193,8 +193,6 @@ fp-evm = { version = "3.0.0-dev", git = "https://github.com/Allfeat/frontier.git
 fp-rpc = { version = "3.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0", default-features = false }
 fp-self-contained = { version = "1.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0", default-features = false }
 fp-account = { version = "1.0.0-dev", default-features = false, git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0" }
-pallet-base-fee = { version = "1.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0", default-features = false }
-pallet-dynamic-fee = { version = "4.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0", default-features = false }
 pallet-ethereum = { version = "4.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0", default-features = false, features = [
     "forbid-evm-reentrancy",
 ] }

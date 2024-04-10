@@ -19,7 +19,6 @@ log = { workspace = true }
 num_enum = { workspace = true }
 hex-literal = { workspace = true }
 enumflags2 = { workspace = true }
-smallvec = { workspace = true }
 
 frame-support = { workspace = true }
 frame-election-provider-support = { workspace = true }
@@ -87,8 +86,6 @@ fp-evm = { workspace = true, features = ["serde"] }
 fp-rpc = { workspace = true }
 fp-self-contained = { workspace = true, features = ["serde"] }
 # Frontier FRAME
-pallet-base-fee = { workspace = true }
-pallet-dynamic-fee = { workspace = true }
 pallet-ethereum = { workspace = true }
 pallet-evm = { workspace = true }
 pallet-evm-precompile-modexp = { workspace = true }
@@ -118,6 +115,7 @@ frame-system-benchmarking = { workspace = true, optional = true }
 [dev-dependencies]
 sha3 = { workspace = true, features = ["std"] }
 
+shared-runtime = { workspace = true, features = ["std", "test"] }
 precompile-utils = { workspace = true, features = ["std", "testing"] }
 
 [build-dependencies]
@@ -188,8 +186,6 @@ std = [
     "fp-rpc/std",
     "fp-self-contained/std",
     # Frontier FRAME
-    "pallet-base-fee/std",
-    "pallet-dynamic-fee/std",
     "pallet-ethereum/std",
     "pallet-evm/std",
     "pallet-evm-precompile-modexp/std",
@@ -205,7 +201,6 @@ std = [
     "pallet-evm-precompile-nfts-swap/std",
 ]
 runtime-benchmarks = [
-    "shared-runtime/runtime-benchmarks",
     "frame-benchmarking/runtime-benchmarks",
     "frame-support/runtime-benchmarks",
     "frame-system/runtime-benchmarks",
@@ -237,7 +232,6 @@ runtime-benchmarks = [
     "pallet-evm/runtime-benchmarks",
 ]
 try-runtime = [
-    "shared-runtime/try-runtime",
     "frame-election-provider-support/try-runtime",
     "frame-executive/try-runtime",
     "frame-try-runtime/try-runtime",
@@ -269,8 +263,14 @@ try-runtime = [
     "pallet-nfts/try-runtime",
     "pallet-evm/try-runtime",
     "pallet-ethereum/try-runtime",
-    "pallet-base-fee/try-runtime",
-    "pallet-dynamic-fee/try-runtime",
     "sp-runtime/try-runtime",
     "fp-self-contained/try-runtime",
+]
+
+# A feature that should be enabled when the runtime should be build for on-chain
+# deployment. This will disable stuff that shouldn't be part of the on-chain wasm
+# to make it smaller like logging for example.
+on-chain-release-build = [
+    # substrate
+    "sp-api/disable-logging",
 ]

@@ -71,8 +71,7 @@ use sp_runtime::{
 		SaturatedConversion, StaticLookup, UniqueSaturatedInto,
 	},
 	transaction_validity::{TransactionPriority, TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, ConsensusEngineId, FixedU128, Perbill, Percent, Permill,
-	RuntimeAppPublic,
+	ApplyExtrinsicResult, ConsensusEngineId, FixedU128, Perbill, Percent, RuntimeAppPublic,
 };
 use sp_std::prelude::*;
 #[cfg(any(feature = "std", test))]
@@ -87,10 +86,7 @@ pub use pallet_balances::Call as BalancesCall;
 use pallet_ethereum::{
 	Call::transact, EthereumBlockHashMapping, PostLogContent, Transaction as EthereumTransaction,
 };
-use pallet_evm::{
-	Account as EVMAccount, EVMCurrencyAdapter, EnsureAccountId20, GasWeightMapping,
-	IdentityAddressMapping, Runner,
-};
+use pallet_evm::{Account as EVMAccount, IdentityAddressMapping, Runner};
 #[cfg(any(feature = "std", test))]
 pub use pallet_staking::StakerStatus;
 #[cfg(any(feature = "std", test))]
@@ -100,10 +96,6 @@ pub use sp_runtime::BuildStorage;
 
 mod precompiles;
 use precompiles::AllfeatPrecompiles;
-
-/// Implementations of some helper traits passed into runtime modules as associated types.
-pub mod impls;
-use impls::Author;
 
 /// Constant values used within the runtime.
 pub mod constants;
@@ -170,8 +162,8 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_version: 100,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
-	transaction_version: 1,
-	state_version: 1,
+	transaction_version: 0,
+	state_version: 0,
 };
 
 /// The BABE epoch configuration at genesis.
@@ -187,12 +179,10 @@ pub fn native_version() -> NativeVersion {
 	NativeVersion { runtime_version: VERSION, can_author_with: Default::default() }
 }
 
-type NegativeImbalance = <Balances as Currency<AccountId>>::NegativeImbalance;
-
-/// We allow for 2 seconds of compute with a 6 second average block time.
-/// The storage proof size is not limited so far.
-const MAXIMUM_BLOCK_WEIGHT: Weight =
-	Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2), u64::MAX);
+/// We allow for 2 seconds of compute with a 6 second average block time, with maximum proof size
+pub const WEIGHT_MILLISECS_PER_BLOCK: u64 = 2000;
+pub const MAXIMUM_BLOCK_WEIGHT: Weight =
+	Weight::from_parts(WEIGHT_MILLISECS_PER_BLOCK * WEIGHT_REF_TIME_PER_SECOND, u64::MAX);
 
 const_assert!(NORMAL_DISPATCH_RATIO.deconstruct() >= AVERAGE_ON_INITIALIZE_RATIO.deconstruct());
 
@@ -489,7 +479,7 @@ parameter_types! {
 
 impl pallet_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type OnChargeTransaction = CurrencyAdapter<Balances, Author>;
+	type OnChargeTransaction = CurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type OperationalFeeMultiplier = OperationalFeeMultiplier;
 	type WeightToFee = WeightToFee;
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
@@ -812,8 +802,8 @@ use crate::{
 };
 use shared_runtime::{
 	elections::OnChainAccuracy, identity::IdentityInfo, prod_or_fast, BalanceToU256,
-	BlockHashCount, RuntimeBlockLength, SlowAdjustingFeeUpdate, U256ToBalance,
-	AVERAGE_ON_INITIALIZE_RATIO, NORMAL_DISPATCH_RATIO,
+	BlockHashCount, DealWithFees, RuntimeBlockLength, SlowAdjustingFeeUpdate,
+	TransactionPaymentGasPrice, U256ToBalance, AVERAGE_ON_INITIALIZE_RATIO, NORMAL_DISPATCH_RATIO,
 };
 use sp_runtime::{
 	traits::{ConvertInto, DispatchInfoOf, PostDispatchInfoOf},
@@ -1065,23 +1055,21 @@ impl<F: FindAuthor<u32>> FindAuthor<H160> for FindAuthorTruncated<F> {
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::from(BLOCK_GAS_LIMIT);
-	pub const GasLimitPovSizeRatio: u64 = BLOCK_GAS_LIMIT.saturating_div(MAX_POV_SIZE);
+	pub const GasLimitPovSizeRatio: u64 = 0;
 	pub PrecompilesValue: AllfeatPrecompiles<Runtime> = AllfeatPrecompiles::<_>::new();
 	pub WeightPerGas: Weight = Weight::from_parts(weight_per_gas(BLOCK_GAS_LIMIT, NORMAL_DISPATCH_RATIO, WEIGHT_MILLISECS_PER_BLOCK), 0);
 	pub SuicideQuickClearLimit: u32 = 0;
 }
 
 const BLOCK_GAS_LIMIT: u64 = 75_000_000;
-const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
-const WEIGHT_MILLISECS_PER_BLOCK: u64 = 2000;
 
 impl pallet_evm::Config for Runtime {
-	type FeeCalculator = BaseFee;
+	type FeeCalculator = TransactionPaymentGasPrice<Runtime, WeightPerGas>;
 	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
 	type WeightPerGas = WeightPerGas;
 	type BlockHashMapping = EthereumBlockHashMapping<Runtime>;
-	type CallOrigin = EnsureAccountId20;
-	type WithdrawOrigin = EnsureAccountId20;
+	type CallOrigin = pallet_evm::EnsureAddressRoot<AccountId>;
+	type WithdrawOrigin = pallet_evm::EnsureAddressNever<AccountId>;
 	type AddressMapping = IdentityAddressMapping;
 	type Currency = Balances;
 	type RuntimeEvent = RuntimeEvent;
@@ -1090,13 +1078,13 @@ impl pallet_evm::Config for Runtime {
 	type ChainId = ConstU64<440>;
 	type BlockGasLimit = BlockGasLimit;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type OnChargeTransaction = EVMCurrencyAdapter<Balances, Author>;
+	type OnChargeTransaction = ();
 	type OnCreate = ();
 	type FindAuthor = FindAuthorTruncated<Babe>;
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
 	type Timestamp = Timestamp;
 	type SuicideQuickClearLimit = SuicideQuickClearLimit;
-	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -1107,40 +1095,7 @@ impl pallet_ethereum::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot<Self>;
 	type PostLogContent = PostBlockAndTxnHashes;
-	type ExtraDataLength = ConstU32<30>;
-}
-
-parameter_types! {
-	pub BoundDivision: U256 = U256::from(1024);
-}
-
-impl pallet_dynamic_fee::Config for Runtime {
-	type MinGasPriceBoundDivisor = BoundDivision;
-}
-
-parameter_types! {
-	pub DefaultBaseFeePerGas: U256 = U256::from(1_000_000_000);
-	pub DefaultElasticity: Permill = Permill::from_parts(125_000);
-}
-
-pub struct BaseFeeThreshold;
-impl pallet_base_fee::BaseFeeThreshold for BaseFeeThreshold {
-	fn lower() -> Permill {
-		Permill::zero()
-	}
-	fn ideal() -> Permill {
-		Permill::from_parts(500_000)
-	}
-	fn upper() -> Permill {
-		Permill::from_parts(1_000_000)
-	}
-}
-
-impl pallet_base_fee::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Threshold = BaseFeeThreshold;
-	type DefaultBaseFeePerGas = DefaultBaseFeePerGas;
-	type DefaultElasticity = DefaultElasticity;
+	type ExtraDataLength = ConstU32<64>;
 }
 
 construct_runtime!(
@@ -1192,8 +1147,6 @@ construct_runtime!(
 		// Frontier
 		Ethereum: pallet_ethereum = 50,
 		EVM: pallet_evm = 51,
-		DynamicFee: pallet_dynamic_fee = 53,
-		BaseFee: pallet_base_fee = 54,
 
 		// Allfeat related
 		Artists: pallet_artists = 100,
@@ -1598,6 +1551,8 @@ impl_runtime_apis! {
 			estimate: bool,
 			access_list: Option<Vec<(H160, Vec<H256>)>>,
 		) -> Result<pallet_evm::CallInfo, sp_runtime::DispatchError> {
+			use pallet_ethereum::{TransactionData, TransactionAction};
+
 			let config = if estimate {
 				let mut config = <Runtime as pallet_evm::Config>::config().clone();
 				config.estimate = true;
@@ -1606,43 +1561,20 @@ impl_runtime_apis! {
 				None
 			};
 
-			let is_transactional = false;
-			let validate = true;
-			let evm_config = config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config());
-
-			let mut estimated_transaction_len = data.len() +
-				20 + // to
-				20 + // from
-				32 + // value
-				32 + // gas_limit
-				32 + // nonce
-				1 + // TransactionAction
-				8 + // chain id
-				65; // signature
-
-			if max_fee_per_gas.is_some() {
-				estimated_transaction_len += 32;
-			}
-			if max_priority_fee_per_gas.is_some() {
-				estimated_transaction_len += 32;
-			}
-			if access_list.is_some() {
-				estimated_transaction_len += access_list.encoded_size();
-			}
-
-			let gas_limit = gas_limit.min(u64::MAX.into()).low_u64();
-			let without_base_extrinsic_weight = true;
-
-			let (weight_limit, proof_size_base_cost) =
-				match <Runtime as pallet_evm::Config>::GasWeightMapping::gas_to_weight(
-					gas_limit,
-					without_base_extrinsic_weight
-				) {
-					weight_limit if weight_limit.proof_size() > 0 => {
-						(Some(weight_limit), Some(estimated_transaction_len as u64))
-					}
-					_ => (None, None),
-				};
+			let gas_limit = gas_limit.min(u64::MAX.into());
+			let transaction_data = TransactionData::new(
+				TransactionAction::Call(to),
+				data.clone(),
+				nonce.unwrap_or_default(),
+				gas_limit,
+				None,
+				max_fee_per_gas,
+				max_priority_fee_per_gas,
+				value,
+				Some(<Runtime as pallet_evm::Config>::ChainId::get()),
+				access_list.clone().unwrap_or_default(),
+			);
+			let (weight_limit, proof_size_base_cost) = pallet_ethereum::Pallet::<Runtime>::transaction_weight(&transaction_data);
 
 			<Runtime as pallet_evm::Config>::Runner::call(
 				from,
@@ -1654,11 +1586,11 @@ impl_runtime_apis! {
 				max_priority_fee_per_gas,
 				nonce,
 				access_list.unwrap_or_default(),
-				is_transactional,
-				validate,
+				false,
+				true,
 				weight_limit,
 				proof_size_base_cost,
-				evm_config,
+				config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 			).map_err(|err| err.error.into())
 		}
 
@@ -1673,6 +1605,8 @@ impl_runtime_apis! {
 			estimate: bool,
 			access_list: Option<Vec<(H160, Vec<H256>)>>,
 		) -> Result<pallet_evm::CreateInfo, sp_runtime::DispatchError> {
+			use pallet_ethereum::{TransactionData, TransactionAction};
+
 			let config = if estimate {
 				let mut config = <Runtime as pallet_evm::Config>::config().clone();
 				config.estimate = true;
@@ -1681,47 +1615,20 @@ impl_runtime_apis! {
 				None
 			};
 
-			let is_transactional = false;
-			let validate = true;
-			let evm_config = config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config());
-
-			let mut estimated_transaction_len = data.len() +
-				20 + // from
-				32 + // value
-				32 + // gas_limit
-				32 + // nonce
-				1 + // TransactionAction
-				8 + // chain id
-				65; // signature
-
-			if max_fee_per_gas.is_some() {
-				estimated_transaction_len += 32;
-			}
-			if max_priority_fee_per_gas.is_some() {
-				estimated_transaction_len += 32;
-			}
-			if access_list.is_some() {
-				estimated_transaction_len += access_list.encoded_size();
-			}
-
-			let gas_limit = if gas_limit > U256::from(u64::MAX) {
-				u64::MAX
-			} else {
-				gas_limit.low_u64()
-			};
-			let without_base_extrinsic_weight = true;
-
-			let (weight_limit, proof_size_base_cost) =
-				match <Runtime as pallet_evm::Config>::GasWeightMapping::gas_to_weight(
-					gas_limit,
-					without_base_extrinsic_weight
-				) {
-					weight_limit if weight_limit.proof_size() > 0 => {
-						(Some(weight_limit), Some(estimated_transaction_len as u64))
-					}
-					_ => (None, None),
-				};
-
+			let gas_limit = gas_limit.min(u64::MAX.into());
+			let transaction_data = TransactionData::new(
+				TransactionAction::Create,
+				data.clone(),
+				nonce.unwrap_or_default(),
+				gas_limit,
+				None,
+				max_fee_per_gas,
+				max_priority_fee_per_gas,
+				value,
+				Some(<Runtime as pallet_evm::Config>::ChainId::get()),
+				access_list.clone().unwrap_or_default(),
+			);
+			let (weight_limit, proof_size_base_cost) = pallet_ethereum::Pallet::<Runtime>::transaction_weight(&transaction_data);
 			<Runtime as pallet_evm::Config>::Runner::create(
 				from,
 				data,
@@ -1731,11 +1638,11 @@ impl_runtime_apis! {
 				max_priority_fee_per_gas,
 				nonce,
 				access_list.unwrap_or_default(),
-				is_transactional,
-				validate,
+				false,
+				true,
 				weight_limit,
 				proof_size_base_cost,
-				evm_config,
+				config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 			).map_err(|err| err.error.into())
 		}
 
@@ -1772,8 +1679,8 @@ impl_runtime_apis! {
 			}).collect::<Vec<EthereumTransaction>>()
 		}
 
-		fn elasticity() -> Option<Permill> {
-			Some(pallet_base_fee::Elasticity::<Runtime>::get())
+		fn elasticity() -> Option<sp_runtime::Permill> {
+			None
 		}
 
 		fn gas_limit_multiplier_support() {}
@@ -1866,7 +1773,6 @@ impl_runtime_apis! {
 			use frame_system_benchmarking::Pallet as SystemBench;
 			use baseline::Pallet as BaselineBench;
 			use pallet_nomination_pools_benchmarking::Pallet as NominationPoolsBench;
-			use pallet_evm::Pallet as PalletEvmBench;
 
 			impl pallet_session_benchmarking::Config for Runtime {}
 			impl pallet_offences_benchmarking::Config for Runtime {}
@@ -1881,7 +1787,6 @@ impl_runtime_apis! {
 			let mut batches = Vec::<BenchmarkBatch>::new();
 			let params = (&config, &whitelist);
 			add_benchmarks!(params, batches);
-			add_benchmark!(params, batches, pallet_evm, PalletEvmBench::<Runtime>);
 
 			Ok(batches)
 		}
@@ -1894,247 +1799,6 @@ impl_runtime_apis! {
 
 		fn build_config(config: Vec<u8>) -> sp_genesis_builder::Result {
 			build_config::<RuntimeGenesisConfig>(config)
-		}
-	}
-}
-
-#[cfg(test)]
-mod test_fees {
-	use super::*;
-	use frame_support::weights::WeightToFee as WeightToFeeT;
-	use separator::Separatable;
-	use shared_runtime::MinimumMultiplier;
-	use sp_runtime::{assert_eq_error_rate, FixedPointNumber};
-
-	#[test]
-	fn payout_weight_portion() {
-		use pallet_staking::WeightInfo;
-		let payout_weight =
-			<Runtime as pallet_staking::Config>::WeightInfo::payout_stakers_alive_staked(
-				MaxNominatorRewardedPerValidator::get(),
-			)
-			.ref_time() as f64;
-		let block_weight = RuntimeBlockWeights::get().max_block.ref_time() as f64;
-
-		println!(
-			"a full payout takes {:.2} of the block weight [{} / {}]",
-			payout_weight / block_weight,
-			payout_weight,
-			block_weight
-		);
-		assert!(payout_weight * 2f64 < block_weight);
-	}
-
-	#[test]
-	fn block_cost() {
-		let max_block_weight = RuntimeBlockWeights::get().max_block;
-		let raw_fee = WeightToFee::weight_to_fee(&max_block_weight);
-
-		let fee_with_multiplier = |m: Multiplier| {
-			println!(
-				"Full Block weight == {} // multiplier: {:?} // WeightToFee(full_block) == {} plank",
-				max_block_weight,
-				m,
-				m.saturating_mul_int(raw_fee).separated_string(),
-			);
-		};
-		fee_with_multiplier(MinimumMultiplier::get());
-		fee_with_multiplier(Multiplier::from_rational(1, 2));
-		fee_with_multiplier(Multiplier::from_u32(1));
-		fee_with_multiplier(Multiplier::from_u32(2));
-	}
-
-	#[test]
-	fn nominator_limit() {
-		use pallet_election_provider_multi_phase::WeightInfo;
-		// starting point of the nominators.
-		let target_voters: u32 = 50_000;
-
-		// assuming we want around 5k candidates and 1k active validators. (March 31, 2021)
-		let all_targets: u32 = 5_000;
-		let desired: u32 = 1_000;
-		let weight_with = |active| {
-			<Runtime as pallet_election_provider_multi_phase::Config>::WeightInfo::submit_unsigned(
-				active,
-				all_targets,
-				active,
-				desired,
-			)
-		};
-
-		let mut active = target_voters;
-		while weight_with(active).all_lte(MinerMaxWeight::get()) || active == target_voters {
-			active += 1;
-		}
-
-		println!("can support {} nominators to yield a weight of {}", active, weight_with(active));
-		assert!(active > target_voters, "we need to reevaluate the weight of the election system");
-	}
-
-	#[test]
-	fn signed_deposit_is_sensible() {
-		// ensure this number does not change, or that it is checked after each change.
-		// a 1 MB solution should take (40 + 10) AFTs of deposit.
-		let deposit = SignedFixedDeposit::get() + (SignedDepositByte::get() * 1024 * 1024);
-		assert_eq_error_rate!(deposit, 50 * AFT, AFT);
-	}
-}
-
-#[cfg(test)]
-mod test {
-	use std::collections::HashSet;
-
-	use super::*;
-	use frame_support::traits::WhitelistedStorageKeys;
-	use sp_core::hexdisplay::HexDisplay;
-
-	#[test]
-	fn call_size() {
-		RuntimeCall::assert_size_under(256);
-	}
-
-	#[test]
-	fn check_whitelist() {
-		let whitelist: HashSet<String> = AllPalletsWithSystem::whitelisted_storage_keys()
-			.iter()
-			.map(|e| HexDisplay::from(&e.key).to_string())
-			.collect();
-
-		// Block number
-		assert!(
-			whitelist.contains("26aa394eea5630e07c48ae0c9558cef702a5c1b19ab7a04f536c519aca4983ac")
-		);
-		// Total issuance
-		assert!(
-			whitelist.contains("c2261276cc9d1f8598ea4b6a74b15c2f57c875e4cff74148e4628f264b974c80")
-		);
-		// Execution phase
-		assert!(
-			whitelist.contains("26aa394eea5630e07c48ae0c9558cef7ff553b5a9862a516939d82b3d3d8661a")
-		);
-		// Event count
-		assert!(
-			whitelist.contains("26aa394eea5630e07c48ae0c9558cef70a98fdbe9ce6c55837576c60c7af3850")
-		);
-		// System events
-		assert!(
-			whitelist.contains("26aa394eea5630e07c48ae0c9558cef780d41e5e16056765bc8461851072c9d7")
-		);
-	}
-}
-
-#[cfg(test)]
-mod multiplier_tests {
-	use super::*;
-	use frame_support::dispatch::DispatchInfo;
-	use separator::Separatable;
-	use shared_runtime::{MinimumMultiplier, TargetBlockFullness};
-	use sp_runtime::traits::Convert;
-
-	fn run_with_system_weight<F>(w: Weight, mut assertions: F)
-	where
-		F: FnMut() -> (),
-	{
-		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
-			.build_storage()
-			.unwrap()
-			.into();
-		t.execute_with(|| {
-			System::set_block_consumed_resources(w, 0);
-			assertions()
-		});
-	}
-
-	#[test]
-	fn multiplier_can_grow_from_zero() {
-		let minimum_multiplier = MinimumMultiplier::get();
-		let target = TargetBlockFullness::get() *
-			RuntimeBlockWeights::get().get(DispatchClass::Normal).max_total.unwrap();
-		// if the min is too small, then this will not change, and we are doomed forever.
-		// the weight is 1/100th bigger than target.
-		run_with_system_weight(target.saturating_mul(101) / 100, || {
-			let next = SlowAdjustingFeeUpdate::<Runtime>::convert(minimum_multiplier);
-			assert!(next > minimum_multiplier, "{:?} !>= {:?}", next, minimum_multiplier);
-		})
-	}
-
-	#[test]
-	#[ignore]
-	fn multiplier_growth_simulator() {
-		// assume the multiplier is initially set to its minimum. We update it with values twice the
-		//target (target is 25%, thus 50%) and we see at which point it reaches 1.
-		let mut multiplier = MinimumMultiplier::get();
-		let block_weight = RuntimeBlockWeights::get().get(DispatchClass::Normal).max_total.unwrap();
-		let mut blocks = 0;
-		let mut fees_paid = 0;
-
-		frame_system::Pallet::<Runtime>::set_block_consumed_resources(Weight::MAX, 0);
-		let info = DispatchInfo { weight: Weight::MAX, ..Default::default() };
-
-		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
-			.build_storage()
-			.unwrap()
-			.into();
-		// set the minimum
-		t.execute_with(|| {
-			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(MinimumMultiplier::get());
-		});
-
-		while multiplier <= Multiplier::from_u32(1) {
-			t.execute_with(|| {
-				// imagine this tx was called.
-				let fee = TransactionPayment::compute_fee(0, &info, 0);
-				fees_paid += fee;
-
-				// this will update the multiplier.
-				System::set_block_consumed_resources(block_weight, 0);
-				TransactionPayment::on_finalize(1);
-				let next = TransactionPayment::next_fee_multiplier();
-
-				assert!(next > multiplier, "{:?} !>= {:?}", next, multiplier);
-				multiplier = next;
-
-				println!(
-					"block = {} / multiplier {:?} / fee = {:?} / fess so far {:?}",
-					blocks,
-					multiplier,
-					fee.separated_string(),
-					fees_paid.separated_string()
-				);
-			});
-			blocks += 1;
-		}
-	}
-
-	#[test]
-	#[ignore]
-	fn multiplier_cool_down_simulator() {
-		// assume the multiplier is initially set to its minimum. We update it with values twice the
-		//target (target is 25%, thus 50%) and we see at which point it reaches 1.
-		let mut multiplier = Multiplier::from_u32(2);
-		let mut blocks = 0;
-
-		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
-			.build_storage()
-			.unwrap()
-			.into();
-		// set the minimum
-		t.execute_with(|| {
-			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier);
-		});
-
-		while multiplier > Multiplier::from_u32(0) {
-			t.execute_with(|| {
-				// this will update the multiplier.
-				TransactionPayment::on_finalize(1);
-				let next = TransactionPayment::next_fee_multiplier();
-
-				assert!(next < multiplier, "{:?} !>= {:?}", next, multiplier);
-				multiplier = next;
-
-				println!("block = {} / multiplier {:?}", blocks, multiplier);
-			});
-			blocks += 1;
 		}
 	}
 }

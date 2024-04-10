@@ -116,32 +116,3 @@ impl WeightToFeePolynomial for WeightToFee {
 		}]
 	}
 }
-
-#[cfg(test)]
-mod tests {
-	use super::{
-		currency::{AFT, MILLIAFT},
-		WeightToFee,
-	};
-	use crate::{ExtrinsicBaseWeight, MAXIMUM_BLOCK_WEIGHT};
-	use frame_support::weights::WeightToFee as WeightToFeeT;
-
-	#[test]
-	// Test that the fee for `MAXIMUM_BLOCK_WEIGHT` of weight has sane bounds.
-	fn full_block_fee_is_correct() {
-		// A full block should cost between 10 and 100 AFT.
-		let full_block = WeightToFee::weight_to_fee(&MAXIMUM_BLOCK_WEIGHT);
-		assert!(full_block >= 10 * AFT);
-		assert!(full_block <= 100 * AFT);
-	}
-
-	#[test]
-	// This function tests that the fee for `ExtrinsicBaseWeight` of weight is correct
-	fn extrinsic_base_fee_is_correct() {
-		// `ExtrinsicBaseWeight` should cost 1/10 of a MILLIAFT
-		println!("Base: {}", ExtrinsicBaseWeight::get());
-		let x = WeightToFee::weight_to_fee(&ExtrinsicBaseWeight::get());
-		let y = MILLIAFT / 10;
-		assert!(x.max(y) - x.min(y) < MILLIAFT);
-	}
-}

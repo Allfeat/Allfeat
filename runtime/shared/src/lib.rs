@@ -19,27 +19,41 @@
 //! Common runtime code for Allfeat.
 
 #![cfg_attr(not(feature = "std"), no_std)]
+// TODO: check for use #![deny(unused_crate_dependencies)]
 
+use crate::currency::AFT;
 use allfeat_primitives::{Balance, BlockNumber};
+use frame_support::{
+	traits::Get,
+	weights::{
+		constants::ExtrinsicBaseWeight, FeePolynomial, Weight, WeightToFee as WeightToFeeT,
+		WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
+	},
+};
 use frame_system::limits::BlockLength;
-use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
-use sp_core::parameter_types;
+use pallet_evm::FeeCalculator;
+use pallet_transaction_payment::{Multiplier, OnChargeTransaction, TargetedFeeAdjustment};
+use sp_core::{parameter_types, U256};
 use sp_runtime::{traits::Bounded, FixedPointNumber, Perbill, Perquintill};
 
 pub mod elections;
 pub mod identity;
 
+mod currency;
+
+#[cfg(feature = "test")]
+pub mod test;
 /// Custom weights for Allfeat runtimes
 pub mod weights;
 
 parameter_types! {
-	pub const BlockHashCount: BlockNumber = 2400;
+	pub const BlockHashCount: BlockNumber = 4096;
 	/// The portion of the `NORMAL_DISPATCH_RATIO` that we adjust the fees with. Blocks filled less
 	/// than this will decrease the weight and more will increase.
 	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
 	/// The adjustment variable of the runtime. Higher values will cause `TargetBlockFullness` to
 	/// change the fees more rapidly.
-	pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(75, 1000_000);
+	pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(75, 1_000_000);
 	/// Minimum amount of the multiplier. This value cannot be too low. A test case should ensure
 	/// that combined with `AdjustmentVariable`, we can recover from the minimum.
 	/// See `multiplier_can_grow_from_zero`.
@@ -51,6 +65,34 @@ parameter_types! {
 		BlockLength::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
 }
 
+/// EIP-1559 like configuration.
+///
+/// Burn the base fee and allocate the tips to the block producer.
+pub struct DealWithFees<R>(core::marker::PhantomData<R>);
+impl<R> frame_support::traits::OnUnbalanced<pallet_balances::NegativeImbalance<R>>
+	for DealWithFees<R>
+where
+	R: pallet_authorship::Config + pallet_balances::Config,
+{
+	fn on_unbalanceds<B>(
+		mut fees_then_tips: impl Iterator<Item = pallet_balances::NegativeImbalance<R>>,
+	) {
+		// substrate
+		use frame_support::traits::Currency;
+
+		if fees_then_tips.next().is_some() {
+			if let Some(tips) = fees_then_tips.next() {
+				if let Some(author) = <pallet_authorship::Pallet<R>>::author() {
+					// Tip the block producer here.
+					<pallet_balances::Pallet<R>>::resolve_creating(&author, tips);
+				}
+				// Burn the tips here. (IMPOSSIBLE CASE)
+			}
+		}
+		// Burn the base fee here.
+	}
+}
+
 /// Parameterized slow adjusting fee updated based on
 /// <https://research.web3.foundation/Polkadot/overview/token-economics#2-slow-adjusting-mechanism>
 pub type SlowAdjustingFeeUpdate<R> = TargetedFeeAdjustment<
@@ -60,6 +102,67 @@ pub type SlowAdjustingFeeUpdate<R> = TargetedFeeAdjustment<
 	MinimumMultiplier,
 	MaximumMultiplier,
 >;
+
+/// Handles converting a weight scalar to a fee value, based on the scale and granularity of the
+/// node's balance type.
+///
+/// This should typically create a mapping between the following ranges:
+///   - `[0, MAXIMUM_BLOCK_WEIGHT]`
+///   - `[Balance::min, Balance::max]`
+///
+/// Yet, it can be used for any other sort of change to weight-fee. Some examples being:
+///   - Setting it to `0` will essentially disable the weight fee.
+///   - Setting it to `1` will cause the literal `#[weight = x]` values to be charged.
+pub struct WeightToFee;
+impl WeightToFeeT for WeightToFee {
+	type Balance = Balance;
+
+	fn weight_to_fee(weight: &Weight) -> Self::Balance {
+		let time_poly: FeePolynomial<Balance> = RefTimeToFee::polynomial().into();
+		let proof_poly: FeePolynomial<Balance> = ProofSizeToFee::polynomial().into();
+
+		// Take the maximum instead of the sum to charge by the more scarce resource.
+		time_poly.eval(weight.ref_time()).max(proof_poly.eval(weight.proof_size()))
+	}
+}
+
+/// Maps the reference time component of `Weight` to a fee.
+pub struct RefTimeToFee;
+impl WeightToFeePolynomial for RefTimeToFee {
+	type Balance = Balance;
+
+	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
+		// Map base extrinsic weight to 1/500 AFT.
+		let p = AFT;
+		let q = 500 * Balance::from(ExtrinsicBaseWeight::get().ref_time());
+
+		smallvec::smallvec![WeightToFeeCoefficient {
+			degree: 1,
+			negative: false,
+			coeff_frac: Perbill::from_rational(p % q, q),
+			coeff_integer: p / q,
+		}]
+	}
+}
+
+/// Maps the proof size component of `Weight` to a fee.
+pub struct ProofSizeToFee;
+impl WeightToFeePolynomial for ProofSizeToFee {
+	type Balance = Balance;
+
+	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
+		// Map 10kb proof to 1 AFT.
+		let p = AFT;
+		let q = 10_000;
+
+		smallvec::smallvec![WeightToFeeCoefficient {
+			degree: 1,
+			negative: false,
+			coeff_frac: Perbill::from_rational(p % q, q),
+			coeff_integer: p / q,
+		}]
+	}
+}
 
 /// We assume that an on-initialize consumes 1% of the weight on average, hence a single extrinsic
 /// will not be allowed to consume more than `AvailableBlockRatio - 1%`.
@@ -82,6 +185,32 @@ impl sp_runtime::traits::Convert<sp_core::U256, Balance> for U256ToBalance {
 	fn convert(n: sp_core::U256) -> Balance {
 		use frame_support::traits::Defensive;
 		n.try_into().defensive_unwrap_or(Balance::MAX)
+	}
+}
+
+pub struct TransactionPaymentGasPrice<R, WeightPerGas>(
+	core::marker::PhantomData<R>,
+	core::marker::PhantomData<WeightPerGas>,
+);
+impl<R, WeightPerGas> FeeCalculator for TransactionPaymentGasPrice<R, WeightPerGas>
+where
+	R: pallet_transaction_payment::Config + frame_system::Config,
+	WeightPerGas: Get<Weight>,
+	<<R as pallet_transaction_payment::Config>::OnChargeTransaction as OnChargeTransaction<R>>::Balance: Into<Balance>
+{
+	fn min_gas_price() -> (U256, Weight) {
+		// substrate
+		use frame_support::weights::WeightToFee;
+		(
+			pallet_transaction_payment::Pallet::<R>::next_fee_multiplier()
+				.saturating_mul_int::<Balance>(
+					<R as pallet_transaction_payment::Config>::WeightToFee::weight_to_fee(
+						&WeightPerGas::get(),
+					).into(),
+				)
+				.into(),
+			<R as frame_system::Config>::DbWeight::get().reads(1),
+		)
 	}
 }
 
