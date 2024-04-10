@@ -4,10 +4,11 @@ on:
   push:
     branches:
       - master
-      - add-ci-for-format-checker
+      - dev
   pull_request:
     branches:
       - master
+      - dev
 
 jobs:
   check-format:
