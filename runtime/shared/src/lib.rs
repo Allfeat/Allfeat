@@ -31,7 +31,6 @@ use frame_support::{
 	},
 };
 use frame_system::limits::BlockLength;
-use pallet_balances::NegativeImbalance;
 use pallet_evm::FeeCalculator;
 use pallet_transaction_payment::{Multiplier, OnChargeTransaction, TargetedFeeAdjustment};
 use sp_core::{parameter_types, U256};
@@ -64,42 +63,6 @@ parameter_types! {
 	/// Maximum length of block. Up to 5MB.
 	pub RuntimeBlockLength: BlockLength =
 		BlockLength::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
-}
-
-/// EIP-1559 like configuration.
-///
-/// Burn the base fee and allocate the tips to the block producer.
-pub struct DealWithFees<R>(core::marker::PhantomData<R>);
-impl<R> frame_support::traits::OnUnbalanced<NegativeImbalance<R>> for DealWithFees<R>
-where
-	R: pallet_authorship::Config + pallet_balances::Config,
-{
-	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance<R>>) {
-		use frame_support::traits::{Currency, Imbalance};
-
-		if let Some(mut amount) = fees_then_tips.next() {
-			// for fees, 100% to author
-			if let Some(tips) = fees_then_tips.next() {
-				// for tips, if any, 100% to author
-				tips.merge_into(&mut amount);
-			}
-
-			if let Some(author) = <pallet_authorship::Pallet<R>>::author() {
-				<pallet_balances::Pallet<R>>::resolve_creating(&author, amount);
-			}
-		}
-	}
-
-	// this is called from pallet_evm for Ethereum-based transactions
-	// (technically, it calls on_unbalanced, which calls this when non-zero)
-	fn on_nonzero_unbalanced(amount: NegativeImbalance<R>) {
-		use frame_support::traits::Currency;
-
-		// 100% to author
-		if let Some(author) = <pallet_authorship::Pallet<R>>::author() {
-			<pallet_balances::Pallet<R>>::resolve_creating(&author, amount);
-		}
-	}
 }
 
 /// Parameterized slow adjusting fee updated based on

@@ -84,6 +84,7 @@ use static_assertions::const_assert;
 pub use frame_system::Call as SystemCall;
 #[cfg(any(feature = "std", test))]
 pub use pallet_balances::Call as BalancesCall;
+use pallet_balances::NegativeImbalance;
 use pallet_ethereum::{
 	Call::transact, EthereumBlockHashMapping, PostLogContent, Transaction as EthereumTransaction,
 };
@@ -93,7 +94,7 @@ use pallet_nfts::PalletFeatures;
 pub use pallet_staking::StakerStatus;
 #[cfg(any(feature = "std", test))]
 pub use pallet_sudo::Call as SudoCall;
-use shared_runtime::{weights, DealWithFees, TransactionPaymentGasPrice, WeightToFee};
+use shared_runtime::{weights, TransactionPaymentGasPrice, WeightToFee};
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
 
@@ -455,6 +456,39 @@ impl pallet_balances::Config for Runtime {
 	type MaxFreezes = ConstU32<50>;
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
+}
+
+pub struct DealWithFees<R>(PhantomData<R>);
+impl<R> frame_support::traits::OnUnbalanced<NegativeImbalance<R>> for DealWithFees<R>
+where
+	R: pallet_authorship::Config + pallet_balances::Config,
+{
+	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance<R>>) {
+		use frame_support::traits::{Currency, Imbalance};
+
+		if let Some(mut amount) = fees_then_tips.next() {
+			// for fees, 100% to author
+			if let Some(tips) = fees_then_tips.next() {
+				// for tips, if any, 100% to author
+				tips.merge_into(&mut amount);
+			}
+
+			if let Some(author) = <pallet_authorship::Pallet<R>>::author() {
+				<pallet_balances::Pallet<R>>::resolve_creating(&author, amount);
+			}
+		}
+	}
+
+	// this is called from pallet_evm for Ethereum-based transactions
+	// (technically, it calls on_unbalanced, which calls this when non-zero)
+	fn on_nonzero_unbalanced(amount: NegativeImbalance<R>) {
+		use frame_support::traits::Currency;
+
+		// 100% to author
+		if let Some(author) = <pallet_authorship::Pallet<R>>::author() {
+			<pallet_balances::Pallet<R>>::resolve_creating(&author, amount);
+		}
+	}
 }
 
 parameter_types! {
