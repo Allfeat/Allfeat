@@ -38,9 +38,9 @@ use frame_support::{
 	pallet_prelude::Get,
 	parameter_types,
 	traits::{
-		fungible::HoldConsideration, ConstU16, ConstU32, Currency, EitherOf, EqualPrivilegeOnly,
-		Everything, FindAuthor, InstanceFilter, KeyOwnerProofSystem, LinearStoragePrice,
-		OnFinalize, WithdrawReasons,
+		fungible::HoldConsideration, ConstU16, ConstU32, EitherOf, EqualPrivilegeOnly, Everything,
+		FindAuthor, InstanceFilter, KeyOwnerProofSystem, LinearStoragePrice, OnFinalize,
+		WithdrawReasons,
 	},
 	weights::{
 		constants::{
@@ -86,7 +86,7 @@ pub use pallet_balances::Call as BalancesCall;
 use pallet_ethereum::{
 	Call::transact, EthereumBlockHashMapping, PostLogContent, Transaction as EthereumTransaction,
 };
-use pallet_evm::{Account as EVMAccount, IdentityAddressMapping, Runner};
+use pallet_evm::{Account as EVMAccount, EVMCurrencyAdapter, IdentityAddressMapping, Runner};
 #[cfg(any(feature = "std", test))]
 pub use pallet_staking::StakerStatus;
 #[cfg(any(feature = "std", test))]
@@ -1078,7 +1078,7 @@ impl pallet_evm::Config for Runtime {
 	type ChainId = ConstU64<440>;
 	type BlockGasLimit = BlockGasLimit;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type OnChargeTransaction = ();
+	type OnChargeTransaction = EVMCurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type OnCreate = ();
 	type FindAuthor = FindAuthorTruncated<Babe>;
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;

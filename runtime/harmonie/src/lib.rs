@@ -87,7 +87,7 @@ pub use pallet_balances::Call as BalancesCall;
 use pallet_ethereum::{
 	Call::transact, EthereumBlockHashMapping, PostLogContent, Transaction as EthereumTransaction,
 };
-use pallet_evm::{Account as EVMAccount, IdentityAddressMapping, Runner};
+use pallet_evm::{Account as EVMAccount, EVMCurrencyAdapter, IdentityAddressMapping, Runner};
 use pallet_nfts::PalletFeatures;
 #[cfg(any(feature = "std", test))]
 pub use pallet_staking::StakerStatus;
@@ -1039,7 +1039,7 @@ impl pallet_evm::Config for Runtime {
 	type ChainId = ConstU64<441>;
 	type BlockGasLimit = BlockGasLimit;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type OnChargeTransaction = ();
+	type OnChargeTransaction = EVMCurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type OnCreate = ();
 	type FindAuthor = FindAuthorTruncated<Babe>;
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;

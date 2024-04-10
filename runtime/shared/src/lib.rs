@@ -31,6 +31,7 @@ use frame_support::{
 	},
 };
 use frame_system::limits::BlockLength;
+use pallet_balances::NegativeImbalance;
 use pallet_evm::FeeCalculator;
 use pallet_transaction_payment::{Multiplier, OnChargeTransaction, TargetedFeeAdjustment};
 use sp_core::{parameter_types, U256};
@@ -69,27 +70,35 @@ parameter_types! {
 ///
 /// Burn the base fee and allocate the tips to the block producer.
 pub struct DealWithFees<R>(core::marker::PhantomData<R>);
-impl<R> frame_support::traits::OnUnbalanced<pallet_balances::NegativeImbalance<R>>
-	for DealWithFees<R>
+impl<R> frame_support::traits::OnUnbalanced<NegativeImbalance<R>> for DealWithFees<R>
 where
 	R: pallet_authorship::Config + pallet_balances::Config,
 {
-	fn on_unbalanceds<B>(
-		mut fees_then_tips: impl Iterator<Item = pallet_balances::NegativeImbalance<R>>,
-	) {
-		// substrate
-		use frame_support::traits::Currency;
+	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance<R>>) {
+		use frame_support::traits::{Currency, Imbalance};
 
-		if fees_then_tips.next().is_some() {
+		if let Some(mut amount) = fees_then_tips.next() {
+			// for fees, 100% to author
 			if let Some(tips) = fees_then_tips.next() {
-				if let Some(author) = <pallet_authorship::Pallet<R>>::author() {
-					// Tip the block producer here.
-					<pallet_balances::Pallet<R>>::resolve_creating(&author, tips);
-				}
-				// Burn the tips here. (IMPOSSIBLE CASE)
+				// for tips, if any, 100% to author
+				tips.merge_into(&mut amount);
+			}
+
+			if let Some(author) = <pallet_authorship::Pallet<R>>::author() {
+				<pallet_balances::Pallet<R>>::resolve_creating(&author, amount);
 			}
 		}
-		// Burn the base fee here.
+	}
+
+	// this is called from pallet_evm for Ethereum-based transactions
+	// (technically, it calls on_unbalanced, which calls this when non-zero)
+	fn on_nonzero_unbalanced(amount: NegativeImbalance<R>) {
+		use frame_support::traits::Currency;
+
+		// 100% to author
+		if let Some(author) = <pallet_authorship::Pallet<R>>::author() {
+			<pallet_balances::Pallet<R>>::resolve_creating(&author, amount);
+		}
 	}
 }
 
