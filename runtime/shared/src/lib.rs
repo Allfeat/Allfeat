@@ -19,9 +19,7 @@
 //! Common runtime code for Allfeat.
 
 #![cfg_attr(not(feature = "std"), no_std)]
-// TODO: check for use #![deny(unused_crate_dependencies)]
 
-use crate::currency::AFT;
 use allfeat_primitives::{Balance, BlockNumber};
 use frame_support::{
 	traits::Get,
@@ -39,7 +37,8 @@ use sp_runtime::{traits::Bounded, FixedPointNumber, Perbill, Perquintill};
 pub mod elections;
 pub mod identity;
 
-mod currency;
+pub mod currency;
+pub mod opaque;
 
 #[cfg(feature = "test")]
 pub mod test;
@@ -105,7 +104,7 @@ impl WeightToFeePolynomial for RefTimeToFee {
 
 	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
 		// Map base extrinsic weight to 1/500 AFT.
-		let p = AFT;
+		let p = currency::AFT;
 		let q = 500 * Balance::from(ExtrinsicBaseWeight::get().ref_time());
 
 		smallvec::smallvec![WeightToFeeCoefficient {
@@ -124,7 +123,7 @@ impl WeightToFeePolynomial for ProofSizeToFee {
 
 	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
 		// Map 10kb proof to 1 AFT.
-		let p = AFT;
+		let p = currency::AFT;
 		let q = 10_000;
 
 		smallvec::smallvec![WeightToFeeCoefficient {
@@ -215,6 +214,149 @@ macro_rules! prod_or_fast {
 			core::option_env!($env).map(|s| s.parse().ok()).flatten().unwrap_or($test)
 		} else {
 			$prod
+		}
+	};
+}
+
+#[macro_export]
+macro_rules! impl_self_contained_call {
+	() => {
+		impl fp_self_contained::SelfContainedCall for RuntimeCall {
+			type SignedInfo = sp_core::H160;
+
+			fn is_self_contained(&self) -> bool {
+				match self {
+					RuntimeCall::Ethereum(call) => call.is_self_contained(),
+					_ => false,
+				}
+			}
+
+			fn check_self_contained(
+				&self,
+			) -> Option<
+				Result<
+					Self::SignedInfo,
+					sp_runtime::transaction_validity::TransactionValidityError,
+				>,
+			> {
+				match self {
+					RuntimeCall::Ethereum(call) => call.check_self_contained(),
+					_ => None,
+				}
+			}
+
+			fn validate_self_contained(
+				&self,
+				info: &Self::SignedInfo,
+				dispatch_info: &sp_runtime::traits::DispatchInfoOf<RuntimeCall>,
+				len: usize,
+			) -> Option<sp_runtime::transaction_validity::TransactionValidity> {
+				match self {
+					RuntimeCall::Ethereum(call) =>
+						call.validate_self_contained(info, dispatch_info, len),
+					_ => None,
+				}
+			}
+
+			fn pre_dispatch_self_contained(
+				&self,
+				info: &Self::SignedInfo,
+				dispatch_info: &sp_runtime::traits::DispatchInfoOf<RuntimeCall>,
+				len: usize,
+			) -> Option<Result<(), sp_runtime::transaction_validity::TransactionValidityError>> {
+				match self {
+					RuntimeCall::Ethereum(call) =>
+						call.pre_dispatch_self_contained(info, dispatch_info, len),
+					_ => None,
+				}
+			}
+
+			fn apply_self_contained(
+				self,
+				info: Self::SignedInfo,
+			) -> Option<
+				sp_runtime::DispatchResultWithInfo<sp_runtime::traits::PostDispatchInfoOf<Self>>,
+			> {
+				// substrate
+				use sp_runtime::traits::Dispatchable;
+
+				match self {
+					call @ RuntimeCall::Ethereum(pallet_ethereum::Call::transact { .. }) =>
+						Some(call.dispatch(RuntimeOrigin::from(
+							pallet_ethereum::RawOrigin::EthereumTransaction(info),
+						))),
+					_ => None,
+				}
+			}
+		}
+	};
+}
+
+#[macro_export]
+macro_rules! impl_create_signed_transaction {
+	() => {
+		use sp_runtime::{traits::StaticLookup, SaturatedConversion};
+
+		impl<LocalCall> frame_system::offchain::CreateSignedTransaction<LocalCall> for Runtime
+		where
+			RuntimeCall: From<LocalCall>,
+		{
+			fn create_transaction<
+				C: frame_system::offchain::AppCrypto<Self::Public, Self::Signature>,
+			>(
+				call: RuntimeCall,
+				public: <allfeat_primitives::Signature as sp_runtime::traits::Verify>::Signer,
+				account: allfeat_primitives::AccountId,
+				nonce: allfeat_primitives::Nonce,
+			) -> Option<(
+				RuntimeCall,
+				<UncheckedExtrinsic as sp_runtime::traits::Extrinsic>::SignaturePayload,
+			)> {
+				let tip = 0;
+				// take the biggest period possible.
+				let period = shared_runtime::BlockHashCount::get()
+					.checked_next_power_of_two()
+					.map(|c| c / 2)
+					.unwrap_or(2) as u64;
+				let current_block = System::block_number()
+					.saturated_into::<u64>()
+					// The `System::block_number` is initialized with `n+1`,
+					// so the actual block number is `n`.
+					.saturating_sub(1);
+				let era = sp_runtime::generic::Era::mortal(period, current_block);
+				let extra = (
+					frame_system::CheckNonZeroSender::<Runtime>::new(),
+					frame_system::CheckSpecVersion::<Runtime>::new(),
+					frame_system::CheckTxVersion::<Runtime>::new(),
+					frame_system::CheckGenesis::<Runtime>::new(),
+					frame_system::CheckEra::<Runtime>::from(era),
+					frame_system::CheckNonce::<Runtime>::from(nonce),
+					frame_system::CheckWeight::<Runtime>::new(),
+					pallet_transaction_payment::ChargeTransactionPayment::<Runtime>::from(tip),
+				);
+				let raw_payload = SignedPayload::new(call, extra)
+					.map_err(|e| {
+						log::warn!("Unable to create signed payload: {:?}", e);
+					})
+					.ok()?;
+				let signature = raw_payload.using_encoded(|payload| C::sign(payload, public))?;
+				let address = Self::Lookup::unlookup(account);
+				let (call, extra, _) = raw_payload.deconstruct();
+				Some((call, (address, signature, extra)))
+			}
+		}
+
+		impl frame_system::offchain::SigningTypes for Runtime {
+			type Public = <allfeat_primitives::Signature as sp_runtime::traits::Verify>::Signer;
+			type Signature = Signature;
+		}
+
+		impl<C> frame_system::offchain::SendTransactionTypes<C> for Runtime
+		where
+			RuntimeCall: From<C>,
+		{
+			type Extrinsic = UncheckedExtrinsic;
+			type OverarchingCall = RuntimeCall;
 		}
 	};
 }

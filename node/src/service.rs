@@ -32,9 +32,9 @@ use crate::{
 };
 use allfeat_primitives::Block;
 use fc_consensus::FrontierBlockImport;
+use fp_rpc::NoTransactionConverter;
 use frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
 use futures::prelude::*;
-use harmonie_runtime::{TransactionConverter, SS58_PREFIX};
 use sc_client_api::{Backend, BlockBackend};
 use sc_consensus::BasicQueue;
 use sc_consensus_babe::{BabeWorkerHandle, SlotProportion};
@@ -47,10 +47,7 @@ use sc_service::{
 use sc_telemetry::{Telemetry, TelemetryWorker};
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
 use sp_api::ConstructRuntimeApi;
-use sp_core::{
-	crypto::{set_default_ss58_version, Ss58AddressFormat},
-	U256,
-};
+use sp_core::U256;
 use std::{path::Path, sync::Arc};
 
 use crate::rpc;
@@ -251,8 +248,6 @@ where
 		}))
 		.flatten();
 
-	set_default_ss58_version(Ss58AddressFormat::custom(SS58_PREFIX));
-
 	let sc_service::PartialComponents {
 		client,
 		backend,
@@ -375,7 +370,7 @@ where
 				client: client.clone(),
 				pool: pool.clone(),
 				graph: pool.pool().clone(),
-				converter: Some(TransactionConverter),
+				converter: <Option<NoTransactionConverter>>::None,
 				is_authority,
 				enable_dev_signer,
 				network: network.clone(),

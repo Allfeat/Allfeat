@@ -16,16 +16,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use allfeat_primitives::Balance;
+use crate::*;
+use frame_election_provider_support::VoteWeight;
+use frame_support::parameter_types;
 
-pub const WEI: Balance = 1;
-pub const KILOWEI: Balance = 1_000;
-pub const MEGAWEI: Balance = 1_000_000;
-pub const GIGAWEI: Balance = 1_000_000_000;
-pub const MICROAFT: Balance = 1_000_000_000_000;
-pub const MILLIAFT: Balance = 1_000_000_000_000_000;
-pub const AFT: Balance = 1_000_000_000_000_000_000;
+parameter_types! {
+	pub const BagThresholds: &'static [u64] = &voter_bags::THRESHOLDS;
+}
 
-pub const fn deposit(items: u32, bytes: u32) -> Balance {
-	items as Balance * 10 * AFT + (bytes as Balance) * 100 * MICROAFT
+type VoterBagsListInstance = pallet_bags_list::Instance1;
+impl pallet_bags_list::Config<VoterBagsListInstance> for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = weights::bags_list::AllfeatWeight<Runtime>;
+	type ScoreProvider = Staking;
+	type BagThresholds = BagThresholds;
+	type Score = VoteWeight;
 }

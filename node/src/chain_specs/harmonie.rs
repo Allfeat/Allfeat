@@ -21,16 +21,15 @@ use super::{
 	GrandpaId, ImOnlineId,
 };
 use allfeat_primitives::{AccountId, Balance};
-use harmonie_runtime::{
-	constants::currency::AFT, opaque::SessionKeys, wasm_binary_unwrap, MaxNominations,
-	RuntimeGenesisConfig, StakerStatus,
-};
+use harmonie_runtime::{wasm_binary_unwrap, MaxNominations, RuntimeGenesisConfig, SessionKeys};
 use hex_literal::hex;
+use pallet_staking::StakerStatus;
 use sc_chain_spec::ChainType;
+use shared_runtime::currency::AFT;
 use sp_runtime::Perbill;
 
 #[cfg(feature = "runtime-benchmarks")]
-use harmonie_runtime::constants::currency::MILLIAFT;
+use shared_runtime::currency::MILLIAFT;
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<RuntimeGenesisConfig, Extensions>;

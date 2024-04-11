@@ -32,6 +32,9 @@ use harmonie_runtime::Block;
 use sc_cli::{ChainSpec, SubstrateCli};
 use sc_service::DatabaseSource;
 
+#[cfg(feature = "runtime-benchmarks")]
+use chain_specs::get_account_id_from_seed;
+
 impl SubstrateCli for Cli {
 	fn impl_name() -> String {
 		"🎶 Allfeat Node".into()

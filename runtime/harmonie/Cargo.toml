@@ -1,15 +1,10 @@
 [package]
+authors.workspace = true
+description = "Harmonie runtime."
+edition.workspace = true
 name = "harmonie-runtime"
-version = "1.0.0-dev"
-description = "The Harmonie Testnet runtime of Allfeat"
-authors = { workspace = true }
-homepage = "https://allfeat.org/"
-edition = "2021"
-license = "Unlicense"
-publish = false
-
-[package.metadata.docs.rs]
-targets = ["x86_64-unknown-linux-gnu"]
+readme = "README.md"
+version.workspace = true
 
 [dependencies]
 parity-scale-codec = { workspace = true, features = ["derive", "max-encoded-len"] }
@@ -17,8 +12,6 @@ scale-info = { workspace = true, features = ["derive"] }
 static_assertions = { workspace = true }
 log = { workspace = true }
 num_enum = { workspace = true }
-hex-literal = { workspace = true }
-enumflags2 = { workspace = true }
 
 frame-support = { workspace = true }
 frame-election-provider-support = { workspace = true }
@@ -45,8 +38,6 @@ sp-consensus-grandpa = { workspace = true }
 allfeat-primitives = { workspace = true }
 sp-staking = { workspace = true }
 sp-io = { workspace = true }
-sp-statement-store = { workspace = true }
-sp-storage = { workspace = true }
 sp-genesis-builder = { workspace = true }
 
 # Allfeat pallets
@@ -178,7 +169,6 @@ std = [
     "log/std",
     "frame-try-runtime?/std",
     "sp-io/std",
-    "sp-statement-store/std",
     "shared-runtime/std",
     "pallet-nfts/std",
     # Frontier
@@ -201,6 +191,7 @@ std = [
     "pallet-evm-precompile-nfts-swap/std",
 ]
 runtime-benchmarks = [
+    "shared-runtime/runtime-benchmarks",
     "frame-benchmarking/runtime-benchmarks",
     "frame-support/runtime-benchmarks",
     "frame-system/runtime-benchmarks",
@@ -266,6 +257,9 @@ try-runtime = [
     "sp-runtime/try-runtime",
     "fp-self-contained/try-runtime",
 ]
+
+# Set timing constants (e.g. session period) to faster versions to speed up testing.
+fast-runtime = []
 
 # A feature that should be enabled when the runtime should be build for on-chain
 # deployment. This will disable stuff that shouldn't be part of the on-chain wasm
