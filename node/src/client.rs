@@ -20,7 +20,6 @@
 use allfeat_primitives::{AccountId, Balance, Nonce};
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch, NativeVersion};
 // Local
-use crate::eth::EthCompatRuntimeApiCollection;
 use harmonie_runtime::RuntimeApi;
 use shared_runtime::opaque::Block;
 /// Full backend.
@@ -79,7 +78,8 @@ impl<Api> BaseRuntimeApiCollection for Api where
 /// A set of APIs that template runtime must implement.
 pub trait RuntimeApiCollection:
 	BaseRuntimeApiCollection
-	+ EthCompatRuntimeApiCollection
+	+ fp_rpc::EthereumRuntimeRPCApi<Block>
+	+ fp_rpc::ConvertTransactionRuntimeApi<Block>
 	+ frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Nonce>
 	+ pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance>
 	+ sp_authority_discovery::AuthorityDiscoveryApi<Block>
@@ -88,7 +88,8 @@ pub trait RuntimeApiCollection:
 
 impl<Api> RuntimeApiCollection for Api where
 	Api: BaseRuntimeApiCollection
-		+ EthCompatRuntimeApiCollection
+		+ fp_rpc::EthereumRuntimeRPCApi<Block>
+		+ fp_rpc::ConvertTransactionRuntimeApi<Block>
 		+ frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Nonce>
 		+ pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance>
 		+ sp_authority_discovery::AuthorityDiscoveryApi<Block>

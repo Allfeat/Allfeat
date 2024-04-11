@@ -25,9 +25,8 @@ use crate::{
 		BaseRuntimeApiCollection, Client, FullClient, HarmonieRuntimeExecutor, RuntimeApiCollection,
 	},
 	eth::{
-		db_config_dir, new_frontier_partial, spawn_frontier_tasks, BackendType,
-		EthCompatRuntimeApiCollection, EthConfiguration, FrontierBackend,
-		FrontierPartialComponents,
+		db_config_dir, new_frontier_partial, spawn_frontier_tasks, BackendType, EthConfiguration,
+		FrontierBackend, FrontierPartialComponents,
 	},
 };
 use allfeat_primitives::Block;
@@ -95,7 +94,7 @@ pub fn new_partial<RuntimeApi, Executor>(
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>>,
 	RuntimeApi: Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: BaseRuntimeApiCollection + EthCompatRuntimeApiCollection,
+	RuntimeApi::RuntimeApi: BaseRuntimeApiCollection + fp_rpc::EthereumRuntimeRPCApi<Block>,
 	Executor: NativeExecutionDispatch + 'static,
 {
 	let telemetry = config

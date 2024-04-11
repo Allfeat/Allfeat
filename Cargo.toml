@@ -221,8 +221,8 @@ fc-api = { version = "1.0.0-dev", git = "https://github.com/Allfeat/frontier.git
 fc-cli = { version = "1.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0" }
 fc-consensus = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0" }
 fc-db = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0" }
-fc-mapping-sync = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0" }
-fc-rpc = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0" }
+fc-mapping-sync = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0", features = ["sql"] }
+fc-rpc = { version = "2.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0", features = ["rpc-binary-search-estimate", "txpool"] }
 fc-rpc-core = { version = "1.1.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0" }
 fc-storage = { version = "1.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0" }
 fp-dynamic-fee = { version = "1.0.0-dev", git = "https://github.com/Allfeat/frontier.git", branch = "allfeat-polkadot-v1.9.0", features = [
