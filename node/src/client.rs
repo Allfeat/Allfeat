@@ -21,8 +21,8 @@ use allfeat_primitives::{AccountId, Balance, Nonce};
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch, NativeVersion};
 // Local
 use crate::eth::EthCompatRuntimeApiCollection;
-use harmonie_runtime::{opaque::Block, RuntimeApi};
-
+use harmonie_runtime::RuntimeApi;
+use shared_runtime::opaque::Block;
 /// Full backend.
 pub type FullBackend = sc_service::TFullBackend<Block>;
 /// Full client.

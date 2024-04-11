@@ -18,8 +18,12 @@ members = [
 ]
 
 [workspace.package]
-authors = ["Allfeat labs"]
+authors = ["Allfeat labs. <hello@allfeat.com>"]
+edition = "2021"
+homepage = "https://allfeat.network"
+license = "GPL-3.0"
 repository = "https://github.com/allfeat/allfeat"
+version = "1.0.0-dev"
 
 [workspace.dependencies]
 # Dependencies are split into 2 groups: wasm and client.

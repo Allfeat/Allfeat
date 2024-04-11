@@ -34,7 +34,7 @@ use sp_api::ConstructRuntimeApi;
 use fc_rpc::{EthTask, OverrideHandle};
 pub use fc_rpc_core::types::{FeeHistoryCache, FeeHistoryCacheLimit, FilterPool};
 // Local
-use harmonie_runtime::opaque::Block;
+use shared_runtime::opaque::Block;
 
 use crate::client::{FullBackend, FullClient};
 
@@ -195,7 +195,7 @@ pub async fn spawn_frontier_tasks<RuntimeApi, Executor>(
 						read_notification_timeout: Duration::from_secs(10),
 						check_indexed_blocks_interval: Duration::from_secs(60),
 					},
-					fc_mapping_sync::SyncStrategy::Parachain,
+					fc_mapping_sync::SyncStrategy::Normal,
 					sync,
 					pubsub_notification_sinks,
 				),

@@ -16,16 +16,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use allfeat_primitives::Balance;
+use crate::*;
+use frame_support::parameter_types;
 
-pub const WEI: Balance = 1;
-pub const KILOWEI: Balance = 1_000;
-pub const MEGAWEI: Balance = 1_000_000;
-pub const GIGAWEI: Balance = 1_000_000_000;
-pub const MICROAFT: Balance = 1_000_000_000_000;
-pub const MILLIAFT: Balance = 1_000_000_000_000_000;
-pub const AFT: Balance = 1_000_000_000_000_000_000;
+parameter_types! {
+	// One storage item; key size is 32; value is size 4+4+16+32 bytes = 56 bytes.
+	pub const DepositBase: Balance = deposit(1, 88);
+	// Additional storage item size of 32 bytes.
+	pub const DepositFactor: Balance = deposit(0, 32);
+	pub const MaxSignatories: u32 = 100;
+}
 
-pub const fn deposit(items: u32, bytes: u32) -> Balance {
-	items as Balance * 10 * AFT + (bytes as Balance) * 100 * MICROAFT
+impl pallet_multisig::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type Currency = Balances;
+	type DepositBase = DepositBase;
+	type DepositFactor = DepositFactor;
+	type MaxSignatories = MaxSignatories;
+	type WeightInfo = shared_runtime::weights::multisig::AllfeatWeight<Runtime>;
 }

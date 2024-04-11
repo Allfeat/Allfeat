@@ -16,16 +16,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use allfeat_primitives::Balance;
+use crate::*;
+use frame_support::{parameter_types, traits::KeyOwnerProofSystem};
+use sp_consensus_grandpa::AuthorityId as GrandpaId;
 
-pub const WEI: Balance = 1;
-pub const KILOWEI: Balance = 1_000;
-pub const MEGAWEI: Balance = 1_000_000;
-pub const GIGAWEI: Balance = 1_000_000_000;
-pub const MICROAFT: Balance = 1_000_000_000_000;
-pub const MILLIAFT: Balance = 1_000_000_000_000_000;
-pub const AFT: Balance = 1_000_000_000_000_000_000;
+parameter_types! {
+	pub MaxSetIdSessionEntries: u32 = BondingDuration::get() * SessionsPerEra::get();
+}
 
-pub const fn deposit(items: u32, bytes: u32) -> Balance {
-	items as Balance * 10 * AFT + (bytes as Balance) * 100 * MICROAFT
+impl pallet_grandpa::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+
+	type KeyOwnerProof =
+		<Historical as KeyOwnerProofSystem<(sp_runtime::KeyTypeId, GrandpaId)>>::Proof;
+
+	type EquivocationReportSystem =
+		pallet_grandpa::EquivocationReportSystem<Self, Offences, Historical, ReportLongevity>;
+	type MaxNominators = MaxNominatorRewardedPerValidator;
+	type WeightInfo = ();
+	type MaxAuthorities = MaxAuthorities;
+	type MaxSetIdSessionEntries = MaxSetIdSessionEntries;
 }

@@ -42,6 +42,9 @@ pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::Account
 /// never know...
 pub type AccountIndex = u32;
 
+/// The address format for describing accounts.
+pub type Address = AccountId;
+
 /// Balance of an account.
 pub type Balance = u128;
 

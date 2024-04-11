@@ -16,16 +16,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use allfeat_primitives::Balance;
+use crate::*;
+use frame_support::parameter_types;
 
-pub const WEI: Balance = 1;
-pub const KILOWEI: Balance = 1_000;
-pub const MEGAWEI: Balance = 1_000_000;
-pub const GIGAWEI: Balance = 1_000_000_000;
-pub const MICROAFT: Balance = 1_000_000_000_000;
-pub const MILLIAFT: Balance = 1_000_000_000_000_000;
-pub const AFT: Balance = 1_000_000_000_000_000_000;
+parameter_types! {
+	pub const UncleGenerations: BlockNumber = 5;
+}
 
-pub const fn deposit(items: u32, bytes: u32) -> Balance {
-	items as Balance * 10 * AFT + (bytes as Balance) * 100 * MICROAFT
+impl pallet_authorship::Config for Runtime {
+	type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Babe>;
+	type EventHandler = (Staking, ImOnline);
 }

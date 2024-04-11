@@ -1,15 +1,10 @@
 [package]
+authors.workspace = true
+description = "Allfeat runtime."
+edition.workspace = true
 name = "allfeat-runtime"
-version = "1.0.0-dev"
-description = "The Allfeat Mainnet runtime."
-authors = { workspace = true }
-homepage = "https://allfeat.org/"
-edition = "2021"
-license = "Unlicense"
-publish = false
-
-[package.metadata.docs.rs]
-targets = ["x86_64-unknown-linux-gnu"]
+readme = "README.md"
+version.workspace = true
 
 [dependencies]
 parity-scale-codec = { workspace = true, features = ["derive", "max-encoded-len"] }
@@ -202,6 +197,7 @@ std = [
     "pallet-evm-precompile-artists/std",
 ]
 runtime-benchmarks = [
+    "shared-runtime/runtime-benchmarks",
     "frame-benchmarking/runtime-benchmarks",
     "frame-support/runtime-benchmarks",
     "frame-system/runtime-benchmarks",
