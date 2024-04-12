@@ -29,7 +29,12 @@
 //! are part of it. Therefore all node-runtime-specific RPCs can
 //! be placed here or imported from corresponding FRAME RPC definitions.
 
-use std::sync::Arc;
+use fc_rpc::{Eth, EthDevSigner, EthFilter, EthPubSub, EthSigner, Net, Web3};
+use fc_rpc_core::{
+	EthApiServer, EthFilterApiServer, EthPubSubApiServer, NetApiServer, Web3ApiServer,
+};
+use fp_rpc::NoTransactionConverter;
+use std::{collections::BTreeMap, sync::Arc};
 
 use allfeat_primitives::{AccountId, Balance, Block, BlockNumber, Hash, Nonce};
 use grandpa::{
@@ -51,10 +56,6 @@ use sp_consensus::SelectChain;
 use sp_consensus_babe::BabeApi;
 use sp_inherents::CreateInherentDataProviders;
 use sp_keystore::KeystorePtr;
-use sp_runtime::traits::Block as BlockT;
-
-mod eth;
-pub use self::eth::{create_eth, overrides_handle, EthDeps};
 
 /// Extra dependencies for BABE.
 pub struct BabeDeps {
@@ -79,13 +80,23 @@ pub struct GrandpaDeps<B> {
 }
 
 /// Full client dependencies.
-pub struct FullDeps<C, P, SC, B, A: ChainApi, CT, CIDP> {
+pub struct FullDeps<C, P, SC, B, A: ChainApi, CIDP> {
 	/// The client instance to use.
 	pub client: Arc<C>,
 	/// Transaction pool instance.
 	pub pool: Arc<P>,
+	/// Graph pool instance.
+	pub graph: Arc<sc_transaction_pool::Pool<A>>,
 	/// The SelectChain Strategy
 	pub select_chain: SC,
+	/// Network service
+	pub network: Arc<sc_network::NetworkService<Block, Hash>>,
+	/// Chain syncing service
+	pub sync: Arc<sc_network_sync::SyncingService<Block>>,
+	/// Whether to enable dev signer
+	pub enable_dev_signer: bool,
+	/// The Node authority flag
+	pub is_authority: bool,
 	/// A copy of the chain spec.
 	pub chain_spec: Box<dyn sc_chain_spec::ChainSpec>,
 	/// Whether to deny unsafe calls
@@ -94,8 +105,24 @@ pub struct FullDeps<C, P, SC, B, A: ChainApi, CT, CIDP> {
 	pub babe: BabeDeps,
 	/// GRANDPA specific dependencies.
 	pub grandpa: GrandpaDeps<B>,
-	/// Ethereum-compatibility specific dependencies.
-	pub eth: EthDeps<Block, C, P, A, CT, CIDP>,
+	/// EthFilterApi pool.
+	pub filter_pool: Option<fc_rpc_core::types::FilterPool>,
+	/// Backend.
+	pub frontier_backend: Arc<dyn fc_api::Backend<Block> + Send + Sync>,
+	/// Maximum number of logs in a query.
+	pub max_past_logs: u32,
+	/// Fee history cache.
+	pub fee_history_cache: fc_rpc_core::types::FeeHistoryCache,
+	/// Maximum fee history cache size.
+	pub fee_history_cache_limit: fc_rpc_core::types::FeeHistoryCacheLimit,
+	/// Ethereum data access overrides.
+	pub overrides: Arc<fc_rpc::OverrideHandle<Block>>,
+	/// Cache for Ethereum block data.
+	pub block_data_cache: Arc<fc_rpc::EthBlockDataCacheTask<Block>>,
+	/// Mandated parent hashes for a given block hash.
+	pub forced_parent_hashes: Option<BTreeMap<sp_core::H256, sp_core::H256>>,
+	/// Something that can create the inherent data providers for pending state
+	pub pending_create_inherent_data_providers: CIDP,
 }
 
 pub struct DefaultEthConfig<C, BE>(std::marker::PhantomData<(C, BE)>);
@@ -111,8 +138,8 @@ where
 }
 
 /// Instantiate all Full RPC extensions.
-pub fn create_full<C, P, SC, B, A, CT, CIDP>(
-	deps: FullDeps<C, P, SC, B, A, CT, CIDP>,
+pub fn create_full<C, P, SC, B, A, CIDP, EC>(
+	deps: FullDeps<C, P, SC, B, A, CIDP>,
 	subscription_task_executor: SubscriptionTaskExecutor,
 	pubsub_notification_sinks: Arc<
 		fc_mapping_sync::EthereumBlockNotificationSinks<
@@ -137,8 +164,9 @@ where
 	B::State: sc_client_api::backend::StateBackend<sp_runtime::traits::HashingFor<Block>>,
 	A: ChainApi<Block = Block> + 'static,
 	CIDP: CreateInherentDataProviders<Block, ()> + Send + 'static,
-	CT: fp_rpc::ConvertTransaction<<Block as BlockT>::Extrinsic> + Send + Sync + 'static,
+	EC: fc_rpc::EthConfig<Block, C>,
 {
+	use fc_rpc::{TxPool, TxPoolApiServer};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
 	use sc_consensus_babe_rpc::{Babe, BabeApiServer};
 	use sc_consensus_grandpa_rpc::{Grandpa, GrandpaApiServer};
@@ -148,7 +176,34 @@ where
 	use substrate_frame_rpc_system::{System, SystemApiServer};
 
 	let mut io = RpcModule::new(());
-	let FullDeps { client, pool, select_chain, chain_spec, deny_unsafe, babe, grandpa, eth } = deps;
+	let FullDeps {
+		client,
+		pool,
+		graph,
+		babe,
+		grandpa,
+		select_chain,
+		enable_dev_signer,
+		chain_spec,
+		is_authority,
+		deny_unsafe,
+		network,
+		sync,
+		filter_pool,
+		frontier_backend,
+		max_past_logs,
+		fee_history_cache,
+		fee_history_cache_limit,
+		overrides,
+		block_data_cache,
+		forced_parent_hashes,
+		pending_create_inherent_data_providers,
+	} = deps;
+
+	let mut signers = Vec::new();
+	if enable_dev_signer {
+		signers.push(Box::new(EthDevSigner::new()) as Box<dyn EthSigner>);
+	}
 
 	let BabeDeps { keystore, babe_worker_handle } = babe;
 	let GrandpaDeps {
@@ -163,11 +218,7 @@ where
 	let genesis_hash = client.block_hash(0).ok().flatten().expect("Genesis block exists; qed");
 	let properties = chain_spec.properties();
 	io.merge(ChainSpec::new(chain_name, genesis_hash, properties).into_rpc())?;
-
-	io.merge(System::new(client.clone(), pool, deny_unsafe).into_rpc())?;
-	// Making synchronous calls in light client freezes the browser currently,
-	// more context: https://github.com/paritytech/substrate/pull/3480
-	// These RPCs should use an asynchronous caller instead.
+	io.merge(System::new(client.clone(), pool.clone(), deny_unsafe).into_rpc())?;
 	io.merge(TransactionPayment::new(client.clone()).into_rpc())?;
 	io.merge(
 		Babe::new(client.clone(), babe_worker_handle.clone(), keystore, select_chain, deny_unsafe)
@@ -189,15 +240,71 @@ where
 			.into_rpc(),
 	)?;
 
-	io.merge(Dev::new(client, deny_unsafe).into_rpc())?;
+	io.merge(Dev::new(client.clone(), deny_unsafe).into_rpc())?;
 
-	// Ethereum compatibility RPCs
-	let io = create_eth::<_, _, _, _, _, _, _, DefaultEthConfig<C, B>>(
-		io,
-		eth,
-		subscription_task_executor,
-		pubsub_notification_sinks,
+	io.merge(
+		Eth::<Block, C, P, _, B, A, CIDP, EC>::new(
+			client.clone(),
+			pool.clone(),
+			graph.clone(),
+			<Option<NoTransactionConverter>>::None,
+			sync.clone(),
+			Vec::new(),
+			overrides.clone(),
+			frontier_backend.clone(),
+			is_authority,
+			block_data_cache.clone(),
+			fee_history_cache,
+			fee_history_cache_limit,
+			10,
+			forced_parent_hashes,
+			pending_create_inherent_data_providers,
+			None,
+		)
+		.replace_config::<EC>()
+		.into_rpc(),
 	)?;
+
+	if let Some(filter_pool) = filter_pool {
+		io.merge(
+			EthFilter::new(
+				client.clone(),
+				frontier_backend,
+				graph.clone(),
+				filter_pool,
+				500_usize, // max stored filters
+				max_past_logs,
+				block_data_cache,
+			)
+			.into_rpc(),
+		)?;
+	}
+
+	io.merge(
+		EthPubSub::new(
+			pool,
+			client.clone(),
+			sync,
+			subscription_task_executor,
+			overrides,
+			pubsub_notification_sinks,
+		)
+		.into_rpc(),
+	)?;
+
+	io.merge(
+		Net::new(
+			client.clone(),
+			network,
+			// Whether to format the `peer_count` response as Hex (default) or not.
+			true,
+		)
+		.into_rpc(),
+	)?;
+	io.merge(Web3::new(client.clone()).into_rpc())?;
+
+	let tx_pool = TxPool::new(client.clone(), graph.clone());
+	io.merge(tx_pool.into_rpc())?;
 
 	Ok(io)
 }

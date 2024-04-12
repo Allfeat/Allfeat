@@ -16,11 +16,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use std::sync::Arc;
+use std::{env, path::PathBuf, sync::Arc};
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::{
-	chain_specs,
 	chain_specs::DummyChainSpec,
 	cli::{Cli, Subcommand},
 	client::Client,
@@ -33,11 +32,27 @@ use sc_cli::{ChainSpec, SubstrateCli};
 use sc_service::DatabaseSource;
 
 #[cfg(feature = "runtime-benchmarks")]
-use chain_specs::get_account_id_from_seed;
+use crate::chain_specs::get_account_id_from_seed;
+use crate::{
+	chain_specs::{
+		allfeat_chain_spec, harmonie_chain_spec, AllfeatChainSpec, HarmonieChainSpec,
+		IdentifyVariant,
+	},
+	client::{AllfeatRuntimeExecutor, HarmonieRuntimeExecutor},
+};
 
 impl SubstrateCli for Cli {
 	fn impl_name() -> String {
-		"🎶 Allfeat Node".into()
+		r"
+    _     _  _   __               _
+   / \   | || | / _|  ___   __ _ | |_
+  / _ \  | || || |_  / _ \ / _` || __|
+ / ___ \ | || ||  _||  __/| (_| || |_
+/_/   \_\|_||_||_|   \___| \__,_| \__|
+
+       ♪♫ Music Blockchain ♫♪
+		"
+		.into()
 	}
 
 	fn impl_version() -> String {
@@ -53,32 +68,15 @@ impl SubstrateCli for Cli {
 	}
 
 	fn support_url() -> String {
-		"https://github.com/allfeat/Allfeat/issues/new".into()
+		"https://github.com/allfeat/allfeat/issues/new".into()
 	}
 
 	fn copyright_start_year() -> i32 {
-		2023
+		2022
 	}
 
-	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
-		Ok(match id {
-			#[cfg(feature = "allfeat-native")]
-			"dev" | "development" | "allfeat-dev" =>
-				Box::new(chain_specs::allfeat::development_chain_spec(None, None)),
-
-			"" | "harmonie-live" | "testnet" => Box::new(DummyChainSpec::from_json_bytes(
-				&include_bytes!("../genesis/harmonie-raw.json")[..],
-			)?),
-			#[cfg(feature = "harmonie-native")]
-			"testnet-dev" | "testnet-development" | "harmonie-dev" =>
-				Box::new(chain_specs::harmonie::development_chain_spec(None, None)),
-			#[cfg(feature = "harmonie-native")]
-			"harmonie-local" => Box::new(chain_specs::harmonie::get_chain_spec()),
-
-			path => Box::new(chain_specs::DummyChainSpec::from_json_file(
-				std::path::PathBuf::from(path),
-			)?),
-		})
+	fn load_spec(&self, id: &str) -> Result<Box<dyn ChainSpec>, String> {
+		load_spec(id)
 	}
 }
 
@@ -131,7 +129,7 @@ pub fn run() -> sc_cli::Result<()> {
 				// Remove Frontier offchain db
 				let db_config_dir = db_config_dir(&config);
 				match cli.eth.frontier_backend_type {
-					crate::eth::BackendType::KeyValue => {
+					crate::eth::FrontierBackendType::KeyValue => {
 						let frontier_database_config = match config.database {
 							DatabaseSource::RocksDb { .. } => DatabaseSource::RocksDb {
 								path: frontier_database_dir(&db_config_dir, "db"),
@@ -147,7 +145,7 @@ pub fn run() -> sc_cli::Result<()> {
 						};
 						cmd.run(frontier_database_config)?;
 					},
-					crate::eth::BackendType::Sql => {
+					crate::eth::FrontierBackendType::Sql => {
 						let db_path = db_config_dir.join("sql");
 						match std::fs::remove_dir_all(&db_path) {
 							Ok(_) => {
@@ -257,11 +255,70 @@ pub fn run() -> sc_cli::Result<()> {
 		},
 		None => {
 			let runner = cli.create_runner(&cli.run)?;
+
 			runner.run_node_until_exit(|config| async move {
-				service::new_full(config, cli.eth, cli.no_hardware_benchmarks)
-					.await
-					.map_err(sc_cli::Error::Service)
+				let chain_spec = &config.chain_spec;
+
+				#[cfg(feature = "allfeat-native")]
+				if chain_spec.is_allfeat() {
+					return service::new_full::<allfeat_runtime::RuntimeApi, AllfeatRuntimeExecutor>(
+						config,
+						cli.eth,
+						cli.no_hardware_benchmarks,
+						|_, _| (),
+					)
+						.await
+						.map(|r| r)
+						.map_err(Into::into);
+				}
+
+				#[cfg(feature = "harmonie-native")]
+				if chain_spec.is_harmonie() {
+					return service::new_full::<harmonie_runtime::RuntimeApi, HarmonieRuntimeExecutor>(
+						config,
+						cli.eth,
+						cli.no_hardware_benchmarks,
+						|_, _| (),
+					)
+						.await
+						.map(|r| r)
+						.map_err(Into::into);
+				}
+
+				panic!("No feature(harmonie-native, allfeat-native) is enabled!");
 			})
 		},
 	}
+}
+
+fn load_spec(id: &str) -> Result<Box<dyn ChainSpec>, String> {
+	let id = if id.is_empty() { "harmonie" } else { id };
+
+	Ok(match id.to_lowercase().as_str() {
+		#[cfg(feature = "allfeat-native")]
+		"allfeat-dev" | "dev" => Box::new(allfeat_chain_spec::development_chain_spec(None, None)),
+		#[cfg(feature = "harmonie-native")]
+		"harmonie" => Box::new(HarmonieChainSpec::from_json_bytes(
+			&include_bytes!("../genesis/harmonie-raw.json")[..],
+		)?),
+		#[cfg(feature = "harmonie-native")]
+		"harmonie-dev" => Box::new(harmonie_chain_spec::development_chain_spec(None, None)),
+		#[cfg(feature = "harmonie-native")]
+		"harmonie-local" => Box::new(harmonie_chain_spec::get_chain_spec()),
+		_ => {
+			let path = PathBuf::from(id);
+			let chain_spec =
+				Box::new(DummyChainSpec::from_json_file(path.clone())?) as Box<dyn ChainSpec>;
+
+			if chain_spec.is_harmonie() {
+				return Ok(Box::new(HarmonieChainSpec::from_json_file(path)?));
+			}
+
+			if chain_spec.is_allfeat() {
+				return Ok(Box::new(AllfeatChainSpec::from_json_file(path)?));
+			}
+
+			panic!("No feature(allfeat-native, harmonie-native) is enabled!")
+		},
+	})
 }

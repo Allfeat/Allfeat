@@ -90,7 +90,7 @@ fp-dynamic-fee = { workspace = true }
 fp-rpc = { workspace = true }
 
 # These dependencies are used for runtime benchmarking
-frame-benchmarking = { workspace = true }
+frame-benchmarking = { workspace = true, optional = true }
 frame-benchmarking-cli = { workspace = true }
 
 # Local Dependencies
