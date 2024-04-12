@@ -22,8 +22,7 @@ use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch, NativeVersion
 // Local
 use harmonie_runtime::RuntimeApi;
 use shared_runtime::opaque::Block;
-/// Full backend.
-pub type FullBackend = sc_service::TFullBackend<Block>;
+
 /// Full client.
 pub type FullClient<RuntimeApi, Executor> =
 	sc_service::TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>;
@@ -47,6 +46,19 @@ impl NativeExecutionDispatch for HarmonieRuntimeExecutor {
 
 	fn native_version() -> NativeVersion {
 		harmonie_runtime::native_version()
+	}
+}
+
+pub struct AllfeatRuntimeExecutor;
+impl NativeExecutionDispatch for AllfeatRuntimeExecutor {
+	type ExtendHostFunctions = HostFunctions;
+
+	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
+		allfeat_runtime::api::dispatch(method, data)
+	}
+
+	fn native_version() -> NativeVersion {
+		allfeat_runtime::native_version()
 	}
 }
 
