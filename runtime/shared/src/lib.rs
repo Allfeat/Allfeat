@@ -24,8 +24,8 @@ use allfeat_primitives::{Balance, BlockNumber};
 use frame_support::{
 	traits::Get,
 	weights::{
-		constants::ExtrinsicBaseWeight, FeePolynomial, Weight, WeightToFee as WeightToFeeT,
-		WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
+		constants::ExtrinsicBaseWeight, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
+		WeightToFeePolynomial,
 	},
 };
 use frame_system::limits::BlockLength;
@@ -78,54 +78,18 @@ pub type SlowAdjustingFeeUpdate<R> = TargetedFeeAdjustment<
 /// node's balance type.
 ///
 /// This should typically create a mapping between the following ranges:
-///   - `[0, MAXIMUM_BLOCK_WEIGHT]`
-///   - `[Balance::min, Balance::max]`
+///   - [0, MAXIMUM_BLOCK_WEIGHT]
+///   - [Balance::min, Balance::max]
 ///
 /// Yet, it can be used for any other sort of change to weight-fee. Some examples being:
 ///   - Setting it to `0` will essentially disable the weight fee.
 ///   - Setting it to `1` will cause the literal `#[weight = x]` values to be charged.
 pub struct WeightToFee;
-impl WeightToFeeT for WeightToFee {
+impl WeightToFeePolynomial for WeightToFee {
 	type Balance = Balance;
-
-	fn weight_to_fee(weight: &Weight) -> Self::Balance {
-		let time_poly: FeePolynomial<Balance> = RefTimeToFee::polynomial().into();
-		let proof_poly: FeePolynomial<Balance> = ProofSizeToFee::polynomial().into();
-
-		// Take the maximum instead of the sum to charge by the more scarce resource.
-		time_poly.eval(weight.ref_time()).max(proof_poly.eval(weight.proof_size()))
-	}
-}
-
-/// Maps the reference time component of `Weight` to a fee.
-pub struct RefTimeToFee;
-impl WeightToFeePolynomial for RefTimeToFee {
-	type Balance = Balance;
-
 	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-		// Map base extrinsic weight to 1/500 AFT.
-		let p = currency::AFT;
-		let q = 500 * Balance::from(ExtrinsicBaseWeight::get().ref_time());
-
-		smallvec::smallvec![WeightToFeeCoefficient {
-			degree: 1,
-			negative: false,
-			coeff_frac: Perbill::from_rational(p % q, q),
-			coeff_integer: p / q,
-		}]
-	}
-}
-
-/// Maps the proof size component of `Weight` to a fee.
-pub struct ProofSizeToFee;
-impl WeightToFeePolynomial for ProofSizeToFee {
-	type Balance = Balance;
-
-	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-		// Map 10kb proof to 1 AFT.
-		let p = currency::AFT;
-		let q = 10_000;
-
+		let p = 25_000_000_000_000_000; // Around 0.025 AFT
+		let q = Balance::from(ExtrinsicBaseWeight::get().ref_time());
 		smallvec::smallvec![WeightToFeeCoefficient {
 			degree: 1,
 			negative: false,

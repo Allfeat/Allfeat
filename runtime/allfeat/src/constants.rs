@@ -107,7 +107,7 @@ impl WeightToFeePolynomial for WeightToFee {
 	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
 		// in Allfeat, extrinsic base weight (smallest non-zero weight) is mapped to 1/10 MILLIAFT:
 		let p = currency::MILLIAFT;
-		let q = 10 * Balance::from(ExtrinsicBaseWeight::get().ref_time());
+		let q = Balance::from(ExtrinsicBaseWeight::get().ref_time());
 		smallvec![WeightToFeeCoefficient {
 			degree: 1,
 			negative: false,
