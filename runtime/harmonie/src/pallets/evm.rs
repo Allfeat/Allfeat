@@ -45,7 +45,7 @@ parameter_types! {
 	pub GasLimitPovSizeRatio: u64 = 0;
 }
 
-const BLOCK_GAS_LIMIT: u64 = 75_000_000;
+const BLOCK_GAS_LIMIT: u64 = 500_000_000;
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = TransactionPaymentGasPrice<Runtime, WeightPerGas>;

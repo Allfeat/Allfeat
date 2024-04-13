@@ -88,7 +88,7 @@ pub struct WeightToFee;
 impl WeightToFeePolynomial for WeightToFee {
 	type Balance = Balance;
 	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-		let p = 25_000_000_000_000_000; // Around 0.025 AFT
+		let p = 15_000_000_000_000_000; // Around 0.015 AFT
 		let q = Balance::from(ExtrinsicBaseWeight::get().ref_time());
 		smallvec::smallvec![WeightToFeeCoefficient {
 			degree: 1,
