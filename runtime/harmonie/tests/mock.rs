@@ -20,6 +20,7 @@ pub use harmonie_runtime::*;
 
 // substrate
 use sp_io::TestExternalities;
+use sp_runtime::BuildStorage;
 
 #[derive(Clone, Default)]
 pub struct ExtBuilder {

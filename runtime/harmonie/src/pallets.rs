@@ -60,9 +60,11 @@ mod timestamp;
 mod transaction_payment;
 mod utility;
 
+// External required imports
 pub use babe::*;
 pub use balances::*;
 pub use elections::*;
+pub use evm::*;
 pub use im_online::*;
 pub use session::*;
 pub use staking::*;
