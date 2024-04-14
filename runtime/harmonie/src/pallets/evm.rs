@@ -17,23 +17,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::*;
-use frame_support::{parameter_types, traits::FindAuthor};
+use frame_support::parameter_types;
 use pallet_ethereum::EthereumBlockHashMapping;
 use pallet_evm::{EVMCurrencyAdapter, IdentityAddressMapping};
 use shared_runtime::TransactionPaymentGasPrice;
-use sp_runtime::{ConsensusEngineId, RuntimeAppPublic};
+use sp_runtime::ConsensusEngineId;
 
-pub struct FindAuthorTruncated<F>(PhantomData<F>);
-impl<F: FindAuthor<u32>> FindAuthor<H160> for FindAuthorTruncated<F> {
+pub struct FindAuthor<Inner>(PhantomData<Inner>);
+impl<Inner> frame_support::traits::FindAuthor<H160> for FindAuthor<Inner>
+where
+	Inner: frame_support::traits::FindAuthor<AccountId>,
+{
 	fn find_author<'a, I>(digests: I) -> Option<H160>
 	where
 		I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
 	{
-		if let Some(author_index) = F::find_author(digests) {
-			let (authority_id, _) = Babe::authorities()[author_index as usize].clone();
-			return Some(H160::from_slice(&authority_id.to_raw_vec()[4..24]));
-		}
-		None
+		Inner::find_author(digests).map(Into::into)
 	}
 }
 
@@ -64,7 +63,7 @@ impl pallet_evm::Config for Runtime {
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type OnChargeTransaction = EVMCurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type OnCreate = ();
-	type FindAuthor = FindAuthorTruncated<Babe>;
+	type FindAuthor = FindAuthor<pallet_session::FindAccountFromAuthorIndex<Self, Babe>>;
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
 	type Timestamp = Timestamp;
 	type SuicideQuickClearLimit = SuicideQuickClearLimit;
