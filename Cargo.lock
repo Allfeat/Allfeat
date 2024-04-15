@@ -5831,6 +5831,7 @@ name = "pallet-artists-v2"
 version = "1.0.0-dev"
 dependencies = [
  "derive-getters",
+ "enumflags2",
  "frame-benchmarking",
  "frame-support",
  "frame-system",

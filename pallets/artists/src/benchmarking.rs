@@ -1,19 +1,20 @@
 // This file is part of Allfeat.
 
-// Copyright (C) Allfeat (FR) Ltd.
-// SPDX-License-Identifier: Apache-2.0
+// Copyright (C) 2022-2024 Allfeat.
+// SPDX-License-Identifier: GPL-3.0-or-later
 
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// 	http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Artists pallet benchmarking.
 
@@ -22,15 +23,16 @@
 use super::*;
 use crate::Pallet as Artists;
 
-use crate::types::ArtistAliasOf;
+use crate::types::{ArtistType, ExtraArtistTypes};
 use frame_benchmarking::v2::*;
 use frame_support::{dispatch::RawOrigin, traits::fungible::Mutate};
 use frame_system::Pallet as System;
 use genres_registry::{ElectronicSubtype, MusicGenre::Electronic};
-use parity_scale_codec::alloc::string::ToString;
 use sp_runtime::Saturating;
 
 const MINIMUM_BALANCE: u128 = 1000000000000000000;
+
+type ArtistAliasOf<T> = BoundedVec<u8, <T as Config>::MaxNameLen>;
 
 fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
 	frame_system::Pallet::<T>::assert_last_event(generic_event.into());
@@ -83,15 +85,17 @@ fn register_test_artist<T: Config>(
 	assets_count: u32,
 ) {
 	let name: ArtistAliasOf<T> = dumb_name_with_capacity::<T>(name_length);
-	let alias: ArtistAliasOf<T> = dumb_name_with_capacity::<T>(name_length);
 	let genres: BoundedVec<MusicGenre, T::MaxGenres> = dumb_genres_with_capacity::<T>(genres_count);
 	let description = Some("test".as_bytes().to_vec());
 	let assets: BoundedVec<Vec<u8>, T::MaxAssets> = dumb_assets_with_capacity::<T>(assets_count);
+	let main_type: ArtistType = Default::default();
+	let extra_type: ExtraArtistTypes = Default::default();
 
 	Artists::<T>::register(
 		RawOrigin::Signed(id).into(),
 		name,
-		Some(alias),
+		main_type,
+		extra_type,
 		genres,
 		description,
 		assets,
@@ -116,7 +120,6 @@ mod benchmarks {
 		T::Currency::set_balance(&caller, (MINIMUM_BALANCE * 100000u128).saturated_into());
 
 		let name: ArtistAliasOf<T> = dumb_name_with_capacity::<T>(n);
-		let alias: ArtistAliasOf<T> = dumb_name_with_capacity::<T>(n);
 		let genres: BoundedVec<MusicGenre, T::MaxGenres> = dumb_genres_with_capacity::<T>(g);
 		let description = Some("test".as_bytes().to_vec());
 		let assets: BoundedVec<Vec<u8>, T::MaxAssets> = dumb_assets_with_capacity::<T>(a);
@@ -125,7 +128,8 @@ mod benchmarks {
 		_(
 			RawOrigin::Signed(caller.clone().into()),
 			name.clone(),
-			Some(alias),
+			Default::default(),
+			Default::default(),
 			genres,
 			description,
 			assets,
@@ -180,29 +184,6 @@ mod benchmarks {
 		Ok(())
 	}
 
-	/// `n` is the existing artist data and `x` is the new data to update with.
-	#[benchmark]
-	fn update_alias(
-		n: Linear<1, { T::MaxNameLen::get() }>,
-		x: Linear<1, { T::MaxNameLen::get() }>,
-	) -> Result<(), BenchmarkError> {
-		let caller: T::AccountId = whitelisted_caller();
-
-		T::Currency::set_balance(&caller, (MINIMUM_BALANCE * 100000u128).saturated_into());
-
-		register_test_artist::<T>(caller.clone(), n, 0, 0);
-
-		let new_data =
-			UpdatableData::<ArtistAliasOf<T>>::Alias(Some(dumb_name_with_capacity::<T>(x)));
-
-		#[extrinsic_call]
-		update(RawOrigin::Signed(caller.clone().into()), new_data.clone());
-
-		assert_last_event::<T>(Event::ArtistUpdated { id: caller, new_data }.into());
-
-		Ok(())
-	}
-
 	/// `n` is the existing artist data.
 	#[benchmark]
 	fn update_add_genres(
@@ -214,9 +195,9 @@ mod benchmarks {
 
 		register_test_artist::<T>(caller.clone(), 1, n, 0);
 
-		let new_data = UpdatableData::<ArtistAliasOf<T>>::Genres(UpdatableGenres::Add(
-			MusicGenre::Classical(Some(ClassicalSubtype::Symphony)),
-		));
+		let new_data = UpdatableData::Genres(UpdatableGenres::Add(MusicGenre::Classical(Some(
+			ClassicalSubtype::Symphony,
+		))));
 
 		#[extrinsic_call]
 		update(RawOrigin::Signed(caller.clone().into()), new_data.clone());
@@ -237,9 +218,9 @@ mod benchmarks {
 
 		// Always remove what we are sure this is the first element so there is always something
 		// to remove even with only one genre existing in the benchmarking artist.
-		let new_data = UpdatableData::<ArtistAliasOf<T>>::Genres(UpdatableGenres::Remove(
-			Electronic(Some(ElectronicSubtype::House)),
-		));
+		let new_data = UpdatableData::Genres(UpdatableGenres::Remove(Electronic(Some(
+			ElectronicSubtype::House,
+		))));
 
 		#[extrinsic_call]
 		update(RawOrigin::Signed(caller.clone().into()), new_data.clone());
@@ -258,7 +239,7 @@ mod benchmarks {
 
 		register_test_artist::<T>(caller.clone(), 1, n, 0);
 
-		let new_data = UpdatableData::<ArtistAliasOf<T>>::Genres(UpdatableGenres::Clear);
+		let new_data = UpdatableData::Genres(UpdatableGenres::Clear);
 
 		#[extrinsic_call]
 		update(RawOrigin::Signed(caller.clone().into()), new_data.clone());
@@ -278,8 +259,7 @@ mod benchmarks {
 
 		register_test_artist::<T>(caller.clone(), 1, 0, 0);
 
-		let new_data =
-			UpdatableData::<ArtistAliasOf<T>>::Description(Some(b"new_description".to_vec()));
+		let new_data = UpdatableData::Description(Some(b"new_description".to_vec()));
 
 		#[extrinsic_call]
 		update(RawOrigin::Signed(caller.clone().into()), new_data.clone());
@@ -300,8 +280,7 @@ mod benchmarks {
 
 		register_test_artist::<T>(caller.clone(), 1, 0, n);
 
-		let new_data =
-			UpdatableData::<ArtistAliasOf<T>>::Assets(UpdatableAssets::Add(b"test asset".to_vec()));
+		let new_data = UpdatableData::Assets(UpdatableAssets::Add(b"test asset".to_vec()));
 
 		#[extrinsic_call]
 		update(RawOrigin::Signed(caller.clone().into()), new_data.clone());
@@ -322,8 +301,7 @@ mod benchmarks {
 
 		// Always remove what we are sure this is the first element so there is always something
 		// to remove even with only one genre existing in the benchmarking artist.
-		let new_data =
-			UpdatableData::<ArtistAliasOf<T>>::Assets(UpdatableAssets::Remove(b"asset0".to_vec()));
+		let new_data = UpdatableData::Assets(UpdatableAssets::Remove(b"asset0".to_vec()));
 
 		#[extrinsic_call]
 		update(RawOrigin::Signed(caller.clone().into()), new_data.clone());
@@ -342,7 +320,46 @@ mod benchmarks {
 
 		register_test_artist::<T>(caller.clone(), 1, 0, n);
 
-		let new_data = UpdatableData::<ArtistAliasOf<T>>::Assets(UpdatableAssets::Clear);
+		let new_data = UpdatableData::Assets(UpdatableAssets::Clear);
+
+		#[extrinsic_call]
+		update(RawOrigin::Signed(caller.clone().into()), new_data.clone());
+
+		assert_last_event::<T>(Event::ArtistUpdated { id: caller, new_data }.into());
+
+		Ok(())
+	}
+
+	#[benchmark]
+	fn update_main_type() -> Result<(), BenchmarkError> {
+		let caller: T::AccountId = whitelisted_caller();
+
+		T::Currency::set_balance(&caller, (MINIMUM_BALANCE * 100000u128).saturated_into());
+
+		register_test_artist::<T>(caller.clone(), 1, 0, 0);
+
+		let new_data = UpdatableData::MainType(ArtistType::Composer);
+
+		#[extrinsic_call]
+		update(RawOrigin::Signed(caller.clone().into()), new_data.clone());
+
+		assert_last_event::<T>(Event::ArtistUpdated { id: caller, new_data }.into());
+
+		Ok(())
+	}
+
+	/// `n` is the existing artist data.
+	#[benchmark]
+	fn update_extra_types() -> Result<(), BenchmarkError> {
+		let caller: T::AccountId = whitelisted_caller();
+
+		T::Currency::set_balance(&caller, (MINIMUM_BALANCE * 100000u128).saturated_into());
+
+		register_test_artist::<T>(caller.clone(), 1, 0, 0);
+
+		let mut new_extra_types = ExtraArtistTypes::default();
+		new_extra_types.0.insert(ArtistType::Producer);
+		let new_data = UpdatableData::ExtraTypes(new_extra_types);
 
 		#[extrinsic_call]
 		update(RawOrigin::Signed(caller.clone().into()), new_data.clone());

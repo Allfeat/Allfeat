@@ -198,7 +198,6 @@ impl pallet_artists::Config for Runtime {
 	type MaxNameLen = ConstU32<64>;
 	type MaxGenres = ConstU32<5>;
 	type MaxAssets = ConstU32<32>;
-	type MaxContracts = ConstU32<2048>;
 	type WeightInfo = ();
 }
 

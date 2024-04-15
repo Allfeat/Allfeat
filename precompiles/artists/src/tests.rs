@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{mock::*, Alias, Artist, ArtistData, ArtistOf, DescriptionPreimage};
+use crate::{mock::*, ArtistData, ArtistOf, ArtistType, DescriptionPreimage};
 use frame_support::assert_ok;
 // use pallet_evm::Call as EvmCall;
 use precompile_utils::testing::*;
@@ -71,10 +71,15 @@ fn test_artists_returns_valid_data_for_artist_data() {
 		.with_balances(vec![(Alice.into(), 100_000), (Bob.into(), 100_000)])
 		.build()
 		.execute_with(|| {
+			let mut extra_types = pallet_artists::types::ExtraArtistTypes::default();
+			extra_types.0.insert(pallet_artists::types::ArtistType::Director);
+			extra_types.0.insert(pallet_artists::types::ArtistType::Producer);
+
 			assert_ok!(Artists::register(
 				RuntimeOrigin::signed(Bob.into()),
 				vec![0x01].try_into().expect("succeeds"),
-				Some(vec![0x02].try_into().expect("succeeds")),
+				pallet_artists::types::ArtistType::Singer,
+				extra_types,
 				vec![].try_into().expect("succeeds"),
 				Some(vec![0x03]),
 				vec![vec![0x04], vec![0x05]].try_into().expect("succeeds")
@@ -87,17 +92,14 @@ fn test_artists_returns_valid_data_for_artist_data() {
 					PCall::get_artist { account: H160::from(Bob).into() },
 				)
 				.expect_no_logs()
-				.execute_returns(Artist {
+				.execute_returns(ArtistOf::<Runtime> {
 					is_artist: true,
 					data: ArtistData {
 						owner: H160::from(Bob).into(),
 						registered_at: 1,
-						verification: Default::default(),
 						main_name: vec![0x01].try_into().expect("succeeds"),
-						alias: Alias::<<Runtime as pallet_artists::Config>::MaxNameLen> {
-							has_alias: true,
-							alias: vec![0x02].try_into().expect("succeeds"),
-						},
+						main_type: ArtistType::Singer,
+						extra_types: vec![ArtistType::Producer, ArtistType::Director],
 						genres: vec![],
 						description: DescriptionPreimage {
 							has_preimage: true,
@@ -116,7 +118,6 @@ fn test_artists_returns_valid_data_for_artist_data() {
 							)
 							.into(),
 						],
-						contracts: vec![],
 					},
 				})
 		})

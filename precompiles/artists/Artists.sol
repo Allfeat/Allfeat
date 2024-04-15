@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 /// @dev The Artists contract's address.
-address constant ARTISTS_ADDRESS = 0x0000000000000000000000000000000000000803;
+address constant ARTISTS_ADDRESS = 0x0000000000000000000000000000000000000801;
 
 /// @dev The Artists contract's instance.
 Artists constant ARTISTS_CONTRACT = Artists(
@@ -14,31 +14,33 @@ Artists constant ARTISTS_CONTRACT = Artists(
 /// Addresses:
 /// - 0x0000000000000000000000000000000000000803: Artists
 interface Artists {
-    struct Verification {
-        bool is_verified;
-        uint32 verified_at;
-    }
-
-    struct Alias {
-        bool has_alias;
-        string _alias;
-    }
-
     struct DescriptionPreimage {
         bool has_preimage;
         bytes32 preimage;
     }
 
+    enum ArtistType {
+        Singer,
+        Instrumentalist,
+        Composer,
+        Lyricist,
+        Producer,
+        DiscJokey,
+        Conductor,
+        Arranger,
+        Engineer,
+        Director
+    }
+
     struct ArtistData {
         address owner;
         uint32 registered_at;
-        Verification verification;
+        ArtistType main_type;
+        ArtistType[] extra_types;
         string main_name;
-        Alias _alias;
         bytes[] genres;
         DescriptionPreimage description;
         bytes32[] assets;
-        address[] contracts;
     }
 
     struct Artist {
