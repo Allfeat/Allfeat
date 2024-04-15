@@ -2,18 +2,16 @@
 resolver = "2"
 members = [
     "node",
-    "runtime/shared",
-    "runtime/harmonie",
-    "runtime/allfeat",
+    "runtime/*",
     "primitives",
     "precompiles/balances-erc20",
     "precompiles/nfts/collections",
     "precompiles/nfts/factory",
     "precompiles/nfts/swap",
     "precompiles/artists",
-    "runtime/shared",
     "precompiles/nfts/tests",
     "precompiles/nfts/types",
+    "pallets/*"
     # "utils/generate_bags",
 ]
 
@@ -34,7 +32,7 @@ version = "1.0.0-dev"
 
 # Allfeat (wasm)
 allfeat-primitives = { version = "1.0.0", default-features = false, path = "./primitives" }
-pallet-artists = { package = "pallet-artists-v2", version = "1.0.0-dev", default-features = false, git = "https://github.com/Allfeat/pallet-artists-v2.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-artists = { package = "pallet-artists-v2", version = "1.0.0-dev", default-features = false, path = "./pallets/artists" }
 
 # Substrate (wasm)
 parity-scale-codec = { version = "3.6.1", default-features = false, features = [
@@ -103,7 +101,7 @@ pallet-fast-unstake = { version = "27.0.0", default-features = false, git = "htt
 pallet-staking-reward-curve = { version = "11.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
 pallet-state-trie-migration = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
 pallet-scheduler = { version = "29.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
-pallet-balances = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
+pallet-balances = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0", features = ["insecure_zero_ed"] }
 pallet-grandpa = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
 pallet-insecure-randomness-collective-flip = { version = "4.0.0-dev", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }
 pallet-sudo = { version = "28.0.0", default-features = false, git = "https://github.com/Allfeat/polkadot-sdk.git", branch = "allfeat-polkadot-v1.9.0" }

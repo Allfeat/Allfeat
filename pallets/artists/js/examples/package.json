@@ -1,0 +1,17 @@
+{
+  "name": "examples",
+  "version": "1.0.0",
+  "description": "A set of scripts to showcase how to interact with the pallet from the polkadot.js API",
+  "main": "src/index.ts",
+  "author": "Allfeat",
+  "license": "MIT",
+  "dependencies": {
+    "@allfeat/types": "https://github.com/Allfeat/js-types",
+    "@polkadot/api": "^10.11.1",
+    "@types/node": "^20.9.5",
+    "typescript": "^5.3.2"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.1"
+  }
+}

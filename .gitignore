@@ -19,6 +19,3 @@
 # IDE's related
 .idea
 .vscode
-
-# Generated benchmark weights
-weights.rs

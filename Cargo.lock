@@ -5829,7 +5829,6 @@ checksum = "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
 [[package]]
 name = "pallet-artists-v2"
 version = "1.0.0-dev"
-source = "git+https://github.com/Allfeat/pallet-artists-v2.git?branch=allfeat-polkadot-v1.9.0#e248defb9d6ed48774d221f7943a2ab60d8bd4f6"
 dependencies = [
  "derive-getters",
  "frame-benchmarking",
@@ -5837,8 +5836,10 @@ dependencies = [
  "frame-system",
  "genres-registry",
  "log",
+ "pallet-balances",
  "parity-scale-codec",
  "scale-info",
+ "sp-io",
  "sp-runtime",
  "sp-std 14.0.0 (git+https://github.com/Allfeat/polkadot-sdk.git?branch=allfeat-polkadot-v1.9.0)",
 ]
