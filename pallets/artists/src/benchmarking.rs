@@ -107,7 +107,7 @@ fn register_test_artist<T: Config>(
 #[benchmarks]
 mod benchmarks {
 	use super::*;
-	use crate::types::{UpdatableAssets, UpdatableData, UpdatableGenres};
+	use crate::types::{ArtistTypeFlag, UpdatableAssets, UpdatableData, UpdatableGenres};
 	use genres_registry::ClassicalSubtype;
 
 	#[benchmark]
@@ -359,7 +359,7 @@ mod benchmarks {
 		register_test_artist::<T>(caller.clone(), 1, 0, 0);
 
 		let mut new_extra_types = ExtraArtistTypes::default();
-		new_extra_types.0.insert(ArtistType::Producer);
+		new_extra_types.0.insert(ArtistTypeFlag::Producer);
 		let new_data = UpdatableData::ExtraTypes(new_extra_types);
 
 		#[extrinsic_call]

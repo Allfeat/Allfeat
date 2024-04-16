@@ -23,7 +23,7 @@
 use super::*;
 use crate::{
 	mock::*,
-	types::{ArtistType, ExtraArtistTypes},
+	types::{ArtistType, ArtistTypeFlag, ExtraArtistTypes},
 	Error as ArtistsError,
 };
 use frame_support::{assert_noop, assert_ok};
@@ -45,8 +45,8 @@ fn tester_artist<T: Config>() -> ArtistMock<T> {
 	let mut genres = Vec::new();
 
 	genres.push(MusicGenre::Electronic(Some(ElectronicSubtype::House)));
-	extra_types.0.insert(ArtistType::DiscJokey);
-	extra_types.0.insert(ArtistType::Instrumentalist);
+	extra_types.0.insert(ArtistTypeFlag::DiscJokey);
+	extra_types.0.insert(ArtistTypeFlag::Instrumentalist);
 
 	ArtistMock {
 		main_name: b"Tester".to_vec().try_into().unwrap(),

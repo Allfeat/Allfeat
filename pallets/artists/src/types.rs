@@ -207,7 +207,7 @@ where
 		&mut self,
 		main_type: ArtistType,
 	) -> Result<(), DispatchErrorWithPostInfo> {
-		if self.extra_types.is_type(main_type) {
+		if self.extra_types.is_type(main_type.into()) {
 			return Err(Error::<T>::IsExtraType.into())
 		}
 		self.main_type = main_type;
@@ -218,7 +218,7 @@ where
 		&mut self,
 		extra_types: ExtraArtistTypes,
 	) -> Result<(), DispatchErrorWithPostInfo> {
-		if extra_types.is_type(self.main_type) {
+		if extra_types.is_type(self.main_type.into()) {
 			return Err(Error::<T>::IsMainType.into())
 		}
 		self.extra_types = extra_types;
@@ -299,8 +299,8 @@ where
 	}
 }
 
-#[bitflags]
-#[repr(u16)]
+/// This type is needed because polkadot-api doesn't handle one bitflag value in extrinsic param and
+/// crash everything. (probably memory leak on polkadot-js due to incompatible type)
 #[derive(
 	Copy, Clone, Default, RuntimeDebug, PartialEq, Eq, Encode, Decode, MaxEncodedLen, TypeInfo,
 )]
@@ -318,14 +318,67 @@ pub enum ArtistType {
 	Director,
 }
 
+impl From<ArtistType> for ArtistTypeFlag {
+	fn from(value: ArtistType) -> Self {
+		match value {
+			ArtistType::Singer => Self::Singer,
+			ArtistType::Instrumentalist => Self::Instrumentalist,
+			ArtistType::Composer => Self::Composer,
+			ArtistType::Lyricist => Self::Lyricist,
+			ArtistType::Producer => Self::Producer,
+			ArtistType::DiscJokey => Self::DiscJokey,
+			ArtistType::Conductor => Self::Conductor,
+			ArtistType::Arranger => Self::Arranger,
+			ArtistType::Engineer => Self::Engineer,
+			ArtistType::Director => Self::Director,
+		}
+	}
+}
+
+#[bitflags]
+#[repr(u16)]
+#[derive(
+	Copy, Clone, Default, RuntimeDebug, PartialEq, Eq, Encode, Decode, MaxEncodedLen, TypeInfo,
+)]
+pub enum ArtistTypeFlag {
+	#[default]
+	Singer,
+	Instrumentalist,
+	Composer,
+	Lyricist,
+	Producer,
+	DiscJokey,
+	Conductor,
+	Arranger,
+	Engineer,
+	Director,
+}
+
 /// Wrapper type for `BitFlags<ArtistType>` that implements `Codec`.
 #[derive(Default, Clone, PartialEq, Eq, RuntimeDebug)]
-pub struct ExtraArtistTypes(pub BitFlags<ArtistType>);
+pub struct ExtraArtistTypes(pub BitFlags<ArtistTypeFlag>);
 
 impl ExtraArtistTypes {
-	pub fn is_type(&self, artist_type: ArtistType) -> bool {
+	pub fn is_type(&self, artist_type: ArtistTypeFlag) -> bool {
 		self.0.contains(artist_type)
 	}
 }
 
-impl_codec_bitflags!(ExtraArtistTypes, u16, ArtistType);
+impl From<ArtistTypeFlag> for ArtistType {
+	fn from(value: ArtistTypeFlag) -> Self {
+		match value {
+			ArtistTypeFlag::Singer => Self::Singer,
+			ArtistTypeFlag::Instrumentalist => Self::Instrumentalist,
+			ArtistTypeFlag::Composer => Self::Composer,
+			ArtistTypeFlag::Lyricist => Self::Lyricist,
+			ArtistTypeFlag::Producer => Self::Producer,
+			ArtistTypeFlag::DiscJokey => Self::DiscJokey,
+			ArtistTypeFlag::Conductor => Self::Conductor,
+			ArtistTypeFlag::Arranger => Self::Arranger,
+			ArtistTypeFlag::Engineer => Self::Engineer,
+			ArtistTypeFlag::Director => Self::Director,
+		}
+	}
+}
+
+impl_codec_bitflags!(ExtraArtistTypes, u16, ArtistTypeFlag);

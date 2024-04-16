@@ -72,8 +72,8 @@ fn test_artists_returns_valid_data_for_artist_data() {
 		.build()
 		.execute_with(|| {
 			let mut extra_types = pallet_artists::types::ExtraArtistTypes::default();
-			extra_types.0.insert(pallet_artists::types::ArtistType::Director);
-			extra_types.0.insert(pallet_artists::types::ArtistType::Producer);
+			extra_types.0.insert(pallet_artists::types::ArtistTypeFlag::Director);
+			extra_types.0.insert(pallet_artists::types::ArtistTypeFlag::Producer);
 
 			assert_ok!(Artists::register(
 				RuntimeOrigin::signed(Bob.into()),

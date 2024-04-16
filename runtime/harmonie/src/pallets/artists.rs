@@ -43,5 +43,5 @@ impl pallet_artists::Config for Runtime {
 	type MaxNameLen = MaxNameLen;
 	type MaxAssets = MaxAssets;
 	type MaxGenres = MaxGenres;
-	type WeightInfo = weights::artists::AllfeatWeight<Runtime>;
+	type WeightInfo = pallet_artists::weights::AllfeatWeight<Runtime>;
 }

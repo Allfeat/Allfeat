@@ -229,7 +229,7 @@ pub type Executive = frame_executive::Executive<
 >;
 // All migrations executed on runtime upgrade as a nested tuple of types implementing
 // `OnRuntimeUpgrade`.
-type Migrations = pallet_artists::migration::versioned::V0ToV1<Runtime>;
+type Migrations = ();
 
 #[cfg(feature = "runtime-benchmarks")]
 frame_benchmarking::define_benchmarks!(

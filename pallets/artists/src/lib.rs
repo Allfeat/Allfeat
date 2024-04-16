@@ -301,7 +301,7 @@ pub mod pallet {
 				origin.clone(),
 				main_name.clone(),
 				genres,
-				main_type,
+				main_type.into(),
 				extra_artist_types,
 				description,
 				assets,

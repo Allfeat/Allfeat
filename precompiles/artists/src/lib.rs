@@ -152,6 +152,23 @@ impl Codec for ArtistType {
 	}
 }
 
+impl From<pallet_artists::types::ArtistTypeFlag> for ArtistType {
+	fn from(value: pallet_artists::types::ArtistTypeFlag) -> Self {
+		match value {
+			pallet_artists::types::ArtistTypeFlag::Singer => Self::Singer,
+			pallet_artists::types::ArtistTypeFlag::Instrumentalist => Self::Instrumentalist,
+			pallet_artists::types::ArtistTypeFlag::Composer => Self::Composer,
+			pallet_artists::types::ArtistTypeFlag::Lyricist => Self::Lyricist,
+			pallet_artists::types::ArtistTypeFlag::Producer => Self::Producer,
+			pallet_artists::types::ArtistTypeFlag::DiscJokey => Self::DiscJokey,
+			pallet_artists::types::ArtistTypeFlag::Conductor => Self::Conductor,
+			pallet_artists::types::ArtistTypeFlag::Arranger => Self::Arranger,
+			pallet_artists::types::ArtistTypeFlag::Engineer => Self::Engineer,
+			pallet_artists::types::ArtistTypeFlag::Director => Self::Director,
+		}
+	}
+}
+
 impl From<pallet_artists::types::ArtistType> for ArtistType {
 	fn from(value: pallet_artists::types::ArtistType) -> Self {
 		match value {
