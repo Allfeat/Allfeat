@@ -520,8 +520,8 @@ where
 	/// the current context and specific parameters of each update operation.
 	fn get_weight_update_fn(data: &UpdatableData) -> Box<dyn FnOnce() -> Weight> {
 		match data {
-			UpdatableData::MainType(_) => todo!(),
-			UpdatableData::ExtraTypes(_) => todo!(),
+			UpdatableData::MainType(_) => Box::new(move || T::WeightInfo::update_main_type()),
+			UpdatableData::ExtraTypes(_) => Box::new(move || T::WeightInfo::update_extra_types()),
 			UpdatableData::Genres(x) => match x {
 				UpdatableGenres::Add(_) =>
 					Box::new(move || T::WeightInfo::update_add_genres(T::MaxGenres::get())),

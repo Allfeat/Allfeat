@@ -28,6 +28,7 @@ use frame_benchmarking::v2::*;
 use frame_support::{dispatch::RawOrigin, traits::fungible::Mutate};
 use frame_system::Pallet as System;
 use genres_registry::{ElectronicSubtype, MusicGenre::Electronic};
+use parity_scale_codec::alloc::string::ToString;
 use sp_runtime::Saturating;
 
 const MINIMUM_BALANCE: u128 = 1000000000000000000;

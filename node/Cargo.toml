@@ -79,6 +79,7 @@ pallet-staking = { workspace = true }
 
 # Frontier
 fc-api = { workspace = true }
+fp-account = { workspace = true, optional = true }
 fc-cli = { workspace = true }
 fc-consensus = { workspace = true }
 fc-db = { workspace = true }
@@ -89,9 +90,10 @@ fc-storage = { workspace = true }
 fp-dynamic-fee = { workspace = true }
 fp-rpc = { workspace = true }
 
-# These dependencies are used for runtime benchmarking
 frame-benchmarking = { workspace = true, optional = true }
 frame-benchmarking-cli = { workspace = true }
+frame-system = { workspace = true, optional = true }
+pallet-transaction-payment = { workspace = true, optional = true }
 
 # Local Dependencies
 shared-runtime = { workspace = true }
@@ -115,6 +117,10 @@ fast-runtime = [
 ]
 
 runtime-benchmarks = [
+    "frame-benchmarking",
+    "fp-account",
+    "frame-system/runtime-benchmarks",
+    "pallet-transaction-payment",
     "allfeat-runtime?/runtime-benchmarks",
     "harmonie-runtime?/runtime-benchmarks",
     "frame-benchmarking-cli/runtime-benchmarks"
