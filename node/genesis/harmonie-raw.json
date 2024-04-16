@@ -20,7 +20,7 @@
     "tokenSymbol": "HMY"
   },
   "forkBlocks": null,
-  "badBlocks": null,
+  "badBlocks": ["0x0feb651eb3b15097c76cd6b30011b0279065cdfad37724bd9cedfc78d0239439"],
   "lightSyncState": null,
   "codeSubstitutes": {},
   "genesis": {
