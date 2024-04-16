@@ -66,7 +66,7 @@ pub const VERSION: sp_version::RuntimeVersion = sp_version::RuntimeVersion {
 	// and set impl_version to 0. If only runtime
 	// implementation changes and behavior does not, then leave spec_version as
 	// is and increment impl_version.
-	spec_version: 200,
+	spec_version: 210,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -224,7 +224,7 @@ pub type Executive = frame_executive::Executive<
 >;
 // All migrations executed on runtime upgrade as a nested tuple of types implementing
 // `OnRuntimeUpgrade`.
-type Migrations = pallet_identity::migration::versioned::V0ToV1<Runtime, { u64::MAX }>;
+type Migrations = pallet_artists::migration::versioned::V0ToV1<Runtime>;
 
 #[cfg(feature = "runtime-benchmarks")]
 frame_benchmarking::define_benchmarks!(
@@ -711,7 +711,7 @@ sp_api::impl_runtime_apis! {
 			state_root_check: bool,
 			signature_check: bool,
 			select: frame_try_runtime::TryStateSelect
-		) -> frame_system::weights::Weight {
+		) -> Weight {
 			// NOTE: intentional unwrap: we don't want to propagate the error backwards, and want to
 			// have a backtrace here.
 			Executive::try_execute_block(block, state_root_check, signature_check, select).unwrap()

@@ -101,7 +101,7 @@ pub mod v1 {
 	impl<T: Config> OnRuntimeUpgrade for VersionUncheckedMigrateV0ToV1<T> {
 		#[cfg(feature = "try-runtime")]
 		fn pre_upgrade() -> Result<Vec<u8>, TryRuntimeError> {
-			let artists = v0::ArtistOf::<T>::iter().count();
+			let artists = crate::ArtistOf::<T>::iter().count();
 			log::info!(
 				target: TARGET,
 				"pre-upgrade state contains '{}' artists.",
