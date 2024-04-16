@@ -140,8 +140,8 @@ where
 		// Storage item: Asset:
 		// Blake2_128(16) + CollectionId + CollectionDetails
 		handle.record_db_read::<Runtime>(
-			16 + CollectionIdOf::<Runtime>::max_encoded_len()
-				+ CollectionDetailsOf::<Runtime>::max_encoded_len(),
+			16 + CollectionIdOf::<Runtime>::max_encoded_len() +
+				CollectionDetailsOf::<Runtime>::max_encoded_len(),
 		)?;
 
 		let collection_details = pallet_nfts::Collection::<Runtime>::get(collection_id)

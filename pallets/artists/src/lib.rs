@@ -1,19 +1,20 @@
 // This file is part of Allfeat.
 
-// Copyright (C) Allfeat (FR) Ltd.
-// SPDX-License-Identifier: Apache-2.0
+// Copyright (C) 2022-2024 Allfeat.
+// SPDX-License-Identifier: GPL-3.0-or-later
 
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// 	http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! # Artists Pallet v2
 //!
@@ -81,11 +82,13 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 mod benchmarking;
+mod macros;
+pub mod migration;
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
 mod tests;
-mod types;
+pub mod types;
 pub mod weights;
 
 use weights::WeightInfo;
@@ -98,9 +101,7 @@ use genres_registry::MusicGenre;
 pub use types::Artist;
 
 use crate::{
-	types::{
-		AccountIdOf, ArtistAliasOf, BalanceOf, UpdatableAssets, UpdatableData, UpdatableGenres,
-	},
+	types::{AccountIdOf, BalanceOf, UpdatableAssets, UpdatableData, UpdatableGenres},
 	Event::{ArtistForceUnregistered, ArtistRegistered, ArtistUnregistered, ArtistUpdated},
 };
 use frame_support::{
@@ -124,10 +125,15 @@ pub use pallet::*;
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
+	use crate::types::{ArtistType, ExtraArtistTypes};
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
 
+	/// The current storage version, we set to 1 our new version.
+	const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
+
 	#[pallet::pallet]
+	#[pallet::storage_version(STORAGE_VERSION)]
 	pub struct Pallet<T>(_);
 
 	#[pallet::config]
@@ -148,7 +154,7 @@ pub mod pallet {
 		#[cfg(feature = "runtime-benchmarks")]
 		/// The way to handle the storage deposit cost of Artist creation
 		/// Include Currency trait to have access to NegativeImbalance
-		type Currency: Mutate<Self::AccountId>
+		type Currency: frame_support::traits::fungible::Mutate<Self::AccountId>
 			+ Inspect<Self::AccountId>
 			+ MutateHold<Self::AccountId, Reason = Self::RuntimeHoldReason>
 			+ BalancedHold<Self::AccountId>;
@@ -183,10 +189,6 @@ pub mod pallet {
 		/// The maximum amount of assets that an artist can have.
 		#[pallet::constant]
 		type MaxAssets: Get<u32>;
-
-		/// The maximum amount of contracts that an artist can have.
-		#[pallet::constant]
-		type MaxContracts: Get<u32>;
 
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
@@ -243,7 +245,7 @@ pub mod pallet {
 			/// The address of the updated artist.
 			id: T::AccountId,
 			/// The new data.
-			new_data: UpdatableData<ArtistAliasOf<T>>,
+			new_data: UpdatableData,
 		},
 	}
 
@@ -267,6 +269,10 @@ pub mod pallet {
 		Full,
 		/// Element wasn't found.
 		NotFound,
+		/// The extra type trying to be set is already the main type.
+		IsMainType,
+		/// The main type trying to be set is already an extra type.
+		IsExtraType,
 	}
 
 	#[pallet::call]
@@ -281,7 +287,8 @@ pub mod pallet {
 		pub fn register(
 			origin: OriginFor<T>,
 			main_name: BoundedVec<u8, T::MaxNameLen>,
-			alias: Option<BoundedVec<u8, T::MaxNameLen>>,
+			main_type: ArtistType,
+			extra_artist_types: ExtraArtistTypes,
 			genres: BoundedVec<MusicGenre, T::MaxGenres>,
 			description: Option<Vec<u8>>,
 			assets: BoundedVec<Vec<u8>, T::MaxAssets>,
@@ -293,8 +300,9 @@ pub mod pallet {
 			let new_artist = Artist::<T>::new(
 				origin.clone(),
 				main_name.clone(),
-				alias,
 				genres,
+				main_type,
+				extra_artist_types,
 				description,
 				assets,
 			)?;
@@ -364,10 +372,7 @@ pub mod pallet {
             weight_fn()
         })]
 		#[pallet::call_index(3)]
-		pub fn update(
-			origin: OriginFor<T>,
-			data: UpdatableData<ArtistAliasOf<T>>,
-		) -> DispatchResultWithPostInfo {
+		pub fn update(origin: OriginFor<T>, data: UpdatableData) -> DispatchResultWithPostInfo {
 			let origin = ensure_signed(origin)?;
 
 			ArtistOf::<T>::try_mutate(origin.clone(), |maybe_artist| {
@@ -513,8 +518,10 @@ where
 	///
 	/// This approach allows dynamic determination of operation costs on the blockchain, adapting to
 	/// the current context and specific parameters of each update operation.
-	fn get_weight_update_fn(data: &UpdatableData<ArtistAliasOf<T>>) -> Box<dyn FnOnce() -> Weight> {
+	fn get_weight_update_fn(data: &UpdatableData) -> Box<dyn FnOnce() -> Weight> {
 		match data {
+			UpdatableData::MainType(_) => todo!(),
+			UpdatableData::ExtraTypes(_) => todo!(),
 			UpdatableData::Genres(x) => match x {
 				UpdatableGenres::Add(_) =>
 					Box::new(move || T::WeightInfo::update_add_genres(T::MaxGenres::get())),
@@ -532,9 +539,6 @@ where
 					Box::new(move || T::WeightInfo::update_clear_assets(T::MaxAssets::get())),
 			},
 			UpdatableData::Description(_) => Box::new(move || T::WeightInfo::update_description()),
-			UpdatableData::Alias(_) => Box::new(move || {
-				T::WeightInfo::update_alias(T::MaxNameLen::get(), T::MaxNameLen::get())
-			}),
 		}
 	}
 
@@ -544,11 +548,6 @@ where
 
 		match artist_data {
 			Some(data) => {
-				// verified artists can't unregister
-				if data.is_verified() {
-					return Err(Error::<T>::IsVerified.into());
-				}
-
 				let current_block = <frame_system::Pallet<T>>::block_number();
 				let expected_passed_time: u32 = T::UnregisterPeriod::get();
 

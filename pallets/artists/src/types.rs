@@ -17,7 +17,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::*;
+use crate::macros::impl_codec_bitflags;
 use derive_getters::Getters;
+use enumflags2::{bitflags, BitFlags};
 use frame_support::{
 	dispatch::DispatchErrorWithPostInfo, traits::tokens::fungible::hold::Inspect as InspectHold,
 };
@@ -30,11 +32,11 @@ use sp_std::collections::btree_set::BTreeSet;
 pub(super) type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 pub(super) type BalanceOf<T> =
 	<<T as Config>::Currency as Inspect<<T as frame_system::Config>::AccountId>>::Balance;
-pub(super) type ArtistAliasOf<T> = BoundedVec<u8, <T as Config>::MaxNameLen>;
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, TypeInfo)]
-pub enum UpdatableData<ArtistAlias> {
-	Alias(Option<ArtistAlias>),
+pub enum UpdatableData {
+	MainType(ArtistType),
+	ExtraTypes(ExtraArtistTypes),
 	Genres(UpdatableGenres),
 	Description(Option<Vec<u8>>),
 	Assets(UpdatableAssets),
@@ -70,18 +72,18 @@ where
 	pub(crate) owner: AccountIdOf<T>,
 	/// When the artist got registered on-chain.
 	pub(crate) registered_at: BlockNumberFor<T>,
-	/// When the artist got verified.
-	verified_at: Option<BlockNumberFor<T>>,
 	// Metadata
 	/// The name of the artist.
 	/// This is generally the main name of how we usually call the artist (e.g: 'The Weeknd')
 	/// This is fixed and can't be changed after the registration.
 	pub(crate) main_name: BoundedVec<u8, T::MaxNameLen>,
-	/// An alias to the main name.
-	/// This name can be changed compared to the 'nickname'
-	pub(crate) alias: Option<ArtistAliasOf<T>>,
+	/// The main type definition of the Artist.
+	pub(crate) main_type: ArtistType,
+	/// Extra (secondary) types that can be defined.
+	pub(crate) extra_types: ExtraArtistTypes,
 	/// The main music genres of the artists.
-	genres: BoundedVec<MusicGenre, T::MaxGenres>,
+	pub(crate) genres: BoundedVec<MusicGenre, T::MaxGenres>,
+
 	// Metadata Fingerprint
 	// Given the significant size of certain data associated with an artist,
 	// we choose to store a digital fingerprint (hash) of this data rather than
@@ -93,10 +95,7 @@ where
 	/// Digital assets (such as photos, profile pictures, banners, videos, etc.)
 	/// that officially represent the artist. These fingerprints allow for the
 	/// verification of the authenticity of these assets.
-	assets: BoundedVec<T::Hash, T::MaxAssets>,
-	// Linked chain logic data
-	/// Associated smart-contracts deployed by dApps for the artist (e.g: royalties contracts)
-	contracts: BoundedVec<AccountIdOf<T>, T::MaxContracts>,
+	pub(crate) assets: BoundedVec<T::Hash, T::MaxAssets>,
 }
 
 impl<T> Artist<T>
@@ -106,8 +105,9 @@ where
 	pub(super) fn new(
 		owner: AccountIdOf<T>,
 		main_name: BoundedVec<u8, T::MaxNameLen>,
-		alias: Option<ArtistAliasOf<T>>,
 		genres: BoundedVec<MusicGenre, T::MaxGenres>,
+		main_type: ArtistType,
+		extra_artist_types: ExtraArtistTypes,
 		description: Option<Vec<u8>>,
 		assets: BoundedVec<Vec<u8>, T::MaxAssets>,
 	) -> Result<Self, DispatchErrorWithPostInfo> {
@@ -116,14 +116,13 @@ where
 		let mut new_artist = Artist {
 			owner,
 			registered_at: current_block,
-			verified_at: None,
 			main_name: main_name.clone(),
-			alias: Default::default(),
 			// need to set later with the checked fn
+			main_type: Default::default(),
+			extra_types: Default::default(),
 			genres: Default::default(),
 			description: Default::default(),
 			assets: Default::default(),
-			contracts: Default::default(),
 		};
 
 		let name_len: BalanceOf<T> = main_name.encoded_size().saturated_into();
@@ -133,7 +132,8 @@ where
 			T::ByteDeposit::get().saturating_mul(name_len),
 		)?;
 
-		new_artist.set_alias(alias)?;
+		new_artist.set_checked_main_type(main_type)?;
+		new_artist.set_checked_extra_types(extra_artist_types)?;
 		new_artist.set_checked_genres(genres)?;
 		new_artist.set_description(description)?;
 		assets
@@ -169,12 +169,10 @@ where
 		self.set_checked_genres(actual_genres)
 	}
 
-	pub(super) fn update(
-		&mut self,
-		field: UpdatableData<BoundedVec<u8, T::MaxNameLen>>,
-	) -> DispatchResultWithPostInfo {
+	pub(super) fn update(&mut self, field: UpdatableData) -> DispatchResultWithPostInfo {
 		match field {
-			UpdatableData::Alias(x) => self.set_alias(x)?,
+			UpdatableData::MainType(x) => self.set_checked_main_type(x)?,
+			UpdatableData::ExtraTypes(x) => self.set_checked_extra_types(x)?,
 			UpdatableData::Genres(UpdatableGenres::Add(x)) => return self.add_checked_genres(x),
 			UpdatableData::Genres(UpdatableGenres::Remove(x)) => return self.remove_genre(x),
 			UpdatableData::Genres(UpdatableGenres::Clear) => self.genres = Default::default(),
@@ -185,41 +183,6 @@ where
 		}
 
 		Ok(().into())
-	}
-	/// Return true if the artist have a 'verified_at" timestamp which mean he's verified
-	pub(super) fn is_verified(&self) -> bool {
-		self.verified_at.is_some()
-	}
-
-	fn set_alias(
-		&mut self,
-		alias: Option<BoundedVec<u8, T::MaxNameLen>>,
-	) -> Result<(), DispatchErrorWithPostInfo> {
-		let alias_len = alias.encoded_size();
-		let alias_cost = T::ByteDeposit::get().saturating_mul(alias_len.saturated_into());
-
-		let old_deposit =
-			T::Currency::balance_on_hold(&HoldReason::ArtistAlias.into(), &self.owner);
-
-		if alias_cost > old_deposit {
-			T::Currency::hold(
-				&HoldReason::ArtistAlias.into(),
-				&self.owner,
-				alias_cost - old_deposit,
-			)?;
-		}
-		if alias_cost < old_deposit {
-			T::Currency::release(
-				&HoldReason::ArtistAlias.into(),
-				&self.owner,
-				old_deposit - alias_cost,
-				Precision::Exact,
-			)?;
-		}
-
-		self.alias = alias;
-
-		Ok(())
 	}
 
 	fn set_description(
@@ -237,6 +200,28 @@ where
 			None => self.description = None,
 		}
 
+		Ok(())
+	}
+
+	fn set_checked_main_type(
+		&mut self,
+		main_type: ArtistType,
+	) -> Result<(), DispatchErrorWithPostInfo> {
+		if self.extra_types.is_type(main_type) {
+			return Err(Error::<T>::IsExtraType.into())
+		}
+		self.main_type = main_type;
+		Ok(())
+	}
+
+	fn set_checked_extra_types(
+		&mut self,
+		extra_types: ExtraArtistTypes,
+	) -> Result<(), DispatchErrorWithPostInfo> {
+		if extra_types.is_type(self.main_type) {
+			return Err(Error::<T>::IsMainType.into())
+		}
+		self.extra_types = extra_types;
 		Ok(())
 	}
 
@@ -313,3 +298,34 @@ where
 			.map_err(|e| e.into())
 	}
 }
+
+#[bitflags]
+#[repr(u16)]
+#[derive(
+	Copy, Clone, Default, RuntimeDebug, PartialEq, Eq, Encode, Decode, MaxEncodedLen, TypeInfo,
+)]
+pub enum ArtistType {
+	#[default]
+	Singer,
+	Instrumentalist,
+	Composer,
+	Lyricist,
+	Producer,
+	DiscJokey,
+	Conductor,
+	Arranger,
+	Engineer,
+	Director,
+}
+
+/// Wrapper type for `BitFlags<ArtistType>` that implements `Codec`.
+#[derive(Default, Clone, PartialEq, Eq, RuntimeDebug)]
+pub struct ExtraArtistTypes(pub BitFlags<ArtistType>);
+
+impl ExtraArtistTypes {
+	pub fn is_type(&self, artist_type: ArtistType) -> bool {
+		self.0.contains(artist_type)
+	}
+}
+
+impl_codec_bitflags!(ExtraArtistTypes, u16, ArtistType);

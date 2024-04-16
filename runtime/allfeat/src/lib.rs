@@ -1031,7 +1031,6 @@ parameter_types! {
 parameter_types! {
 	pub const MaxNameLen: u32 = 128;
 	pub const MaxGenres: u32 = 5;
-	pub const MaxContracts: u32 = 512;
 	pub const MaxAssets: u32 = 64;
 	pub const ByteDesposit: Balance = deposit(0, 1);
 	pub const BaseDeposit: Balance = 1 * AFT;
@@ -1051,7 +1050,6 @@ impl pallet_artists::Config for Runtime {
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type MaxNameLen = MaxNameLen;
 	type MaxAssets = MaxAssets;
-	type MaxContracts = MaxContracts;
 	type MaxGenres = MaxGenres;
 	type WeightInfo = (); // TODO
 }

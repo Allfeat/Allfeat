@@ -18,18 +18,21 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-extern crate alloc;
-
 use frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
+use num_enum::{IntoPrimitive, TryFromPrimitive};
 use pallet_evm::AddressMapping;
 use parity_scale_codec::Encode;
-use precompile_utils::prelude::*;
+use precompile_utils::{
+	prelude::*,
+	solidity::{
+		codec::{Reader, Writer},
+		Codec,
+	},
+};
 use sp_core::{MaxEncodedLen, H160, H256, U256};
 use sp_runtime::{traits::Dispatchable, SaturatedConversion};
-use sp_std::{marker::PhantomData, vec};
-
-#[cfg(not(feature = "std"))]
-use sp_std::vec::Vec;
+use sp_std::{marker::PhantomData, prelude::*};
+extern crate alloc;
 
 #[cfg(test)]
 mod mock;
@@ -81,26 +84,17 @@ where
 		let artist_data: ArtistDataOf<Runtime> = ArtistData {
 			owner: Address::from(artist.owner().clone().into()),
 			registered_at: artist.registered_at().clone().saturated_into(),
-			verification: match artist.verified_at() {
-				Some(x) => Verification { is_verified: true, verified_at: (*x).saturated_into() },
-				None => Verification { is_verified: false, verified_at: Default::default() },
-			},
 			main_name: artist.main_name().to_vec().into(),
-			alias: match artist.alias() {
-				Some(x) => Alias { has_alias: true, alias: x.to_vec().into() },
-				None => Alias { has_alias: false, alias: BoundedBytes::from(vec![]) },
-			},
+			main_type: (*artist.main_type()).into(),
+			extra_types: FromBitFlagsWrapper::<pallet_artists::types::ExtraArtistTypes>::from(
+				&artist.extra_types(),
+			),
 			genres: artist.genres().iter().map(|genre| genre.encode()).collect(),
 			description: match artist.description() {
 				Some(x) => DescriptionPreimage { has_preimage: true, preimage: (*x).into() },
 				None => DescriptionPreimage { has_preimage: false, preimage: Default::default() },
 			},
 			assets: artist.assets().iter().map(|hash| (*hash).into()).collect(),
-			contracts: artist
-				.contracts()
-				.iter()
-				.map(|id| Address::from(id.clone().into()))
-				.collect(), // TODO
 		};
 		let evm_artist: ArtistOf<Runtime> = Artist { is_artist: true, data: artist_data };
 
@@ -109,35 +103,97 @@ where
 }
 
 #[derive(Eq, PartialEq, Default, Debug, solidity::Codec)]
-pub struct Verification {
-	is_verified: bool,
-	verified_at: u32,
-}
-
-#[derive(Eq, PartialEq, Debug, solidity::Codec)]
-pub struct Alias<NameLen> {
-	has_alias: bool,
-	alias: BoundedBytes<NameLen>,
-}
-
-#[derive(Eq, PartialEq, Default, Debug, solidity::Codec)]
-pub struct DescriptionPreimage {
+struct DescriptionPreimage {
 	has_preimage: bool,
 	preimage: H256,
 }
 
+#[derive(Eq, PartialEq, Default, Debug, IntoPrimitive, TryFromPrimitive)]
+#[repr(u16)]
+enum ArtistType {
+	#[default]
+	Singer,
+	Instrumentalist,
+	Composer,
+	Lyricist,
+	Producer,
+	DiscJokey,
+	Conductor,
+	Arranger,
+	Engineer,
+	Director,
+}
+
+impl Codec for ArtistType {
+	fn read(reader: &mut Reader) -> MayRevert<ArtistType> {
+		let value256: U256 =
+			reader.read().map_err(|_| RevertReason::read_out_of_bounds(Self::signature()))?;
+
+		let value_as_u16: u16 = value256
+			.try_into()
+			.map_err(|_| RevertReason::value_is_too_large(Self::signature()))?;
+
+		value_as_u16
+			.try_into()
+			.map_err(|_| RevertReason::custom("Unknown artist type").into())
+	}
+
+	fn write(writer: &mut Writer, value: Self) {
+		let value_as_u16: u16 = value.into();
+		U256::write(writer, value_as_u16.into());
+	}
+
+	fn has_static_size() -> bool {
+		true
+	}
+
+	fn signature() -> String {
+		"uint16".into()
+	}
+}
+
+impl From<pallet_artists::types::ArtistType> for ArtistType {
+	fn from(value: pallet_artists::types::ArtistType) -> Self {
+		match value {
+			pallet_artists::types::ArtistType::Singer => Self::Singer,
+			pallet_artists::types::ArtistType::Instrumentalist => Self::Instrumentalist,
+			pallet_artists::types::ArtistType::Composer => Self::Composer,
+			pallet_artists::types::ArtistType::Lyricist => Self::Lyricist,
+			pallet_artists::types::ArtistType::Producer => Self::Producer,
+			pallet_artists::types::ArtistType::DiscJokey => Self::DiscJokey,
+			pallet_artists::types::ArtistType::Conductor => Self::Conductor,
+			pallet_artists::types::ArtistType::Arranger => Self::Arranger,
+			pallet_artists::types::ArtistType::Engineer => Self::Engineer,
+			pallet_artists::types::ArtistType::Director => Self::Director,
+		}
+	}
+}
+
+trait FromBitFlagsWrapper<BitflagWrapper> {
+	fn from(value: &BitflagWrapper) -> Vec<Self>
+	where
+		Self: Sized;
+}
+
+impl FromBitFlagsWrapper<pallet_artists::types::ExtraArtistTypes> for ArtistType {
+	fn from(value: &pallet_artists::types::ExtraArtistTypes) -> Vec<Self> {
+		let mut v: Vec<Self> = Vec::new();
+		value.0.iter().for_each(|x| v.push(x.into()));
+		v
+	}
+}
+
 #[derive(Eq, PartialEq, Debug, solidity::Codec)]
-pub struct ArtistData<NameLen> {
+struct ArtistData<NameLen> {
 	owner: Address,
 	registered_at: u32,
-	verification: Verification,
 	main_name: BoundedBytes<NameLen>,
-	alias: Alias<NameLen>,
+	main_type: ArtistType,
+	extra_types: Vec<ArtistType>,
 	// Genres are stored as the scale encoded enum
 	genres: Vec<Vec<u8>>,
 	description: DescriptionPreimage,
 	assets: Vec<H256>,
-	contracts: Vec<Address>,
 }
 
 impl<T> Default for ArtistData<T> {
@@ -145,19 +201,18 @@ impl<T> Default for ArtistData<T> {
 		Self {
 			owner: Default::default(),
 			registered_at: Default::default(),
-			verification: Default::default(),
+			main_type: Default::default(),
+			extra_types: Default::default(),
 			main_name: BoundedBytes::from(vec![]),
-			alias: Alias { has_alias: Default::default(), alias: BoundedBytes::from(vec![]) },
 			genres: Default::default(),
 			description: Default::default(),
 			assets: Default::default(),
-			contracts: Default::default(),
 		}
 	}
 }
 
 #[derive(Debug, solidity::Codec)]
-pub struct Artist<NameLen> {
+struct Artist<NameLen> {
 	is_artist: bool,
 	data: ArtistData<NameLen>,
 }
