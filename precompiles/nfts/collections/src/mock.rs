@@ -55,7 +55,7 @@ impl AddressToCollectionId<CollectionId> for Runtime {
 	fn address_to_collection_id(address: H160) -> Option<CollectionId> {
 		let address: MockAccount = address.into();
 		if address.has_prefix_u32(NFTS_PRECOMPILE_ADDRESS_PREFIX) {
-			return Some(address.without_prefix());
+			Some(address.without_prefix())
 		} else {
 			None
 		}
