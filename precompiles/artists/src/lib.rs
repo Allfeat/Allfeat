@@ -83,11 +83,11 @@ where
 		let artist = artist.expect("none case checked above; qed");
 		let artist_data: ArtistDataOf<Runtime> = ArtistData {
 			owner: Address::from(artist.owner().clone().into()),
-			registered_at: artist.registered_at().clone().saturated_into(),
+			registered_at: (*artist.registered_at()).saturated_into(),
 			main_name: artist.main_name().to_vec().into(),
 			main_type: (*artist.main_type()).into(),
 			extra_types: FromBitFlagsWrapper::<pallet_artists::types::ExtraArtistTypes>::from(
-				&artist.extra_types(),
+				artist.extra_types(),
 			),
 			genres: artist.genres().iter().map(|genre| genre.encode()).collect(),
 			description: match artist.description() {

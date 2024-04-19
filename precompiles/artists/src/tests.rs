@@ -105,18 +105,15 @@ fn test_artists_returns_valid_data_for_artist_data() {
 							has_preimage: true,
 							preimage: <Runtime as frame_system::Config>::Hashing::hash(
 								vec![0x03u8].as_slice(),
-							)
-							.into(),
+							),
 						},
 						assets: vec![
 							<Runtime as frame_system::Config>::Hashing::hash(
 								vec![0x04u8].as_slice(),
-							)
-							.into(),
+							),
 							<Runtime as frame_system::Config>::Hashing::hash(
 								vec![0x05u8].as_slice(),
-							)
-							.into(),
+							),
 						],
 					},
 				})
