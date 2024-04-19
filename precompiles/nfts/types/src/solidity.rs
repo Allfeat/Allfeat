@@ -256,18 +256,13 @@ where
 }
 
 /// Convenience type used to encode MintType types.
-#[derive(Clone, Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
+#[derive(Default, Clone, Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
 #[repr(u8)]
 pub enum MintType {
+	#[default]
 	Issuer,
 	Public,
 	HolderOf,
-}
-
-impl Default for MintType {
-	fn default() -> Self {
-		MintType::Issuer
-	}
 }
 
 impl Codec for MintType {
@@ -347,17 +342,12 @@ where
 }
 
 /// Convenience type used to encode PriceDirection types.
-#[derive(Clone, Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
+#[derive(Default, Clone, Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
 #[repr(u8)]
 pub enum PriceDirection {
+	#[default]
 	Send,
 	Receive,
-}
-
-impl Default for PriceDirection {
-	fn default() -> Self {
-		PriceDirection::Send
-	}
 }
 
 impl Codec for PriceDirection {
@@ -494,23 +484,18 @@ impl ItemTip {
 }
 
 /// Convenience type used to encode MintType types.
-#[derive(Clone, Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
+#[derive(Default, Clone, Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
 #[repr(u8)]
 pub enum AttributeNamespace {
 	/// An attribute was set by the pallet.
 	Pallet,
 	/// An attribute was set by collection's owner.
+	#[default]
 	CollectionOwner,
 	/// An attribute was set by item's owner.
 	ItemOwner,
 	/// An attribute was set by pre-approved account.
 	Account,
-}
-
-impl Default for AttributeNamespace {
-	fn default() -> Self {
-		AttributeNamespace::CollectionOwner
-	}
 }
 
 impl Codec for AttributeNamespace {
