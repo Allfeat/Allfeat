@@ -152,7 +152,7 @@ where
 		let mut seen = BTreeSet::new();
 
 		for genre in genres.clone() {
-			if !seen.insert(genre.clone()) {
+			if !seen.insert(genre) {
 				return Err(Error::<T>::NotUniqueGenre.into());
 			}
 		}
@@ -225,7 +225,7 @@ where
 		Ok(())
 	}
 
-	fn add_checked_asset(&mut self, asset: &Vec<u8>) -> DispatchResultWithPostInfo {
+	fn add_checked_asset(&mut self, asset: &[u8]) -> DispatchResultWithPostInfo {
 		let hash = T::Hashing::hash(asset);
 
 		match self.assets.contains(&hash) {
@@ -241,7 +241,7 @@ where
 		}
 	}
 
-	fn remove_asset(&mut self, asset: &Vec<u8>) -> DispatchResultWithPostInfo {
+	fn remove_asset(&mut self, asset: &[u8]) -> DispatchResultWithPostInfo {
 		let hash = T::Hashing::hash(asset);
 
 		if let Some(pos) = self.assets.iter().position(|&x| x == hash) {
