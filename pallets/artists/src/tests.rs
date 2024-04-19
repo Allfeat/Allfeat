@@ -42,9 +42,8 @@ struct ArtistMock<T: Config> {
 
 fn tester_artist<T: Config>() -> ArtistMock<T> {
 	let mut extra_types = ExtraArtistTypes::default();
-	let mut genres = Vec::new();
+	let genres = vec![MusicGenre::Electronic(Some(ElectronicSubtype::House))];
 
-	genres.push(MusicGenre::Electronic(Some(ElectronicSubtype::House)));
 	extra_types.0.insert(ArtistTypeFlag::DiscJokey);
 	extra_types.0.insert(ArtistTypeFlag::Instrumentalist);
 
@@ -87,12 +86,12 @@ fn artist_register_works() {
 		let artist = tester_artist::<Test>();
 		let artist_id = 1u64;
 
-		let old_balance = Balances::free_balance(&artist_id);
+		let old_balance = Balances::free_balance(artist_id);
 
 		assert_ok!(Artists::register(
 			RuntimeOrigin::signed(artist_id),
 			artist.main_name.clone(),
-			artist.main_type.clone(),
+			artist.main_type,
 			artist.extra_types.clone(),
 			artist.genres.clone(),
 			artist.description.clone(),
@@ -100,7 +99,7 @@ fn artist_register_works() {
 		));
 
 		// Verify register cost
-		let new_balance = Balances::free_balance(&artist_id);
+		let new_balance = Balances::free_balance(artist_id);
 
 		let expected_cost = expected_artist_cost(&artist);
 
@@ -128,12 +127,12 @@ fn artist_force_unregister_works() {
 		let artist = tester_artist::<Test>();
 		let artist_id = 1u64;
 
-		let old_balance = Balances::free_balance(&artist_id);
+		let old_balance = Balances::free_balance(artist_id);
 
 		assert_ok!(Artists::register(
 			RuntimeOrigin::signed(artist_id),
 			artist.main_name.clone(),
-			artist.main_type.clone(),
+			artist.main_type,
 			artist.extra_types.clone(),
 			artist.genres.clone(),
 			artist.description.clone(),
@@ -149,7 +148,7 @@ fn artist_force_unregister_works() {
 		assert_ok!(Artists::force_unregister(RuntimeOrigin::root(), artist_id,));
 
 		// Deposit has been returned
-		let new_balance = Balances::free_balance(&artist_id);
+		let new_balance = Balances::free_balance(artist_id);
 		let expected_cost = expected_artist_cost(&artist);
 
 		assert_eq!(new_balance, old_balance - expected_cost);
@@ -171,7 +170,7 @@ fn artist_unregister_works() {
 		assert_ok!(Artists::register(
 			RuntimeOrigin::signed(artist_id),
 			artist.main_name.clone(),
-			artist.main_type.clone(),
+			artist.main_type,
 			artist.extra_types.clone(),
 			artist.genres.clone(),
 			artist.description.clone(),
@@ -187,12 +186,12 @@ fn artist_unregister_works() {
 		let unregister_cd: u32 = <Test as Config>::UnregisterPeriod::get();
 		frame_system::Pallet::<Test>::set_block_number(unregister_cd.saturated_into());
 
-		let old_balance = Balances::free_balance(&artist_id);
+		let old_balance = Balances::free_balance(artist_id);
 
 		assert_ok!(Artists::unregister(RuntimeOrigin::signed(artist_id)));
 
 		// Deposit has been returned
-		let new_balance = Balances::free_balance(&artist_id);
+		let new_balance = Balances::free_balance(artist_id);
 		let expected_cost = expected_artist_cost(&artist);
 
 		assert_eq!(new_balance, old_balance + expected_cost);

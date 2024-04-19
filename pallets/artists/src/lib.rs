@@ -301,7 +301,7 @@ pub mod pallet {
 				origin.clone(),
 				main_name.clone(),
 				genres,
-				main_type.into(),
+				main_type,
 				extra_artist_types,
 				description,
 				assets,
@@ -368,7 +368,7 @@ pub mod pallet {
 
 		/// Update the passed caller artist data field with the passed data.
 		#[pallet::weight({
-            let weight_fn = Pallet::<T>::get_weight_update_fn(&data);
+            let weight_fn = Pallet::<T>::get_weight_update_fn(data);
             weight_fn()
         })]
 		#[pallet::call_index(3)]
@@ -381,7 +381,7 @@ pub mod pallet {
 					Self::deposit_event(ArtistUpdated { id: origin, new_data: data });
 					Ok(().into())
 				} else {
-					return Err(Error::<T>::NotRegistered.into());
+					Err(Error::<T>::NotRegistered.into())
 				}
 			})
 		}
@@ -397,32 +397,32 @@ where
 		// return all held deposits
 		T::Currency::release(
 			&HoldReason::ArtistRegistration.into(),
-			&account_id,
+			account_id,
 			T::BaseDeposit::get(),
 			Precision::BestEffort,
 		)?;
 		T::Currency::release(
 			&HoldReason::ArtistAssets.into(),
-			&account_id,
-			T::Currency::balance_on_hold(&HoldReason::ArtistAssets.into(), &account_id),
+			account_id,
+			T::Currency::balance_on_hold(&HoldReason::ArtistAssets.into(), account_id),
 			Precision::BestEffort,
 		)?;
 		T::Currency::release(
 			&HoldReason::ArtistAlias.into(),
-			&account_id,
-			T::Currency::balance_on_hold(&HoldReason::ArtistAlias.into(), &account_id),
+			account_id,
+			T::Currency::balance_on_hold(&HoldReason::ArtistAlias.into(), account_id),
 			Precision::BestEffort,
 		)?;
 		T::Currency::release(
 			&HoldReason::ArtistDescription.into(),
-			&account_id,
-			T::Currency::balance_on_hold(&HoldReason::ArtistDescription.into(), &account_id),
+			account_id,
+			T::Currency::balance_on_hold(&HoldReason::ArtistDescription.into(), account_id),
 			Precision::BestEffort,
 		)?;
 		T::Currency::release(
 			&HoldReason::ArtistName.into(),
-			&account_id,
-			T::Currency::balance_on_hold(&HoldReason::ArtistName.into(), &account_id),
+			account_id,
+			T::Currency::balance_on_hold(&HoldReason::ArtistName.into(), account_id),
 			Precision::BestEffort,
 		)?;
 		Ok(().into())
@@ -433,47 +433,47 @@ where
 		// slash and handle slash for all held deposits
 		let imbalance = <<T as pallet::Config>::Currency as BalancedHold<AccountIdOf<T>>>::slash(
 			&HoldReason::ArtistRegistration.into(),
-			&account_id,
+			account_id,
 			T::BaseDeposit::get(),
 		)
 		.0
 		.merge(
 			<<T as pallet::Config>::Currency as BalancedHold<AccountIdOf<T>>>::slash(
 				&HoldReason::ArtistAssets.into(),
-				&account_id,
-				T::Currency::balance_on_hold(&HoldReason::ArtistAssets.into(), &account_id),
+				account_id,
+				T::Currency::balance_on_hold(&HoldReason::ArtistAssets.into(), account_id),
 			)
 			.0,
 		)
 		.merge(
 			<<T as pallet::Config>::Currency as BalancedHold<AccountIdOf<T>>>::slash(
 				&HoldReason::ArtistAssets.into(),
-				&account_id,
-				T::Currency::balance_on_hold(&HoldReason::ArtistAssets.into(), &account_id),
+				account_id,
+				T::Currency::balance_on_hold(&HoldReason::ArtistAssets.into(), account_id),
 			)
 			.0,
 		)
 		.merge(
 			<<T as pallet::Config>::Currency as BalancedHold<AccountIdOf<T>>>::slash(
 				&HoldReason::ArtistAlias.into(),
-				&account_id,
-				T::Currency::balance_on_hold(&HoldReason::ArtistAlias.into(), &account_id),
+				account_id,
+				T::Currency::balance_on_hold(&HoldReason::ArtistAlias.into(), account_id),
 			)
 			.0,
 		)
 		.merge(
 			<<T as pallet::Config>::Currency as BalancedHold<AccountIdOf<T>>>::slash(
 				&HoldReason::ArtistDescription.into(),
-				&account_id,
-				T::Currency::balance_on_hold(&HoldReason::ArtistDescription.into(), &account_id),
+				account_id,
+				T::Currency::balance_on_hold(&HoldReason::ArtistDescription.into(), account_id),
 			)
 			.0,
 		)
 		.merge(
 			<<T as pallet::Config>::Currency as BalancedHold<AccountIdOf<T>>>::slash(
 				&HoldReason::ArtistName.into(),
-				&account_id,
-				T::Currency::balance_on_hold(&HoldReason::ArtistName.into(), &account_id),
+				account_id,
+				T::Currency::balance_on_hold(&HoldReason::ArtistName.into(), account_id),
 			)
 			.0,
 		);
@@ -520,8 +520,8 @@ where
 	/// the current context and specific parameters of each update operation.
 	fn get_weight_update_fn(data: &UpdatableData) -> Box<dyn FnOnce() -> Weight> {
 		match data {
-			UpdatableData::MainType(_) => Box::new(move || T::WeightInfo::update_main_type()),
-			UpdatableData::ExtraTypes(_) => Box::new(move || T::WeightInfo::update_extra_types()),
+			UpdatableData::MainType(_) => Box::new(T::WeightInfo::update_main_type),
+			UpdatableData::ExtraTypes(_) => Box::new(T::WeightInfo::update_extra_types),
 			UpdatableData::Genres(x) => match x {
 				UpdatableGenres::Add(_) =>
 					Box::new(move || T::WeightInfo::update_add_genres(T::MaxGenres::get())),
@@ -538,13 +538,13 @@ where
 				UpdatableAssets::Clear =>
 					Box::new(move || T::WeightInfo::update_clear_assets(T::MaxAssets::get())),
 			},
-			UpdatableData::Description(_) => Box::new(move || T::WeightInfo::update_description()),
+			UpdatableData::Description(_) => Box::new(T::WeightInfo::update_description),
 		}
 	}
 
 	/// Return if the actual account ID can unregister from being an Artist.
 	fn can_unregister(who: &T::AccountId) -> DispatchResultWithPostInfo {
-		let artist_data = Pallet::<T>::get_artist_by_id(&who);
+		let artist_data = Pallet::<T>::get_artist_by_id(who);
 
 		match artist_data {
 			Some(data) => {

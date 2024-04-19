@@ -21,7 +21,7 @@ pub mod v1 {
 	use sp_runtime::Saturating;
 
 	/// The log target.
-	const TARGET: &'static str = "runtime::artists::migration::v1";
+	const TARGET: &str = "runtime::artists::migration::v1";
 
 	/// The old artist types, useful in pre-upgrade.
 	mod v0 {
