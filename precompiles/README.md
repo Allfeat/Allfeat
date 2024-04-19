@@ -1,7 +1,6 @@
 # NFTs precompiles
 
-This folder contains a set of EVM precompiles designed to optimize and extend the functionality of non-fungible tokens (NFTs) on our blockchain. The implementation spans several aspects of NFT operations, including creation, trading, and management, structured into different modules.
-It's based on the substrate [nfts pallet](https://docs.rs/pallet-nfts/latest/pallet_nfts/)
+This folder contains a precompile in order to interact with the substrate [nfts pallet](https://docs.rs/pallet-nfts/latest/pallet_nfts/) through EVM. The implementation spans several aspects of NFT operations, including creation, trading, and management, structured into different modules.
 
 ## Structure
 
