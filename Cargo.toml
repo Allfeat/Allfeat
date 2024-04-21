@@ -176,7 +176,7 @@ allfeat-runtime = { version = "1.0.0-dev", path = "./runtime/allfeat" }
 
 # Other (client)
 clap = { version = "4.2.5", features = ["derive"] }
-serde = { version = "1.0.163", features = ["derive"] }
+serde = { version = "1.0.198", features = ["derive"] }
 jsonrpsee = { version = "0.22.3", features = ["server", "macros"] }
 serde_json = { version = "1.0.108", features = ["alloc", "arbitrary_precision"] }
 futures = "0.3.21"
