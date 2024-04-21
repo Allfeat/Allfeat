@@ -1,5 +1,6 @@
 name: Checks
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -121,4 +122,3 @@ jobs:
         with:
           crate: ${{ matrix.runtime }}
           features: std,runtime-benchmarks,try-runtime
-          default-std: true
