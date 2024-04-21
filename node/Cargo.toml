@@ -108,10 +108,10 @@ substrate-build-script-utils = { workspace = true }
 frame-benchmarking-cli = { workspace = true, optional = true }
 
 [features]
-default = ["harmonie-native", "allfeat-native"]
+default = ["all-natives"]
 
 fast-runtime = [
-    # darwinia
+    # allfeat
     "harmonie-runtime?/fast-runtime",
     "allfeat-runtime?/fast-runtime",
 ]
@@ -126,7 +126,7 @@ runtime-benchmarks = [
     "frame-benchmarking-cli/runtime-benchmarks"
 ]
 all-natives = [
-    # darwinia
+    # allfeat
     "harmonie-native",
     "allfeat-native",
 ]

@@ -1,0 +1,124 @@
+name: Checks
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "**.rs"
+      - "**.toml"
+      - "**.lock"
+      - "**.ts"
+      - "**.yml"
+      - "**.sol"
+  pull_request:
+    types: [ opened, synchronize, ready_for_review ]
+    branches:
+      - main
+      - develop
+    paths:
+      - "**.rs"
+      - "**.toml"
+      - "**.lock"
+      - "**.ts"
+      - "**.yml"
+      - "**.sol"
+
+env:
+  CACHE_VERSION: 0
+
+  CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+  CARGO_TERM_COLOR: always
+
+  RUST_BACKTRACE: full
+
+jobs:
+  basic-checks:
+    name: Task ${{ matrix.action }} Allfeat
+    if: github.event_name == 'push' || !github.event.pull_request.draft
+    needs: [ features-checks ]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        action: [ build, test ]
+    steps:
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          docker-images: true
+          swap-storage: false
+      - name: Set swap space
+        uses: pierotofy/set-swap-space@master
+        with:
+          swap-size-gb: 8
+      - name: Fetch latest code
+        uses: actions/checkout@v4
+      - name: Setup build environment
+        run: sudo apt install -y clang llvm protobuf-compiler
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ./target
+          key: ${{ matrix.action }}-${{ env.CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ matrix.action }}-${{ env.CACHE_VERSION }}-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml') }}-
+            ${{ matrix.action }}-${{ env.CACHE_VERSION }}-${{ runner.os }}-
+      - name: Action ${{ matrix.action }}
+        if: matrix.action == 'build'
+        run: cargo build --locked --features all-natives --profile ci
+      - name: Action ${{ matrix.action }}
+        if: matrix.action == 'test'
+        run: SKIP_WASM_BUILD=1 cargo test --locked --features all-natives,runtime-benchmarks --profile ci
+      - name: Configure artifacts
+        if: matrix.action == 'build'
+        run: |
+          mv target/ci/allfeat .
+          .github/shrink-cache.sh
+      - name: Upload
+        if: matrix.action == 'build'
+        uses: actions/upload-artifact@v4
+        with:
+          name: allfeat
+          path: allfeat
+          retention-days: 1
+
+  format-checks:
+    name: Task check format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch latest code
+        uses: actions/checkout@v4
+      - name: Install nightly Rust
+        run: rustup toolchain install nightly && rustup component add rustfmt --toolchain nightly
+      - name: Check format
+        run: cargo +nightly fmt --all -- --check
+      - name: Fast fail
+        uses: vishnudxb/cancel-workflow@v1.2
+        if: failure()
+        with:
+          repo: allfeat/allfeat
+          workflow_id: ${{ github.run_id }}
+          access_token: ${{ github.token }}
+
+  features-checks:
+    name: Task check features
+    if: github.event_name == 'push' || !github.event.pull_request.draft
+    strategy:
+      matrix:
+        runtime:
+          [ runtime/allfeat, runtime/harmonie ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch latest code
+        uses: actions/checkout@v4
+      - name: Check
+        uses: hack-ink/cargo-featalign-action@v0.1.1
+        with:
+          crate: ${{ matrix.runtime }}
+          features: std,runtime-benchmarks,try-runtime
+          default-std: true
