@@ -79,6 +79,7 @@ jobs:
         if: matrix.action == 'build'
         run: |
           mv target/ci/allfeat .
+          chmod u+x .github/shrink-cache.sh
           .github/shrink-cache.sh
       - name: Upload
         if: matrix.action == 'build'
