@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - main
+      - master
     paths:
       - "**.rs"
       - "**.toml"
@@ -14,7 +14,7 @@ on:
   pull_request:
     types: [ opened, synchronize, ready_for_review ]
     branches:
-      - main
+      - master
       - develop
     paths:
       - "**.rs"

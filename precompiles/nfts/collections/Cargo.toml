@@ -62,5 +62,6 @@ std = [
     "sp-runtime/std",
     "precompile-utils/std",
     "pallet-evm-precompile-nfts-types/std",
+    "log/std",
+    "num_enum/std"
 ]
-runtime-benchmarks = []
