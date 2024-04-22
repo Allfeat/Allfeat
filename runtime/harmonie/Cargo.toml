@@ -227,6 +227,9 @@ runtime-benchmarks = [
     "pallet-ethereum/runtime-benchmarks",
     "pallet-evm/runtime-benchmarks",
     "sp-staking/runtime-benchmarks",
+    "pallet-evm-precompile-nfts-factory/runtime-benchmarks",
+    "pallet-evm-precompile-nfts-collections/runtime-benchmarks",
+    "pallet-evm-precompile-nfts-swap/runtime-benchmarks",
 ]
 try-runtime = [
     "frame-election-provider-support/try-runtime",
