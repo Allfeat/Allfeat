@@ -38,7 +38,7 @@ pallet-artists = { package = "pallet-artists-v2", version = "1.0.0-dev", default
 parity-scale-codec = { version = "3.6.1", default-features = false, features = [
     "derive",
 ] }
-scale-info = { version = "2.10.0", default-features = false, features = [
+scale-info = { version = "2.11.2", default-features = false, features = [
     "derive",
 ] }
 static_assertions = "1.1.0"
@@ -176,9 +176,9 @@ allfeat-runtime = { version = "1.0.0-dev", path = "./runtime/allfeat" }
 
 # Other (client)
 clap = { version = "4.2.5", features = ["derive"] }
-serde = { version = "1.0.163", features = ["derive"] }
-jsonrpsee = { version = "0.22.3", features = ["server", "macros"] }
-serde_json = { version = "1.0.108", features = ["alloc", "arbitrary_precision"] }
+serde = { version = "1.0.198", features = ["derive"] }
+jsonrpsee = { version = "0.22.4", features = ["server", "macros"] }
+serde_json = { version = "1.0.116", features = ["alloc", "arbitrary_precision"] }
 futures = "0.3.21"
 rand = "0.8"
 tempfile = "3.1.0"
@@ -232,6 +232,12 @@ fp-dynamic-fee = { version = "1.0.0-dev", git = "https://github.com/Allfeat/fron
 [profile.dev.package.backtrace]
 inherits = "release"
 
+[profile.ci]
+debug = false
+incremental = false
+inherits = "dev"
+opt-level = "z"
+
 [profile.production]
 codegen-units = 1
 incremental = false
@@ -242,9 +248,3 @@ lto = true
 # Allfeat runtime requires unwinding.
 opt-level = 3
 panic = "unwind"
-
-[profile.testnet]
-debug = 1               # debug symbols are useful for profilers
-debug-assertions = true
-inherits = "release"
-overflow-checks = true
