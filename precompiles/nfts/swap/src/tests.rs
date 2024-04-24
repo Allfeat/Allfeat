@@ -83,10 +83,7 @@ fn create_swap_works() {
 			let expect_deadline = 101;
 
 			mint_each_collections();
-			assert_eq!(
-				pallet_nfts::PendingSwapOf::<Runtime>::get(collection_id, item_id).is_none(),
-				true
-			);
+			assert!(pallet_nfts::PendingSwapOf::<Runtime>::get(collection_id, item_id).is_none(),);
 			precompiles()
 				.prepare_test(
 					ALICE,
@@ -94,10 +91,10 @@ fn create_swap_works() {
 					PCall::create_swap {
 						offered_collection: collection_id.into(),
 						offered_item: item_id.into(),
-						desired_collection: desired_collection.clone().into(),
+						desired_collection: desired_collection.into(),
 						maybe_desired_item: maybe_desired_item.clone(),
 						maybe_price: maybe_price.clone(),
-						duration: duration.clone().into(),
+						duration: duration.into(),
 					},
 				)
 				.execute_returns(true);
@@ -105,7 +102,7 @@ fn create_swap_works() {
 			assert_eq!(get_owner_of_item(0, 1), Some(ALICE.into())); // check that the item is still owned by ALICE
 
 			let swap = pallet_nfts::PendingSwapOf::<Runtime>::get(collection_id, item_id);
-			assert_eq!(swap.is_some(), true);
+			assert!(swap.is_some());
 
 			let swap = swap.unwrap();
 			assert_eq!(*swap.desired_collection(), desired_collection);
@@ -132,10 +129,7 @@ fn cancel_swap_works() {
 			let duration = 100;
 
 			mint_each_collections();
-			assert_eq!(
-				pallet_nfts::PendingSwapOf::<Runtime>::get(collection_id, item_id).is_none(),
-				true
-			);
+			assert!(pallet_nfts::PendingSwapOf::<Runtime>::get(collection_id, item_id).is_none(),);
 			assert_ok!(NftsPallet::<Runtime>::create_swap(
 				OriginFor::<Runtime>::signed(ALICE.into()),
 				collection_id,
@@ -145,10 +139,7 @@ fn cancel_swap_works() {
 				maybe_price.try_into().unwrap(),
 				duration
 			));
-			assert_eq!(
-				pallet_nfts::PendingSwapOf::<Runtime>::get(collection_id, item_id).is_some(),
-				true
-			);
+			assert!(pallet_nfts::PendingSwapOf::<Runtime>::get(collection_id, item_id).is_some(),);
 
 			precompiles()
 				.prepare_test(
@@ -158,10 +149,7 @@ fn cancel_swap_works() {
 				)
 				.execute_returns(true);
 
-			assert_eq!(
-				pallet_nfts::PendingSwapOf::<Runtime>::get(collection_id, item_id).is_none(),
-				true
-			);
+			assert!(pallet_nfts::PendingSwapOf::<Runtime>::get(collection_id, item_id).is_none(),);
 			assert_eq!(get_owner_of_item(0, 1), Some(ALICE.into()));
 		});
 }
@@ -209,10 +197,7 @@ fn claim_swap_works() {
 				)
 				.execute_returns(true);
 
-			assert_eq!(
-				pallet_nfts::PendingSwapOf::<Runtime>::get(collection_id, item_id).is_none(),
-				true
-			);
+			assert!(pallet_nfts::PendingSwapOf::<Runtime>::get(collection_id, item_id).is_none(),);
 			assert_eq!(get_owner_of_item(0, 1), Some(BOB.into()));
 		});
 }
