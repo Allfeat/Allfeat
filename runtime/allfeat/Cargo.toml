@@ -121,6 +121,8 @@ substrate-wasm-builder = { workspace = true }
 default = ["std"]
 with-tracing = ["frame-executive/with-tracing"]
 std = [
+    "enumflags2/std",
+    "frame-election-provider-support/std",
     "sp-arithmetic/std",
     "sp-authority-discovery/std",
     "pallet-artists/std",
@@ -195,8 +197,13 @@ std = [
     "precompile-utils/std",
     "pallet-evm-precompile-balances-erc20/std",
     "pallet-evm-precompile-artists/std",
+    "num_enum/std",
+    "pallet-election-provider-support-benchmarking/std",
+    "sp-genesis-builder/std",
+    "sp-storage/std",
 ]
 runtime-benchmarks = [
+    "frame-election-provider-support/runtime-benchmarks",
     "shared-runtime/runtime-benchmarks",
     "frame-benchmarking/runtime-benchmarks",
     "frame-support/runtime-benchmarks",
@@ -229,7 +236,8 @@ runtime-benchmarks = [
     "pallet-referenda/runtime-benchmarks",
     "pallet-conviction-voting/runtime-benchmarks",
     "pallet-whitelist/runtime-benchmarks",
-    "pallet-vesting/runtime-benchmarks"
+    "pallet-vesting/runtime-benchmarks",
+    "sp-staking/runtime-benchmarks",
 ]
 try-runtime = [
     "frame-election-provider-support/try-runtime",

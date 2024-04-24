@@ -116,6 +116,10 @@ substrate-wasm-builder = { workspace = true }
 default = ["std"]
 with-tracing = ["frame-executive/with-tracing"]
 std = [
+    "frame-election-provider-support/std",
+    "num_enum/std",
+    "pallet-election-provider-support-benchmarking/std",
+    "sp-genesis-builder/std",
     "sp-arithmetic/std",
     "sp-authority-discovery/std",
     "pallet-artists/std",
@@ -191,6 +195,7 @@ std = [
     "pallet-evm-precompile-nfts-swap/std",
 ]
 runtime-benchmarks = [
+    "frame-election-provider-support/runtime-benchmarks",
     "shared-runtime/runtime-benchmarks",
     "frame-benchmarking/runtime-benchmarks",
     "frame-support/runtime-benchmarks",
@@ -221,6 +226,10 @@ runtime-benchmarks = [
     "frame-system-benchmarking/runtime-benchmarks",
     "pallet-ethereum/runtime-benchmarks",
     "pallet-evm/runtime-benchmarks",
+    "sp-staking/runtime-benchmarks",
+    "pallet-evm-precompile-nfts-factory/runtime-benchmarks",
+    "pallet-evm-precompile-nfts-collections/runtime-benchmarks",
+    "pallet-evm-precompile-nfts-swap/runtime-benchmarks",
 ]
 try-runtime = [
     "frame-election-provider-support/try-runtime",

@@ -44,5 +44,6 @@ std = [
     "sp-std/std",
     "sp-runtime/std",
     "precompile-utils/std",
+    "num_enum/std",
+    "pallet-timestamp/std",
 ]
-runtime-benchmarks = []
