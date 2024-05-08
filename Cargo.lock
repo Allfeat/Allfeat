@@ -6800,9 +6800,9 @@ dependencies = [
 
 [[package]]
 name = "parity-scale-codec"
-version = "3.6.9"
+version = "3.6.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "881331e34fa842a2fb61cc2db9643a8fedc615e47cfcc52597d1af0db9a7e8fe"
+checksum = "a1b5927e4a9ae8d6cdb6a69e4e04a0ec73381a358e21b8a576f44769f34e7c24"
 dependencies = [
  "arrayvec",
  "bitvec",

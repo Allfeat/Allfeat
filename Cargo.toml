@@ -35,7 +35,7 @@ allfeat-primitives = { version = "1.0.0", default-features = false, path = "./pr
 pallet-artists = { package = "pallet-artists-v2", version = "1.0.0-dev", default-features = false, path = "./pallets/artists" }
 
 # Substrate (wasm)
-parity-scale-codec = { version = "3.6.1", default-features = false, features = [
+parity-scale-codec = { version = "3.6.11", default-features = false, features = [
     "derive",
 ] }
 scale-info = { version = "2.11.2", default-features = false, features = [
