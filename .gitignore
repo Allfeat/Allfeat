@@ -19,3 +19,6 @@
 # IDE's related
 .idea
 .vscode
+
+# Binary folder
+bin
