@@ -27,15 +27,18 @@
           packages = with pkgs;
             [
               git
-              cacert
               rustToolchain
               openssl
               protobuf
+              llvmPackages.libclang
               pkg-config
               rust-analyzer
             ] ++ lib.optional
             (system == "x86_64-darwin" || system == "aarch64-darwin")
             darwin.apple_sdk.frameworks.SystemConfiguration;
+          LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
+          BINDGEN_EXTRA_CLANG_ARGS =
+            "-isystem ${pkgs.llvmPackages.libclang.lib}/lib/clang/17/include";
         };
       });
 
@@ -46,10 +49,14 @@
           src = ./.;
 
           buildInputs = with pkgs;
-            [ rustToolchain cacert git openssl protobuf pkg-config ]
+            [ rustToolchain llvmPackages.libclang openssl protobuf pkg-config ]
             ++ lib.optional
             (system == "x86_64-darwin" || system == "aarch64-darwin")
             darwin.apple_sdk.frameworks.SystemConfiguration;
+
+          LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
+          BINDGEN_EXTRA_CLANG_ARGS =
+            "-isystem ${pkgs.llvmPackages.libclang.lib}/lib/clang/17/include";
 
           buildPhase = ''
             export CARGO_HOME=$TMPDIR/cargo
