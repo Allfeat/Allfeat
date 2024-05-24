@@ -49,8 +49,14 @@
           src = ./.;
 
           buildInputs = with pkgs;
-            [ rustToolchain llvmPackages.libclang openssl protobuf pkg-config ]
-            ++ lib.optional
+            [
+              rustToolchain
+              cacert
+              llvmPackages.libclang
+              openssl
+              protobuf
+              pkg-config
+            ] ++ lib.optional
             (system == "x86_64-darwin" || system == "aarch64-darwin")
             darwin.apple_sdk.frameworks.SystemConfiguration;
 
@@ -68,6 +74,11 @@
             mkdir -p bin/
             cp target/release/allfeat bin/
           '';
+
+          # specify the content hash of this derivations output
+          outputHashAlgo = "sha256";
+          outputHashMode = "recursive";
+          outputHash = "sha256-Om4BcXK76QrExnKcDzw574l+h75C8yK/EbccpbcvLsQ=";
         };
       });
     };
