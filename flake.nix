@@ -78,7 +78,7 @@
           # specify the content hash of this derivations output
           outputHashAlgo = "sha256";
           outputHashMode = "recursive";
-          outputHash = "sha256-Om4BcXK76QrExnKcDzw574l+h75C8yK/EbccpbcvLsQ=";
+          outputHash = "sha256-G7n+pdgkF8HfsFiW1P9TicaXlIFIQuL4ur8mJFzzoGc=";
         };
       });
     };
