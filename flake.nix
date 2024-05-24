@@ -25,60 +25,12 @@
       devShells = forEachSupportedSystem ({ pkgs }: {
         default = pkgs.mkShell {
           packages = with pkgs;
-            [
-              git
-              rustToolchain
-              openssl
-              protobuf
-              llvmPackages.libclang
-              pkg-config
-              rust-analyzer
-            ] ++ lib.optional
-            (system == "x86_64-darwin" || system == "aarch64-darwin")
-            darwin.apple_sdk.frameworks.SystemConfiguration;
-          LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
-          BINDGEN_EXTRA_CLANG_ARGS =
-            "-isystem ${pkgs.llvmPackages.libclang.lib}/lib/clang/17/include";
-        };
-      });
-
-      packages = forEachSupportedSystem ({ pkgs, ... }: {
-        default = pkgs.stdenv.mkDerivation {
-          pname = "allfeat";
-          version = "0.1.0";
-          src = ./.;
-
-          buildInputs = with pkgs;
-            [
-              rustToolchain
-              cacert
-              llvmPackages.libclang
-              openssl
-              protobuf
-              pkg-config
-            ] ++ lib.optional
+            [ rustToolchain openssl protobuf clang pkg-config rust-analyzer ]
+            ++ lib.optional
             (system == "x86_64-darwin" || system == "aarch64-darwin")
             darwin.apple_sdk.frameworks.SystemConfiguration;
 
           LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
-          BINDGEN_EXTRA_CLANG_ARGS =
-            "-isystem ${pkgs.llvmPackages.libclang.lib}/lib/clang/17/include";
-
-          buildPhase = ''
-            export CARGO_HOME=$TMPDIR/cargo
-            export RUSTUP_HOME=$TMPDIR/rustup
-            cargo build --locked --release
-          '';
-
-          installPhase = ''
-            mkdir -p bin/
-            cp target/release/allfeat bin/
-          '';
-
-          # specify the content hash of this derivations output
-          outputHashAlgo = "sha256";
-          outputHashMode = "recursive";
-          outputHash = "sha256-G7n+pdgkF8HfsFiW1P9TicaXlIFIQuL4ur8mJFzzoGc=";
         };
       });
     };
