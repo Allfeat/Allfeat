@@ -35,9 +35,9 @@ interface Artists {
     struct ArtistData {
         address owner;
         uint32 registered_at;
+        string main_name;
         ArtistType main_type;
         ArtistType[] extra_types;
-        string main_name;
         bytes[] genres;
         DescriptionPreimage description;
         bytes32[] assets;
