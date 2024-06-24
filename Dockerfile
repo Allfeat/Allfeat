@@ -91,4 +91,4 @@ EXPOSE 30333 9933 9944 9615
 
 VOLUME ["/data"]
 
-ENTRYPOINT ["/usr/local/bin/allfeat", "--dev"]
+ENTRYPOINT ["/usr/local/bin/allfeat"]
