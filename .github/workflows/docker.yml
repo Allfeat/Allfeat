@@ -10,8 +10,11 @@
 name: Publish Docker image
 
 on:
+  workflow_dispatch:
   push:
-    branches: ['master']
+    branches: 
+      - "master"
+      - "allfeat-polkadot-*"
     paths:
       - "**.rs"
       - "**.toml"
@@ -39,13 +42,13 @@ jobs:
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v5
         with:
           images: allfeatnetwork/allfeat
 
       - name: Build and push Docker image
         id: push
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
