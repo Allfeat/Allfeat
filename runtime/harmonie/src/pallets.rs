@@ -48,7 +48,6 @@ mod grandpa;
 mod identity;
 mod im_online;
 mod mmr;
-mod nfts;
 mod nomination_pools;
 mod offences;
 mod preimage;

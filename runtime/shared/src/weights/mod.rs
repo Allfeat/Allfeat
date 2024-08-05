@@ -25,7 +25,6 @@ pub mod system;
 // pub mod identity;
 pub mod im_online;
 pub mod multisig;
-// pub mod pallet_nfts;
 pub mod nomination_pools;
 pub mod preimage;
 pub mod proxy;

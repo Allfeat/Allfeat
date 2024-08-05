@@ -148,9 +148,6 @@ mod runtime {
 	#[runtime::pallet_index(17)]
 	pub type Identity = pallet_identity;
 
-	#[runtime::pallet_index(18)]
-	pub type Nfts = pallet_nfts;
-
 	#[runtime::pallet_index(20)]
 	pub type Scheduler = pallet_scheduler;
 
@@ -247,7 +244,6 @@ frame_benchmarking::define_benchmarks!(
 	[pallet_mmr, Mmr]
 	[pallet_multisig, Multisig]
 	[pallet_nomination_pools, NominationPoolsBench::<Runtime>]
-	[pallet_nfts, Nfts]
 	[pallet_offences, OffencesBench::<Runtime>]
 	[pallet_preimage, Preimage]
 	[pallet_proxy, Proxy]

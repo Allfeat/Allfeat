@@ -2,7 +2,7 @@
 authors.workspace = true
 description = "Allfeat node."
 edition.workspace = true
-name = "alleat"
+name = "allfeat"
 readme = "README.md"
 version.workspace = true
 
@@ -100,9 +100,6 @@ shared-runtime = { workspace = true }
 harmonie-runtime = { workspace = true, optional = true }
 allfeat-runtime = { workspace = true, optional = true }
 
-# CLI-specific dependencies
-try-runtime-cli = { workspace = true, optional = true }
-
 [build-dependencies]
 substrate-build-script-utils = { workspace = true }
 frame-benchmarking-cli = { workspace = true, optional = true }
@@ -143,5 +140,4 @@ allfeat-native = [
 try-runtime = [
     "allfeat-runtime?/try-runtime",
     "harmonie-runtime?/try-runtime",
-    "try-runtime-cli/try-runtime"
 ]
