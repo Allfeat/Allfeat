@@ -20,11 +20,11 @@ use std::{env, sync::Arc};
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::{
-	benchmarking::{inherent_benchmark_data, RemarkBuilder, TransferKeepAliveBuilder}, chain_specs::ChainSpec, cli::{Cli, Subcommand}, eth::db_config_dir, service::{self, HarmonieClient as Client}
+	chain_specs::ChainSpec, cli::{Cli, Subcommand}, eth::db_config_dir, service::{self, HarmonieClient as Client}
 };
 use fc_db::kv::frontier_database_dir;
 use allfeat_primitives::Block;
-use frame_benchmarking_cli::{BenchmarkCmd, ExtrinsicFactory, SUBSTRATE_REFERENCE_HARDWARE};
+use frame_benchmarking_cli::{BenchmarkCmd, SUBSTRATE_REFERENCE_HARDWARE};
 use sc_cli::{ChainSpec as ChainSpecT, SubstrateCli};
 use sc_network::{Litep2pNetworkBackend, NetworkWorker};
 use sc_service::{DatabaseSource, PartialComponents};
@@ -241,38 +241,14 @@ pub fn run() -> sc_cli::Result<()> {
 					#[cfg(feature = "runtime-benchmarks")]
 					BenchmarkCmd::Storage(cmd) => {
 						let PartialComponents { client, backend, .. } =
-							service::new_partial::<Block, RuntimeApi>(&config, &cli.eth)?;
+							service::new_partial::<RuntimeApi>(&config, &cli.eth)?;
 						let db = backend.expose_db();
 						let storage = backend.expose_storage();
 
 						cmd.run(config, client, db, storage)
 					},
-					BenchmarkCmd::Overhead(cmd) => {
-						let PartialComponents { client, .. } = service::new_partial(&config, &cli.eth)?;
-						let ext_builder = RemarkBuilder::new(client.clone());
-
-						cmd.run(
-							config,
-							client,
-							inherent_benchmark_data()?,
-							Vec::new(),
-							&ext_builder,
-						)
-					},
-					BenchmarkCmd::Extrinsic(cmd) => {
-						let PartialComponents { client, .. } = service::new_partial(&config, &cli.eth)?;
-						// Register the *Remark* and *TKA* builders.
-						let ext_factory = ExtrinsicFactory(vec![
-							Box::new(RemarkBuilder::new(client.clone())),
-							Box::new(TransferKeepAliveBuilder::new(
-								client.clone(),
-								crate::chain_specs::get_account_id_from_seed::<sp_core::ecdsa::Public>("Alice"),
-								0,
-							)),
-						]);
-
-						cmd.run(client, inherent_benchmark_data()?, Vec::new(), &ext_factory)
-					},
+					BenchmarkCmd::Overhead(_) => Err("Unsupported benchmarking command".into()),
+					BenchmarkCmd::Extrinsic(_) => Err("Unsupported benchmarking command".into()),
 					BenchmarkCmd::Machine(cmd) =>
 						cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone()),
 				}
