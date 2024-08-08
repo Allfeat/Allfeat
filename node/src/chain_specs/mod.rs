@@ -39,14 +39,14 @@ pub mod account_key;
 #[cfg(feature = "harmonie-native")]
 pub mod harmonie;
 #[cfg(feature = "harmonie-native")]
-pub use harmonie::{self as harmonie_chain_spec, ChainSpec as HarmonieChainSpec};
+pub use harmonie::{self as harmonie_chain_spec};
 #[cfg(not(feature = "harmonie-native"))]
 pub type HarmonieChainSpec = DummyChainSpec;
 
 #[cfg(feature = "allfeat-native")]
 pub mod allfeat;
 #[cfg(feature = "allfeat-native")]
-pub use allfeat::{self as allfeat_chain_spec, ChainSpec as AllfeatChainSpec};
+pub use allfeat::{self as allfeat_chain_spec};
 #[cfg(not(feature = "allfeat-native"))]
 pub type AllfeatChainSpec = DummyChainSpec;
 
@@ -66,8 +66,8 @@ pub struct Extensions {
 }
 
 #[allow(unused)]
-// Dummy chain spec, in case when we don't have the native runtime.
-pub type DummyChainSpec = sc_chain_spec::GenericChainSpec<(), Extensions>;
+/// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
+pub type ChainSpec = sc_service::GenericChainSpec<Extensions>;
 
 /// Can be called for a `Configuration` to check if it is the specific network.
 pub trait IdentifyVariant {

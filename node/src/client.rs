@@ -18,52 +18,30 @@
 
 // Substrate
 use allfeat_primitives::{AccountId, Balance, Nonce};
-use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch, NativeVersion};
+use sp_runtime::traits::Block as BlockT;
 // Local
-use harmonie_runtime::RuntimeApi;
-use shared_runtime::opaque::Block;
+
+use crate::eth::EthCompatRuntimeApiCollection;
 
 /// Full client.
-pub type FullClient<RuntimeApi, Executor> =
-	sc_service::TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>;
-
-pub type Client = FullClient<RuntimeApi, HarmonieRuntimeExecutor>;
+pub type FullClient<B, RA> = sc_service::TFullClient<B, RA, RuntimeExecutor>;
 
 /// Only enable the benchmarking host functions when we actually want to benchmark.
 #[cfg(feature = "runtime-benchmarks")]
-pub type HostFunctions = frame_benchmarking::benchmarking::HostFunctions;
+pub type HostFunctions = (
+	sp_io::SubstrateHostFunctions,
+	frame_benchmarking::benchmarking::HostFunctions,
+);
 /// Otherwise we use empty host functions for ext host functions.
 #[cfg(not(feature = "runtime-benchmarks"))]
-pub type HostFunctions = ();
+pub type HostFunctions = sp_io::SubstrateHostFunctions;
 
-pub struct HarmonieRuntimeExecutor;
-impl NativeExecutionDispatch for HarmonieRuntimeExecutor {
-	type ExtendHostFunctions = HostFunctions;
-
-	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-		harmonie_runtime::api::dispatch(method, data)
-	}
-
-	fn native_version() -> NativeVersion {
-		harmonie_runtime::native_version()
-	}
-}
-
-pub struct AllfeatRuntimeExecutor;
-impl NativeExecutionDispatch for AllfeatRuntimeExecutor {
-	type ExtendHostFunctions = HostFunctions;
-
-	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-		allfeat_runtime::api::dispatch(method, data)
-	}
-
-	fn native_version() -> NativeVersion {
-		allfeat_runtime::native_version()
-	}
-}
+/// A specialized `WasmExecutor` intended to use across substrate node. It provides all required
+/// HostFunctions.
+pub type RuntimeExecutor = sc_executor::WasmExecutor<HostFunctions>;
 
 /// A set of APIs that every runtimes must implement.
-pub trait BaseRuntimeApiCollection:
+pub trait BaseRuntimeApiCollection<Block: BlockT>:
 	sp_api::ApiExt<Block>
 	+ sp_api::Metadata<Block>
 	+ sp_block_builder::BlockBuilder<Block>
@@ -75,7 +53,8 @@ pub trait BaseRuntimeApiCollection:
 {
 }
 
-impl<Api> BaseRuntimeApiCollection for Api where
+impl<Api, Block> BaseRuntimeApiCollection<Block> for Api where
+	Block: BlockT,
 	Api: sp_api::ApiExt<Block>
 		+ sp_api::Metadata<Block>
 		+ sp_block_builder::BlockBuilder<Block>
@@ -88,18 +67,18 @@ impl<Api> BaseRuntimeApiCollection for Api where
 }
 
 /// A set of APIs that template runtime must implement.
-pub trait RuntimeApiCollection:
-	BaseRuntimeApiCollection
-	+ fp_rpc::EthereumRuntimeRPCApi<Block>
-	+ fp_rpc::ConvertTransactionRuntimeApi<Block>
+pub trait RuntimeApiCollection<Block: BlockT>:
+	BaseRuntimeApiCollection<Block>
+	+ EthCompatRuntimeApiCollection<Block>
 	+ frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Nonce>
 	+ pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance>
 	+ sp_authority_discovery::AuthorityDiscoveryApi<Block>
 {
 }
 
-impl<Api> RuntimeApiCollection for Api where
-	Api: BaseRuntimeApiCollection
+impl<Api, Block> RuntimeApiCollection<Block> for Api where
+	Block: BlockT,
+	Api: BaseRuntimeApiCollection<Block>
 		+ fp_rpc::EthereumRuntimeRPCApi<Block>
 		+ fp_rpc::ConvertTransactionRuntimeApi<Block>
 		+ frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Nonce>

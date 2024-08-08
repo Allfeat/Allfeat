@@ -20,25 +20,18 @@ use std::{env, path::PathBuf, sync::Arc};
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::{
-	chain_specs::DummyChainSpec,
-	cli::{Cli, Subcommand},
-	client::Client,
-	eth::db_config_dir,
-	service,
+	benchmarking::{inherent_benchmark_data, RemarkBuilder, TransferKeepAliveBuilder}, chain_specs::ChainSpec, cli::{Cli, Subcommand}, eth::db_config_dir, service::{self, Client}
 };
 use fc_db::kv::frontier_database_dir;
-use harmonie_runtime::Block;
-use sc_cli::{ChainSpec, SubstrateCli};
-use sc_service::DatabaseSource;
+use allfeat_primitives::Block;
+use frame_benchmarking_cli::{BenchmarkCmd, ExtrinsicFactory, SUBSTRATE_REFERENCE_HARDWARE};
+use harmonie_runtime::RuntimeApi;
+use sc_cli::{ChainSpec as ChainSpecT, SubstrateCli};
+use sc_service::{DatabaseSource, PartialComponents};
 
-#[cfg(feature = "runtime-benchmarks")]
-use crate::chain_specs::get_account_id_from_seed;
-use crate::{
+use crate::
 	chain_specs::{
-		allfeat_chain_spec, harmonie_chain_spec, AllfeatChainSpec, HarmonieChainSpec,
-		IdentifyVariant,
-	},
-	client::{AllfeatRuntimeExecutor, HarmonieRuntimeExecutor},
+		allfeat_chain_spec, harmonie_chain_spec, IdentifyVariant
 };
 
 impl SubstrateCli for Cli {
@@ -75,7 +68,7 @@ impl SubstrateCli for Cli {
 		2022
 	}
 
-	fn load_spec(&self, id: &str) -> Result<Box<dyn ChainSpec>, String> {
+	fn load_spec(&self, id: &str) -> Result<Box<dyn ChainSpecT>, String> {
 		load_spec(id)
 	}
 }
@@ -179,58 +172,75 @@ pub fn run() -> sc_cli::Result<()> {
 				Ok((cmd.run(client, backend, Some(aux_revert)), task_manager))
 			})
 		},
-		#[cfg(feature = "runtime-benchmarks")]
 		Some(Subcommand::Benchmark(cmd)) => {
-			use crate::benchmarking::{
-				inherent_benchmark_data, RemarkBuilder, TransferKeepAliveBuilder,
-			};
-			use allfeat_primitives::Hashing;
-			use frame_benchmarking_cli::{
-				BenchmarkCmd, ExtrinsicFactory, SUBSTRATE_REFERENCE_HARDWARE,
-			};
-			use harmonie_runtime::ExistentialDeposit;
-
 			let runner = cli.create_runner(cmd)?;
-			match cmd {
-				BenchmarkCmd::Pallet(cmd) =>
-					runner.sync_run(|config| cmd.run::<Hashing, ()>(config)),
-				BenchmarkCmd::Block(cmd) => runner.sync_run(|mut config| {
-					let (client, _, _, _, _) = service::new_chain_ops(&mut config, &cli.eth)?;
-					cmd.run(client)
-				}),
-				BenchmarkCmd::Storage(cmd) => runner.sync_run(|mut config| {
-					let (client, backend, _, _, _) = service::new_chain_ops(&mut config, &cli.eth)?;
-					let db = backend.expose_db();
-					let storage = backend.expose_storage();
-					cmd.run(config, client, db, storage)
-				}),
-				BenchmarkCmd::Overhead(cmd) => runner.sync_run(|mut config| {
-					let (client, _, _, _, _) = service::new_chain_ops(&mut config, &cli.eth)?;
-					let ext_builder = RemarkBuilder::new(client.clone());
-					cmd.run(config, client, inherent_benchmark_data()?, Vec::new(), &ext_builder)
-				}),
-				BenchmarkCmd::Extrinsic(cmd) => runner.sync_run(|mut config| {
-					let (client, _, _, _, _) = service::new_chain_ops(&mut config, &cli.eth)?;
-					// Register the *Remark* and *TKA* builders.
-					let ext_factory = ExtrinsicFactory(vec![
-						Box::new(RemarkBuilder::new(client.clone())),
-						Box::new(TransferKeepAliveBuilder::new(
-							client.clone(),
-							get_account_id_from_seed::<sp_core::ecdsa::Public>("Alice"),
-							ExistentialDeposit::get(),
-						)),
-					]);
 
-					cmd.run(client, inherent_benchmark_data()?, Vec::new(), &ext_factory)
-				}),
-				BenchmarkCmd::Machine(cmd) =>
-					runner.sync_run(|config| cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone())),
-			}
+			runner.sync_run(|config| {
+				// This switch needs to be in the client, since the client decides
+				// which sub-commands it wants to support.
+				match cmd {
+					BenchmarkCmd::Pallet(cmd) => {
+						if !cfg!(feature = "runtime-benchmarks") {
+							return Err(
+								"Runtime benchmarking wasn't enabled when building the node. \
+							You can enable it with `--features runtime-benchmarks`."
+									.into(),
+							);
+						}
+
+						cmd.run_with_spec::<sp_runtime::traits::HashingFor<Block>, ()>(Some(
+							config.chain_spec,
+						))
+					},
+					BenchmarkCmd::Block(cmd) => {
+						let PartialComponents { client, .. } = service::new_partial::<Block, RuntimeApi>(&config, &cli.eth)?;
+						cmd.run(client)
+					},
+					#[cfg(not(feature = "runtime-benchmarks"))]
+					BenchmarkCmd::Storage(_) => Err(
+						"Storage benchmarking can be enabled with `--features runtime-benchmarks`."
+							.into(),
+					),
+					#[cfg(feature = "runtime-benchmarks")]
+					BenchmarkCmd::Storage(cmd) => {
+						let PartialComponents { client, backend, .. } =
+							service::new_partial::<Block, RuntimeApi>(&config, &cli.eth)?;
+						let db = backend.expose_db();
+						let storage = backend.expose_storage();
+
+						cmd.run(config, client, db, storage)
+					},
+					BenchmarkCmd::Overhead(cmd) => {
+						let PartialComponents { client, .. } = service::new_partial(&config, &cli.eth)?;
+						let ext_builder = RemarkBuilder::new(client.clone());
+
+						cmd.run(
+							config,
+							client,
+							inherent_benchmark_data()?,
+							Vec::new(),
+							&ext_builder,
+						)
+					},
+					BenchmarkCmd::Extrinsic(cmd) => {
+						let PartialComponents { client, .. } = service::new_partial(&config, &cli.eth)?;
+						// Register the *Remark* and *TKA* builders.
+						let ext_factory = ExtrinsicFactory(vec![
+							Box::new(RemarkBuilder::new(client.clone())),
+							Box::new(TransferKeepAliveBuilder::new(
+								client.clone(),
+								crate::chain_specs::get_account_id_from_seed::<sp_core::ecdsa::Public>("Alice"),
+								0,
+							)),
+						]);
+
+						cmd.run(client, inherent_benchmark_data()?, Vec::new(), &ext_factory)
+					},
+					BenchmarkCmd::Machine(cmd) =>
+						cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone()),
+				}
+			})
 		},
-		#[cfg(not(feature = "runtime-benchmarks"))]
-		Some(Subcommand::Benchmark(_)) => Err("Benchmarking wasn't enabled when building the node. \
-			You can enable it with `--features runtime-benchmarks`."
-			.into()),
 		#[cfg(feature = "try-runtime")]
 		Some(Subcommand::TryRuntime(_)) => Err(try_runtime_cli::DEPRECATION_NOTICE.into()),
 		#[cfg(not(feature = "try-runtime"))]
@@ -247,7 +257,7 @@ pub fn run() -> sc_cli::Result<()> {
 				let (client, _, _, _, frontier_backend) =
 					service::new_chain_ops(&mut config, &cli.eth)?;
 				let frontier_backend = match frontier_backend {
-					fc_db::Backend::KeyValue(kv) => std::sync::Arc::new(kv),
+					fc_db::Backend::KeyValue(kv) => kv,
 					_ => panic!("Only fc_db::Backend::KeyValue supported"),
 				};
 				cmd.run(client, frontier_backend)
@@ -261,7 +271,11 @@ pub fn run() -> sc_cli::Result<()> {
 
 				#[cfg(feature = "allfeat-native")]
 				if chain_spec.is_allfeat() {
-					return service::new_full::<allfeat_runtime::RuntimeApi, AllfeatRuntimeExecutor>(
+					return service::new_full::<
+						allfeat_runtime::Block, 
+						allfeat_runtime::RuntimeApi, 
+						sc_network::NetworkWorker<allfeat_runtime::Block, <allfeat_runtime::Block as sp_runtime::traits::Block>::Hash>
+					>(
 						config,
 						cli.eth,
 						cli.no_hardware_benchmarks,
@@ -274,7 +288,11 @@ pub fn run() -> sc_cli::Result<()> {
 
 				#[cfg(feature = "harmonie-native")]
 				if chain_spec.is_harmonie() {
-					return service::new_full::<harmonie_runtime::RuntimeApi, HarmonieRuntimeExecutor>(
+					return service::new_full::<
+						harmonie_runtime::Block, 
+						harmonie_runtime::RuntimeApi,
+						sc_network::NetworkWorker<harmonie_runtime::Block, <harmonie_runtime::Block as sp_runtime::traits::Block>::Hash>
+					>(
 						config,
 						cli.eth,
 						cli.no_hardware_benchmarks,
@@ -291,14 +309,14 @@ pub fn run() -> sc_cli::Result<()> {
 	}
 }
 
-fn load_spec(id: &str) -> Result<Box<dyn ChainSpec>, String> {
+fn load_spec(id: &str) -> Result<Box<dyn ChainSpecT>, String> {
 	let id = if id.is_empty() { "harmonie" } else { id };
 
 	Ok(match id.to_lowercase().as_str() {
 		#[cfg(feature = "allfeat-native")]
 		"allfeat-dev" | "dev" => Box::new(allfeat_chain_spec::development_chain_spec(None, None)),
 		#[cfg(feature = "harmonie-native")]
-		"harmonie" => Box::new(HarmonieChainSpec::from_json_bytes(
+		"harmonie" => Box::new(ChainSpec::from_json_bytes(
 			&include_bytes!("../genesis/harmonie-raw.json")[..],
 		)?),
 		#[cfg(feature = "harmonie-native")]
@@ -308,14 +326,14 @@ fn load_spec(id: &str) -> Result<Box<dyn ChainSpec>, String> {
 		_ => {
 			let path = PathBuf::from(id);
 			let chain_spec =
-				Box::new(DummyChainSpec::from_json_file(path.clone())?) as Box<dyn ChainSpec>;
+				Box::new(ChainSpec::from_json_file(path.clone())?) as Box<dyn ChainSpecT>;
 
 			if chain_spec.is_harmonie() {
-				return Ok(Box::new(HarmonieChainSpec::from_json_file(path)?));
+				return Ok(Box::new(ChainSpec::from_json_file(path)?));
 			}
 
 			if chain_spec.is_allfeat() {
-				return Ok(Box::new(AllfeatChainSpec::from_json_file(path)?));
+				return Ok(Box::new(ChainSpec::from_json_file(path)?));
 			}
 
 			panic!("No feature(allfeat-native, harmonie-native) is enabled!")

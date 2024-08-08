@@ -17,20 +17,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::{
-	authority_keys_from_seed, generate_accounts, AuthorityDiscoveryId, BabeId, Extensions,
-	GrandpaId, ImOnlineId,
+	authority_keys_from_seed, generate_accounts, AuthorityDiscoveryId, BabeId,
+	GrandpaId, ImOnlineId, ChainSpec
 };
 use allfeat_primitives::{AccountId, Balance};
 use allfeat_runtime::{
-	constants::currency::AFT, opaque::SessionKeys, wasm_binary_unwrap, MaxNominations,
-	RuntimeGenesisConfig, StakerStatus,
+	constants::currency::AFT, opaque::SessionKeys, wasm_binary_unwrap, MaxNominations, StakerStatus,
 };
 use hex_literal::hex;
 use sc_chain_spec::ChainType;
 use sp_runtime::Perbill;
-
-/// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
-pub type ChainSpec = sc_service::GenericChainSpec<RuntimeGenesisConfig, Extensions>;
 
 pub fn session_keys(
 	grandpa: GrandpaId,

@@ -25,9 +25,8 @@ use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use precompile_utils::precompile_set::{
 	AcceptDelegateCall, AddressU64, CallableByContract, CallableByPrecompile, PrecompileAt,
-	PrecompileSetBuilder, PrecompileSetStartingWith, PrecompilesInRangeInclusive,
+	PrecompileSetBuilder, PrecompilesInRangeInclusive,
 };
-use sp_core::parameter_types;
 
 /// ERC20 metadata for the native token.
 pub struct NativeErc20Metadata;

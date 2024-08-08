@@ -19,9 +19,7 @@
 //! Allfeat CLI library.
 #![warn(missing_docs)]
 #![allow(clippy::type_complexity, clippy::too_many_arguments, clippy::large_enum_variant)]
-#![deny(unused_crate_dependencies)]
 
-#[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
 mod chain_specs;
 mod cli;
@@ -29,6 +27,7 @@ mod client;
 mod command;
 mod eth;
 mod rpc;
+mod rpc_eth;
 mod service;
 
 fn main() -> sc_cli::Result<()> {

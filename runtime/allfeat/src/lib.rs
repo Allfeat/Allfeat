@@ -32,30 +32,23 @@ use frame_election_provider_support::{
 	SequentialPhragmen, VoteWeight,
 };
 use frame_support::{
-	construct_runtime, derive_impl,
-	dispatch::DispatchClass,
-	genesis_builder_helper::{build_config, create_default_config},
-	pallet_prelude::Get,
-	parameter_types,
-	traits::{
-		fungible::HoldConsideration, ConstU16, ConstU32, EitherOf, EqualPrivilegeOnly, Everything,
-		FindAuthor, InstanceFilter, KeyOwnerProofSystem, LinearStoragePrice, OnFinalize,
-		WithdrawReasons,
-	},
-	weights::{
+	construct_runtime, derive_impl, dispatch::DispatchClass, pallet_prelude::Get, parameter_types, traits::{
+		fungible::{Balanced, Credit, HoldConsideration}, ConstU16, ConstU32, EitherOf, EqualPrivilegeOnly, Everything,
+		FindAuthor, InstanceFilter, KeyOwnerProofSystem, LinearStoragePrice, OnFinalize, Imbalance, OnUnbalanced,
+		WithdrawReasons
+	}, weights::{
 		constants::{
 			BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND,
 		},
 		ConstantMultiplier, Weight,
-	},
-	PalletId,
+	}, PalletId
 };
 use frame_system::{limits::BlockWeights, EnsureRoot, EnsureSigned};
 use pallet_election_provider_multi_phase::{GeometricDepositBase, SolutionAccuracyOf};
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use pallet_session::historical::{self as pallet_session_historical};
-pub use pallet_transaction_payment::{CurrencyAdapter, Multiplier, TargetedFeeAdjustment};
-use pallet_transaction_payment::{FeeDetails, RuntimeDispatchInfo};
+pub use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
+use pallet_transaction_payment::{FeeDetails, FungibleAdapter, RuntimeDispatchInfo};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_api::impl_runtime_apis;
 use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
@@ -83,11 +76,10 @@ use static_assertions::const_assert;
 pub use frame_system::Call as SystemCall;
 #[cfg(any(feature = "std", test))]
 pub use pallet_balances::Call as BalancesCall;
-use pallet_balances::NegativeImbalance;
 use pallet_ethereum::{
 	Call::transact, EthereumBlockHashMapping, PostLogContent, Transaction as EthereumTransaction,
 };
-use pallet_evm::{Account as EVMAccount, EVMCurrencyAdapter, IdentityAddressMapping, Runner};
+use pallet_evm::{Account as EVMAccount, EVMFungibleAdapter, IdentityAddressMapping, Runner};
 #[cfg(any(feature = "std", test))]
 pub use pallet_staking::StakerStatus;
 #[cfg(any(feature = "std", test))]
@@ -473,14 +465,18 @@ impl pallet_balances::Config for Runtime {
 	type RuntimeFreezeReason = RuntimeFreezeReason;
 }
 
+
 pub struct DealWithFees<R>(PhantomData<R>);
-impl<R> frame_support::traits::OnUnbalanced<NegativeImbalance<R>> for DealWithFees<R>
+impl<R> OnUnbalanced<Credit<R::AccountId, pallet_balances::Pallet<R>>>
+	for DealWithFees<R>
 where
 	R: pallet_authorship::Config + pallet_balances::Config,
+	<R as frame_system::Config>::AccountId: From<allfeat_primitives::AccountId>,
+	<R as frame_system::Config>::AccountId: Into<allfeat_primitives::AccountId>,
 {
-	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance<R>>) {
-		use frame_support::traits::{Currency, Imbalance};
-
+	fn on_unbalanceds<B>(
+		mut fees_then_tips: impl Iterator<Item = Credit<R::AccountId, pallet_balances::Pallet<R>>>,
+	) {
 		if let Some(mut amount) = fees_then_tips.next() {
 			// for fees, 100% to author
 			if let Some(tips) = fees_then_tips.next() {
@@ -489,19 +485,17 @@ where
 			}
 
 			if let Some(author) = <pallet_authorship::Pallet<R>>::author() {
-				<pallet_balances::Pallet<R>>::resolve_creating(&author, amount);
+				let _ = <pallet_balances::Pallet<R>>::resolve(&author, amount);
 			}
 		}
 	}
 
 	// this is called from pallet_evm for Ethereum-based transactions
 	// (technically, it calls on_unbalanced, which calls this when non-zero)
-	fn on_nonzero_unbalanced(amount: NegativeImbalance<R>) {
-		use frame_support::traits::Currency;
-
+	fn on_nonzero_unbalanced(amount: Credit<<R as frame_system::Config>::AccountId, pallet_balances::Pallet<R>>) {
 		// 100% to author
 		if let Some(author) = <pallet_authorship::Pallet<R>>::author() {
-			<pallet_balances::Pallet<R>>::resolve_creating(&author, amount);
+			let _ = <pallet_balances::Pallet<R>>::resolve(&author, amount);
 		}
 	}
 }
@@ -513,7 +507,7 @@ parameter_types! {
 
 impl pallet_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type OnChargeTransaction = CurrencyAdapter<Balances, DealWithFees<Runtime>>;
+	type OnChargeTransaction = FungibleAdapter<Balances, DealWithFees<Runtime>>;
 	type OperationalFeeMultiplier = OperationalFeeMultiplier;
 	type WeightToFee = WeightToFee;
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
@@ -626,7 +620,6 @@ impl pallet_staking::Config for Runtime {
 	type SessionInterface = Self;
 	type EraPayout = pallet_staking::ConvertCurve<RewardCurve>;
 	type NextNewSession = Session;
-	type OffendingValidatorsThreshold = OffendingValidatorsThreshold;
 	type VoterList = BagsList;
 	type NominationsQuota = pallet_staking::FixedNominationsQuota<{ MaxNominations::get() }>;
 	type MaxUnlockingChunks = ConstU32<32>;
@@ -637,6 +630,7 @@ impl pallet_staking::Config for Runtime {
 	type EventListeners = NominationPools;
 	type HistoryDepth = HistoryDepth;
 	type MaxControllersInDeprecationBatch = MaxControllersInDeprecationBatch;
+	type DisablingStrategy = pallet_staking::UpToLimitDisablingStrategy;
 	type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
 }
 
@@ -849,17 +843,18 @@ impl pallet_nomination_pools::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = pallet_nomination_pools::weights::SubstrateWeight<Runtime>;
 	type Currency = Balances;
-	type Staking = Staking;
 	type PalletId = NominationPoolsPalletId;
 	type MaxPointsToBalance = MaxPointsToBalance;
 	type BalanceToU256 = BalanceToU256;
 	type U256ToBalance = U256ToBalance;
 	type PostUnbondingPoolsWindow = PostUnbondPoolsWindow;
+	type StakeAdapter = pallet_nomination_pools::adapter::TransferStake<Self, Staking>;
 	type MaxMetadataLen = ConstU32<256>;
 	// we use the same number of allowed unlocking chunks as with staking.
 	type MaxUnbonding = <Self as pallet_staking::Config>::MaxUnlockingChunks;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type RewardCounter = FixedU128;
+	type AdminOrigin = EnsureRoot<AccountId>;
 }
 
 impl pallet_sudo::Config for Runtime {
@@ -1018,6 +1013,7 @@ impl pallet_mmr::Config for Runtime {
 	const INDEXING_PREFIX: &'static [u8] = b"mmr";
 	type Hashing = <Runtime as frame_system::Config>::Hashing;
 	type LeafData = pallet_mmr::ParentNumberAndHash<Self>;
+	type BlockHashProvider = pallet_mmr::DefaultBlockHashProvider<Runtime>;
 	type OnNewRoot = ();
 	type WeightInfo = ();
 }
@@ -1110,7 +1106,7 @@ impl pallet_evm::Config for Runtime {
 	type ChainId = ConstU64<440>;
 	type BlockGasLimit = BlockGasLimit;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type OnChargeTransaction = EVMCurrencyAdapter<Balances, DealWithFees<Runtime>>;
+	type OnChargeTransaction = EVMFungibleAdapter<Balances, DealWithFees<Runtime>>;
 	type OnCreate = ();
 	type FindAuthor = FindAuthorTruncated<Babe>;
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
@@ -1186,26 +1182,24 @@ construct_runtime!(
 );
 
 #[derive(Clone)]
-pub struct TransactionConverter;
+pub struct TransactionConverter<B>(PhantomData<B>);
 
-impl fp_rpc::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
-	fn convert_transaction(&self, transaction: pallet_ethereum::Transaction) -> UncheckedExtrinsic {
-		UncheckedExtrinsic::new_unsigned(
-			pallet_ethereum::Call::<Runtime>::transact { transaction }.into(),
-		)
+impl<B> Default for TransactionConverter<B> {
+	fn default() -> Self {
+		Self(PhantomData)
 	}
 }
 
-impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConverter {
+impl<B: BlockT> fp_rpc::ConvertTransaction<<B as BlockT>::Extrinsic> for TransactionConverter<B> {
 	fn convert_transaction(
 		&self,
 		transaction: pallet_ethereum::Transaction,
-	) -> opaque::UncheckedExtrinsic {
+	) -> <B as BlockT>::Extrinsic {
 		let extrinsic = UncheckedExtrinsic::new_unsigned(
 			pallet_ethereum::Call::<Runtime>::transact { transaction }.into(),
 		);
 		let encoded = extrinsic.encode();
-		opaque::UncheckedExtrinsic::decode(&mut &encoded[..])
+		<B as BlockT>::Extrinsic::decode(&mut &encoded[..])
 			.expect("Encoded extrinsic is always valid")
 	}
 }
@@ -1731,6 +1725,10 @@ impl_runtime_apis! {
 				pallet_ethereum::CurrentTransactionStatuses::<Runtime>::get()
 			)
 		}
+
+		fn initialize_pending_block(header: &<Block as BlockT>::Header) {
+			Executive::initialize_block(header);
+		}
 	}
 
 	impl fp_rpc::ConvertTransactionRuntimeApi<Block> for Runtime {
@@ -1824,13 +1822,21 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
-		fn create_default_config() -> Vec<u8> {
-			create_default_config::<RuntimeGenesisConfig>()
+	impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {		
+		fn build_state(config: Vec<u8>) -> sp_genesis_builder::Result {
+			use frame_support::genesis_builder_helper::build_state;
+
+			build_state::<RuntimeGenesisConfig>(config)
 		}
 
-		fn build_config(config: Vec<u8>) -> sp_genesis_builder::Result {
-			build_config::<RuntimeGenesisConfig>(config)
+		fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
+			use frame_support::genesis_builder_helper::get_preset;
+
+			get_preset::<RuntimeGenesisConfig>(id, |_| None)
+		}
+
+		fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
+			vec![]
 		}
 	}
 }
