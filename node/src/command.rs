@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use std::{env, path::PathBuf, sync::Arc};
+use std::{env, sync::Arc};
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::{
@@ -25,14 +25,12 @@ use crate::{
 use fc_db::kv::frontier_database_dir;
 use allfeat_primitives::Block;
 use frame_benchmarking_cli::{BenchmarkCmd, ExtrinsicFactory, SUBSTRATE_REFERENCE_HARDWARE};
-use harmonie_runtime::RuntimeApi;
 use sc_cli::{ChainSpec as ChainSpecT, SubstrateCli};
+use sc_network::NetworkWorker;
 use sc_service::{DatabaseSource, PartialComponents};
 
 use crate::
-	chain_specs::{
-		allfeat_chain_spec, harmonie_chain_spec, IdentifyVariant
-};
+	chain_specs::harmonie_chain_spec;
 
 impl SubstrateCli for Cli {
 	fn impl_name() -> String {
@@ -69,7 +67,22 @@ impl SubstrateCli for Cli {
 	}
 
 	fn load_spec(&self, id: &str) -> Result<Box<dyn ChainSpecT>, String> {
-		load_spec(id)
+		let spec = match id {
+			"" =>
+				return Err(
+					"Please specify which chain you want to run, e.g. --dev or --chain=harmonie-local"
+						.into(),
+				),
+			"harmonie" => Box::new(ChainSpec::from_json_bytes(
+				&include_bytes!("../genesis/harmonie-raw.json")[..],
+			)?),
+			"dev" | "harmonie-dev" => Box::new(harmonie_chain_spec::development_chain_spec(None, None)),
+			"harmonie-local" => Box::new(harmonie_chain_spec::get_chain_spec()),
+			path => {
+				Box::new(ChainSpec::from_json_file(path.into())?) as Box<dyn ChainSpecT>
+			}
+		};
+		Ok(spec)
 	}
 }
 
@@ -79,6 +92,17 @@ pub fn run() -> sc_cli::Result<()> {
 	let cli = Cli::from_args();
 
 	match &cli.subcommand {
+		None => {
+			let runner = cli.create_runner(&cli.run)?;
+			runner.run_node_until_exit(|config| async move {
+				service::new_full::<NetworkWorker<_, _>>(
+					config, 
+					cli.eth, 
+					cli.no_hardware_benchmarks, 
+					|_, _| ()
+				).await.map_err(sc_cli::Error::Service)
+			})
+		},
 		Some(Subcommand::Key(cmd)) => cmd.run(&cli),
 		Some(Subcommand::BuildSpec(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
@@ -193,7 +217,7 @@ pub fn run() -> sc_cli::Result<()> {
 						))
 					},
 					BenchmarkCmd::Block(cmd) => {
-						let PartialComponents { client, .. } = service::new_partial::<Block, RuntimeApi>(&config, &cli.eth)?;
+						let PartialComponents { client, .. } = service::new_partial(&config, &cli.eth)?;
 						cmd.run(client)
 					},
 					#[cfg(not(feature = "runtime-benchmarks"))]
@@ -263,80 +287,5 @@ pub fn run() -> sc_cli::Result<()> {
 				cmd.run(client, frontier_backend)
 			})
 		},
-		None => {
-			let runner = cli.create_runner(&cli.run)?;
-
-			runner.run_node_until_exit(|config| async move {
-				let chain_spec = &config.chain_spec;
-
-				#[cfg(feature = "allfeat-native")]
-				if chain_spec.is_allfeat() {
-					return service::new_full::<
-						allfeat_runtime::Block, 
-						allfeat_runtime::RuntimeApi, 
-						sc_network::NetworkWorker<allfeat_runtime::Block, <allfeat_runtime::Block as sp_runtime::traits::Block>::Hash>
-					>(
-						config,
-						cli.eth,
-						cli.no_hardware_benchmarks,
-						|_, _| (),
-					)
-						.await
-						.map(|r| r)
-						.map_err(Into::into);
-				}
-
-				#[cfg(feature = "harmonie-native")]
-				if chain_spec.is_harmonie() {
-					return service::new_full::<
-						harmonie_runtime::Block, 
-						harmonie_runtime::RuntimeApi,
-						sc_network::NetworkWorker<harmonie_runtime::Block, <harmonie_runtime::Block as sp_runtime::traits::Block>::Hash>
-					>(
-						config,
-						cli.eth,
-						cli.no_hardware_benchmarks,
-						|_, _| (),
-					)
-						.await
-						.map(|r| r)
-						.map_err(Into::into);
-				}
-
-				panic!("No feature(harmonie-native, allfeat-native) is enabled!");
-			})
-		},
 	}
-}
-
-fn load_spec(id: &str) -> Result<Box<dyn ChainSpecT>, String> {
-	let id = if id.is_empty() { "harmonie" } else { id };
-
-	Ok(match id.to_lowercase().as_str() {
-		#[cfg(feature = "allfeat-native")]
-		"allfeat-dev" | "dev" => Box::new(allfeat_chain_spec::development_chain_spec(None, None)),
-		#[cfg(feature = "harmonie-native")]
-		"harmonie" => Box::new(ChainSpec::from_json_bytes(
-			&include_bytes!("../genesis/harmonie-raw.json")[..],
-		)?),
-		#[cfg(feature = "harmonie-native")]
-		"harmonie-dev" => Box::new(harmonie_chain_spec::development_chain_spec(None, None)),
-		#[cfg(feature = "harmonie-native")]
-		"harmonie-local" => Box::new(harmonie_chain_spec::get_chain_spec()),
-		_ => {
-			let path = PathBuf::from(id);
-			let chain_spec =
-				Box::new(ChainSpec::from_json_file(path.clone())?) as Box<dyn ChainSpecT>;
-
-			if chain_spec.is_harmonie() {
-				return Ok(Box::new(ChainSpec::from_json_file(path)?));
-			}
-
-			if chain_spec.is_allfeat() {
-				return Ok(Box::new(ChainSpec::from_json_file(path)?));
-			}
-
-			panic!("No feature(allfeat-native, harmonie-native) is enabled!")
-		},
-	})
 }

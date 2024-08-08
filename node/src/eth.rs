@@ -16,9 +16,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use allfeat_primitives::Block;
 use fc_mapping_sync::{EthereumBlockNotification, EthereumBlockNotificationSinks};
-use sp_api::ConstructRuntimeApi;
-use sp_core::H256;
 use std::{
 	path::PathBuf,
 	sync::Arc,
@@ -27,39 +26,21 @@ use std::{
 
 use futures::prelude::*;
 // Substrate
-use sc_client_api::BlockchainEvents;
 use sc_network_sync::SyncingService;
 use sc_service::{Configuration, TaskManager};
+use sc_client_api::BlockchainEvents;
 // Frontier
 use fc_rpc::EthTask;
 pub use fc_rpc_core::types::{FeeHistoryCache, FeeHistoryCacheLimit, FilterPool};
-use sp_runtime::traits::Block as BlockT;
 pub use fc_storage::StorageOverride;
 
-use crate::{client::FullClient, service::FullBackend};
+use crate::service::{FullBackend, FullClient};
 
 /// Frontier DB backend type.
-pub type FrontierBackend<B, C> = fc_db::Backend<B, C>;
+pub type FullFrontierBackend = fc_db::Backend<Block, FullClient>;
 
 pub fn db_config_dir(config: &Configuration) -> PathBuf {
 	config.base_path.config_dir(config.chain_spec.id())
-}
-
-/// A set of APIs that ethereum-compatible runtimes must implement.
-pub trait EthCompatRuntimeApiCollection<Block: BlockT>:
-	sp_api::ApiExt<Block>
-	+ fp_rpc::ConvertTransactionRuntimeApi<Block>
-	+ fp_rpc::EthereumRuntimeRPCApi<Block>
-{
-}
-
-impl<Block, Api> EthCompatRuntimeApiCollection<Block> for Api
-where
-	Block: BlockT,
-	Api: sp_api::ApiExt<Block>
-		+ fp_rpc::ConvertTransactionRuntimeApi<Block>
-		+ fp_rpc::EthereumRuntimeRPCApi<Block>,
-{
 }
 
 /// Avalailable frontier backend types.
@@ -126,22 +107,18 @@ pub struct EthConfiguration {
 }
 
 #[allow(clippy::too_many_arguments)]
-pub fn spawn_tasks<B, RA>(
+pub fn spawn_tasks(
 	task_manager: &TaskManager,
-	client: Arc<FullClient<B, RA>>,
-	backend: Arc<FullBackend<B>>,
-	frontier_backend: Arc<FrontierBackend<B, FullClient<B, RA>>>,
+	client: Arc<FullClient>,
+	backend: Arc<FullBackend>,
+	frontier_backend: Arc<FullFrontierBackend>,
 	filter_pool: Option<FilterPool>,
-	storage_overrides: Arc<dyn StorageOverride<B>>,
+	storage_overrides: Arc<dyn StorageOverride<Block>>,
 	fee_history_cache: FeeHistoryCache,
 	fee_history_cache_limit: FeeHistoryCacheLimit,
-	sync: Arc<SyncingService<B>>,
-	pubsub_notification_sinks: Arc<EthereumBlockNotificationSinks<EthereumBlockNotification<B>>>,
+	sync: Arc<SyncingService<Block>>,
+	pubsub_notification_sinks: Arc<EthereumBlockNotificationSinks<EthereumBlockNotification<Block>>>,
 ) where
-	B: BlockT<Hash = H256>,
-	RA: ConstructRuntimeApi<B, FullClient<B, RA>>,
-	RA: Send + Sync + 'static,
-	RA::RuntimeApi: EthCompatRuntimeApiCollection<B>,
 {
 	match &*frontier_backend {
 		fc_db::Backend::KeyValue(bd) => {

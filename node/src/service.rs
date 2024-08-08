@@ -20,16 +20,13 @@
 
 //! Service implementation. Specialized wrapper over substrate service.
 
-use crate::{
-	client::{BaseRuntimeApiCollection, FullClient, RuntimeApiCollection},
-	eth::{self, db_config_dir, EthCompatRuntimeApiCollection, EthConfiguration, FrontierBackend, FrontierBackendType},
-};
+use crate::eth::{self, db_config_dir, EthConfiguration, FullFrontierBackend, FrontierBackendType};
 use allfeat_runtime::TransactionConverter;
 use fc_consensus::FrontierBlockImport;
 use fc_rpc::StorageOverrideHandler;
 use frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
 use futures::prelude::*;
-use grandpa::{BlockNumberOps, SharedVoterState};
+use grandpa::SharedVoterState;
 use allfeat_primitives::Block;
 use harmonie_runtime::RuntimeApi;
 use sc_client_api::BlockBackend;
@@ -42,68 +39,77 @@ use sc_service::{
 };
 use sc_telemetry::{Telemetry, TelemetryWorker};
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
-use sp_api::ConstructRuntimeApi;
-use sp_core::H256;
 use sp_core::U256;
 use std::{
 	collections::BTreeMap, path::Path, sync::{Arc, Mutex}, time::Duration
 };
-use sp_runtime::traits::{Block as BlockT, NumberFor};
+use sp_runtime::traits::Block as BlockT;
 use sc_client_api::Backend as BackendT;
 
 use crate::rpc;
 
-pub type FullBackend<B> = sc_service::TFullBackend<B>;
+/// Full client.
+pub type FullClient = sc_service::TFullClient<Block, RuntimeApi, RuntimeExecutor>;
 
-pub type Backend = FullBackend<Block>;
-pub type Client = FullClient<Block, RuntimeApi>;
+/// Only enable the benchmarking host functions when we actually want to benchmark.
+#[cfg(feature = "runtime-benchmarks")]
+pub type HostFunctions = (
+	sp_io::SubstrateHostFunctions,
+	frame_benchmarking::benchmarking::HostFunctions,
+);
+/// Otherwise we use empty host functions for ext host functions.
+#[cfg(not(feature = "runtime-benchmarks"))]
+pub type HostFunctions = sp_io::SubstrateHostFunctions;
 
-type FullSelectChain<B> = sc_consensus::LongestChain<FullBackend<B>, B>;
-type GrandpaBlockImport<B, C> = grandpa::GrandpaBlockImport<FullBackend<B>, B, C, FullSelectChain<B>>;
-type GrandpaLinkHalf<B, C> = grandpa::LinkHalf<B, C, FullSelectChain<B>>;
+/// A specialized `WasmExecutor` intended to use across substrate node. It provides all required
+/// HostFunctions.
+pub type RuntimeExecutor = sc_executor::WasmExecutor<HostFunctions>;
+
+pub type FullBackend = sc_service::TFullBackend<Block>;
+
+pub type Backend = FullBackend;
+pub type Client = FullClient;
+
+type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
+type FullGrandpaBlockImport = grandpa::GrandpaBlockImport<FullBackend, Block, FullClient, FullSelectChain>;
+type GrandpaLinkHalf = grandpa::LinkHalf<Block, FullClient, FullSelectChain>;
 
 /// The minimum period of blocks on which justifications will be
 /// imported and generated.
 const GRANDPA_JUSTIFICATION_PERIOD: u32 = 512;
 
 /// Creates a new partial node.
-pub fn new_partial<B, RA>(
+pub fn new_partial(
 	config: &Configuration,
 	eth_rpc_config: &EthConfiguration,
 ) -> Result<
 	sc_service::PartialComponents<
-		FullClient<B, RA>,
-		FullBackend<B>,
-		FullSelectChain<B>,
-		sc_consensus::DefaultImportQueue<B>,
-		sc_transaction_pool::FullPool<B, FullClient<B, RA>>,
+		FullClient,
+		FullBackend,
+		FullSelectChain,
+		sc_consensus::DefaultImportQueue<Block>,
+		sc_transaction_pool::FullPool<Block, FullClient>,
 		(
 			(
 				sc_consensus_babe::BabeBlockImport<
-					B,
-					FullClient<B, RA>,
-					GrandpaBlockImport<B, FullClient<B, RA>>,
+					Block,
+					FullClient,
+					FullGrandpaBlockImport,
 				>,
-				GrandpaLinkHalf<B, FullClient<B, RA>>,
-				sc_consensus_babe::BabeLink<B>,
-				BabeWorkerHandle<B>,
+				GrandpaLinkHalf,
+				sc_consensus_babe::BabeLink<Block>,
+				BabeWorkerHandle<Block>,
 			),
-			FrontierBackend<B, FullClient<B, RA>>,
+			FullFrontierBackend,
 			Option<fc_rpc_core::types::FilterPool>,
 			fc_rpc_core::types::FeeHistoryCache,
 			fc_rpc_core::types::FeeHistoryCacheLimit,
 			Option<Telemetry>,
-			Option<sc_telemetry::TelemetryWorkerHandle>,
 		),
 	>,
 	ServiceError,
 >
 where
-	B: BlockT<Hash = H256>,
-	NumberFor<B>: BlockNumberOps,
-	RA: ConstructRuntimeApi<B, FullClient<B, RA>>,
-	RA: Send + Sync + 'static,
-	RA::RuntimeApi: BaseRuntimeApiCollection<B> + EthCompatRuntimeApiCollection<B>,
 {
 	let telemetry = config
 		.telemetry_endpoints
@@ -119,18 +125,20 @@ where
 	let executor = sc_service::new_wasm_executor(config);
 
 	let (client, backend, keystore_container, task_manager) =
-		sc_service::new_full_parts::<B, RA, _>(
+		sc_service::new_full_parts::<Block, RuntimeApi, _>(
 			config,
 			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
 			executor,
 		)?;
-	let telemetry_worker_handle = telemetry.as_ref().map(|(worker, _)| worker.handle());
+	let client = Arc::new(client);
+
 	let telemetry = telemetry.map(|(worker, telemetry)| {
 		task_manager.spawn_handle().spawn("telemetry", None, worker.run());
 		telemetry
 	});
-	let client = Arc::new(client);
+
 	let select_chain = sc_consensus::LongestChain::new(backend.clone());
+
 	let transaction_pool = sc_transaction_pool::BasicPool::new_full(
 		config.transaction_pool.clone(),
 		config.role.is_authority().into(),
@@ -142,17 +150,20 @@ where
 	let (grandpa_block_import, grandpa_link) = grandpa::block_import(
 		client.clone(),
 		GRANDPA_JUSTIFICATION_PERIOD,
-		&client,
+		&(client.clone() as Arc<_>),
 		select_chain.clone(),
 		telemetry.as_ref().map(|x| x.handle()),
 	)?;
 	let justification_import = grandpa_block_import.clone();
+
 	let (block_import, babe_link) = sc_consensus_babe::block_import(
 		sc_consensus_babe::configuration(&*client)?,
-		grandpa_block_import.clone(),
+		grandpa_block_import,
 		client.clone(),
 	)?;
-	let frontier_block_import = FrontierBlockImport::new(grandpa_block_import, client.clone());
+
+	let frontier_block_import = FrontierBlockImport::new(block_import.clone(), client.clone());
+
 	let slot_duration = babe_link.config().slot_duration();
 	let (import_queue, babe_worker_handle) =
 		sc_consensus_babe::import_queue(sc_consensus_babe::ImportQueueParams {
@@ -175,12 +186,13 @@ where
 			telemetry: telemetry.as_ref().map(|x| x.handle()),
 			offchain_tx_pool_factory: OffchainTransactionPoolFactory::new(transaction_pool.clone()),
 		})?;
+
 	let import_setup = (block_import, grandpa_link, babe_link, babe_worker_handle);
 
 	// Frontier stuffs.
-	let storage_override = Arc::new(StorageOverrideHandler::<B, _, _>::new(client.clone()));
+	let storage_override = Arc::new(StorageOverrideHandler::<Block, _, _>::new(client.clone()));
 	let frontier_backend = match eth_rpc_config.frontier_backend_type {
-		FrontierBackendType::KeyValue => FrontierBackend::KeyValue(Arc::new(fc_db::kv::Backend::open(
+		FrontierBackendType::KeyValue => FullFrontierBackend::KeyValue(Arc::new(fc_db::kv::Backend::open(
 			Arc::clone(&client),
 			&config.database,
 			&db_config_dir(config),
@@ -204,7 +216,7 @@ where
 				storage_override.clone(),
 			))
 			.unwrap_or_else(|err| panic!("failed creating sql backend: {:?}", err));
-			FrontierBackend::Sql(Arc::new(backend))
+			FullFrontierBackend::Sql(Arc::new(backend))
 		}
 	};
 	let filter_pool = Some(Arc::new(Mutex::new(BTreeMap::new())));
@@ -226,33 +238,26 @@ where
 			fee_history_cache,
 			fee_history_cache_limit,
 			telemetry,
-			telemetry_worker_handle,
 		),
 	})
 }
 
 /// Builds a new service for a full client.
-pub async fn new_full<B, RA, NB>(
+pub async fn new_full<NB>(
 	mut config: Configuration,
 	eth_config: EthConfiguration,
 	disable_hardware_benchmarks: bool,
 	with_startup_data: impl FnOnce(
 		&sc_consensus_babe::BabeBlockImport<
-			B,
-			FullClient<B, RA>,
-			GrandpaBlockImport<B, FullClient<B, RA>>,
+			Block,
+			FullClient,
+			FullGrandpaBlockImport,
 		>,
-		&sc_consensus_babe::BabeLink<B>,
+		&sc_consensus_babe::BabeLink<Block>,
 	),
 ) -> Result<TaskManager, ServiceError>
 where
-	B: BlockT<Hash = H256> + std::marker::Unpin,
-	NumberFor<B>: BlockNumberOps,
-	<B as BlockT>::Header: Unpin,
-	RA: ConstructRuntimeApi<B, FullClient<B, RA>>,
-	RA: Send + Sync + 'static,
-	RA::RuntimeApi: RuntimeApiCollection<B>,
-	NB: sc_network::NetworkBackend<B, <B as BlockT>::Hash>,
+	NB: sc_network::NetworkBackend<Block, <Block as BlockT>::Hash>,
 {
 	let hwbench = (!disable_hardware_benchmarks)
 		.then_some(config.database.path().map(|database_path| {
@@ -277,7 +282,6 @@ where
 				fee_history_cache,
 				fee_history_cache_limit,
 				mut telemetry,
-				_,
 			),
 	} = new_partial(&config, &eth_config)?;
 
@@ -285,7 +289,7 @@ where
 		config.prometheus_config.as_ref().map(|cfg| &cfg.registry),
 	);
 	let mut net_config =
-		sc_network::config::FullNetworkConfiguration::<_, _, NB>::new(&config.network);
+		sc_network::config::FullNetworkConfiguration::<Block, <Block as sp_runtime::traits::Block>::Hash, NB>::new(&config.network);
 
 	let peer_store_handle = net_config.peer_store_handle();
 	let grandpa_protocol_name = grandpa::protocol_standard_name(
@@ -343,10 +347,10 @@ where
 	// notification to the subscriber on receiving a message through this channel. This way we avoid
 	// race conditions when using native substrate block import notification stream.
 	let pubsub_notification_sinks: fc_mapping_sync::EthereumBlockNotificationSinks<
-		fc_mapping_sync::EthereumBlockNotification<B>,
+		fc_mapping_sync::EthereumBlockNotification<Block>,
 	> = Default::default();
 	let pubsub_notification_sinks = Arc::new(pubsub_notification_sinks);
-	let storage_override = Arc::new(StorageOverrideHandler::<B, _, _>::new(client.clone()));
+	let storage_override = Arc::new(StorageOverrideHandler::<Block, _, _>::new(client.clone()));
 	
 	eth::spawn_tasks(
 		&task_manager,
@@ -417,7 +421,7 @@ where
 				client: client.clone(),
 				pool: pool.clone(),
 				graph: pool.pool().clone(),
-				converter: Some(TransactionConverter::<B>::default()),
+				converter: Some(TransactionConverter::<Block>::default()),
 				is_authority,
 				enable_dev_signer,
 				network: network.clone(),
@@ -664,7 +668,7 @@ pub fn new_chain_ops(
 	config: &mut Configuration,
 	eth_config: &EthConfiguration,
 ) -> Result<
-	(Arc<Client>, Arc<Backend>, BasicQueue<Block>, TaskManager, FrontierBackend<Block, Client>),
+	(Arc<Client>, Arc<Backend>, BasicQueue<Block>, TaskManager, FullFrontierBackend),
 	ServiceError,
 > {
 	config.keystore = sc_service::config::KeystoreConfig::InMemory;

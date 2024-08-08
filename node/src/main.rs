@@ -23,7 +23,6 @@
 mod benchmarking;
 mod chain_specs;
 mod cli;
-mod client;
 mod command;
 mod eth;
 mod rpc;
