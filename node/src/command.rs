@@ -26,7 +26,7 @@ use fc_db::kv::frontier_database_dir;
 use allfeat_primitives::Block;
 use frame_benchmarking_cli::{BenchmarkCmd, ExtrinsicFactory, SUBSTRATE_REFERENCE_HARDWARE};
 use sc_cli::{ChainSpec as ChainSpecT, SubstrateCli};
-use sc_network::NetworkWorker;
+use sc_network::{Litep2pNetworkBackend, NetworkWorker};
 use sc_service::{DatabaseSource, PartialComponents};
 
 #[cfg(not(any(feature = "harmonie-native")))]
@@ -96,12 +96,24 @@ pub fn run() -> sc_cli::Result<()> {
 		None => {
 			let runner = cli.create_runner(&cli.run)?;
 			runner.run_node_until_exit(|config| async move {
-				service::new_full::<RuntimeApi, NetworkWorker<_, _>>(
-					config, 
-					cli.eth, 
-					cli.no_hardware_benchmarks, 
-					|_, _| ()
-				).await.map_err(sc_cli::Error::Service)
+				match config.network.network_backend {
+					sc_network::config::NetworkBackendType::Libp2p => {
+						service::new_full::<RuntimeApi, NetworkWorker<_, _>>(
+							config, 
+							cli.eth, 
+							cli.no_hardware_benchmarks, 
+							|_, _| ()
+						).await.map_err(sc_cli::Error::Service)
+					},
+					sc_network::config::NetworkBackendType::Litep2p => {
+						service::new_full::<RuntimeApi, Litep2pNetworkBackend>(
+							config, 
+							cli.eth, 
+							cli.no_hardware_benchmarks, 
+							|_, _| ()
+						).await.map_err(sc_cli::Error::Service)
+					}
+				}
 			})
 		},
 		Some(Subcommand::Key(cmd)) => cmd.run(&cli),
