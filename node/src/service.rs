@@ -21,9 +21,9 @@
 //! Service implementation. Specialized wrapper over substrate service.
 
 use crate::eth::{self, db_config_dir, EthConfiguration, FullFrontierBackend, FrontierBackendType};
-use allfeat_runtime::TransactionConverter;
 use fc_consensus::FrontierBlockImport;
 use fc_rpc::StorageOverrideHandler;
+use fp_rpc::NoTransactionConverter;
 use frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
 use futures::prelude::*;
 use grandpa::SharedVoterState;
@@ -421,7 +421,7 @@ where
 				client: client.clone(),
 				pool: pool.clone(),
 				graph: pool.pool().clone(),
-				converter: Some(TransactionConverter::<Block>::default()),
+				converter: None::<NoTransactionConverter>,
 				is_authority,
 				enable_dev_signer,
 				network: network.clone(),
