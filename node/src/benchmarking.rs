@@ -19,7 +19,7 @@
 //! Contains code to setup the command invocations in [`super::command`] which would
 //! otherwise bloat that module.
 
-use crate::service::Client;
+use crate::service::HarmonieClient as Client;
 use sc_client_api::BlockBackend;
 use sp_runtime::SaturatedConversion;
 use allfeat_primitives::Balance;

@@ -99,7 +99,6 @@ pallet-transaction-payment = { workspace = true  }
 # Local Dependencies
 shared-runtime = { workspace = true }
 harmonie-runtime = { workspace = true, optional = true }
-allfeat-runtime = { workspace = true, optional = true }
 
 [build-dependencies]
 substrate-build-script-utils = { workspace = true }
@@ -109,33 +108,23 @@ frame-benchmarking-cli = { workspace = true, optional = true }
 default = ["all-natives"]
 
 fast-runtime = [
-    # allfeat
     "harmonie-runtime?/fast-runtime",
-    "allfeat-runtime?/fast-runtime",
 ]
 
 runtime-benchmarks = [
     "frame-system/runtime-benchmarks",
-    "allfeat-runtime?/runtime-benchmarks",
-    "harmonie-runtime?/runtime-benchmarks",
-    "frame-benchmarking-cli/runtime-benchmarks"
+    "frame-benchmarking-cli/runtime-benchmarks",
+    "harmonie-runtime?/runtime-benchmarks"
 ]
 all-natives = [
-    # allfeat
     "harmonie-native",
-    "allfeat-native",
 ]
 harmonie-native = [
     "harmonie-runtime",
 ]
 
-allfeat-native = [
-    "allfeat-runtime",
-]
-
 # Enable features that allow the runtime to be tried and debugged. Name might be subject to change
 # in the near future.
 try-runtime = [
-    "allfeat-runtime?/try-runtime",
     "harmonie-runtime?/try-runtime",
 ]

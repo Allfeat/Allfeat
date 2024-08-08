@@ -18,6 +18,7 @@
 
 use allfeat_primitives::Block;
 use fc_mapping_sync::{EthereumBlockNotification, EthereumBlockNotificationSinks};
+use sp_api::ConstructRuntimeApi;
 use std::{
 	path::PathBuf,
 	sync::Arc,
@@ -34,10 +35,10 @@ use fc_rpc::EthTask;
 pub use fc_rpc_core::types::{FeeHistoryCache, FeeHistoryCacheLimit, FilterPool};
 pub use fc_storage::StorageOverride;
 
-use crate::service::{FullBackend, FullClient};
+use crate::{apis::EthCompatRuntimeApiCollection, service::{FullBackend, FullClient}};
 
 /// Frontier DB backend type.
-pub type FullFrontierBackend = fc_db::Backend<Block, FullClient>;
+pub type FullFrontierBackend<C> = fc_db::Backend<Block, C>;
 
 pub fn db_config_dir(config: &Configuration) -> PathBuf {
 	config.base_path.config_dir(config.chain_spec.id())
@@ -107,11 +108,11 @@ pub struct EthConfiguration {
 }
 
 #[allow(clippy::too_many_arguments)]
-pub fn spawn_tasks(
+pub fn spawn_tasks<RA>(
 	task_manager: &TaskManager,
-	client: Arc<FullClient>,
+	client: Arc<FullClient<RA>>,
 	backend: Arc<FullBackend>,
-	frontier_backend: Arc<FullFrontierBackend>,
+	frontier_backend: Arc<FullFrontierBackend<FullClient<RA>>>,
 	filter_pool: Option<FilterPool>,
 	storage_overrides: Arc<dyn StorageOverride<Block>>,
 	fee_history_cache: FeeHistoryCache,
@@ -119,6 +120,9 @@ pub fn spawn_tasks(
 	sync: Arc<SyncingService<Block>>,
 	pubsub_notification_sinks: Arc<EthereumBlockNotificationSinks<EthereumBlockNotification<Block>>>,
 ) where
+RA: ConstructRuntimeApi<Block, FullClient<RA>>,
+RA: Send + Sync + 'static,
+RA::RuntimeApi: EthCompatRuntimeApiCollection<Block>,
 {
 	match &*frontier_backend {
 		fc_db::Backend::KeyValue(bd) => {

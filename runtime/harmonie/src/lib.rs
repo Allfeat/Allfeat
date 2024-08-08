@@ -228,6 +228,29 @@ pub type Executive = frame_executive::Executive<
 // `OnRuntimeUpgrade`.
 type Migrations = ();
 
+#[derive(Clone)]
+pub struct TransactionConverter<B>(PhantomData<B>);
+
+impl<B> Default for TransactionConverter<B> {
+	fn default() -> Self {
+		Self(PhantomData)
+	}
+}
+
+impl<B: sp_runtime::traits::Block> fp_rpc::ConvertTransaction<<B as sp_runtime::traits::Block>::Extrinsic> for TransactionConverter<B> {
+	fn convert_transaction(
+		&self,
+		transaction: pallet_ethereum::Transaction,
+	) -> <B as sp_runtime::traits::Block>::Extrinsic {
+		let extrinsic = UncheckedExtrinsic::new_unsigned(
+			pallet_ethereum::Call::<Runtime>::transact { transaction }.into(),
+		);
+		let encoded = extrinsic.encode();
+		<B as sp_runtime::traits::Block>::Extrinsic::decode(&mut &encoded[..])
+			.expect("Encoded extrinsic is always valid")
+	}
+}
+
 #[cfg(feature = "runtime-benchmarks")]
 frame_benchmarking::define_benchmarks!(
 	[frame_benchmarking, BaselineBench::<Runtime>]

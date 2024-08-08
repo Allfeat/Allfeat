@@ -35,6 +35,9 @@ pallet-timestamp = { workspace = true }
 pallet-utility = { workspace = true }
 pallet-transaction-payment = { workspace = true }
 pallet-evm = { workspace = true }
+pallet-ethereum = { workspace = true }
+
+fp-rpc = { workspace = true }
 
 allfeat-primitives = { workspace = true }
 
@@ -68,6 +71,8 @@ std = [
     "pallet-timestamp/std",
     "pallet-utility/std",
     "pallet-evm/std",
+    "pallet-ethereum/std",
+    "fp-rpc/std"
 ]
 runtime-benchmarks = [
     "pallet-identity/runtime-benchmarks",
@@ -88,6 +93,7 @@ runtime-benchmarks = [
     "pallet-sudo/runtime-benchmarks",
     "pallet-timestamp/runtime-benchmarks",
     "pallet-utility/runtime-benchmarks",
+    "pallet-ethereum/runtime-benchmarks",
     "sp-runtime/runtime-benchmarks",
 ]
 test = []

@@ -98,7 +98,6 @@ name = "allfeat"
 version = "1.0.0-dev"
 dependencies = [
  "allfeat-primitives",
- "allfeat-runtime",
  "bip32",
  "clap",
  "fc-api",
@@ -185,99 +184,6 @@ dependencies = [
  "fp-account",
  "sp-core",
  "sp-runtime",
-]
-
-[[package]]
-name = "allfeat-runtime"
-version = "1.0.0-dev"
-dependencies = [
- "allfeat-primitives",
- "enumflags2",
- "fp-evm",
- "fp-rpc",
- "fp-self-contained",
- "frame-benchmarking",
- "frame-election-provider-support",
- "frame-executive",
- "frame-support",
- "frame-system",
- "frame-system-benchmarking",
- "frame-system-rpc-runtime-api",
- "frame-try-runtime",
- "hex-literal",
- "log",
- "num_enum",
- "pallet-artists-v2",
- "pallet-authority-discovery",
- "pallet-authorship",
- "pallet-babe",
- "pallet-bags-list",
- "pallet-balances",
- "pallet-conviction-voting",
- "pallet-election-provider-multi-phase",
- "pallet-election-provider-support-benchmarking",
- "pallet-ethereum",
- "pallet-evm",
- "pallet-evm-precompile-artists",
- "pallet-evm-precompile-balances-erc20",
- "pallet-evm-precompile-blake2",
- "pallet-evm-precompile-bn128",
- "pallet-evm-precompile-modexp",
- "pallet-evm-precompile-sha3fips",
- "pallet-evm-precompile-simple",
- "pallet-grandpa",
- "pallet-identity",
- "pallet-im-online",
- "pallet-mmr",
- "pallet-multisig",
- "pallet-nomination-pools",
- "pallet-nomination-pools-benchmarking",
- "pallet-offences",
- "pallet-offences-benchmarking",
- "pallet-preimage",
- "pallet-proxy",
- "pallet-referenda",
- "pallet-scheduler",
- "pallet-session",
- "pallet-session-benchmarking",
- "pallet-staking",
- "pallet-staking-reward-curve",
- "pallet-sudo",
- "pallet-timestamp",
- "pallet-transaction-payment",
- "pallet-transaction-payment-rpc-runtime-api",
- "pallet-utility",
- "pallet-vesting",
- "pallet-whitelist",
- "parity-scale-codec",
- "precompile-utils",
- "scale-info",
- "separator",
- "sha3",
- "shared-runtime",
- "smallvec",
- "sp-api",
- "sp-arithmetic",
- "sp-authority-discovery",
- "sp-block-builder",
- "sp-consensus-babe",
- "sp-consensus-grandpa",
- "sp-core",
- "sp-genesis-builder",
- "sp-inherents",
- "sp-io",
- "sp-keyring",
- "sp-offchain",
- "sp-runtime",
- "sp-session",
- "sp-staking",
- "sp-statement-store",
- "sp-std",
- "sp-storage",
- "sp-transaction-pool",
- "sp-version",
- "static_assertions",
- "substrate-wasm-builder",
 ]
 
 [[package]]
@@ -611,12 +517,6 @@ dependencies = [
  "quote",
  "syn 2.0.60",
 ]
-
-[[package]]
-name = "assert_matches"
-version = "1.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b34d609dfbaf33d6889b2b7106d3ca345eacad44200913df5ba02bfd31d2ba9"
 
 [[package]]
 name = "async-channel"
@@ -5915,22 +5815,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-conviction-voting"
-version = "37.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk.git?branch=stable2407#743dc632fd6115b408376a6e4efe815bd804cd52"
-dependencies = [
- "assert_matches",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-io",
- "sp-runtime",
-]
-
-[[package]]
 name = "pallet-delegated-staking"
 version = "4.0.0"
 source = "git+https://github.com/paritytech/polkadot-sdk.git?branch=stable2407#743dc632fd6115b408376a6e4efe815bd804cd52"
@@ -6317,24 +6201,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-referenda"
-version = "37.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk.git?branch=stable2407#743dc632fd6115b408376a6e4efe815bd804cd52"
-dependencies = [
- "assert_matches",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-arithmetic",
- "sp-io",
- "sp-runtime",
-]
-
-[[package]]
 name = "pallet-scheduler"
 version = "38.0.0"
 source = "git+https://github.com/paritytech/polkadot-sdk.git?branch=stable2407#743dc632fd6115b408376a6e4efe815bd804cd52"
@@ -6510,34 +6376,6 @@ dependencies = [
  "scale-info",
  "sp-core",
  "sp-io",
- "sp-runtime",
-]
-
-[[package]]
-name = "pallet-vesting"
-version = "37.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk.git?branch=stable2407#743dc632fd6115b408376a6e4efe815bd804cd52"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "parity-scale-codec",
- "scale-info",
- "sp-runtime",
-]
-
-[[package]]
-name = "pallet-whitelist"
-version = "36.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk.git?branch=stable2407#743dc632fd6115b408376a6e4efe815bd804cd52"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "scale-info",
- "sp-api",
  "sp-runtime",
 ]
 
@@ -9301,12 +9139,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cd0b0ec5f1c1ca621c432a25813d8d60c88abe6d3e08a3eb9cf37d97a0fe3d73"
 
 [[package]]
-name = "separator"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f97841a747eef040fcd2e7b3b9a220a7205926e60488e673d9e4926d27772ce5"
-
-[[package]]
 name = "serde"
 version = "1.0.204"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9447,12 +9279,14 @@ version = "1.0.0-dev"
 dependencies = [
  "allfeat-primitives",
  "enumflags2",
+ "fp-rpc",
  "frame-support",
  "frame-system",
  "pallet-artists-v2",
  "pallet-bags-list",
  "pallet-balances",
  "pallet-election-provider-multi-phase",
+ "pallet-ethereum",
  "pallet-evm",
  "pallet-identity",
  "pallet-im-online",

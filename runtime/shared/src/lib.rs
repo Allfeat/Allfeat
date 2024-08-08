@@ -149,6 +149,34 @@ where
 	}
 }
 
+/* #[derive(Clone)]
+pub struct TransactionConverter<B, R>(PhantomData<B>, PhantomData<R>);
+
+impl<B, R> Default for TransactionConverter<B, R> {
+	fn default() -> Self {
+		Self(PhantomData, PhantomData)
+	}
+}
+
+impl<B, R> fp_rpc::ConvertTransaction<<B as BlockT>::Extrinsic> for TransactionConverter<B, R>
+where 
+	B: BlockT,
+	R: frame_system::Config + pallet_ethereum::Config,
+	Result<pallet_ethereum::RawOrigin, <R as frame_system::Config>::RuntimeOrigin>: From<<R as frame_system::Config>::RuntimeOrigin>,
+{
+	fn convert_transaction(
+		&self,
+		transaction: pallet_ethereum::Transaction,
+	) -> <B as BlockT>::Extrinsic {
+		let extrinsic = UncheckedExtrinsic::new_unsigned(
+			pallet_ethereum::Call::<R>::transact { transaction }.into(),
+		);
+		let encoded = extrinsic.encode();
+		<B as BlockT>::Extrinsic::decode(&mut &encoded[..])
+			.expect("Encoded extrinsic is always valid")
+	}
+} */
+
 /// Macro to set a value (e.g. when using the `parameter_types` macro) to either a production value
 /// or to an environment variable or testing value (in case the `fast-runtime` feature is selected)
 /// or one of two testing values depending on feature.

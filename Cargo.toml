@@ -165,7 +165,6 @@ frame-benchmarking-cli = { version = "42.0.0", git = "https://github.com/parityt
 # Allfeat (client)
 shared-runtime = { version = "1.0.0-dev", path = "./runtime/shared", default-features = false }
 harmonie-runtime = { version = "1.0.0-dev", path = "./runtime/harmonie" }
-allfeat-runtime = { version = "1.0.0-dev", path = "./runtime/allfeat" }
 
 # Other (client)
 clap = { version = "4.5.13", features = ["derive"] }

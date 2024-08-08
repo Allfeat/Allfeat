@@ -20,7 +20,7 @@ use std::{env, sync::Arc};
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::{
-	benchmarking::{inherent_benchmark_data, RemarkBuilder, TransferKeepAliveBuilder}, chain_specs::ChainSpec, cli::{Cli, Subcommand}, eth::db_config_dir, service::{self, Client}
+	benchmarking::{inherent_benchmark_data, RemarkBuilder, TransferKeepAliveBuilder}, chain_specs::ChainSpec, cli::{Cli, Subcommand}, eth::db_config_dir, service::{self, HarmonieClient as Client}
 };
 use fc_db::kv::frontier_database_dir;
 use allfeat_primitives::Block;
@@ -28,6 +28,12 @@ use frame_benchmarking_cli::{BenchmarkCmd, ExtrinsicFactory, SUBSTRATE_REFERENCE
 use sc_cli::{ChainSpec as ChainSpecT, SubstrateCli};
 use sc_network::NetworkWorker;
 use sc_service::{DatabaseSource, PartialComponents};
+
+#[cfg(not(any(feature = "harmonie-native")))]
+compile_error!("No feature (harmonie-native) is enabled!");
+
+#[cfg(feature = "harmonie-native")]
+use harmonie_runtime::RuntimeApi;
 
 use crate::
 	chain_specs::harmonie_chain_spec;
@@ -68,12 +74,7 @@ impl SubstrateCli for Cli {
 
 	fn load_spec(&self, id: &str) -> Result<Box<dyn ChainSpecT>, String> {
 		let spec = match id {
-			"" =>
-				return Err(
-					"Please specify which chain you want to run, e.g. --dev or --chain=harmonie-local"
-						.into(),
-				),
-			"harmonie" => Box::new(ChainSpec::from_json_bytes(
+			"" | "harmonie" => Box::new(ChainSpec::from_json_bytes(
 				&include_bytes!("../genesis/harmonie-raw.json")[..],
 			)?),
 			"dev" | "harmonie-dev" => Box::new(harmonie_chain_spec::development_chain_spec(None, None)),
@@ -95,7 +96,7 @@ pub fn run() -> sc_cli::Result<()> {
 		None => {
 			let runner = cli.create_runner(&cli.run)?;
 			runner.run_node_until_exit(|config| async move {
-				service::new_full::<NetworkWorker<_, _>>(
+				service::new_full::<RuntimeApi, NetworkWorker<_, _>>(
 					config, 
 					cli.eth, 
 					cli.no_hardware_benchmarks, 
@@ -112,7 +113,7 @@ pub fn run() -> sc_cli::Result<()> {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
 				let (client, _, import_queue, task_manager, _) =
-					service::new_chain_ops(&mut config, &cli.eth)?;
+					service::new_chain_ops::<RuntimeApi>(&mut config, &cli.eth)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		},
@@ -120,7 +121,7 @@ pub fn run() -> sc_cli::Result<()> {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
 				let (client, _, _, task_manager, _) =
-					service::new_chain_ops(&mut config, &cli.eth)?;
+					service::new_chain_ops::<RuntimeApi>(&mut config, &cli.eth)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
 		},
@@ -128,7 +129,7 @@ pub fn run() -> sc_cli::Result<()> {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
 				let (client, _, _, task_manager, _) =
-					service::new_chain_ops(&mut config, &cli.eth)?;
+					service::new_chain_ops::<RuntimeApi>(&mut config, &cli.eth)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
 		},
@@ -136,7 +137,7 @@ pub fn run() -> sc_cli::Result<()> {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
 				let (client, _, import_queue, task_manager, _) =
-					service::new_chain_ops(&mut config, &cli.eth)?;
+					service::new_chain_ops::<RuntimeApi>(&mut config, &cli.eth)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		},
@@ -187,7 +188,7 @@ pub fn run() -> sc_cli::Result<()> {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|mut config| {
 				let (client, backend, _, task_manager, _) =
-					service::new_chain_ops(&mut config, &cli.eth)?;
+					service::new_chain_ops::<RuntimeApi>(&mut config, &cli.eth)?;
 				let aux_revert = Box::new(move |client: Arc<Client>, backend, blocks| {
 					sc_consensus_babe::revert(client.clone(), backend, blocks)?;
 					grandpa::revert(client, blocks)?;
@@ -217,7 +218,7 @@ pub fn run() -> sc_cli::Result<()> {
 						))
 					},
 					BenchmarkCmd::Block(cmd) => {
-						let PartialComponents { client, .. } = service::new_partial(&config, &cli.eth)?;
+						let PartialComponents { client, .. } = service::new_partial::<RuntimeApi>(&config, &cli.eth)?;
 						cmd.run(client)
 					},
 					#[cfg(not(feature = "runtime-benchmarks"))]
@@ -279,7 +280,7 @@ pub fn run() -> sc_cli::Result<()> {
 			let runner = cli.create_runner(cmd)?;
 			runner.sync_run(|mut config| {
 				let (client, _, _, _, frontier_backend) =
-					service::new_chain_ops(&mut config, &cli.eth)?;
+					service::new_chain_ops::<RuntimeApi>(&mut config, &cli.eth)?;
 				let frontier_backend = match frontier_backend {
 					fc_db::Backend::KeyValue(kv) => kv,
 					_ => panic!("Only fc_db::Backend::KeyValue supported"),

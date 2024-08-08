@@ -43,13 +43,6 @@ pub use harmonie::{self as harmonie_chain_spec};
 #[cfg(not(feature = "harmonie-native"))]
 pub type HarmonieChainSpec = DummyChainSpec;
 
-#[cfg(feature = "allfeat-native")]
-pub mod allfeat;
-#[cfg(feature = "allfeat-native")]
-pub use allfeat::{self as allfeat_chain_spec};
-#[cfg(not(feature = "allfeat-native"))]
-pub type AllfeatChainSpec = DummyChainSpec;
-
 /// Node `ChainSpec` extensions.
 ///
 /// Additional parameters for some Substrate core modules,
@@ -65,36 +58,8 @@ pub struct Extensions {
 	pub light_sync_state: sc_sync_state_rpc::LightSyncStateExtension,
 }
 
-#[allow(unused)]
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<Extensions>;
-
-/// Can be called for a `Configuration` to check if it is the specific network.
-pub trait IdentifyVariant {
-	/// Get spec id.
-	fn id(&self) -> &str;
-
-	/// Returns if this is a configuration for the `Harmonie` network.
-	fn is_harmonie(&self) -> bool {
-		self.id().starts_with("harmonie")
-	}
-
-	/// Returns if this is a configuration for the `Darwinia` network.
-	fn is_allfeat(&self) -> bool {
-		self.id().starts_with("allfeat")
-	}
-
-	/// Returns true if this configuration is for a development network.
-	fn _is_dev(&self) -> bool {
-		// Fulfill Polkadot.JS metadata upgrade requirements.
-		self.id().ends_with("-d")
-	}
-}
-impl IdentifyVariant for Box<dyn sc_service::ChainSpec> {
-	fn id(&self) -> &str {
-		sc_service::ChainSpec::id(&**self)
-	}
-}
 
 /// Helper function to derive `num_accounts` child pairs from mnemonics
 /// Substrate derive function cannot be used because the derivation is different than Ethereum's

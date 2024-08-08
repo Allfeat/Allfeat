@@ -20,15 +20,14 @@
 
 //! Service implementation. Specialized wrapper over substrate service.
 
-use crate::eth::{self, db_config_dir, EthConfiguration, FullFrontierBackend, FrontierBackendType};
+use crate::{apis::RuntimeApiCollection, eth::{self, db_config_dir, EthConfiguration, FrontierBackendType, FullFrontierBackend}};
 use fc_consensus::FrontierBlockImport;
 use fc_rpc::StorageOverrideHandler;
 use fp_rpc::NoTransactionConverter;
 use frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
 use futures::prelude::*;
 use grandpa::SharedVoterState;
-use allfeat_primitives::Block;
-use harmonie_runtime::RuntimeApi;
+use allfeat_primitives::{Block, Nonce, Balance, AccountId};
 use sc_client_api::BlockBackend;
 use sc_consensus::BasicQueue;
 use sc_consensus_babe::{BabeWorkerHandle, SlotProportion};
@@ -39,6 +38,7 @@ use sc_service::{
 };
 use sc_telemetry::{Telemetry, TelemetryWorker};
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
+use sp_api::ConstructRuntimeApi;
 use sp_core::U256;
 use std::{
 	collections::BTreeMap, path::Path, sync::{Arc, Mutex}, time::Duration
@@ -49,7 +49,7 @@ use sc_client_api::Backend as BackendT;
 use crate::rpc;
 
 /// Full client.
-pub type FullClient = sc_service::TFullClient<Block, RuntimeApi, RuntimeExecutor>;
+pub type FullClient<RA> = sc_service::TFullClient<Block, RA, RuntimeExecutor>;
 
 /// Only enable the benchmarking host functions when we actually want to benchmark.
 #[cfg(feature = "runtime-benchmarks")]
@@ -67,40 +67,40 @@ pub type RuntimeExecutor = sc_executor::WasmExecutor<HostFunctions>;
 
 pub type FullBackend = sc_service::TFullBackend<Block>;
 
-pub type Backend = FullBackend;
-pub type Client = FullClient;
+#[cfg(feature = "harmonie-native")]
+pub type HarmonieClient = FullClient<harmonie_runtime::RuntimeApi>;
 
 type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
-type FullGrandpaBlockImport = grandpa::GrandpaBlockImport<FullBackend, Block, FullClient, FullSelectChain>;
-type GrandpaLinkHalf = grandpa::LinkHalf<Block, FullClient, FullSelectChain>;
+type FullGrandpaBlockImport<RA> = grandpa::GrandpaBlockImport<FullBackend, Block, FullClient<RA>, FullSelectChain>;
+type GrandpaLinkHalf<RA> = grandpa::LinkHalf<Block, FullClient<RA>, FullSelectChain>;
 
 /// The minimum period of blocks on which justifications will be
 /// imported and generated.
 const GRANDPA_JUSTIFICATION_PERIOD: u32 = 512;
 
 /// Creates a new partial node.
-pub fn new_partial(
+pub fn new_partial<RA>(
 	config: &Configuration,
 	eth_rpc_config: &EthConfiguration,
 ) -> Result<
 	sc_service::PartialComponents<
-		FullClient,
+		FullClient<RA>,
 		FullBackend,
 		FullSelectChain,
 		sc_consensus::DefaultImportQueue<Block>,
-		sc_transaction_pool::FullPool<Block, FullClient>,
+		sc_transaction_pool::FullPool<Block, FullClient<RA>>,
 		(
 			(
 				sc_consensus_babe::BabeBlockImport<
 					Block,
-					FullClient,
-					FullGrandpaBlockImport,
+					FullClient<RA>,
+					FullGrandpaBlockImport<RA>,
 				>,
-				GrandpaLinkHalf,
+				GrandpaLinkHalf<RA>,
 				sc_consensus_babe::BabeLink<Block>,
 				BabeWorkerHandle<Block>,
 			),
-			FullFrontierBackend,
+			FullFrontierBackend<FullClient<RA>>,
 			Option<fc_rpc_core::types::FilterPool>,
 			fc_rpc_core::types::FeeHistoryCache,
 			fc_rpc_core::types::FeeHistoryCacheLimit,
@@ -110,6 +110,9 @@ pub fn new_partial(
 	ServiceError,
 >
 where
+	RA: ConstructRuntimeApi<Block, FullClient<RA>>,
+	RA: Send + Sync + 'static,
+	RA::RuntimeApi: RuntimeApiCollection<Block, AccountId, Nonce, Balance>,
 {
 	let telemetry = config
 		.telemetry_endpoints
@@ -125,7 +128,7 @@ where
 	let executor = sc_service::new_wasm_executor(config);
 
 	let (client, backend, keystore_container, task_manager) =
-		sc_service::new_full_parts::<Block, RuntimeApi, _>(
+		sc_service::new_full_parts::<Block, RA, _>(
 			config,
 			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
 			executor,
@@ -243,21 +246,24 @@ where
 }
 
 /// Builds a new service for a full client.
-pub async fn new_full<NB>(
+pub async fn new_full<RA, NB>(
 	mut config: Configuration,
 	eth_config: EthConfiguration,
 	disable_hardware_benchmarks: bool,
 	with_startup_data: impl FnOnce(
 		&sc_consensus_babe::BabeBlockImport<
 			Block,
-			FullClient,
-			FullGrandpaBlockImport,
+			FullClient<RA>,
+			FullGrandpaBlockImport<RA>,
 		>,
 		&sc_consensus_babe::BabeLink<Block>,
 	),
 ) -> Result<TaskManager, ServiceError>
 where
 	NB: sc_network::NetworkBackend<Block, <Block as BlockT>::Hash>,
+	RA: ConstructRuntimeApi<Block, FullClient<RA>>,
+	RA: Send + Sync + 'static,
+	RA::RuntimeApi: RuntimeApiCollection<Block, AccountId, Nonce, Balance>,
 {
 	let hwbench = (!disable_hardware_benchmarks)
 		.then_some(config.database.path().map(|database_path| {
@@ -664,13 +670,18 @@ where
 	Ok(task_manager)
 }
 
-pub fn new_chain_ops(
+pub fn new_chain_ops<RA>(
 	config: &mut Configuration,
 	eth_config: &EthConfiguration,
 ) -> Result<
-	(Arc<Client>, Arc<Backend>, BasicQueue<Block>, TaskManager, FullFrontierBackend),
+	(Arc<FullClient<RA>>, Arc<FullBackend>, BasicQueue<Block>, TaskManager, FullFrontierBackend<FullClient<RA>>),
 	ServiceError,
-> {
+>
+where
+	RA: ConstructRuntimeApi<Block, FullClient<RA>>,
+	RA: Send + Sync + 'static,
+	RA::RuntimeApi: RuntimeApiCollection<Block, AccountId, Nonce, Balance>,
+{
 	config.keystore = sc_service::config::KeystoreConfig::InMemory;
 	let sc_service::PartialComponents {
 		client, backend, import_queue, task_manager, other, ..
