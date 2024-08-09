@@ -208,7 +208,7 @@ where
 		main_type: ArtistType,
 	) -> Result<(), DispatchErrorWithPostInfo> {
 		if self.extra_types.is_type(main_type.into()) {
-			return Err(Error::<T>::IsExtraType.into())
+			return Err(Error::<T>::IsExtraType.into());
 		}
 		self.main_type = main_type;
 		Ok(())
@@ -219,7 +219,7 @@ where
 		extra_types: ExtraArtistTypes,
 	) -> Result<(), DispatchErrorWithPostInfo> {
 		if extra_types.is_type(self.main_type.into()) {
-			return Err(Error::<T>::IsMainType.into())
+			return Err(Error::<T>::IsMainType.into());
 		}
 		self.extra_types = extra_types;
 		Ok(())

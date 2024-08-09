@@ -85,7 +85,6 @@ impl pallet_staking::Config for Runtime {
 	type SessionInterface = Self;
 	type EraPayout = pallet_staking::ConvertCurve<RewardCurve>;
 	type NextNewSession = Session;
-	type OffendingValidatorsThreshold = OffendingValidatorsThreshold;
 	type VoterList = BagsList;
 	type NominationsQuota = pallet_staking::FixedNominationsQuota<{ MaxNominations::get() }>;
 	type MaxUnlockingChunks = ConstU32<32>;
@@ -96,5 +95,7 @@ impl pallet_staking::Config for Runtime {
 	type EventListeners = NominationPools;
 	type HistoryDepth = HistoryDepth;
 	type MaxControllersInDeprecationBatch = MaxControllersInDeprecationBatch;
+	type DisablingStrategy = pallet_staking::UpToLimitDisablingStrategy;
 	type WeightInfo = weights::staking::AllfeatWeight<Runtime>;
+	// type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
 }

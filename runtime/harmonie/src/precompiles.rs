@@ -21,24 +21,12 @@ use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadat
 use pallet_evm_precompile_blake2::Blake2F;
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_modexp::Modexp;
-use pallet_evm_precompile_nfts_collections::NftsPrecompileSet;
-use pallet_evm_precompile_nfts_factory::NftsFactoryPrecompile;
-use pallet_evm_precompile_nfts_swap::NftsSwapPrecompile;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use precompile_utils::precompile_set::{
 	AcceptDelegateCall, AddressU64, CallableByContract, CallableByPrecompile, PrecompileAt,
-	PrecompileSetBuilder, PrecompileSetStartingWith, PrecompilesInRangeInclusive,
+	PrecompileSetBuilder, PrecompilesInRangeInclusive,
 };
-use sp_core::parameter_types;
-
-/// The nfts precompile address prefix. Addresses that match against this prefix will be routed
-/// to NftsPrecompileSet
-pub const NFTS_PRECOMPILE_ADDRESS_PREFIX: &[u8] = &[255u8; 4];
-
-parameter_types! {
-	pub NftPrefix: &'static [u8] = NFTS_PRECOMPILE_ADDRESS_PREFIX;
-}
 
 /// ERC20 metadata for the native token.
 pub struct NativeErc20Metadata;
@@ -91,16 +79,6 @@ type AllfeatPrecompilesAt<R> = (
 		ArtistsPrecompile<R>,
 		(CallableByContract, CallableByPrecompile),
 	>,
-	PrecompileAt<
-		AddressU64<2050>,
-		NftsFactoryPrecompile<R>,
-		(CallableByContract, CallableByPrecompile),
-	>,
-	PrecompileAt<
-		AddressU64<2051>,
-		NftsSwapPrecompile<R>,
-		(CallableByContract, CallableByPrecompile),
-	>,
 );
 
 /// The PrecompileSet installed in this Allfeat runtime.
@@ -115,7 +93,5 @@ pub type AllfeatPrecompiles<R> = PrecompileSetBuilder<
 	(
 		// Skip precompiles if out of range.
 		PrecompilesInRangeInclusive<(AddressU64<1>, AddressU64<2051>), AllfeatPrecompilesAt<R>>,
-		// Prefixed precompile sets
-		PrecompileSetStartingWith<NftPrefix, NftsPrecompileSet<R>, CallableByContract>,
 	),
 >;

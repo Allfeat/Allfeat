@@ -19,7 +19,7 @@
 use crate::*;
 use frame_support::parameter_types;
 use pallet_ethereum::EthereumBlockHashMapping;
-use pallet_evm::{EVMCurrencyAdapter, IdentityAddressMapping};
+use pallet_evm::{EVMFungibleAdapter, IdentityAddressMapping};
 use shared_runtime::TransactionPaymentGasPrice;
 use sp_runtime::ConsensusEngineId;
 
@@ -61,7 +61,7 @@ impl pallet_evm::Config for Runtime {
 	type ChainId = ConstU64<441>;
 	type BlockGasLimit = BlockGasLimit;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type OnChargeTransaction = EVMCurrencyAdapter<Balances, DealWithFees<Runtime>>;
+	type OnChargeTransaction = EVMFungibleAdapter<Balances, DealWithFees<Runtime>>;
 	type OnCreate = ();
 	type FindAuthor = FindAuthor<pallet_session::FindAccountFromAuthorIndex<Self, Babe>>;
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;

@@ -24,7 +24,7 @@ sp-runtime = { workspace = true }
 sp-std = { workspace = true }
 frame-benchmarking = { workspace = true, optional = true }
 
-genres-registry = { version = "1.0.0-dev", default-features = false, git = "https://github.com/Allfeat/genres-registry.git", branch = "allfeat-polkadot-v1.9.0", features = ["substrate"] }
+genres-registry = { version = "1.0.0-dev", default-features = false, git = "https://github.com/Allfeat/genres-registry.git", branch = "stable2407", features = ["substrate"] }
 
 [dev-dependencies]
 pallet-balances = { workspace = true }

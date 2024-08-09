@@ -2,7 +2,7 @@
 authors.workspace = true
 description = "Allfeat node."
 edition.workspace = true
-name = "alleat"
+name = "allfeat"
 readme = "README.md"
 version.workspace = true
 
@@ -64,6 +64,7 @@ jsonrpsee = { workspace = true }
 sp-consensus-grandpa = { workspace = true }
 sc-rpc = { workspace = true }
 sp-api = { workspace = true }
+sp-io = { workspace = true }
 sc-rpc-api = { workspace = true }
 sc-rpc-spec-v2 = { workspace = true }
 sp-blockchain = { workspace = true }
@@ -79,7 +80,7 @@ pallet-staking = { workspace = true }
 
 # Frontier
 fc-api = { workspace = true }
-fp-account = { workspace = true, optional = true }
+fp-account = { workspace = true  }
 fc-cli = { workspace = true }
 fc-consensus = { workspace = true }
 fc-db = { workspace = true }
@@ -90,18 +91,14 @@ fc-storage = { workspace = true }
 fp-dynamic-fee = { workspace = true }
 fp-rpc = { workspace = true }
 
-frame-benchmarking = { workspace = true, optional = true }
+frame-benchmarking = { workspace = true }
 frame-benchmarking-cli = { workspace = true }
-frame-system = { workspace = true, optional = true }
-pallet-transaction-payment = { workspace = true, optional = true }
+frame-system = { workspace = true }
+pallet-transaction-payment = { workspace = true  }
 
 # Local Dependencies
 shared-runtime = { workspace = true }
 harmonie-runtime = { workspace = true, optional = true }
-allfeat-runtime = { workspace = true, optional = true }
-
-# CLI-specific dependencies
-try-runtime-cli = { workspace = true, optional = true }
 
 [build-dependencies]
 substrate-build-script-utils = { workspace = true }
@@ -111,37 +108,23 @@ frame-benchmarking-cli = { workspace = true, optional = true }
 default = ["all-natives"]
 
 fast-runtime = [
-    # allfeat
     "harmonie-runtime?/fast-runtime",
-    "allfeat-runtime?/fast-runtime",
 ]
 
 runtime-benchmarks = [
-    "frame-benchmarking",
-    "fp-account",
     "frame-system/runtime-benchmarks",
-    "pallet-transaction-payment",
-    "allfeat-runtime?/runtime-benchmarks",
-    "harmonie-runtime?/runtime-benchmarks",
-    "frame-benchmarking-cli/runtime-benchmarks"
+    "frame-benchmarking-cli/runtime-benchmarks",
+    "harmonie-runtime?/runtime-benchmarks"
 ]
 all-natives = [
-    # allfeat
     "harmonie-native",
-    "allfeat-native",
 ]
 harmonie-native = [
     "harmonie-runtime",
 ]
 
-allfeat-native = [
-    "allfeat-runtime",
-]
-
 # Enable features that allow the runtime to be tried and debugged. Name might be subject to change
 # in the near future.
 try-runtime = [
-    "allfeat-runtime?/try-runtime",
     "harmonie-runtime?/try-runtime",
-    "try-runtime-cli/try-runtime"
 ]

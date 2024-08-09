@@ -17,6 +17,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::*;
+use frame_system::EnsureRoot;
 use sp_arithmetic::FixedU128;
 
 frame_support::parameter_types! {
@@ -28,16 +29,18 @@ frame_support::parameter_types! {
 impl pallet_nomination_pools::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = weights::nomination_pools::AllfeatWeight<Runtime>;
+	// type WeightInfo = pallet_nomination_pools::weights::SubstrateWeight<Runtime>;
 	type Currency = Balances;
-	type Staking = Staking;
 	type PalletId = NominationPoolsPalletId;
 	type MaxPointsToBalance = MaxPointsToBalance;
 	type BalanceToU256 = BalanceToU256;
 	type U256ToBalance = U256ToBalance;
+	type StakeAdapter = pallet_nomination_pools::adapter::TransferStake<Self, Staking>;
 	type PostUnbondingPoolsWindow = PostUnbondPoolsWindow;
 	type MaxMetadataLen = ConstU32<256>;
 	// we use the same number of allowed unlocking chunks as with staking.
 	type MaxUnbonding = <Self as pallet_staking::Config>::MaxUnlockingChunks;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type RewardCounter = FixedU128;
+	type AdminOrigin = EnsureRoot<AccountId>;
 }

@@ -18,6 +18,7 @@ frame-election-provider-support = { workspace = true }
 frame-system = { workspace = true, features = ["experimental"] }
 frame-try-runtime = { workspace = true, optional = true }
 frame-executive = { workspace = true }
+frame-metadata-hash-extension = { workspace = true }
 
 shared-runtime = { workspace = true }
 
@@ -53,7 +54,6 @@ pallet-im-online = { workspace = true }
 pallet-identity = { workspace = true }
 pallet-mmr = { workspace = true }
 pallet-multisig = { workspace = true }
-pallet-nfts = { workspace = true }
 pallet-nomination-pools = { workspace = true }
 pallet-nomination-pools-benchmarking = { workspace = true, optional = true }
 pallet-offences = { workspace = true }
@@ -89,9 +89,6 @@ precompile-utils = { workspace = true }
 # Allfeat precompiles
 pallet-evm-precompile-balances-erc20 = { workspace = true }
 pallet-evm-precompile-artists = { workspace = true }
-pallet-evm-precompile-nfts-swap = { workspace = true }
-pallet-evm-precompile-nfts-factory = { workspace = true }
-pallet-evm-precompile-nfts-collections = { workspace = true }
 
 
 # Used for the node template's RPCs
@@ -110,10 +107,10 @@ shared-runtime = { workspace = true, features = ["std", "test"] }
 precompile-utils = { workspace = true, features = ["std", "testing"] }
 
 [build-dependencies]
-substrate-wasm-builder = { workspace = true }
+substrate-wasm-builder = { optional = true, workspace = true, default-features = true }
 
 [features]
-default = ["std"]
+default = ["std", "metadata-hash"]
 with-tracing = ["frame-executive/with-tracing"]
 std = [
     "frame-election-provider-support/std",
@@ -173,8 +170,8 @@ std = [
     "log/std",
     "frame-try-runtime?/std",
     "sp-io/std",
+    "frame-metadata-hash-extension/std",
     "shared-runtime/std",
-    "pallet-nfts/std",
     # Frontier
     "fp-evm/std",
     "fp-rpc/std",
@@ -190,9 +187,6 @@ std = [
     "precompile-utils/std",
     "pallet-evm-precompile-balances-erc20/std",
     "pallet-evm-precompile-artists/std",
-    "pallet-evm-precompile-nfts-factory/std",
-    "pallet-evm-precompile-nfts-collections/std",
-    "pallet-evm-precompile-nfts-swap/std",
 ]
 runtime-benchmarks = [
     "frame-election-provider-support/runtime-benchmarks",
@@ -222,14 +216,10 @@ runtime-benchmarks = [
     "pallet-utility/runtime-benchmarks",
     "pallet-sudo/runtime-benchmarks",
     "pallet-artists/runtime-benchmarks",
-    "pallet-nfts/runtime-benchmarks",
     "frame-system-benchmarking/runtime-benchmarks",
     "pallet-ethereum/runtime-benchmarks",
     "pallet-evm/runtime-benchmarks",
     "sp-staking/runtime-benchmarks",
-    "pallet-evm-precompile-nfts-factory/runtime-benchmarks",
-    "pallet-evm-precompile-nfts-collections/runtime-benchmarks",
-    "pallet-evm-precompile-nfts-swap/runtime-benchmarks",
 ]
 try-runtime = [
     "frame-election-provider-support/try-runtime",
@@ -260,12 +250,13 @@ try-runtime = [
     "pallet-artists/try-runtime",
     "pallet-identity/try-runtime",
     "pallet-nomination-pools/try-runtime",
-    "pallet-nfts/try-runtime",
     "pallet-evm/try-runtime",
     "pallet-ethereum/try-runtime",
     "sp-runtime/try-runtime",
     "fp-self-contained/try-runtime",
 ]
+
+metadata-hash = ["substrate-wasm-builder/metadata-hash"]
 
 # Set timing constants (e.g. session period) to faster versions to speed up testing.
 fast-runtime = []

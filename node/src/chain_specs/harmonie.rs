@@ -17,11 +17,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::{
-	authority_keys_from_seed, generate_accounts, AuthorityDiscoveryId, BabeId, Extensions,
+	authority_keys_from_seed, generate_accounts, AuthorityDiscoveryId, BabeId, ChainSpec,
 	GrandpaId, ImOnlineId,
 };
 use allfeat_primitives::{AccountId, Balance};
-use harmonie_runtime::{wasm_binary_unwrap, MaxNominations, RuntimeGenesisConfig, SessionKeys};
+use harmonie_runtime::{wasm_binary_unwrap, MaxNominations, SessionKeys};
 use hex_literal::hex;
 use pallet_staking::StakerStatus;
 use sc_chain_spec::ChainType;
@@ -30,9 +30,6 @@ use sp_runtime::Perbill;
 
 #[cfg(feature = "runtime-benchmarks")]
 use shared_runtime::currency::MILLIAFT;
-
-/// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
-pub type ChainSpec = sc_service::GenericChainSpec<RuntimeGenesisConfig, Extensions>;
 
 pub fn session_keys(
 	grandpa: GrandpaId,

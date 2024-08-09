@@ -71,7 +71,7 @@ pub const VERSION: sp_version::RuntimeVersion = sp_version::RuntimeVersion {
 	// and set impl_version to 0. If only runtime
 	// implementation changes and behavior does not, then leave spec_version as
 	// is and increment impl_version.
-	spec_version: 220,
+	spec_version: 230,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -148,9 +148,6 @@ mod runtime {
 	#[runtime::pallet_index(17)]
 	pub type Identity = pallet_identity;
 
-	#[runtime::pallet_index(18)]
-	pub type Nfts = pallet_nfts;
-
 	#[runtime::pallet_index(20)]
 	pub type Scheduler = pallet_scheduler;
 
@@ -210,6 +207,7 @@ pub type SignedExtra = (
 	frame_system::CheckNonce<Runtime>,
 	frame_system::CheckWeight<Runtime>,
 	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
+	frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
 );
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic =
@@ -231,6 +229,32 @@ pub type Executive = frame_executive::Executive<
 // `OnRuntimeUpgrade`.
 type Migrations = ();
 
+#[derive(Clone)]
+pub struct TransactionConverter<B>(PhantomData<B>);
+
+impl<B> Default for TransactionConverter<B> {
+	fn default() -> Self {
+		Self(PhantomData)
+	}
+}
+
+impl<B: sp_runtime::traits::Block>
+	fp_rpc::ConvertTransaction<<B as sp_runtime::traits::Block>::Extrinsic>
+	for TransactionConverter<B>
+{
+	fn convert_transaction(
+		&self,
+		transaction: pallet_ethereum::Transaction,
+	) -> <B as sp_runtime::traits::Block>::Extrinsic {
+		let extrinsic = UncheckedExtrinsic::new_unsigned(
+			pallet_ethereum::Call::<Runtime>::transact { transaction }.into(),
+		);
+		let encoded = extrinsic.encode();
+		<B as sp_runtime::traits::Block>::Extrinsic::decode(&mut &encoded[..])
+			.expect("Encoded extrinsic is always valid")
+	}
+}
+
 #[cfg(feature = "runtime-benchmarks")]
 frame_benchmarking::define_benchmarks!(
 	[frame_benchmarking, BaselineBench::<Runtime>]
@@ -247,7 +271,6 @@ frame_benchmarking::define_benchmarks!(
 	[pallet_mmr, Mmr]
 	[pallet_multisig, Multisig]
 	[pallet_nomination_pools, NominationPoolsBench::<Runtime>]
-	[pallet_nfts, Nfts]
 	[pallet_offences, OffencesBench::<Runtime>]
 	[pallet_preimage, Preimage]
 	[pallet_proxy, Proxy]
@@ -482,12 +505,20 @@ sp_api::impl_runtime_apis! {
 	}
 
 	impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
-		fn create_default_config() -> Vec<u8> {
-			frame_support::genesis_builder_helper::create_default_config::<RuntimeGenesisConfig>()
+		fn build_state(config: Vec<u8>) -> sp_genesis_builder::Result {
+			use frame_support::genesis_builder_helper::build_state;
+
+			build_state::<RuntimeGenesisConfig>(config)
 		}
 
-		fn build_config(config: Vec<u8>) -> sp_genesis_builder::Result {
-			frame_support::genesis_builder_helper::build_config::<RuntimeGenesisConfig>(config)
+		fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
+			use frame_support::genesis_builder_helper::get_preset;
+
+			get_preset::<RuntimeGenesisConfig>(id, |_| None)
+		}
+
+		fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
+			vec![]
 		}
 	}
 
@@ -690,6 +721,10 @@ sp_api::impl_runtime_apis! {
 				pallet_ethereum::CurrentBlock::<Runtime>::get(),
 				pallet_ethereum::CurrentTransactionStatuses::<Runtime>::get()
 			)
+		}
+
+		fn initialize_pending_block(header: &<Block as sp_runtime::traits::Block>::Header) {
+			Executive::initialize_block(header);
 		}
 	}
 
