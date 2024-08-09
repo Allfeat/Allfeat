@@ -96,6 +96,6 @@ impl pallet_staking::Config for Runtime {
 	type HistoryDepth = HistoryDepth;
 	type MaxControllersInDeprecationBatch = MaxControllersInDeprecationBatch;
 	type DisablingStrategy = pallet_staking::UpToLimitDisablingStrategy;
-	// type WeightInfo = weights::staking::AllfeatWeight<Runtime>;
-	type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::staking::AllfeatWeight<Runtime>;
+	// type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
 }

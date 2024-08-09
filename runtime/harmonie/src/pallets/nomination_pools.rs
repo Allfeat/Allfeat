@@ -28,8 +28,8 @@ frame_support::parameter_types! {
 
 impl pallet_nomination_pools::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	// type WeightInfo = weights::nomination_pools::AllfeatWeight<Runtime>;
-	type WeightInfo = pallet_nomination_pools::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::nomination_pools::AllfeatWeight<Runtime>;
+	// type WeightInfo = pallet_nomination_pools::weights::SubstrateWeight<Runtime>;
 	type Currency = Balances;
 	type PalletId = NominationPoolsPalletId;
 	type MaxPointsToBalance = MaxPointsToBalance;
