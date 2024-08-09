@@ -46,6 +46,7 @@ frame-election-provider-support = { version = "37.0.0", default-features = false
 frame-system = { version = "37.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 frame-try-runtime = { version = "0.43.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 frame-executive = { version = "37.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
+frame-metadata-hash-extension = { version = "0.5.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 
 sp-arithmetic = { version = "26.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 sp-api = { version = "34.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }

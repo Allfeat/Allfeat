@@ -18,6 +18,7 @@ frame-election-provider-support = { workspace = true }
 frame-system = { workspace = true, features = ["experimental"] }
 frame-try-runtime = { workspace = true, optional = true }
 frame-executive = { workspace = true }
+frame-metadata-hash-extension = { workspace = true }
 
 shared-runtime = { workspace = true }
 
@@ -106,10 +107,10 @@ shared-runtime = { workspace = true, features = ["std", "test"] }
 precompile-utils = { workspace = true, features = ["std", "testing"] }
 
 [build-dependencies]
-substrate-wasm-builder = { workspace = true }
+substrate-wasm-builder = { optional = true, workspace = true, default-features = true }
 
 [features]
-default = ["std"]
+default = ["std", "metadata-hash"]
 with-tracing = ["frame-executive/with-tracing"]
 std = [
     "frame-election-provider-support/std",
@@ -169,6 +170,7 @@ std = [
     "log/std",
     "frame-try-runtime?/std",
     "sp-io/std",
+    "frame-metadata-hash-extension/std",
     "shared-runtime/std",
     # Frontier
     "fp-evm/std",
@@ -253,6 +255,8 @@ try-runtime = [
     "sp-runtime/try-runtime",
     "fp-self-contained/try-runtime",
 ]
+
+metadata-hash = ["substrate-wasm-builder/metadata-hash"]
 
 # Set timing constants (e.g. session period) to faster versions to speed up testing.
 fast-runtime = []
