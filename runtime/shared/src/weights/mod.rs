@@ -18,7 +18,7 @@
 
 // pub mod artists; TODO
 pub mod bags_list;
-// pub mod balances;
+pub mod balances;
 pub mod election_provider_multi_phase;
 pub mod evm;
 pub mod system;
