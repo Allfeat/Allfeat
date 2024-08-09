@@ -17,8 +17,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::{
-	authority_keys_from_seed, generate_accounts, AuthorityDiscoveryId, BabeId,
-	GrandpaId, ImOnlineId, ChainSpec
+	authority_keys_from_seed, generate_accounts, AuthorityDiscoveryId, BabeId, ChainSpec,
+	GrandpaId, ImOnlineId,
 };
 use allfeat_primitives::{AccountId, Balance};
 use harmonie_runtime::{wasm_binary_unwrap, MaxNominations, SessionKeys};

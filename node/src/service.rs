@@ -20,15 +20,18 @@
 
 //! Service implementation. Specialized wrapper over substrate service.
 
-use crate::{apis::RuntimeApiCollection, eth::{self, db_config_dir, EthConfiguration, FrontierBackendType, FullFrontierBackend}};
+use crate::{
+	apis::RuntimeApiCollection,
+	eth::{self, db_config_dir, EthConfiguration, FrontierBackendType, FullFrontierBackend},
+};
+use allfeat_primitives::{AccountId, Balance, Block, Nonce};
 use fc_consensus::FrontierBlockImport;
 use fc_rpc::StorageOverrideHandler;
 use fp_rpc::NoTransactionConverter;
 use frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
 use futures::prelude::*;
 use grandpa::SharedVoterState;
-use allfeat_primitives::{Block, Nonce, Balance, AccountId};
-use sc_client_api::BlockBackend;
+use sc_client_api::{Backend as BackendT, BlockBackend};
 use sc_consensus::BasicQueue;
 use sc_consensus_babe::{BabeWorkerHandle, SlotProportion};
 use sc_network::{event::Event, NetworkEventStream};
@@ -40,11 +43,13 @@ use sc_telemetry::{Telemetry, TelemetryWorker};
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
 use sp_api::ConstructRuntimeApi;
 use sp_core::U256;
-use std::{
-	collections::BTreeMap, path::Path, sync::{Arc, Mutex}, time::Duration
-};
 use sp_runtime::traits::Block as BlockT;
-use sc_client_api::Backend as BackendT;
+use std::{
+	collections::BTreeMap,
+	path::Path,
+	sync::{Arc, Mutex},
+	time::Duration,
+};
 
 use crate::rpc;
 
@@ -53,10 +58,8 @@ pub type FullClient<RA> = sc_service::TFullClient<Block, RA, RuntimeExecutor>;
 
 /// Only enable the benchmarking host functions when we actually want to benchmark.
 #[cfg(feature = "runtime-benchmarks")]
-pub type HostFunctions = (
-	sp_io::SubstrateHostFunctions,
-	frame_benchmarking::benchmarking::HostFunctions,
-);
+pub type HostFunctions =
+	(sp_io::SubstrateHostFunctions, frame_benchmarking::benchmarking::HostFunctions);
 /// Otherwise we use empty host functions for ext host functions.
 #[cfg(not(feature = "runtime-benchmarks"))]
 pub type HostFunctions = sp_io::SubstrateHostFunctions;
@@ -71,7 +74,8 @@ pub type FullBackend = sc_service::TFullBackend<Block>;
 pub type HarmonieClient = FullClient<harmonie_runtime::RuntimeApi>;
 
 type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
-type FullGrandpaBlockImport<RA> = grandpa::GrandpaBlockImport<FullBackend, Block, FullClient<RA>, FullSelectChain>;
+type FullGrandpaBlockImport<RA> =
+	grandpa::GrandpaBlockImport<FullBackend, Block, FullClient<RA>, FullSelectChain>;
 type GrandpaLinkHalf<RA> = grandpa::LinkHalf<Block, FullClient<RA>, FullSelectChain>;
 
 /// The minimum period of blocks on which justifications will be
@@ -195,11 +199,12 @@ where
 	// Frontier stuffs.
 	let storage_override = Arc::new(StorageOverrideHandler::<Block, _, _>::new(client.clone()));
 	let frontier_backend = match eth_rpc_config.frontier_backend_type {
-		FrontierBackendType::KeyValue => FullFrontierBackend::KeyValue(Arc::new(fc_db::kv::Backend::open(
-			Arc::clone(&client),
-			&config.database,
-			&db_config_dir(config),
-		)?)),
+		FrontierBackendType::KeyValue =>
+			FullFrontierBackend::KeyValue(Arc::new(fc_db::kv::Backend::open(
+				Arc::clone(&client),
+				&config.database,
+				&db_config_dir(config),
+			)?)),
 		FrontierBackendType::Sql => {
 			let db_path = db_config_dir(config).join("sql");
 			std::fs::create_dir_all(&db_path).expect("failed creating sql db directory");
@@ -220,7 +225,7 @@ where
 			))
 			.unwrap_or_else(|err| panic!("failed creating sql backend: {:?}", err));
 			FullFrontierBackend::Sql(Arc::new(backend))
-		}
+		},
 	};
 	let filter_pool = Some(Arc::new(Mutex::new(BTreeMap::new())));
 	let fee_history_cache = Arc::new(Mutex::new(BTreeMap::new()));
@@ -251,11 +256,7 @@ pub async fn new_full<RA, NB>(
 	eth_config: EthConfiguration,
 	disable_hardware_benchmarks: bool,
 	with_startup_data: impl FnOnce(
-		&sc_consensus_babe::BabeBlockImport<
-			Block,
-			FullClient<RA>,
-			FullGrandpaBlockImport<RA>,
-		>,
+		&sc_consensus_babe::BabeBlockImport<Block, FullClient<RA>, FullGrandpaBlockImport<RA>>,
 		&sc_consensus_babe::BabeLink<Block>,
 	),
 ) -> Result<TaskManager, ServiceError>
@@ -294,12 +295,19 @@ where
 	let metrics = NB::register_notification_metrics(
 		config.prometheus_config.as_ref().map(|cfg| &cfg.registry),
 	);
-	let mut net_config =
-		sc_network::config::FullNetworkConfiguration::<Block, <Block as sp_runtime::traits::Block>::Hash, NB>::new(&config.network);
+	let mut net_config = sc_network::config::FullNetworkConfiguration::<
+		Block,
+		<Block as sp_runtime::traits::Block>::Hash,
+		NB,
+	>::new(&config.network);
 
 	let peer_store_handle = net_config.peer_store_handle();
 	let grandpa_protocol_name = grandpa::protocol_standard_name(
-		&client.block_hash(0u32.into()).ok().flatten().expect("Genesis block exists; qed"),
+		&client
+			.block_hash(0u32.into())
+			.ok()
+			.flatten()
+			.expect("Genesis block exists; qed"),
 		&config.chain_spec,
 	);
 	let (grandpa_protocol_config, grandpa_notification_service) =
@@ -327,7 +335,7 @@ where
 			block_announce_validator_builder: None,
 			warp_sync_params: Some(WarpSyncParams::WithProvider(warp_sync)),
 			block_relay: None,
-			metrics
+			metrics,
 		})?;
 
 	let shared_voter_state = grandpa::SharedVoterState::empty();
@@ -357,7 +365,7 @@ where
 	> = Default::default();
 	let pubsub_notification_sinks = Arc::new(pubsub_notification_sinks);
 	let storage_override = Arc::new(StorageOverrideHandler::<Block, _, _>::new(client.clone()));
-	
+
 	eth::spawn_tasks(
 		&task_manager,
 		client.clone(),
@@ -464,15 +472,11 @@ where
 					subscription_executor: subscription_executor.clone(),
 					finality_provider: finality_proof_provider.clone(),
 				},
-				eth: eth_deps
+				eth: eth_deps,
 			};
 
-			rpc::create_full(
-				deps,
-				subscription_executor,
-				pubsub_notification_sinks.clone(),
-			)
-			.map_err(Into::into)
+			rpc::create_full(deps, subscription_executor, pubsub_notification_sinks.clone())
+				.map_err(Into::into)
 		})
 	};
 
@@ -674,7 +678,13 @@ pub fn new_chain_ops<RA>(
 	config: &mut Configuration,
 	eth_config: &EthConfiguration,
 ) -> Result<
-	(Arc<FullClient<RA>>, Arc<FullBackend>, BasicQueue<Block>, TaskManager, FullFrontierBackend<FullClient<RA>>),
+	(
+		Arc<FullClient<RA>>,
+		Arc<FullBackend>,
+		BasicQueue<Block>,
+		TaskManager,
+		FullFrontierBackend<FullClient<RA>>,
+	),
 	ServiceError,
 >
 where

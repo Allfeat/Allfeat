@@ -58,19 +58,19 @@ pub trait RuntimeApiCollection<
 {
 }
 
-impl<Block, AccountId, Nonce, Balance, Api>
-	RuntimeApiCollection<Block, AccountId, Nonce, Balance> for Api
+impl<Block, AccountId, Nonce, Balance, Api> RuntimeApiCollection<Block, AccountId, Nonce, Balance>
+	for Api
 where
-    Block: BlockT,
-    AccountId: Codec,
-    Nonce: Codec,
-    Balance: Codec + MaybeDisplay,
+	Block: BlockT,
+	AccountId: Codec,
+	Nonce: Codec,
+	Balance: Codec + MaybeDisplay,
 	Api: BaseRuntimeApiCollection<Block>
 		+ EthCompatRuntimeApiCollection<Block>
 		+ sp_consensus_babe::BabeApi<Block>
 		+ sp_consensus_grandpa::GrandpaApi<Block>
 		+ frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Nonce>
 		+ pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance>
-		+ sp_authority_discovery::AuthorityDiscoveryApi<Block>
+		+ sp_authority_discovery::AuthorityDiscoveryApi<Block>,
 {
 }

@@ -20,10 +20,13 @@ use std::{env, sync::Arc};
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::{
-	chain_specs::ChainSpec, cli::{Cli, Subcommand}, eth::db_config_dir, service::{self, HarmonieClient as Client}
+	chain_specs::ChainSpec,
+	cli::{Cli, Subcommand},
+	eth::db_config_dir,
+	service::{self, HarmonieClient as Client},
 };
-use fc_db::kv::frontier_database_dir;
 use allfeat_primitives::Block;
+use fc_db::kv::frontier_database_dir;
 use frame_benchmarking_cli::{BenchmarkCmd, SUBSTRATE_REFERENCE_HARDWARE};
 use sc_cli::{ChainSpec as ChainSpecT, SubstrateCli};
 use sc_network::{Litep2pNetworkBackend, NetworkWorker};
@@ -35,8 +38,7 @@ compile_error!("No feature (harmonie-native) is enabled!");
 #[cfg(feature = "harmonie-native")]
 use harmonie_runtime::RuntimeApi;
 
-use crate::
-	chain_specs::harmonie_chain_spec;
+use crate::chain_specs::harmonie_chain_spec;
 
 impl SubstrateCli for Cli {
 	fn impl_name() -> String {
@@ -77,11 +79,10 @@ impl SubstrateCli for Cli {
 			"" | "harmonie" => Box::new(ChainSpec::from_json_bytes(
 				&include_bytes!("../genesis/harmonie-raw.json")[..],
 			)?),
-			"dev" | "harmonie-dev" => Box::new(harmonie_chain_spec::development_chain_spec(None, None)),
+			"dev" | "harmonie-dev" =>
+				Box::new(harmonie_chain_spec::development_chain_spec(None, None)),
 			"harmonie-local" => Box::new(harmonie_chain_spec::get_chain_spec()),
-			path => {
-				Box::new(ChainSpec::from_json_file(path.into())?) as Box<dyn ChainSpecT>
-			}
+			path => Box::new(ChainSpec::from_json_file(path.into())?) as Box<dyn ChainSpecT>,
 		};
 		Ok(spec)
 	}
@@ -97,22 +98,24 @@ pub fn run() -> sc_cli::Result<()> {
 			let runner = cli.create_runner(&cli.run)?;
 			runner.run_node_until_exit(|config| async move {
 				match config.network.network_backend {
-					sc_network::config::NetworkBackendType::Libp2p => {
+					sc_network::config::NetworkBackendType::Libp2p =>
 						service::new_full::<RuntimeApi, NetworkWorker<_, _>>(
-							config, 
-							cli.eth, 
-							cli.no_hardware_benchmarks, 
-							|_, _| ()
-						).await.map_err(sc_cli::Error::Service)
-					},
-					sc_network::config::NetworkBackendType::Litep2p => {
+							config,
+							cli.eth,
+							cli.no_hardware_benchmarks,
+							|_, _| (),
+						)
+						.await
+						.map_err(sc_cli::Error::Service),
+					sc_network::config::NetworkBackendType::Litep2p =>
 						service::new_full::<RuntimeApi, Litep2pNetworkBackend>(
-							config, 
-							cli.eth, 
-							cli.no_hardware_benchmarks, 
-							|_, _| ()
-						).await.map_err(sc_cli::Error::Service)
-					}
+							config,
+							cli.eth,
+							cli.no_hardware_benchmarks,
+							|_, _| (),
+						)
+						.await
+						.map_err(sc_cli::Error::Service),
 				}
 			})
 		},
@@ -230,7 +233,8 @@ pub fn run() -> sc_cli::Result<()> {
 						))
 					},
 					BenchmarkCmd::Block(cmd) => {
-						let PartialComponents { client, .. } = service::new_partial::<RuntimeApi>(&config, &cli.eth)?;
+						let PartialComponents { client, .. } =
+							service::new_partial::<RuntimeApi>(&config, &cli.eth)?;
 						cmd.run(client)
 					},
 					#[cfg(not(feature = "runtime-benchmarks"))]

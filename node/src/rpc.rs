@@ -35,7 +35,8 @@ use std::sync::Arc;
 
 use allfeat_primitives::{AccountId, Balance, Hash, Nonce};
 use grandpa::{
-	BlockNumberOps, FinalityProofProvider, GrandpaJustificationStream, SharedAuthoritySet, SharedVoterState
+	BlockNumberOps, FinalityProofProvider, GrandpaJustificationStream, SharedAuthoritySet,
+	SharedVoterState,
 };
 use jsonrpsee::RpcModule;
 use sc_client_api::{
@@ -181,7 +182,11 @@ where
 	} = grandpa;
 
 	let chain_name = chain_spec.name().to_string();
-	let genesis_hash = client.block_hash(0u32.into()).ok().flatten().expect("Genesis block exists; qed");
+	let genesis_hash = client
+		.block_hash(0u32.into())
+		.ok()
+		.flatten()
+		.expect("Genesis block exists; qed");
 	let properties = chain_spec.properties();
 	io.merge(ChainSpec::new(chain_name, genesis_hash, properties).into_rpc())?;
 	io.merge(System::new(client.clone(), pool.clone(), deny_unsafe).into_rpc())?;

@@ -159,7 +159,7 @@ impl<B, R> Default for TransactionConverter<B, R> {
 }
 
 impl<B, R> fp_rpc::ConvertTransaction<<B as BlockT>::Extrinsic> for TransactionConverter<B, R>
-where 
+where
 	B: BlockT,
 	R: frame_system::Config + pallet_ethereum::Config,
 	Result<pallet_ethereum::RawOrigin, <R as frame_system::Config>::RuntimeOrigin>: From<<R as frame_system::Config>::RuntimeOrigin>,

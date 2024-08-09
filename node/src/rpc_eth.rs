@@ -79,9 +79,7 @@ pub fn create_eth<B, C, BE, P, A, CT, CIDP, EC>(
 where
 	B: BlockT,
 	C: CallApiAt<B> + ProvideRuntimeApi<B>,
-	C::Api: BlockBuilderApi<B>
-		+ ConvertTransactionRuntimeApi<B>
-		+ EthereumRuntimeRPCApi<B>,
+	C::Api: BlockBuilderApi<B> + ConvertTransactionRuntimeApi<B> + EthereumRuntimeRPCApi<B>,
 	C: HeaderBackend<B> + HeaderMetadata<B, Error = BlockChainError>,
 	C: BlockchainEvents<B> + AuxStore + UsageProvider<B> + StorageProvider<B, BE> + 'static,
 	BE: Backend<B> + 'static,
@@ -92,9 +90,8 @@ where
 	EC: EthConfig<B, C>,
 {
 	use fc_rpc::{
-		Debug, DebugApiServer, Eth, EthApiServer, EthDevSigner,
-		EthFilter, EthFilterApiServer, EthPubSub, EthPubSubApiServer, EthSigner, Net, NetApiServer,
-		Web3, Web3ApiServer,
+		Debug, DebugApiServer, Eth, EthApiServer, EthDevSigner, EthFilter, EthFilterApiServer,
+		EthPubSub, EthPubSubApiServer, EthSigner, Net, NetApiServer, Web3, Web3ApiServer,
 	};
 	#[cfg(feature = "txpool")]
 	use fc_rpc::{TxPool, TxPoolApiServer};
@@ -142,7 +139,7 @@ where
 			execute_gas_limit_multiplier,
 			forced_parent_hashes,
 			pending_create_inherent_data_providers,
-            None
+			None,
 		)
 		.replace_config::<EC>()
 		.into_rpc(),
@@ -188,13 +185,7 @@ where
 	io.merge(Web3::new(client.clone()).into_rpc())?;
 
 	io.merge(
-		Debug::new(
-			client.clone(),
-			frontier_backend,
-			storage_override,
-			block_data_cache,
-		)
-		.into_rpc(),
+		Debug::new(client.clone(), frontier_backend, storage_override, block_data_cache).into_rpc(),
 	)?;
 
 	#[cfg(feature = "txpool")]

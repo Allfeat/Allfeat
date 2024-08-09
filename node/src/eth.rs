@@ -19,23 +19,22 @@
 use allfeat_primitives::Block;
 use fc_mapping_sync::{EthereumBlockNotification, EthereumBlockNotificationSinks};
 use sp_api::ConstructRuntimeApi;
-use std::{
-	path::PathBuf,
-	sync::Arc,
-	time::Duration,
-};
+use std::{path::PathBuf, sync::Arc, time::Duration};
 
 use futures::prelude::*;
 // Substrate
+use sc_client_api::BlockchainEvents;
 use sc_network_sync::SyncingService;
 use sc_service::{Configuration, TaskManager};
-use sc_client_api::BlockchainEvents;
 // Frontier
 use fc_rpc::EthTask;
 pub use fc_rpc_core::types::{FeeHistoryCache, FeeHistoryCacheLimit, FilterPool};
 pub use fc_storage::StorageOverride;
 
-use crate::{apis::EthCompatRuntimeApiCollection, service::{FullBackend, FullClient}};
+use crate::{
+	apis::EthCompatRuntimeApiCollection,
+	service::{FullBackend, FullClient},
+};
 
 /// Frontier DB backend type.
 pub type FullFrontierBackend<C> = fc_db::Backend<Block, C>;
@@ -118,11 +117,13 @@ pub fn spawn_tasks<RA>(
 	fee_history_cache: FeeHistoryCache,
 	fee_history_cache_limit: FeeHistoryCacheLimit,
 	sync: Arc<SyncingService<Block>>,
-	pubsub_notification_sinks: Arc<EthereumBlockNotificationSinks<EthereumBlockNotification<Block>>>,
+	pubsub_notification_sinks: Arc<
+		EthereumBlockNotificationSinks<EthereumBlockNotification<Block>>,
+	>,
 ) where
-RA: ConstructRuntimeApi<Block, FullClient<RA>>,
-RA: Send + Sync + 'static,
-RA::RuntimeApi: EthCompatRuntimeApiCollection<Block>,
+	RA: ConstructRuntimeApi<Block, FullClient<RA>>,
+	RA: Send + Sync + 'static,
+	RA::RuntimeApi: EthCompatRuntimeApiCollection<Block>,
 {
 	match &*frontier_backend {
 		fc_db::Backend::KeyValue(bd) => {

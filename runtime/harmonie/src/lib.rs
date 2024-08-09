@@ -238,7 +238,10 @@ impl<B> Default for TransactionConverter<B> {
 	}
 }
 
-impl<B: sp_runtime::traits::Block> fp_rpc::ConvertTransaction<<B as sp_runtime::traits::Block>::Extrinsic> for TransactionConverter<B> {
+impl<B: sp_runtime::traits::Block>
+	fp_rpc::ConvertTransaction<<B as sp_runtime::traits::Block>::Extrinsic>
+	for TransactionConverter<B>
+{
 	fn convert_transaction(
 		&self,
 		transaction: pallet_ethereum::Transaction,

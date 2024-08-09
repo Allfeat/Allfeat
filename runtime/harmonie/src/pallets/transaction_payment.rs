@@ -17,14 +17,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::*;
-use frame_support::{parameter_types, traits::{
-	fungible::{Balanced, Credit},
-	Imbalance, OnUnbalanced,
-}, weights::ConstantMultiplier};
+use frame_support::{
+	parameter_types,
+	traits::{
+		fungible::{Balanced, Credit},
+		Imbalance, OnUnbalanced,
+	},
+	weights::ConstantMultiplier,
+};
 
 pub struct DealWithFees<R>(PhantomData<R>);
-impl<R> OnUnbalanced<Credit<R::AccountId, pallet_balances::Pallet<R>>>
-	for DealWithFees<R>
+impl<R> OnUnbalanced<Credit<R::AccountId, pallet_balances::Pallet<R>>> for DealWithFees<R>
 where
 	R: pallet_authorship::Config + pallet_balances::Config,
 	<R as frame_system::Config>::AccountId: From<allfeat_primitives::AccountId>,
@@ -48,7 +51,9 @@ where
 
 	// this is called from pallet_evm for Ethereum-based transactions
 	// (technically, it calls on_unbalanced, which calls this when non-zero)
-	fn on_nonzero_unbalanced(amount: Credit<<R as frame_system::Config>::AccountId, pallet_balances::Pallet<R>>) {
+	fn on_nonzero_unbalanced(
+		amount: Credit<<R as frame_system::Config>::AccountId, pallet_balances::Pallet<R>>,
+	) {
 		// 100% to author
 		if let Some(author) = <pallet_authorship::Pallet<R>>::author() {
 			let _ = <pallet_balances::Pallet<R>>::resolve(&author, amount);
