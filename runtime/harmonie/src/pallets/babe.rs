@@ -18,6 +18,7 @@
 
 use crate::*;
 use frame_support::parameter_types;
+use pallets::grandpa::MaxNominatorRewardedPerValidator;
 
 /// The BABE epoch configuration at genesis.
 pub const BABE_GENESIS_EPOCH_CONFIG: sp_consensus_babe::BabeEpochConfiguration =
@@ -35,8 +36,6 @@ parameter_types! {
 		"AFT_EPOCH_DURATION"
 	);
 	pub const ExpectedBlockTime: Moment = MILLISECS_PER_BLOCK;
-	pub ReportLongevity: u64 =
-		BondingDuration::get() as u64 * SessionsPerEra::get() as u64 * EpochDuration::get();
 }
 
 impl pallet_babe::Config for Runtime {
@@ -45,13 +44,9 @@ impl pallet_babe::Config for Runtime {
 	type EpochChangeTrigger = pallet_babe::ExternalTrigger;
 	type DisabledValidators = Session;
 
-	type KeyOwnerProof = <Historical as frame_support::traits::KeyOwnerProofSystem<(
-		sp_runtime::KeyTypeId,
-		pallet_babe::AuthorityId,
-	)>>::Proof;
+	type KeyOwnerProof = sp_core::Void;
 
-	type EquivocationReportSystem =
-		pallet_babe::EquivocationReportSystem<Self, Offences, Historical, ReportLongevity>;
+	type EquivocationReportSystem = ();
 
 	type WeightInfo = ();
 	type MaxAuthorities = MaxAuthorities;

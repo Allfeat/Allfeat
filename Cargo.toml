@@ -109,6 +109,7 @@ frame-system-rpc-runtime-api = { version = "34.0.0", default-features = false, g
 pallet-transaction-payment-rpc-runtime-api = { version = "37.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 frame-benchmarking = { version = "37.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 frame-system-benchmarking = { version = "37.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
+pallet-validator-set = { package = "substrate-validator-set", version = "1.1.0", default-features = false, git = "https://github.com/Allfeat/substrate-validator-set.git", branch = "stable2407" }
 
 # Other (wasm)
 num_enum = { version = "0.7.3", default-features = false }

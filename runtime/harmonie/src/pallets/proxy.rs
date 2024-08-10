@@ -50,7 +50,6 @@ parameter_types! {
 pub enum ProxyType {
 	Any,
 	NonTransfer,
-	Staking,
 }
 impl Default for ProxyType {
 	fn default() -> Self {
@@ -62,9 +61,6 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 		match self {
 			ProxyType::Any => true,
 			ProxyType::NonTransfer => !matches!(c, RuntimeCall::Balances(..)),
-			ProxyType::Staking => {
-				matches!(c, RuntimeCall::Staking(..))
-			},
 		}
 	}
 	fn is_superset(&self, o: &Self) -> bool {
@@ -73,7 +69,6 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 			(ProxyType::Any, _) => true,
 			(_, ProxyType::Any) => false,
 			(ProxyType::NonTransfer, _) => true,
-			_ => false,
 		}
 	}
 }
