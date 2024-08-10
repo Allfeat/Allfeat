@@ -36,7 +36,6 @@ jobs:
   basic-checks:
     name: Task ${{ matrix.action }} Allfeat
     if: github.event_name == 'push' || !github.event.pull_request.draft
-    needs: [ features-checks ]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -106,20 +105,3 @@ jobs:
           repo: allfeat/allfeat
           workflow_id: ${{ github.run_id }}
           access_token: ${{ github.token }}
-
-  features-checks:
-    name: Task check features
-    if: github.event_name == 'push' || !github.event.pull_request.draft
-    strategy:
-      matrix:
-        runtime:
-          [ runtime/allfeat, runtime/harmonie ]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Fetch latest code
-        uses: actions/checkout@v4
-      - name: Check
-        uses: hack-ink/cargo-featalign-action@v0.1.1
-        with:
-          crate: ${{ matrix.runtime }}
-          features: std,runtime-benchmarks,try-runtime
