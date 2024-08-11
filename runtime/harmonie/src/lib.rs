@@ -27,6 +27,7 @@ pub use allfeat_primitives::*;
 
 // substrate
 use frame_support::pallet_prelude::*;
+use migrations::migrate_to_poa::MigrateToPoA;
 use sp_std::prelude::*;
 
 #[cfg(any(feature = "std", test))]
@@ -43,6 +44,8 @@ pub use constants::time::*;
 
 mod pallets;
 pub use pallets::*;
+
+mod migrations;
 
 // Make the WASM binary available.
 #[cfg(feature = "std")]
@@ -209,7 +212,7 @@ pub type Executive = frame_executive::Executive<
 >;
 // All migrations executed on runtime upgrade as a nested tuple of types implementing
 // `OnRuntimeUpgrade`.
-type Migrations = ();
+type Migrations = MigrateToPoA<Runtime>;
 
 #[derive(Clone)]
 pub struct TransactionConverter<B>(PhantomData<B>);
