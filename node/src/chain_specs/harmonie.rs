@@ -137,14 +137,11 @@ pub fn testnet_genesis(
 	});
 
 	// endow all authorities and nominators.
-	initial_authorities
-		.iter()
-		.map(|x| &x.0)
-		.for_each(|x| {
-			if !endowed_accounts.contains(x) {
-				endowed_accounts.push(x.clone())
-			}
-		});
+	initial_authorities.iter().map(|x| &x.0).for_each(|x| {
+		if !endowed_accounts.contains(x) {
+			endowed_accounts.push(x.clone())
+		}
+	});
 
 	let _num_endowed_accounts = endowed_accounts.len();
 
