@@ -17,7 +17,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // pub mod artists; TODO
-pub mod bags_list;
 pub mod balances;
 pub mod election_provider_multi_phase;
 pub mod evm;
@@ -30,7 +29,6 @@ pub mod preimage;
 pub mod proxy;
 pub mod scheduler;
 pub mod session;
-pub mod staking;
 pub mod sudo;
 pub mod timestamp;
 pub mod utility;

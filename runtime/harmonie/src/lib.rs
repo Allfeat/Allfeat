@@ -27,6 +27,7 @@ pub use allfeat_primitives::*;
 
 // substrate
 use frame_support::pallet_prelude::*;
+use migrations::migrate_to_poa::MigrateToPoA;
 use sp_std::prelude::*;
 
 #[cfg(any(feature = "std", test))]
@@ -44,8 +45,7 @@ pub use constants::time::*;
 mod pallets;
 pub use pallets::*;
 
-/// Generated voter bag information.
-mod voter_bags;
+mod migrations;
 
 // Make the WASM binary available.
 #[cfg(feature = "std")]
@@ -71,10 +71,10 @@ pub const VERSION: sp_version::RuntimeVersion = sp_version::RuntimeVersion {
 	// and set impl_version to 0. If only runtime
 	// implementation changes and behavior does not, then leave spec_version as
 	// is and increment impl_version.
-	spec_version: 230,
+	spec_version: 300,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
-	transaction_version: 3,
+	transaction_version: 4,
 	state_version: 0,
 };
 
@@ -104,13 +104,13 @@ mod runtime {
 	pub type System = frame_system;
 
 	#[runtime::pallet_index(1)]
-	pub type Babe = pallet_babe;
+	pub type Balances = pallet_balances;
 
 	#[runtime::pallet_index(2)]
-	pub type Timestamp = pallet_timestamp;
+	pub type Babe = pallet_babe;
 
 	#[runtime::pallet_index(3)]
-	pub type Balances = pallet_balances;
+	pub type Timestamp = pallet_timestamp;
 
 	#[runtime::pallet_index(26)]
 	pub type TransactionPayment = pallet_transaction_payment;
@@ -121,19 +121,13 @@ mod runtime {
 	#[runtime::pallet_index(5)]
 	pub type Authorship = pallet_authorship;
 
-	#[runtime::pallet_index(6)]
-	pub type Staking = pallet_staking;
-
-	#[runtime::pallet_index(7)]
-	pub type Offences = pallet_offences;
-
-	#[runtime::pallet_index(27)]
-	pub type Historical = pallet_session::historical;
-
 	#[runtime::pallet_index(201)]
 	pub type Mmr = pallet_mmr;
 
 	#[runtime::pallet_index(8)]
+	pub type ValidatorSet = pallet_validator_set;
+
+	#[runtime::pallet_index(9)]
 	pub type Session = pallet_session;
 
 	#[runtime::pallet_index(10)]
@@ -162,15 +156,6 @@ mod runtime {
 
 	#[runtime::pallet_index(23)]
 	pub type Multisig = pallet_multisig;
-
-	#[runtime::pallet_index(24)]
-	pub type ElectionProviderMultiPhase = pallet_election_provider_multi_phase;
-
-	#[runtime::pallet_index(25)]
-	pub type BagsList = pallet_bags_list<Instance1>;
-
-	#[runtime::pallet_index(29)]
-	pub type NominationPools = pallet_nomination_pools;
 
 	// Frontier
 	#[runtime::pallet_index(50)]
@@ -227,7 +212,7 @@ pub type Executive = frame_executive::Executive<
 >;
 // All migrations executed on runtime upgrade as a nested tuple of types implementing
 // `OnRuntimeUpgrade`.
-type Migrations = ();
+type Migrations = MigrateToPoA<Runtime>;
 
 #[derive(Clone)]
 pub struct TransactionConverter<B>(PhantomData<B>);
@@ -260,23 +245,17 @@ frame_benchmarking::define_benchmarks!(
 	[frame_benchmarking, BaselineBench::<Runtime>]
 	[pallet_artists, Artists]
 	[pallet_babe, Babe]
-	[pallet_bags_list, BagsList]
 	[pallet_balances, Balances]
-	[pallet_election_provider_multi_phase, ElectionProviderMultiPhase]
-	[pallet_election_provider_support_benchmarking, EPSBench::<Runtime>]
 	[pallet_evm, Evm]
 	[pallet_grandpa, Grandpa]
 	[pallet_identity, Identity]
 	[pallet_im_online, ImOnline]
 	[pallet_mmr, Mmr]
 	[pallet_multisig, Multisig]
-	[pallet_nomination_pools, NominationPoolsBench::<Runtime>]
-	[pallet_offences, OffencesBench::<Runtime>]
 	[pallet_preimage, Preimage]
 	[pallet_proxy, Proxy]
 	[pallet_scheduler, Scheduler]
 	[pallet_session, SessionBench::<Runtime>]
-	[pallet_staking, Staking]
 	[pallet_sudo, Sudo]
 	[frame_system, SystemBench::<Runtime>]
 	[pallet_timestamp, Timestamp]
@@ -375,13 +354,9 @@ sp_api::impl_runtime_apis! {
 
 		fn generate_key_ownership_proof(
 			_set_id: sp_consensus_grandpa::SetId,
-			authority_id: sp_consensus_grandpa::AuthorityId,
+			_authority_id: sp_consensus_grandpa::AuthorityId,
 		) -> Option<sp_consensus_grandpa::OpaqueKeyOwnershipProof> {
-			use frame_support::traits::KeyOwnerProofSystem;
-
-			Historical::prove((sp_consensus_grandpa::KEY_TYPE, authority_id))
-				.map(|p| p.encode())
-				.map(sp_consensus_grandpa::OpaqueKeyOwnershipProof::new)
+			None
 		}
 	}
 
@@ -417,13 +392,9 @@ sp_api::impl_runtime_apis! {
 
 		fn generate_key_ownership_proof(
 			_slot: sp_consensus_babe::Slot,
-			authority_id: sp_consensus_babe::AuthorityId,
+			_authority_id: sp_consensus_babe::AuthorityId,
 		) -> Option<sp_consensus_babe::OpaqueKeyOwnershipProof> {
-			use frame_support::traits::KeyOwnerProofSystem;
-
-			Historical::prove((sp_consensus_babe::KEY_TYPE, authority_id))
-				.map(|p| p.encode())
-				.map(sp_consensus_babe::OpaqueKeyOwnershipProof::new)
+			None
 		}
 
 		fn submit_report_equivocation_unsigned_extrinsic(
@@ -771,11 +742,8 @@ sp_api::impl_runtime_apis! {
 			// issues. To get around that, we separated the Session benchmarks into its own crate,
 			// which is why we need these two lines below.
 			use pallet_session_benchmarking::Pallet as SessionBench;
-			use pallet_offences_benchmarking::Pallet as OffencesBench;
-			use pallet_election_provider_support_benchmarking::Pallet as EPSBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
 			use baseline::Pallet as BaselineBench;
-			use pallet_nomination_pools_benchmarking::Pallet as NominationPoolsBench;
 
 			let mut list = Vec::<BenchmarkList>::new();
 			list_benchmarks!(list, extra);
@@ -795,18 +763,12 @@ sp_api::impl_runtime_apis! {
 			// issues. To get around that, we separated the Session benchmarks into its own crate,
 			// which is why we need these two lines below.
 			use pallet_session_benchmarking::Pallet as SessionBench;
-			use pallet_offences_benchmarking::Pallet as OffencesBench;
-			use pallet_election_provider_support_benchmarking::Pallet as EPSBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
 			use baseline::Pallet as BaselineBench;
-			use pallet_nomination_pools_benchmarking::Pallet as NominationPoolsBench;
 
 			impl pallet_session_benchmarking::Config for Runtime {}
-			impl pallet_offences_benchmarking::Config for Runtime {}
-			impl pallet_election_provider_support_benchmarking::Config for Runtime {}
 			impl frame_system_benchmarking::Config for Runtime {}
 			impl baseline::Config for Runtime {}
-			impl pallet_nomination_pools_benchmarking::Config for Runtime {}
 
 			use frame_support::traits::WhitelistedStorageKeys;
 			let whitelist: Vec<TrackedStorageKey> = AllPalletsWithSystem::whitelisted_storage_keys();

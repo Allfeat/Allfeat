@@ -17,21 +17,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::*;
-use frame_support::{parameter_types, traits::KeyOwnerProofSystem};
-use sp_consensus_grandpa::AuthorityId as GrandpaId;
+use frame_support::parameter_types;
 
 parameter_types! {
-	pub MaxSetIdSessionEntries: u32 = BondingDuration::get() * SessionsPerEra::get();
+	pub const MaxNominatorRewardedPerValidator: u32 = 0;
+}
+
+parameter_types! {
+	pub MaxSetIdSessionEntries: u32 = 0;
 }
 
 impl pallet_grandpa::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 
-	type KeyOwnerProof =
-		<Historical as KeyOwnerProofSystem<(sp_runtime::KeyTypeId, GrandpaId)>>::Proof;
+	type KeyOwnerProof = sp_core::Void;
 
-	type EquivocationReportSystem =
-		pallet_grandpa::EquivocationReportSystem<Self, Offences, Historical, ReportLongevity>;
+	type EquivocationReportSystem = ();
 	type MaxNominators = MaxNominatorRewardedPerValidator;
 	type WeightInfo = ();
 	type MaxAuthorities = MaxAuthorities;

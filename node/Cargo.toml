@@ -76,7 +76,6 @@ substrate-frame-rpc-system = { workspace = true }
 pallet-transaction-payment-rpc = { workspace = true }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true }
 pallet-im-online = { workspace = true }
-pallet-staking = { workspace = true }
 
 # Frontier
 fc-api = { workspace = true }

@@ -21,12 +21,10 @@ use super::{
 	GrandpaId, ImOnlineId,
 };
 use allfeat_primitives::{AccountId, Balance};
-use harmonie_runtime::{wasm_binary_unwrap, MaxNominations, SessionKeys};
+use harmonie_runtime::{wasm_binary_unwrap, SessionKeys};
 use hex_literal::hex;
-use pallet_staking::StakerStatus;
 use sc_chain_spec::ChainType;
 use shared_runtime::currency::AFT;
-use sp_runtime::Perbill;
 
 #[cfg(feature = "runtime-benchmarks")]
 use shared_runtime::currency::MILLIAFT;
@@ -60,7 +58,6 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 		.with_chain_type(ChainType::Development)
 		.with_genesis_config_patch(testnet_genesis(
 			vec![authority_keys_from_seed("Alice")],
-			vec![],
 			accounts[0],
 			None,
 		))
@@ -88,7 +85,6 @@ pub fn get_chain_spec() -> ChainSpec {
 		.with_chain_type(ChainType::Live)
 		.with_genesis_config_patch(testnet_genesis(
 			vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
-			vec![],
 			// Alith is Sudo
 			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
 			Some(
@@ -118,9 +114,7 @@ pub fn get_chain_spec() -> ChainSpec {
 
 pub fn testnet_genesis(
 	initial_authorities: Vec<(
-		// Stash
-		AccountId,
-		// Controller
+		// Validator
 		AccountId,
 		// Session Keys
 		GrandpaId,
@@ -128,7 +122,6 @@ pub fn testnet_genesis(
 		ImOnlineId,
 		AuthorityDiscoveryId,
 	)>,
-	initial_nominators: Vec<AccountId>,
 	root_key: AccountId,
 	endowed_accounts: Option<Vec<AccountId>>,
 ) -> serde_json::Value {
@@ -147,41 +140,23 @@ pub fn testnet_genesis(
 	initial_authorities
 		.iter()
 		.map(|x| &x.0)
-		.chain(initial_nominators.iter())
 		.for_each(|x| {
 			if !endowed_accounts.contains(x) {
 				endowed_accounts.push(x.clone())
 			}
 		});
 
-	// stakers: all validators and nominators.
-	let mut rng = rand::thread_rng();
-	let stakers = initial_authorities
-		.iter()
-		.map(|x| (x.0.clone(), x.1.clone(), STASH, StakerStatus::Validator))
-		.chain(initial_nominators.iter().map(|x| {
-			use rand::{seq::SliceRandom, Rng};
-			let limit = (MaxNominations::get() as usize).min(initial_authorities.len());
-			let count = rng.gen::<usize>() % limit;
-			let nominations = initial_authorities
-				.as_slice()
-				.choose_multiple(&mut rng, count)
-				.into_iter()
-				.map(|choice| choice.0.clone())
-				.collect::<Vec<_>>();
-			(x.clone(), x.clone(), STASH, StakerStatus::Nominator(nominations))
-		}))
-		.collect::<Vec<_>>();
-
 	let _num_endowed_accounts = endowed_accounts.len();
 
 	const ENDOWMENT: Balance = 10_000_000 * AFT;
-	const STASH: Balance = ENDOWMENT / 1000;
 
 	#[allow(unused_mut)]
 	let mut genesis = serde_json::json!({
 		"balances": {
 			"balances": endowed_accounts.iter().cloned().map(|x| (x, ENDOWMENT)).collect::<Vec<_>>(),
+		},
+		"validatorSet": {
+			"initialValidators": initial_authorities.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
 		},
 		"session": {
 			"keys": initial_authorities
@@ -190,37 +165,16 @@ pub fn testnet_genesis(
 					(
 						x.0.clone(),
 						x.0.clone(),
-						session_keys(x.2.clone(), x.3.clone(), x.4.clone(), x.5.clone()),
+						session_keys(x.1.clone(), x.2.clone(), x.3.clone(), x.4.clone()),
 					)
 				})
 				.collect::<Vec<_>>(),
 		},
-		"staking": {
-			"validatorCount": initial_authorities.len() as u32,
-			"minimumValidatorCount": initial_authorities.len() as u32,
-			"invulnerables": initial_authorities.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
-			"slashRewardFraction": Perbill::from_percent(10),
-			"stakers": stakers.clone(),
-		},
-		"sudo": { "key": Some(root_key.clone()) },
 		"babe": {
 			"epochConfig": Some(harmonie_runtime::BABE_GENESIS_EPOCH_CONFIG),
 		},
+		"sudo": { "key": Some(root_key.clone()) },
 	});
-
-	// Nomination pools benchmarks fail if we don't set this
-	#[cfg(feature = "runtime-benchmarks")]
-	{
-		let nomination_pools = serde_json::json!({
-			"minCreateBond": 10 * MILLIAFT,
-			"minJoinBond": 1 * MILLIAFT,
-		});
-
-		genesis
-			.as_object_mut()
-			.unwrap()
-			.insert("nominationPools".to_string(), nomination_pools);
-	}
 
 	genesis
 }

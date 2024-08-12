@@ -7,7 +7,6 @@ members = [
     "precompiles/balances-erc20",
     "precompiles/artists",
     "pallets/*"
-    # "utils/generate_bags",
 ]
 
 [workspace.package]
@@ -69,7 +68,6 @@ sp-genesis-builder = { version = "0.15.0", default-features = false, git = "http
 pallet-babe = { version = "37.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 pallet-authority-discovery = { version = "37.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 pallet-authorship = { version = "37.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
-pallet-bags-list = { version = "36.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 pallet-collective = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 pallet-conviction-voting = { version = "37.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 pallet-democracy = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
@@ -93,7 +91,6 @@ pallet-session = { version = "37.0.0", default-features = false, git = "https://
 pallet-session-benchmarking = { version = "37.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 pallet-staking = { version = "37.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 pallet-fast-unstake = { version = "27.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
-pallet-staking-reward-curve = { version = "12.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 pallet-state-trie-migration = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 pallet-scheduler = { version = "38.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 pallet-balances = { version = "38.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407", features = ["insecure_zero_ed"] }
@@ -109,6 +106,7 @@ frame-system-rpc-runtime-api = { version = "34.0.0", default-features = false, g
 pallet-transaction-payment-rpc-runtime-api = { version = "37.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 frame-benchmarking = { version = "37.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 frame-system-benchmarking = { version = "37.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
+pallet-validator-set = { package = "substrate-validator-set", version = "1.1.0", default-features = false, git = "https://github.com/Allfeat/substrate-validator-set.git", branch = "stable2407" }
 
 # Other (wasm)
 num_enum = { version = "0.7.3", default-features = false }
@@ -179,8 +177,6 @@ sha3 = { version = "0.10.8", default-features = false }
 libsecp256k1 = { version = "0.7.1", default-features = false }
 bip32 = { version = "0.5.2", default-features = false, features = ["bip39"] }
 tiny-bip39 = { version = "1.0.0", default-features = false }
-
-generate-bags = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 
 # Frontier (wasm)
 precompile-utils = { version = "0.1.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "master", default-features = false }
