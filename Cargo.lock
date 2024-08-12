@@ -122,7 +122,6 @@ dependencies = [
  "libsecp256k1",
  "log",
  "pallet-im-online",
- "pallet-staking",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc",
  "pallet-transaction-payment-rpc-runtime-api",
@@ -5848,27 +5847,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-bags-list"
-version = "36.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk.git?branch=stable2407#c4314f771c380aa2bfc6b8fef4f219da7994734f"
-dependencies = [
- "aquamarine",
- "docify",
- "frame-benchmarking",
- "frame-election-provider-support",
- "frame-support",
- "frame-system",
- "log",
- "pallet-balances",
- "parity-scale-codec",
- "scale-info",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-tracing",
-]
-
-[[package]]
 name = "pallet-balances"
 version = "38.0.0"
 source = "git+https://github.com/paritytech/polkadot-sdk.git?branch=stable2407#c4314f771c380aa2bfc6b8fef4f219da7994734f"
@@ -9331,7 +9309,6 @@ dependencies = [
  "frame-support",
  "frame-system",
  "pallet-artists-v2",
- "pallet-bags-list",
  "pallet-balances",
  "pallet-election-provider-multi-phase",
  "pallet-ethereum",
@@ -9344,7 +9321,6 @@ dependencies = [
  "pallet-proxy",
  "pallet-scheduler",
  "pallet-session",
- "pallet-staking",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-payment",
