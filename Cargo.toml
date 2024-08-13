@@ -161,7 +161,7 @@ harmonie-runtime = { version = "1.0.0-dev", path = "./runtime/harmonie" }
 clap = { version = "4.5.13", features = ["derive"] }
 serde = { version = "1.0.204", features = ["derive"] }
 jsonrpsee = { version = "0.23.2", features = ["server", "macros"] }
-serde_json = { version = "1.0.122", features = ["alloc", "arbitrary_precision"] }
+serde_json = { version = "1.0.124", features = ["alloc", "arbitrary_precision"] }
 futures = "0.3.30"
 rand = "0.8.5"
 tempfile = "3.11.0"
