@@ -3354,8 +3354,6 @@ dependencies = [
  "pallet-authorship",
  "pallet-babe",
  "pallet-balances",
- "pallet-election-provider-multi-phase",
- "pallet-election-provider-support-benchmarking",
  "pallet-ethereum",
  "pallet-evm",
  "pallet-evm-precompile-artists",
@@ -5818,41 +5816,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-election-provider-multi-phase"
-version = "36.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk.git?branch=stable2407#c4314f771c380aa2bfc6b8fef4f219da7994734f"
-dependencies = [
- "frame-benchmarking",
- "frame-election-provider-support",
- "frame-support",
- "frame-system",
- "log",
- "pallet-election-provider-support-benchmarking",
- "parity-scale-codec",
- "rand",
- "scale-info",
- "sp-arithmetic",
- "sp-core",
- "sp-io",
- "sp-npos-elections",
- "sp-runtime",
- "strum 0.26.2",
-]
-
-[[package]]
-name = "pallet-election-provider-support-benchmarking"
-version = "36.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk.git?branch=stable2407#c4314f771c380aa2bfc6b8fef4f219da7994734f"
-dependencies = [
- "frame-benchmarking",
- "frame-election-provider-support",
- "frame-system",
- "parity-scale-codec",
- "sp-npos-elections",
- "sp-runtime",
-]
-
-[[package]]
 name = "pallet-ethereum"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech/frontier.git?branch=master#2e219e17a526125da003e64ef22ec037917083fa"
@@ -6081,24 +6044,6 @@ dependencies = [
  "scale-info",
  "sp-io",
  "sp-runtime",
-]
-
-[[package]]
-name = "pallet-nomination-pools"
-version = "34.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk.git?branch=stable2407#c4314f771c380aa2bfc6b8fef4f219da7994734f"
-dependencies = [
- "frame-support",
- "frame-system",
- "log",
- "pallet-balances",
- "parity-scale-codec",
- "scale-info",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-staking",
- "sp-tracing",
 ]
 
 [[package]]
@@ -9273,13 +9218,11 @@ dependencies = [
  "frame-system",
  "pallet-artists-v2",
  "pallet-balances",
- "pallet-election-provider-multi-phase",
  "pallet-ethereum",
  "pallet-evm",
  "pallet-identity",
  "pallet-im-online",
  "pallet-multisig",
- "pallet-nomination-pools",
  "pallet-preimage",
  "pallet-proxy",
  "pallet-scheduler",
