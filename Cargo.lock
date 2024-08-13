@@ -2253,7 +2253,7 @@ checksum = "658bd65b1cf4c852a3cc96f18a8ce7b5640f6b703f905c7d74532294c2a63984"
 [[package]]
 name = "fc-api"
 version = "1.0.0-dev"
-source = "git+https://github.com/paritytech/frontier.git?branch=master#2e219e17a526125da003e64ef22ec037917083fa"
+source = "git+https://github.com/paritytech/frontier.git?branch=stable2407#2e219e17a526125da003e64ef22ec037917083fa"
 dependencies = [
  "async-trait",
  "fp-storage",
@@ -2265,7 +2265,7 @@ dependencies = [
 [[package]]
 name = "fc-cli"
 version = "1.0.0-dev"
-source = "git+https://github.com/paritytech/frontier.git?branch=master#2e219e17a526125da003e64ef22ec037917083fa"
+source = "git+https://github.com/paritytech/frontier.git?branch=stable2407#2e219e17a526125da003e64ef22ec037917083fa"
 dependencies = [
  "clap",
  "ethereum-types",
@@ -2283,7 +2283,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "2.0.0-dev"
-source = "git+https://github.com/paritytech/frontier.git?branch=master#2e219e17a526125da003e64ef22ec037917083fa"
+source = "git+https://github.com/paritytech/frontier.git?branch=stable2407#2e219e17a526125da003e64ef22ec037917083fa"
 dependencies = [
  "async-trait",
  "fp-consensus",
@@ -2299,7 +2299,7 @@ dependencies = [
 [[package]]
 name = "fc-db"
 version = "2.0.0-dev"
-source = "git+https://github.com/paritytech/frontier.git?branch=master#2e219e17a526125da003e64ef22ec037917083fa"
+source = "git+https://github.com/paritytech/frontier.git?branch=stable2407#2e219e17a526125da003e64ef22ec037917083fa"
 dependencies = [
  "async-trait",
  "ethereum",
@@ -2329,7 +2329,7 @@ dependencies = [
 [[package]]
 name = "fc-mapping-sync"
 version = "2.0.0-dev"
-source = "git+https://github.com/paritytech/frontier.git?branch=master#2e219e17a526125da003e64ef22ec037917083fa"
+source = "git+https://github.com/paritytech/frontier.git?branch=stable2407#2e219e17a526125da003e64ef22ec037917083fa"
 dependencies = [
  "fc-db",
  "fc-storage",
@@ -2352,7 +2352,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "2.0.0-dev"
-source = "git+https://github.com/paritytech/frontier.git?branch=master#2e219e17a526125da003e64ef22ec037917083fa"
+source = "git+https://github.com/paritytech/frontier.git?branch=stable2407#2e219e17a526125da003e64ef22ec037917083fa"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2406,7 +2406,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "1.1.0-dev"
-source = "git+https://github.com/paritytech/frontier.git?branch=master#2e219e17a526125da003e64ef22ec037917083fa"
+source = "git+https://github.com/paritytech/frontier.git?branch=stable2407#2e219e17a526125da003e64ef22ec037917083fa"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2421,7 +2421,7 @@ dependencies = [
 [[package]]
 name = "fc-storage"
 version = "1.0.0-dev"
-source = "git+https://github.com/paritytech/frontier.git?branch=master#2e219e17a526125da003e64ef22ec037917083fa"
+source = "git+https://github.com/paritytech/frontier.git?branch=stable2407#2e219e17a526125da003e64ef22ec037917083fa"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2588,7 +2588,7 @@ dependencies = [
 [[package]]
 name = "fp-account"
 version = "1.0.0-dev"
-source = "git+https://github.com/paritytech/frontier.git?branch=master#2e219e17a526125da003e64ef22ec037917083fa"
+source = "git+https://github.com/paritytech/frontier.git?branch=stable2407#2e219e17a526125da003e64ef22ec037917083fa"
 dependencies = [
  "hex",
  "impl-serde",
@@ -2607,7 +2607,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "2.0.0-dev"
-source = "git+https://github.com/paritytech/frontier.git?branch=master#2e219e17a526125da003e64ef22ec037917083fa"
+source = "git+https://github.com/paritytech/frontier.git?branch=stable2407#2e219e17a526125da003e64ef22ec037917083fa"
 dependencies = [
  "ethereum",
  "parity-scale-codec",
@@ -2618,7 +2618,7 @@ dependencies = [
 [[package]]
 name = "fp-dynamic-fee"
 version = "1.0.0"
-source = "git+https://github.com/paritytech/frontier.git?branch=master#2e219e17a526125da003e64ef22ec037917083fa"
+source = "git+https://github.com/paritytech/frontier.git?branch=stable2407#2e219e17a526125da003e64ef22ec037917083fa"
 dependencies = [
  "async-trait",
  "sp-core",
@@ -2628,7 +2628,7 @@ dependencies = [
 [[package]]
 name = "fp-ethereum"
 version = "1.0.0-dev"
-source = "git+https://github.com/paritytech/frontier.git?branch=master#2e219e17a526125da003e64ef22ec037917083fa"
+source = "git+https://github.com/paritytech/frontier.git?branch=stable2407#2e219e17a526125da003e64ef22ec037917083fa"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2640,7 +2640,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "3.0.0-dev"
-source = "git+https://github.com/paritytech/frontier.git?branch=master#2e219e17a526125da003e64ef22ec037917083fa"
+source = "git+https://github.com/paritytech/frontier.git?branch=stable2407#2e219e17a526125da003e64ef22ec037917083fa"
 dependencies = [
  "evm",
  "frame-support",
@@ -2655,7 +2655,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "3.0.0-dev"
-source = "git+https://github.com/paritytech/frontier.git?branch=master#2e219e17a526125da003e64ef22ec037917083fa"
+source = "git+https://github.com/paritytech/frontier.git?branch=stable2407#2e219e17a526125da003e64ef22ec037917083fa"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -2671,7 +2671,7 @@ dependencies = [
 [[package]]
 name = "fp-self-contained"
 version = "1.0.0-dev"
-source = "git+https://github.com/paritytech/frontier.git?branch=master#2e219e17a526125da003e64ef22ec037917083fa"
+source = "git+https://github.com/paritytech/frontier.git?branch=stable2407#2e219e17a526125da003e64ef22ec037917083fa"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -2683,7 +2683,7 @@ dependencies = [
 [[package]]
 name = "fp-storage"
 version = "2.0.0"
-source = "git+https://github.com/paritytech/frontier.git?branch=master#2e219e17a526125da003e64ef22ec037917083fa"
+source = "git+https://github.com/paritytech/frontier.git?branch=stable2407#2e219e17a526125da003e64ef22ec037917083fa"
 dependencies = [
  "parity-scale-codec",
  "serde",
@@ -5818,7 +5818,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "4.0.0-dev"
-source = "git+https://github.com/paritytech/frontier.git?branch=master#2e219e17a526125da003e64ef22ec037917083fa"
+source = "git+https://github.com/paritytech/frontier.git?branch=stable2407#2e219e17a526125da003e64ef22ec037917083fa"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -5840,7 +5840,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "6.0.0-dev"
-source = "git+https://github.com/paritytech/frontier.git?branch=master#2e219e17a526125da003e64ef22ec037917083fa"
+source = "git+https://github.com/paritytech/frontier.git?branch=stable2407#2e219e17a526125da003e64ef22ec037917083fa"
 dependencies = [
  "environmental",
  "evm",
@@ -5914,7 +5914,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-blake2"
 version = "2.0.0-dev"
-source = "git+https://github.com/paritytech/frontier.git?branch=master#2e219e17a526125da003e64ef22ec037917083fa"
+source = "git+https://github.com/paritytech/frontier.git?branch=stable2407#2e219e17a526125da003e64ef22ec037917083fa"
 dependencies = [
  "fp-evm",
 ]
@@ -5922,7 +5922,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-bn128"
 version = "2.0.0-dev"
-source = "git+https://github.com/paritytech/frontier.git?branch=master#2e219e17a526125da003e64ef22ec037917083fa"
+source = "git+https://github.com/paritytech/frontier.git?branch=stable2407#2e219e17a526125da003e64ef22ec037917083fa"
 dependencies = [
  "fp-evm",
  "sp-core",
@@ -5932,7 +5932,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "2.0.0-dev"
-source = "git+https://github.com/paritytech/frontier.git?branch=master#2e219e17a526125da003e64ef22ec037917083fa"
+source = "git+https://github.com/paritytech/frontier.git?branch=stable2407#2e219e17a526125da003e64ef22ec037917083fa"
 dependencies = [
  "fp-evm",
  "num",
@@ -5941,7 +5941,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-sha3fips"
 version = "2.0.0-dev"
-source = "git+https://github.com/paritytech/frontier.git?branch=master#2e219e17a526125da003e64ef22ec037917083fa"
+source = "git+https://github.com/paritytech/frontier.git?branch=stable2407#2e219e17a526125da003e64ef22ec037917083fa"
 dependencies = [
  "fp-evm",
  "tiny-keccak",
@@ -5950,7 +5950,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "2.0.0-dev"
-source = "git+https://github.com/paritytech/frontier.git?branch=master#2e219e17a526125da003e64ef22ec037917083fa"
+source = "git+https://github.com/paritytech/frontier.git?branch=stable2407#2e219e17a526125da003e64ef22ec037917083fa"
 dependencies = [
  "fp-evm",
  "ripemd",
@@ -6723,7 +6723,7 @@ checksum = "5b40af805b3121feab8a3c29f04d8ad262fa8e0561883e7653e024ae4479e6de"
 [[package]]
 name = "precompile-utils"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/frontier.git?branch=master#2e219e17a526125da003e64ef22ec037917083fa"
+source = "git+https://github.com/paritytech/frontier.git?branch=stable2407#2e219e17a526125da003e64ef22ec037917083fa"
 dependencies = [
  "derive_more",
  "environmental",
@@ -6752,7 +6752,7 @@ dependencies = [
 [[package]]
 name = "precompile-utils-macro"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/frontier.git?branch=master#2e219e17a526125da003e64ef22ec037917083fa"
+source = "git+https://github.com/paritytech/frontier.git?branch=stable2407#2e219e17a526125da003e64ef22ec037917083fa"
 dependencies = [
  "case",
  "num_enum",

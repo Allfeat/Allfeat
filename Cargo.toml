@@ -171,35 +171,35 @@ bip32 = { version = "0.5.2", default-features = false, features = ["bip39"] }
 tiny-bip39 = { version = "1.0.0", default-features = false }
 
 # Frontier (wasm)
-precompile-utils = { version = "0.1.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "master", default-features = false }
-fp-evm = { version = "3.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "master", default-features = false }
-fp-rpc = { version = "3.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "master", default-features = false }
-fp-self-contained = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "master", default-features = false }
-fp-account = { version = "1.0.0-dev", default-features = false, git = "https://github.com/paritytech/frontier.git", branch = "master" }
-pallet-ethereum = { version = "4.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "master", default-features = false, features = [
+precompile-utils = { version = "0.1.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", default-features = false }
+fp-evm = { version = "3.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", default-features = false }
+fp-rpc = { version = "3.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", default-features = false }
+fp-self-contained = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", default-features = false }
+fp-account = { version = "1.0.0-dev", default-features = false, git = "https://github.com/paritytech/frontier.git", branch = "stable2407" }
+pallet-ethereum = { version = "4.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", default-features = false, features = [
     "forbid-evm-reentrancy",
 ] }
-pallet-evm = { version = "6.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "master", default-features = false, features = [
+pallet-evm = { version = "6.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", default-features = false, features = [
     "forbid-evm-reentrancy",
 ] }
-pallet-evm-precompile-modexp = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "master", default-features = false }
-pallet-evm-precompile-sha3fips = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "master", default-features = false }
-pallet-evm-precompile-simple = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "master", default-features = false }
-pallet-evm-precompile-bn128 = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "master", default-features = false }
-pallet-evm-precompile-blake2 = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "master", default-features = false }
+pallet-evm-precompile-modexp = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", default-features = false }
+pallet-evm-precompile-sha3fips = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", default-features = false }
+pallet-evm-precompile-simple = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", default-features = false }
+pallet-evm-precompile-bn128 = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", default-features = false }
+pallet-evm-precompile-blake2 = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", default-features = false }
 pallet-evm-precompile-balances-erc20 = { path = "./precompiles/balances-erc20", default-features = false }
 pallet-evm-precompile-artists = { path = "./precompiles/artists", default-features = false }
 
 # Frontier (client)
-fc-api = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "master" }
-fc-cli = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "master" }
-fc-consensus = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "master" }
-fc-db = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "master" }
-fc-mapping-sync = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "master", features = ["sql"] }
-fc-rpc = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "master", features = ["rpc-binary-search-estimate", "txpool"] }
-fc-rpc-core = { version = "1.1.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "master" }
-fc-storage = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "master" }
-fp-dynamic-fee = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "master", features = [
+fc-api = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407" }
+fc-cli = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407" }
+fc-consensus = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407" }
+fc-db = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407" }
+fc-mapping-sync = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", features = ["sql"] }
+fc-rpc = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", features = ["rpc-binary-search-estimate", "txpool"] }
+fc-rpc-core = { version = "1.1.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407" }
+fc-storage = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407" }
+fp-dynamic-fee = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", features = [
     "default",
 ] }
 
