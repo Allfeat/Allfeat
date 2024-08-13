@@ -71,10 +71,10 @@ pub const VERSION: sp_version::RuntimeVersion = sp_version::RuntimeVersion {
 	// and set impl_version to 0. If only runtime
 	// implementation changes and behavior does not, then leave spec_version as
 	// is and increment impl_version.
-	spec_version: 300,
+	spec_version: 310,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
-	transaction_version: 4,
+	transaction_version: 5,
 	state_version: 0,
 };
 
