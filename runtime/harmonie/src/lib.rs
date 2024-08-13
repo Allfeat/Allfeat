@@ -127,6 +127,9 @@ mod runtime {
 	#[runtime::pallet_index(8)]
 	pub type ValidatorSet = pallet_validator_set;
 
+	#[runtime::pallet_index(27)]
+	pub type Historical = pallet_session::historical;
+
 	#[runtime::pallet_index(9)]
 	pub type Session = pallet_session;
 

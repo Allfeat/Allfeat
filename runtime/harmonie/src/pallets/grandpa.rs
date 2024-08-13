@@ -30,7 +30,10 @@ parameter_types! {
 impl pallet_grandpa::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 
-	type KeyOwnerProof = sp_core::Void;
+	type KeyOwnerProof = <Historical as frame_support::traits::KeyOwnerProofSystem<(
+		sp_runtime::KeyTypeId,
+		sp_consensus_grandpa::AuthorityId,
+	)>>::Proof;
 
 	type EquivocationReportSystem = ();
 	type MaxNominators = MaxNominatorRewardedPerValidator;

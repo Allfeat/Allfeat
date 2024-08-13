@@ -34,8 +34,13 @@ impl pallet_session::Config for Runtime {
 	type ValidatorIdOf = pallet_validator_set::ValidatorOf<Self>;
 	type ShouldEndSession = Babe;
 	type NextSessionRotation = Babe;
-	type SessionManager = ValidatorSet;
+	type SessionManager = pallet_session::historical::NoteHistoricalRoot<Self, ValidatorSet>;
 	type SessionHandler = <SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
 	type Keys = SessionKeys;
 	type WeightInfo = weights::session::AllfeatWeight<Runtime>;
+}
+
+impl pallet_session::historical::Config for Runtime {
+	type FullIdentification = Self::ValidatorId;
+	type FullIdentificationOf = Self::ValidatorIdOf;
 }

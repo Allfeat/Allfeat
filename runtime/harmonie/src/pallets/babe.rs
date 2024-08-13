@@ -44,7 +44,10 @@ impl pallet_babe::Config for Runtime {
 	type EpochChangeTrigger = pallet_babe::ExternalTrigger;
 	type DisabledValidators = Session;
 
-	type KeyOwnerProof = sp_core::Void;
+	type KeyOwnerProof = <Historical as frame_support::traits::KeyOwnerProofSystem<(
+		sp_runtime::KeyTypeId,
+		pallet_babe::AuthorityId,
+	)>>::Proof;
 
 	type EquivocationReportSystem = ();
 
