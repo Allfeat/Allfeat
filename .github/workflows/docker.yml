@@ -15,6 +15,7 @@ on:
     branches: 
       - "master"
       - "allfeat-polkadot-*"
+      - "allfeat-stable*"
     paths:
       - "**.rs"
       - "**.toml"
