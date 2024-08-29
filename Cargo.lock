@@ -186,6 +186,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "allfeat-support"
+version = "1.0.0-dev"
+dependencies = [
+ "frame-support",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-runtime",
+]
+
+[[package]]
 name = "allocator-api2"
 version = "0.2.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3183,6 +3193,15 @@ dependencies = [
 [[package]]
 name = "genres-registry"
 version = "1.0.0-dev"
+dependencies = [
+ "parity-scale-codec",
+ "scale-info",
+ "sp-runtime",
+]
+
+[[package]]
+name = "genres-registry"
+version = "1.0.0-dev"
 source = "git+https://github.com/Allfeat/genres-registry.git?branch=stable2407#cd643ae4294ef83526d2edd686d581f0fb21bcee"
 dependencies = [
  "parity-scale-codec",
@@ -5091,6 +5110,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "midds-artist"
+version = "1.0.0-dev"
+dependencies = [
+ "allfeat-support",
+ "derive-getters",
+ "enumflags2",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "genres-registry 1.0.0-dev (git+https://github.com/Allfeat/genres-registry.git?branch=stable2407)",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "minimal-lexical"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5783,7 +5820,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "genres-registry",
+ "genres-registry 1.0.0-dev (git+https://github.com/Allfeat/genres-registry.git?branch=stable2407)",
  "log",
  "pallet-balances",
  "parity-scale-codec",

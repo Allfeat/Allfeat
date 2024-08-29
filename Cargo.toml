@@ -6,7 +6,10 @@ members = [
     "primitives",
     "precompiles/balances-erc20",
     "precompiles/artists",
-    "pallets/*"
+    "pallets/*",
+    "midds/*",
+    "support",
+    "support/genres-registry"
 ]
 
 [workspace.package]
@@ -25,6 +28,7 @@ version = "1.0.0-dev"
 # - "client" dependencies are only used in the client, and thus don't need to be no_std compatible.
 
 # Allfeat (wasm)
+allfeat-support = { version = "1.0.0-dev", default-features = false, path = "./support" }
 allfeat-primitives = { version = "1.0.0", default-features = false, path = "./primitives" }
 pallet-artists = { package = "pallet-artists-v2", version = "1.0.0-dev", default-features = false, path = "./pallets/artists" }
 
