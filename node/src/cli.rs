@@ -16,7 +16,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::eth::EthConfiguration;
 use sc_cli::RunCmd;
 
 #[derive(Debug, clap::Parser)]
@@ -28,7 +27,7 @@ pub struct Cli {
 	pub run: RunCmd,
 
 	#[command(flatten)]
-	pub eth: EthConfiguration,
+	pub eth: EthArgs,
 
 	/// Disable automatic hardware benchmarks.
 	///
@@ -39,6 +38,9 @@ pub struct Cli {
 	/// telemetry, if telemetry is enabled.
 	#[arg(long)]
 	pub no_hardware_benchmarks: bool,
+
+	#[clap(flatten)]
+	pub storage_monitor: sc_storage_monitor::StorageMonitorParams,
 }
 
 #[derive(Debug, clap::Subcommand)]
@@ -71,10 +73,135 @@ pub enum Subcommand {
 	/// Sub-commands concerned with benchmarking.
 	#[command(subcommand)]
 	Benchmark(frame_benchmarking_cli::BenchmarkCmd),
+}
 
-	/// Db meta columns information.
-	ChainInfo(sc_cli::ChainInfoCmd),
+/// Available frontier backend types.
+#[derive(Copy, Clone, Debug, Default, clap::ValueEnum)]
+pub enum FrontierBackendType {
+	/// Either RocksDb or ParityDb as per inherited from the global backend settings.
+	#[default]
+	KeyValue,
+	/// Sql database with custom log indexing.
+	Sql,
+}
 
-	/// Db meta columns information.
-	FrontierDb(fc_cli::FrontierDbCmd),
+#[derive(Debug, clap::Parser)]
+pub struct EthArgs {
+	/// Enable EVM tracing functionalities.
+	// #[arg(long, value_delimiter = ',')]
+	// pub tracing_api: Vec<TracingApi>,
+
+	/// Number of concurrent tracing tasks. Meant to be shared by both "debug" and "trace" modules.
+	#[arg(long, default_value = "10")]
+	pub tracing_max_permits: u32,
+
+	/// Maximum number of trace entries a single request of `trace_filter` is allowed to return.
+	/// A request asking for more or an unbounded one going over this limit will both return an
+	/// error.
+	#[arg(long, default_value = "500")]
+	pub tracing_max_count: u32,
+
+	// Duration (in seconds) after which the cache of `trace_filter` for a given block will be
+	/// discarded.
+	#[arg(long, default_value = "300")]
+	pub tracing_cache_duration: u64,
+
+	/// Size in bytes of data a raw tracing request is allowed to use.
+	/// Bound the size of memory, stack and storage data.
+	#[arg(long, default_value = "20000000")]
+	pub tracing_raw_max_memory_usage: usize,
+
+	/// Size in bytes of the LRU cache for block data.
+	#[arg(long, default_value = "300000000")]
+	pub eth_log_block_cache: usize,
+
+	/// Size of the LRU cache for block data and their transaction statuses.
+	#[arg(long, default_value = "300000000")]
+	pub eth_statuses_cache: usize,
+
+	/// Maximum number of logs in a query.
+	#[arg(long, default_value = "10000")]
+	pub max_past_logs: u32,
+
+	/// Maximum fee history cache size.
+	#[arg(long, default_value = "2048")]
+	pub fee_history_limit: u64,
+
+	/// Sets the frontier backend type (KeyValue or Sql)
+	#[arg(long, value_enum, ignore_case = true, default_value_t = FrontierBackendType::default())]
+	pub frontier_backend_type: FrontierBackendType,
+
+	// Sets the SQL backend's pool size.
+	#[arg(long, default_value = "100")]
+	pub frontier_sql_backend_pool_size: u32,
+
+	/// Sets the SQL backend's query timeout in number of VM ops.
+	#[arg(long, default_value = "10000000")]
+	pub frontier_sql_backend_num_ops_timeout: u32,
+
+	/// Sets the SQL backend's auxiliary thread limit.
+	#[arg(long, default_value = "4")]
+	pub frontier_sql_backend_thread_count: u32,
+
+	/// Sets the SQL backend's query timeout in number of VM ops.
+	/// Default value is 200MB.
+	#[arg(long, default_value = "209715200")]
+	pub frontier_sql_backend_cache_size: u64,
+}
+impl EthArgs {
+	pub fn build_eth_rpc_config(&self) -> EthRpcConfig {
+		EthRpcConfig {
+			// tracing_api: self.tracing_api.clone(),
+			tracing_max_permits: self.tracing_max_permits,
+			tracing_max_count: self.tracing_max_permits,
+			tracing_cache_duration: self.tracing_cache_duration,
+			tracing_raw_max_memory_usage: self.tracing_raw_max_memory_usage,
+			eth_statuses_cache: self.eth_statuses_cache,
+			eth_log_block_cache: self.eth_log_block_cache,
+			max_past_logs: self.max_past_logs,
+			fee_history_limit: self.fee_history_limit,
+			frontier_backend_type: self.frontier_backend_type,
+			frontier_sql_backend_pool_size: self.frontier_sql_backend_pool_size,
+			frontier_sql_backend_num_ops_timeout: self.frontier_sql_backend_num_ops_timeout,
+			frontier_sql_backend_thread_count: self.frontier_sql_backend_thread_count,
+			frontier_sql_backend_cache_size: self.frontier_sql_backend_cache_size,
+		}
+	}
+}
+
+/*
+#[derive(Clone, Debug, PartialEq)]
+pub enum TracingApi {
+	Debug,
+	Trace,
+}
+impl std::str::FromStr for TracingApi {
+	type Err = String;
+
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		Ok(match s {
+			"debug" => Self::Debug,
+			"trace" => Self::Trace,
+			_ => return Err(format!("`{}` is not recognized as a supported Ethereum Api", s)),
+		})
+	}
+}
+*/
+
+#[derive(Clone, Debug, Default)]
+pub struct EthRpcConfig {
+	// pub tracing_api: Vec<TracingApi>,
+	pub tracing_max_permits: u32,
+	pub tracing_max_count: u32,
+	pub tracing_cache_duration: u64,
+	pub tracing_raw_max_memory_usage: usize,
+	pub eth_log_block_cache: usize,
+	pub eth_statuses_cache: usize,
+	pub fee_history_limit: u64,
+	pub max_past_logs: u32,
+	pub frontier_backend_type: FrontierBackendType,
+	pub frontier_sql_backend_pool_size: u32,
+	pub frontier_sql_backend_num_ops_timeout: u32,
+	pub frontier_sql_backend_thread_count: u32,
+	pub frontier_sql_backend_cache_size: u64,
 }

@@ -36,11 +36,11 @@ type AccountPublic = <Signature as Verify>::Signer;
 
 pub mod account_key;
 
-#[cfg(feature = "harmonie-native")]
+#[cfg(feature = "harmonie-runtime")]
 pub mod harmonie;
-#[cfg(feature = "harmonie-native")]
+#[cfg(feature = "harmonie-runtime")]
 pub use harmonie::{self as harmonie_chain_spec};
-#[cfg(not(feature = "harmonie-native"))]
+#[cfg(not(feature = "harmonie-runtime"))]
 pub type HarmonieChainSpec = DummyChainSpec;
 
 /// Node `ChainSpec` extensions.

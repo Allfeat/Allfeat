@@ -128,6 +128,8 @@ sc-sysinfo = { version = "37.0.0", git = "https://github.com/paritytech/polkadot
 sc-offchain = { version = "39.0.0", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 sc-statement-store = { version = "10.0.0", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 
+sc-tracing = { git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
+sc-storage-monitor = { git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 sc-cli = { version = "0.46.0", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 sc-executor = { version = "0.40.0", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 sc-service = { version = "0.45.0", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
@@ -156,6 +158,7 @@ pallet-transaction-payment-rpc = { version = "40.0.0", git = "https://github.com
 substrate-state-trie-migration-rpc = { version = "4.0.0-dev", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 substrate-build-script-utils = { version = "11.0.0", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 frame-benchmarking-cli = { version = "42.0.0", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
+substrate-prometheus-endpoint = { git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 
 # Allfeat (client)
 shared-runtime = { version = "1.0.0-dev", path = "./runtime/shared", default-features = false }
@@ -200,7 +203,7 @@ fc-cli = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.
 fc-consensus = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407" }
 fc-db = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407" }
 fc-mapping-sync = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", features = ["sql"] }
-fc-rpc = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", features = ["rpc-binary-search-estimate", "txpool"] }
+fc-rpc-v2-api = { git = "https://github.com/paritytech/frontier.git", branch = "stable2407" }
 fc-rpc-core = { version = "1.1.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407" }
 fc-storage = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407" }
 fp-dynamic-fee = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", features = [
