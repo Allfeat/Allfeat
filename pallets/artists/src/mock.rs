@@ -18,6 +18,8 @@
 
 //! # Artists test environment.
 
+#![cfg(test)]
+
 use super::*;
 use crate as pallet_artists;
 use frame_support::{

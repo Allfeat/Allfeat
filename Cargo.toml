@@ -31,6 +31,8 @@ version = "1.0.0-dev"
 allfeat-support = { version = "1.0.0-dev", default-features = false, path = "./support" }
 allfeat-primitives = { version = "1.0.0", default-features = false, path = "./primitives" }
 pallet-artists = { package = "pallet-artists-v2", version = "1.0.0-dev", default-features = false, path = "./pallets/artists" }
+genres-registry = { package = "genres-registry", version = "1.0.0-dev", default-features = false, path = "./support/genres-registry" }
+midds-artist = { package = "midds-artist", version = "1.0.0-dev", default-features = false, path = "./midds/artist" }
 
 # Substrate (wasm)
 parity-scale-codec = { version = "3.6.12", default-features = false, features = [

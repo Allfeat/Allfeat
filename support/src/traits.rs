@@ -16,18 +16,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use parity_scale_codec::Encode;
+use parity_scale_codec::{Decode, Encode};
+use sp_runtime::traits::Hash as HashT;
 
 /// Base definition of a MIDDS (Music Industry Decentralized Data Structure)
-pub trait Midds<Identifier, AccountId>: Encode {
-	fn depositor(self) -> AccountId;
-	fn identifier(self) -> Identifier;
-	fn total_bytes(&self) -> u32;
-}
-
-/// Base definition that a pallet storing and dealing with a MIDDS should implement.
-pub trait MiddsRegistry<Identifier, AccountId, M>
+pub trait Midds<Hash, AccountId>
 where
-	M: Midds<Identifier, AccountId>,
+	Self: Encode + Default,
+	Hash: HashT,
 {
+	type EditableFields: Encode + Decode + Clone + PartialEq;
+
+	/// Return true if the MIDDS is judged as complete, all fields are filled.
+	/// (e.g in case of Option fields, they all should be `Some`)
+	fn is_complete(&self) -> bool;
+	fn provider(&self) -> AccountId;
+	fn set_provider(&mut self, provider: AccountId);
+	/// Hash combined fields of the MIDDS to output a general MIDDS Hash.
+	fn hash(&self) -> <Hash as HashT>::Output;
+	fn total_bytes(&self) -> u32 {
+		self.encoded_size() as u32
+	}
+	fn update_field(&mut self, data: Self::EditableFields);
 }

@@ -195,6 +195,7 @@ name = "allfeat-support"
 version = "1.0.0-dev"
 dependencies = [
  "frame-support",
+ "genres-registry 1.0.0-dev",
  "parity-scale-codec",
  "scale-info",
  "sp-runtime",
@@ -6118,6 +6119,24 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-staking",
+]
+
+[[package]]
+name = "pallet-midds"
+version = "1.0.0"
+dependencies = [
+ "allfeat-support",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-tracing",
 ]
 
 [[package]]

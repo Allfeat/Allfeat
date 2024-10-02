@@ -30,51 +30,115 @@ use sp_runtime::{traits::Hash as HashT, BoundedVec, RuntimeDebug};
 
 pub type Artwork<Hash> = ExternalAsset<Hash>;
 
-#[derive(Encode, MaxEncodedLen, Decode, Clone, PartialEq, Eq, RuntimeDebug, TypeInfo)]
-pub struct Artist<Identifier, AccountId, BlockNumber, Hash, NameLimit, FNameLimit, LNameLimit>
+#[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, TypeInfo)]
+pub enum ArtistEditableField<Hash, NameLimit, FNameLimit, LNameLimit>
 where
-	NameLimit: Get<u32>,
-	FNameLimit: Get<u32>,
-	LNameLimit: Get<u32>,
+	NameLimit: Get<u32> + TypeInfo,
+	FNameLimit: Get<u32> + TypeInfo,
+	LNameLimit: Get<u32> + TypeInfo,
 	Hash: HashT,
 {
-	pub identifier: Identifier,
-	pub depositor: AccountId,
-	pub registered_at: BlockNumber,
-	pub name: BoundedVec<u8, NameLimit>,
-	pub first_name: BoundedVec<u8, FNameLimit>,
-	pub last_name: BoundedVec<u8, LNameLimit>,
+	Name(Option<BoundedVec<u8, NameLimit>>),
+	FirstName(Option<BoundedVec<u8, FNameLimit>>),
+	LastName(Option<BoundedVec<u8, LNameLimit>>),
+	Artwork(Option<Artwork<Hash>>),
+	ServicesInfo(ServicesInfoEditableFields),
+}
+
+#[derive(Encode, Default, MaxEncodedLen, Decode, Clone, PartialEq, Eq, RuntimeDebug, TypeInfo)]
+pub struct Artist<Hash, AccountId, NameLimit, FNameLimit, LNameLimit>
+where
+	NameLimit: Get<u32> + TypeInfo,
+	FNameLimit: Get<u32> + TypeInfo,
+	LNameLimit: Get<u32> + TypeInfo,
+	Hash: HashT,
+{
+	pub provider: AccountId,
+	pub name: Option<BoundedVec<u8, NameLimit>>,
+	pub first_name: Option<BoundedVec<u8, FNameLimit>>,
+	pub last_name: Option<BoundedVec<u8, LNameLimit>>,
 	pub artwork: Option<Artwork<Hash>>,
 	pub services_data: ServicesInfo,
-	// TODO: main genre ?
 }
 
-impl<I, AI, BN, H, N, F, L> Midds<I, AI> for Artist<I, AI, BN, H, N, F, L>
+impl<H, AI, N, F, L> Midds<H, AI> for Artist<H, AI, N, F, L>
 where
-	Artist<I, AI, BN, H, N, F, L>: Encode,
-	N: Get<u32>,
-	F: Get<u32>,
-	L: Get<u32>,
-	H: HashT,
+	Artist<H, AI, N, F, L>: Encode + Default,
+	N: Get<u32> + TypeInfo + PartialEq + Eq + Clone + Default,
+	F: Get<u32> + TypeInfo + PartialEq + Eq + Clone + Default,
+	L: Get<u32> + TypeInfo + PartialEq + Eq + Clone + Default,
+	AI: Clone,
+	H: HashT + Default,
 {
-	fn depositor(self) -> AI {
-		self.depositor
+	type EditableFields = ArtistEditableField<H, N, F, L>;
+
+	fn provider(&self) -> AI {
+		self.provider.clone()
 	}
 
-	fn identifier(self) -> I {
-		self.identifier
+	fn set_provider(&mut self, provider: AI) {
+		self.provider = provider
 	}
 
-	fn total_bytes(&self) -> u32 {
-		self.encoded_size() as u32
+	fn is_complete(&self) -> bool {
+		match (&self.name, &self.first_name, &self.last_name) {
+			(Some(_), Some(_), Some(_)) => true,
+			_ => false,
+		}
+	}
+
+	fn hash(&self) -> <H as HashT>::Output {
+		let mut bytes = Vec::new();
+
+		bytes.extend_from_slice(&self.name.encode());
+		bytes.extend_from_slice(&self.first_name.encode());
+		bytes.extend_from_slice(&self.last_name.encode());
+
+		match &self.artwork {
+			Some(value) => {
+				bytes.push(1);
+				bytes.extend_from_slice(&value.integrity_hash.encode());
+				bytes.extend_from_slice(&value.location.encode());
+			},
+			None => bytes.push(0),
+		};
+
+		bytes.extend_from_slice(&self.services_data.encode());
+
+		<H as HashT>::hash(&bytes)
+	}
+
+	fn update_field(&mut self, data: Self::EditableFields) {
+		match data {
+			ArtistEditableField::Name(x) => self.name = x,
+			ArtistEditableField::FirstName(x) => self.first_name = x,
+			ArtistEditableField::LastName(x) => self.last_name = x,
+			ArtistEditableField::Artwork(x) => self.artwork = x,
+			ArtistEditableField::ServicesInfo(x) => match x {
+				ServicesInfoEditableFields::SpotifyId(x) => self.services_data.spotify_id = x,
+				ServicesInfoEditableFields::AppleMusicId(x) => self.services_data.am_id = x,
+				ServicesInfoEditableFields::DeezerId(x) => self.services_data.deezer_id = x,
+				ServicesInfoEditableFields::SoundcloudId(x) => self.services_data.soundcloud_id = x,
+				ServicesInfoEditableFields::YoutubeId(x) => self.services_data.youtube_id = x,
+			},
+		}
 	}
 }
 
-#[derive(Encode, MaxEncodedLen, Decode, Clone, PartialEq, Eq, RuntimeDebug, TypeInfo)]
+#[derive(Encode, Default, MaxEncodedLen, Decode, Clone, PartialEq, Eq, RuntimeDebug, TypeInfo)]
 pub struct ServicesInfo {
 	pub spotify_id: Option<SpotifyArtistId>,
 	pub am_id: Option<AMArtistId>,
 	pub deezer_id: Option<DeezerArtistId>,
 	pub soundcloud_id: Option<SoundcloudUserId>,
 	pub youtube_id: Option<YoutubeChannelId>,
+}
+
+#[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, TypeInfo)]
+pub enum ServicesInfoEditableFields {
+	SpotifyId(Option<SpotifyArtistId>),
+	AppleMusicId(Option<AMArtistId>),
+	DeezerId(Option<DeezerArtistId>),
+	SoundcloudId(Option<SoundcloudUserId>),
+	YoutubeId(Option<YoutubeChannelId>),
 }

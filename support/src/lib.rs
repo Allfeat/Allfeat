@@ -18,3 +18,5 @@
 
 pub mod traits;
 pub mod types;
+
+pub use genres_registry::*;

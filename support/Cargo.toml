@@ -17,6 +17,7 @@ parity-scale-codec = { workspace = true }
 scale-info = { workspace = true }
 sp-runtime = { workspace = true }
 frame-support = { workspace = true }
+genres-registry = { workspace = true }
 
 [features]
 default = ["std"]

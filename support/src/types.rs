@@ -30,7 +30,7 @@ where
 	Hash: HashT,
 {
 	pub location: AssetLocation,
-	pub integrity_hash: Hash,
+	pub integrity_hash: Hash::Output,
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, MaxEncodedLen, TypeInfo)]
