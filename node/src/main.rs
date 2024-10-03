@@ -20,13 +20,10 @@
 #![warn(missing_docs)]
 #![allow(clippy::type_complexity, clippy::too_many_arguments, clippy::large_enum_variant)]
 
-mod apis;
 mod chain_specs;
 mod cli;
 mod command;
-mod eth;
 mod rpc;
-mod rpc_eth;
 mod service;
 
 fn main() -> sc_cli::Result<()> {
