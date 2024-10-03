@@ -27,7 +27,7 @@ pub use allfeat_primitives::*;
 
 // substrate
 use frame_support::pallet_prelude::*;
-use migrations::migrate_to_poa::MigrateToPoA;
+use migrations::migrate_evm_prefix_change::MigrateEvmAlias;
 use sp_std::prelude::*;
 
 #[cfg(any(feature = "std", test))]
@@ -71,10 +71,10 @@ pub const VERSION: sp_version::RuntimeVersion = sp_version::RuntimeVersion {
 	// and set impl_version to 0. If only runtime
 	// implementation changes and behavior does not, then leave spec_version as
 	// is and increment impl_version.
-	spec_version: 310,
+	spec_version: 330,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
-	transaction_version: 5,
+	transaction_version: 6,
 	state_version: 0,
 };
 
@@ -215,7 +215,7 @@ pub type Executive = frame_executive::Executive<
 >;
 // All migrations executed on runtime upgrade as a nested tuple of types implementing
 // `OnRuntimeUpgrade`.
-type Migrations = MigrateToPoA<Runtime>;
+type Migrations = MigrateEvmAlias;
 
 #[derive(Clone)]
 pub struct TransactionConverter<B>(PhantomData<B>);
