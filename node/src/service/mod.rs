@@ -253,7 +253,7 @@ where
 	let import_setup = (block_import, grandpa_link, babe_link, babe_worker_handle);
 
 	// Frontier stuffs.
-	let storage_override = Arc::new(fc_rpc::RuntimeApiStorageOverride::<Block, _>::new(client.clone()));
+	let storage_override = Arc::new(fc_rpc::StorageOverrideHandler::<Block, _, _>::new(client.clone()));
 	let frontier_backend = frontier::backend(client.clone(), config, storage_override.clone(), eth_rpc_config.clone())?;
 	let filter_pool = Some(Arc::new(Mutex::new(BTreeMap::new())));
 	let fee_history_cache = Arc::new(Mutex::new(BTreeMap::new()));

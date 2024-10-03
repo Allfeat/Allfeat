@@ -165,7 +165,7 @@ mod runtime {
 	pub type Ethereum = pallet_ethereum;
 
 	#[runtime::pallet_index(51)]
-	pub type Evm = pallet_evm;
+	pub type EVM = pallet_evm;
 
 	// Allfeat related
 	#[runtime::pallet_index(100)]
