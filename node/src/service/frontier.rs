@@ -22,11 +22,12 @@ use std::{
 	sync::Arc,
 	time::Duration,
 };
+use fc_rpc::StorageOverride;
 // crates.io
 use futures::{future, StreamExt};
 // use tokio::sync::Semaphore;
 // Allfeat
-use allfeat_primitives::{BlockNumber, Hash, Hashing};
+use allfeat_primitives::{BlockNumber, Block, Hash, Hashing};
 // frontier
 use fc_mapping_sync::{EthereumBlockNotification, EthereumBlockNotificationSinks};
 use fc_rpc_core::types::{FeeHistoryCache, FeeHistoryCacheLimit, FilterPool};
@@ -44,7 +45,7 @@ pub fn spawn_tasks<B, BE, C>(
 	backend: Arc<BE>,
 	frontier_backend: Arc<fc_db::Backend<B, C>>,
 	filter_pool: Option<FilterPool>,
-	overrides: Arc<StorageOverrideHandler<B, C, BE>>,
+	overrides: Arc<dyn StorageOverride<B>>,
 	fee_history_cache: FeeHistoryCache,
 	fee_history_cache_limit: FeeHistoryCacheLimit,
 	sync: Arc<SyncingService<B>>,
@@ -80,7 +81,7 @@ pub fn spawn_tasks<B, BE, C>(
 					bd.clone(),
 					3,
 					0,
-					fc_mapping_sync::SyncStrategy::Parachain,
+					fc_mapping_sync::SyncStrategy::Normal,
 					sync,
 					pubsub_notification_sinks,
 				)
@@ -115,7 +116,7 @@ pub fn spawn_tasks<B, BE, C>(
 		task_manager.spawn_essential_handle().spawn(
 			"frontier-filter-pool",
 			Some("frontier"),
-			EthTask::filter_pool_task(client.clone(), filter_pool, FILTER_RETAIN_THRESHOLD),
+			fc_rpc::EthTask::filter_pool_task(client.clone(), filter_pool, FILTER_RETAIN_THRESHOLD),
 		);
 	}
 
@@ -123,9 +124,9 @@ pub fn spawn_tasks<B, BE, C>(
 	task_manager.spawn_essential_handle().spawn(
 		"frontier-fee-history",
 		Some("frontier"),
-		EthTask::fee_history_task(
+		fc_rpc::EthTask::fee_history_task(
 			client.clone(),
-			overrides.clone(),
+			overrides,
 			fee_history_cache,
 			fee_history_cache_limit,
 		),
@@ -201,24 +202,23 @@ pub(crate) fn db_config_dir(config: &Configuration) -> PathBuf {
 }
 
 /// Create a Frontier backend.
-pub(crate) fn backend<B, BE, C>(
+pub(crate) fn backend<BE, C>(
 	client: Arc<C>,
 	config: &sc_service::Configuration,
+	storage_override: Arc<dyn StorageOverride<Block>>,
 	eth_rpc_config: EthRpcConfig,
-) -> Result<fc_db::Backend<B, C>, String>
+) -> Result<fc_db::Backend<Block, C>, String>
 where
-	B: 'static + sp_runtime::traits::Block<Hash = Hash>,
-	BE: 'static + sc_client_api::backend::Backend<B>,
+	BE: 'static + sc_client_api::backend::Backend<Block>,
 	C: 'static
-		+ sp_api::ProvideRuntimeApi<B>
-		+ sp_blockchain::HeaderBackend<B>
-		+ sc_client_api::backend::StorageProvider<B, BE>,
-	C::Api: fp_rpc::EthereumRuntimeRPCApi<B>,
+		+ sp_api::ProvideRuntimeApi<Block>
+		+ sp_blockchain::HeaderBackend<Block>
+		+ sc_client_api::backend::StorageProvider<Block, BE>,
+	C::Api: fp_rpc::EthereumRuntimeRPCApi<Block>,
 {
 	let db_config_dir = db_config_dir(config);
-	let overrides = Arc::new(StorageOverrideHandler::<B, C, BE>::new(client.clone()));
 	match eth_rpc_config.frontier_backend_type {
-		FrontierBackendType::KeyValue => Ok(fc_db::Backend::<B, C>::KeyValue(Arc::new(
+		FrontierBackendType::KeyValue => Ok(fc_db::Backend::<Block, C>::KeyValue(Arc::new(
 			fc_db::kv::Backend::open(Arc::clone(&client), &config.database, &db_config_dir)?,
 		))),
 		FrontierBackendType::Sql => {
@@ -237,10 +237,10 @@ where
 				}),
 				eth_rpc_config.frontier_sql_backend_pool_size,
 				std::num::NonZeroU32::new(eth_rpc_config.frontier_sql_backend_num_ops_timeout),
-				overrides,
+				storage_override.clone(),
 			))
 			.unwrap_or_else(|err| panic!("failed creating sql backend: {:?}", err));
-			Ok(fc_db::Backend::<B, C>::Sql(Arc::new(backend)))
+			Ok(fc_db::Backend::<Block, C>::Sql(Arc::new(backend)))
 		},
 	}
 }

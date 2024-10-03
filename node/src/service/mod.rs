@@ -23,10 +23,10 @@ pub mod frontier;
 mod instant_finalize;
 
 use fc_consensus::FrontierBlockImport;
-use fc_rpc_v2::StorageOverrideHandler;
-use grandpa::SharedVoterState;
+use fc_rpc::StorageOverride;
+use grandpa::{GrandpaBlockImport, SharedVoterState};
 pub use harmonie_runtime::RuntimeApi as HarmonieRuntimeApi;
-use sc_consensus_babe::{BabeLink, BabeWorkerHandle, SlotProportion};
+use sc_consensus_babe::{BabeBlockImport, BabeLink, BabeWorkerHandle, SlotProportion};
 use sc_consensus_slots::BackoffAuthoringOnFinalizedHeadLagging;
 use sc_rpc::SubscriptionTaskExecutor;
 use sc_service::WarpSyncParams;
@@ -86,16 +86,21 @@ type Service<RuntimeApi> = sc_service::PartialComponents<
 	sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi>>,
 	(
 		(
-			sc_consensus_babe::BabeBlockImport<
+			BabeBlockImport<
 				Block,
 				FullClient<RuntimeApi>,
-				FullGrandpaBlockImport<RuntimeApi>,
+				FrontierBlockImport<
+					Block,
+					FullGrandpaBlockImport<RuntimeApi>,
+					FullClient<RuntimeApi>
+				>
 			>,
 			GrandpaLinkHalf<RuntimeApi>,
 			sc_consensus_babe::BabeLink<Block>,
 			BabeWorkerHandle<Block>,
 		),
 		fc_db::Backend<Block, FullClient<RuntimeApi>>,
+		Arc<dyn StorageOverride<Block>>,
 		Option<fc_rpc_core::types::FilterPool>,
 		fc_rpc_core::types::FeeHistoryCache,
 		fc_rpc_core::types::FeeHistoryCacheLimit,
@@ -126,7 +131,7 @@ impl IdentifyVariant for Box<dyn sc_service::ChainSpec> {
 	}
 }
 
-/// A set of APIs that darwinia-like runtimes must implement.
+/// A set of APIs that allfeat-like runtimes must implement.
 pub trait RuntimeApiCollection:
 	fp_rpc::ConvertTransactionRuntimeApi<Block>
 	+ fp_rpc::EthereumRuntimeRPCApi<Block>
@@ -214,18 +219,19 @@ where
 	)?;
 	let justification_import = grandpa_block_import.clone();
 
+	let frontier_block_import = FrontierBlockImport::new(grandpa_block_import.clone(), client.clone());
+
 	let (block_import, babe_link) = sc_consensus_babe::block_import(
 		sc_consensus_babe::configuration(&*client)?,
-		grandpa_block_import,
+		frontier_block_import.clone(),
 		client.clone(),
 	)?;
-	let frontier_block_import = FrontierBlockImport::new(block_import.clone(), client.clone());
 
 	let slot_duration = babe_link.config().slot_duration();
 	let (import_queue, babe_worker_handle) =
 		sc_consensus_babe::import_queue(sc_consensus_babe::ImportQueueParams {
 			link: babe_link.clone(),
-			block_import: frontier_block_import.clone(),
+			block_import: frontier_block_import,
 			justification_import: Some(Box::new(justification_import)),
 			client: client.clone(),
 			select_chain: select_chain.clone(),
@@ -247,7 +253,8 @@ where
 	let import_setup = (block_import, grandpa_link, babe_link, babe_worker_handle);
 
 	// Frontier stuffs.
-	let frontier_backend = frontier::backend(client.clone(), config, eth_rpc_config.clone())?;
+	let storage_override = Arc::new(fc_rpc::RuntimeApiStorageOverride::<Block, _>::new(client.clone()));
+	let frontier_backend = frontier::backend(client.clone(), config, storage_override.clone(), eth_rpc_config.clone())?;
 	let filter_pool = Some(Arc::new(Mutex::new(BTreeMap::new())));
 	let fee_history_cache = Arc::new(Mutex::new(BTreeMap::new()));
 	let fee_history_cache_limit = eth_rpc_config.fee_history_limit;
@@ -263,6 +270,7 @@ where
 		other: (
 			import_setup,
 			frontier_backend,
+			storage_override,
 			filter_pool,
 			fee_history_cache,
 			fee_history_cache_limit,
@@ -295,10 +303,14 @@ where
 		// Babe related
 		(
 			BabeLink<Block>,
-			sc_consensus_babe::BabeBlockImport<
+			BabeBlockImport<
 				Block,
 				FullClient<RuntimeApi>,
-				FullGrandpaBlockImport<RuntimeApi>,
+				FrontierBlockImport<
+					Block,
+					FullGrandpaBlockImport<RuntimeApi>,
+					FullClient<RuntimeApi>
+				>
 			>,
 			bool,
 			Option<BackoffAuthoringOnFinalizedHeadLagging<NumberFor<Block>>>
@@ -326,6 +338,7 @@ where
 			(
 				import_setup,
 				frontier_backend,
+				storage_override,
 				filter_pool,
 				fee_history_cache,
 				fee_history_cache_limit,
@@ -420,7 +433,6 @@ where
 		);
 	}
 
-	let storage_override = Arc::new(StorageOverrideHandler::<Block, _, _>::new(client.clone()));
 	let block_data_cache = Arc::new(fc_rpc::EthBlockDataCacheTask::new(
 		task_manager.spawn_handle(),
 		storage_override.clone(),
@@ -434,20 +446,6 @@ where
 	let pubsub_notification_sinks = Arc::new(pubsub_notification_sinks);
 	// for ethereum-compatibility rpc.
 	config.rpc_id_provider = Some(Box::new(fc_rpc::EthereumSubIdProvider));
-	frontier::spawn_tasks(
-		&task_manager,
-		client.clone(),
-		backend.clone(),
-		frontier_backend.clone(),
-		filter_pool.clone(),
-		storage_override.clone(),
-		fee_history_cache.clone(),
-		fee_history_cache_limit,
-		sync_service.clone(),
-		pubsub_notification_sinks.clone(),
-		eth_rpc_config.clone(),
-		prometheus_registry.clone(),
-	);
 
 	let rpc_builder = {
 		let (_, grandpa_link, _, babe_worker_handle) = &import_setup;
@@ -468,7 +466,9 @@ where
 		let keystore = keystore_container.keystore();
 		let chain_spec = config.chain_spec.cloned_box();
 		let filter_pool = filter_pool.clone();
-		let storage_override = storage_override;
+		let pubsub_notification_sinks = pubsub_notification_sinks.clone();
+		let frontier_backend = frontier_backend.clone();
+		let storage_override = storage_override.clone();
 		let fee_history_cache = fee_history_cache.clone();
 		let max_past_logs = eth_rpc_config.max_past_logs;
 		let validator = config.role.is_authority();
@@ -531,7 +531,6 @@ where
 	};
 
 	let enable_grandpa = !config.disable_grandpa;
-
 	sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		rpc_builder,
 		client: client.clone(),
@@ -539,13 +538,28 @@ where
 		task_manager: &mut task_manager,
 		config,
 		keystore: keystore_container.keystore(),
-		backend: backend,
+		backend: backend.clone(),
 		network: network.clone(),
 		sync_service: sync_service.clone(),
 		system_rpc_tx,
 		tx_handler_controller,
 		telemetry: telemetry.as_mut(),
 	})?;
+
+	frontier::spawn_tasks(
+		&task_manager,
+		client.clone(),
+		backend,
+		frontier_backend,
+		filter_pool,
+		storage_override,
+		fee_history_cache,
+		fee_history_cache_limit,
+		sync_service.clone(),
+		pubsub_notification_sinks,
+		eth_rpc_config.clone(),
+		prometheus_registry.clone(),
+	);
 
 	if let Some(hwbench) = hwbench {
 		sc_sysinfo::print_hwbench(&hwbench);

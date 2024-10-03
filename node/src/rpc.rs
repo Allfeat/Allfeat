@@ -20,6 +20,7 @@
 use std::{collections::BTreeMap, sync::Arc};
 // Allfeat
 use allfeat_primitives::*;
+use fc_rpc::{Debug, Eth, EthApiServer, EthFilter, EthFilterApiServer, EthPubSub, EthPubSubApiServer, Net, NetApiServer, TxPool, TxPoolApiServer, Web3, Web3ApiServer, DebugApiServer};
 
 /// A type representing all RPC extensions.
 pub type RpcExtension = jsonrpsee::RpcModule<()>;
@@ -74,7 +75,7 @@ pub struct FullDeps<C, P, SC, BE, A: sc_transaction_pool::ChainApi, CIDP> {
 	/// EthFilterApi pool.
 	pub filter_pool: Option<fc_rpc_core::types::FilterPool>,
 	/// Backend.
-	pub frontier_backend: Arc<dyn fc_api::Backend<Block> + Send + Sync>,
+	pub frontier_backend: Arc<dyn fc_api::Backend<Block>>,
 	/// Maximum number of logs in a query.
 	pub max_past_logs: u32,
 	/// Fee history cache.
@@ -82,9 +83,9 @@ pub struct FullDeps<C, P, SC, BE, A: sc_transaction_pool::ChainApi, CIDP> {
 	/// Maximum fee history cache size.
 	pub fee_history_cache_limit: fc_rpc_core::types::FeeHistoryCacheLimit,
 	/// Ethereum data access overrides.
-	pub storage_override: Arc<dyn fc_rpc_v2::StorageOverride<Block>>,
+	pub storage_override: Arc<dyn fc_rpc::StorageOverride<Block>>,
 	/// Cache for Ethereum block data.
-	pub block_data_cache: Arc<fc_rpc_v2::EthBlockDataCacheTask<Block>>,
+	pub block_data_cache: Arc<fc_rpc::EthBlockDataCacheTask<Block>>,
 	/// Mandated parent hashes for a given block hash.
 	pub forced_parent_hashes: Option<BTreeMap<sp_core::H256, sp_core::H256>>,
 	/// Something that can create the inherent data providers for pending state
@@ -93,14 +94,14 @@ pub struct FullDeps<C, P, SC, BE, A: sc_transaction_pool::ChainApi, CIDP> {
 
 /// Default Ethereum RPC config
 pub struct DefaultEthConfig<C, BE>(std::marker::PhantomData<(C, BE)>);
-impl<C, BE> fc_rpc_v2::EthConfig<Block, C> for DefaultEthConfig<C, BE>
+impl<C, BE> fc_rpc::EthConfig<Block, C> for DefaultEthConfig<C, BE>
 where
 	C: 'static + Sync + Send + sc_client_api::StorageProvider<Block, BE>,
 	BE: 'static + sc_client_api::Backend<Block>,
 {
 	type EstimateGasAdapter = ();
 	type RuntimeStorageOverride =
-		fc_rpc_v2::frontier_backend_client::SystemAccountId20StorageOverride<Block, C, BE>;
+		fc_rpc::frontier_backend_client::SystemAccountId20StorageOverride<Block, C, BE>;
 }
 
 /// Instantiate all RPC extensions.
@@ -139,7 +140,7 @@ where
 	SC: sp_consensus::SelectChain<Block> + 'static,
 	P: 'static + Sync + Send + sc_transaction_pool_api::TransactionPool<Block = Block>,
 	A: 'static + sc_transaction_pool::ChainApi<Block = Block>,
-	EC: ,
+	EC: fc_rpc::EthConfig<Block, C>,
 {
 	// frontier
 	use fp_rpc::NoTransactionConverter;
@@ -239,12 +240,12 @@ where
 		module.merge(
 			EthFilter::new(
 				client.clone(),
-				frontier_backend,
+				frontier_backend.clone(),
 				graph,
 				filter_pool,
 				500_usize, // max stored filters
 				max_past_logs,
-				block_data_cache,
+				block_data_cache.clone(),
 			)
 			.into_rpc(),
 		)?;
@@ -256,7 +257,7 @@ where
 			client.clone(),
 			sync,
 			subscription_task_executor,
-			storage_override,
+			storage_override.clone(),
 			pubsub_notification_sinks,
 		)
 		.into_rpc(),
@@ -271,6 +272,15 @@ where
 		.into_rpc(),
 	)?;
 	module.merge(Web3::new(client.clone()).into_rpc())?;
+	module.merge(
+		Debug::new(
+			client.clone(),
+			frontier_backend,
+			storage_override,
+			block_data_cache,
+		)
+		.into_rpc(),
+	)?;
 	module.merge(tx_pool.into_rpc())?;
 
 	/* tracing impl todo
