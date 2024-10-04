@@ -117,12 +117,8 @@ for PALLET in "${PALLETS[@]}"; do
   OUTPUT=$(
     $SUBSTRATE benchmark pallet \
     --chain=harmonie-dev \
-    --steps=50 \
-    --repeat=20 \
     --pallet="$PALLET" \
     --extrinsic="$EXTRINSIC" \
-    --wasm-execution=compiled \
-    --heap-pages=4096 \
     --output="$WEIGHT_FILE" \
     --header="./HEADER" \
     --template=./.maintain/frame-weight-template.hbs 2>&1

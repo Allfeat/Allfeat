@@ -25,7 +25,6 @@ use std::{
 use fc_rpc::StorageOverride;
 // crates.io
 use futures::{future, StreamExt};
-// use tokio::sync::Semaphore;
 // Allfeat
 use allfeat_primitives::{BlockNumber, Block, Hash, Hashing};
 // frontier
@@ -34,7 +33,6 @@ use fc_rpc_core::types::{FeeHistoryCache, FeeHistoryCacheLimit, FilterPool};
 // polkadot-sdk
 use sc_network_sync::SyncingService;
 use sc_service::{Configuration, TaskManager};
-use substrate_prometheus_endpoint::Registry as PrometheusRegistry;
 
 use crate::cli::{EthRpcConfig, FrontierBackendType};
 
@@ -50,8 +48,6 @@ pub fn spawn_tasks<B, BE, C>(
 	fee_history_cache_limit: FeeHistoryCacheLimit,
 	sync: Arc<SyncingService<B>>,
 	pubsub_notification_sinks: Arc<EthereumBlockNotificationSinks<EthereumBlockNotification<B>>>,
-	eth_rpc_config: EthRpcConfig,
-	prometheus: Option<PrometheusRegistry>,
 ) where
 	C: 'static
 		+ sp_api::ProvideRuntimeApi<B>
@@ -61,7 +57,6 @@ pub fn spawn_tasks<B, BE, C>(
 		+ sc_client_api::BlockchainEvents<B>
 		+ sc_client_api::backend::StorageProvider<B, BE>,
 	C::Api: sp_block_builder::BlockBuilder<B> + fp_rpc::EthereumRuntimeRPCApi<B>,
-	// + moonbeam_rpc_primitives_debug::DebugRuntimeApi<B>,
 	B: 'static + Send + Sync + sp_runtime::traits::Block<Hash = Hash>,
 	B::Header: sp_runtime::traits::Header<Number = BlockNumber>,
 	BE: 'static + sc_client_api::backend::Backend<B>,
@@ -131,70 +126,6 @@ pub fn spawn_tasks<B, BE, C>(
 			fee_history_cache_limit,
 		),
 	);
-
-	/*
-	if eth_rpc_config.tracing_api.contains(&TracingApi::Debug)
-		|| eth_rpc_config.tracing_api.contains(&TracingApi::Trace)
-	{
-		let permit_pool = Arc::new(Semaphore::new(eth_rpc_config.tracing_max_permits as usize));
-		let (trace_filter_task, trace_filter_requester) =
-			if eth_rpc_config.tracing_api.contains(&TracingApi::Trace) {
-				let (trace_filter_task, trace_filter_requester) = CacheTask::create(
-					Arc::clone(&client),
-					Arc::clone(&backend),
-					Duration::from_secs(eth_rpc_config.tracing_cache_duration),
-					Arc::clone(&permit_pool),
-					Arc::clone(&overrides),
-					prometheus,
-				);
-				(Some(trace_filter_task), Some(trace_filter_requester))
-			} else {
-				(None, None)
-			};
-
-		let (debug_task, debug_requester) =
-			if eth_rpc_config.tracing_api.contains(&TracingApi::Debug) {
-				let (debug_task, debug_requester) = DebugHandler::task(
-					Arc::clone(&client),
-					Arc::clone(&backend),
-					match &*frontier_backend {
-						fc_db::Backend::KeyValue(bd) => bd.clone(),
-						fc_db::Backend::Sql(bd) => bd.clone(),
-					},
-					Arc::clone(&permit_pool),
-					Arc::clone(&overrides),
-					eth_rpc_config.tracing_raw_max_memory_usage,
-				);
-				(Some(debug_task), Some(debug_requester))
-			} else {
-				(None, None)
-			};
-
-		// `trace_filter` cache task. Essential.
-		// Proxies rpc requests to it's handler.
-		if let Some(trace_filter_task) = trace_filter_task {
-			task_manager.spawn_essential_handle().spawn(
-				"trace-filter-cache",
-				Some("eth-tracing"),
-				trace_filter_task,
-			);
-		}
-
-		// `debug` task if enabled. Essential.
-		// Proxies rpc requests to it's handler.
-		if let Some(debug_task) = debug_task {
-			task_manager.spawn_essential_handle().spawn(
-				"tracing_api-debug",
-				Some("eth-tracing"),
-				debug_task,
-			);
-		}
-
-		RpcRequesters { debug: debug_requester, trace: trace_filter_requester }
-	} else {
-		RpcRequesters { debug: None, trace: None }
-	}
-	*/
 }
 
 pub(crate) fn db_config_dir(config: &Configuration) -> PathBuf {

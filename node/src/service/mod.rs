@@ -20,11 +20,9 @@
 
 pub mod frontier;
 
-mod instant_finalize;
-
 use fc_consensus::FrontierBlockImport;
 use fc_rpc::StorageOverride;
-use grandpa::{GrandpaBlockImport, SharedVoterState};
+use grandpa::SharedVoterState;
 pub use harmonie_runtime::RuntimeApi as HarmonieRuntimeApi;
 use sc_consensus_babe::{BabeBlockImport, BabeLink, BabeWorkerHandle, SlotProportion};
 use sc_consensus_slots::BackoffAuthoringOnFinalizedHeadLagging;
@@ -53,19 +51,10 @@ use sp_runtime::traits::NumberFor;
 /// imported and generated.
 const GRANDPA_JUSTIFICATION_PERIOD: u32 = 512;
 
-#[cfg(all(feature = "runtime-benchmarks", feature = "evm-tracing"))]
-type HostFunctions = (
-	frame_benchmarking::benchmarking::HostFunctions,
-	moonbeam_primitives_ext::moonbeam_ext::HostFunctions,
-	sp_io::SubstrateHostFunctions,
-);
-#[cfg(all(feature = "runtime-benchmarks", not(feature = "evm-tracing")))]
-type HostFunctions =
+#[cfg(feature = "runtime-benchmarks")]
+pub type HostFunctions =
 	(frame_benchmarking::benchmarking::HostFunctions, sp_io::SubstrateHostFunctions);
-#[cfg(all(not(feature = "runtime-benchmarks"), feature = "evm-tracing"))]
-type HostFunctions =
-	(moonbeam_primitives_ext::moonbeam_ext::HostFunctions, sp_io::SubstrateHostFunctions);
-#[cfg(not(any(feature = "evm-tracing", feature = "runtime-benchmarks")))]
+#[cfg(not(feature = "runtime-benchmarks"))]
 type HostFunctions = sp_io::SubstrateHostFunctions;
 
 /// Full client backend type.
@@ -557,8 +546,6 @@ where
 		fee_history_cache_limit,
 		sync_service.clone(),
 		pubsub_notification_sinks,
-		eth_rpc_config.clone(),
-		prometheus_registry.clone(),
 	);
 
 	if let Some(hwbench) = hwbench {

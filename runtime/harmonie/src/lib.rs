@@ -22,6 +22,10 @@
 // runtime macros does a lot of recursion and requires us to increase the limit to 256.
 #![recursion_limit = "256"]
 
+// Make the WASM binary available.
+#[cfg(feature = "std")]
+include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
+
 // allfeat
 pub use allfeat_primitives::*;
 
@@ -45,21 +49,8 @@ pub use constants::time::*;
 mod pallets;
 pub use pallets::*;
 
+mod genesis;
 mod migrations;
-
-// Make the WASM binary available.
-#[cfg(feature = "std")]
-include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
-
-/// Wasm binary unwrapped. If built with `SKIP_WASM_BUILD`, the function panics.
-#[cfg(feature = "std")]
-pub fn wasm_binary_unwrap() -> &'static [u8] {
-	WASM_BINARY.expect(
-		"Development wasm binary is not available. This means the client is built with \
-		 `SKIP_WASM_BUILD` flag and it is only usable for production chains. Please rebuild with \
-		 the flag disabled.",
-	)
-}
 
 /// Runtime version.
 #[sp_version::runtime_version]
@@ -249,7 +240,7 @@ frame_benchmarking::define_benchmarks!(
 	[pallet_artists, Artists]
 	[pallet_babe, Babe]
 	[pallet_balances, Balances]
-	[pallet_evm, Evm]
+	[pallet_evm, EVM]
 	[pallet_grandpa, Grandpa]
 	[pallet_identity, Identity]
 	[pallet_im_online, ImOnline]
@@ -258,7 +249,6 @@ frame_benchmarking::define_benchmarks!(
 	[pallet_preimage, Preimage]
 	[pallet_proxy, Proxy]
 	[pallet_scheduler, Scheduler]
-	[pallet_session, SessionBench::<Runtime>]
 	[pallet_sudo, Sudo]
 	[frame_system, SystemBench::<Runtime>]
 	[pallet_timestamp, Timestamp]
@@ -481,18 +471,16 @@ sp_api::impl_runtime_apis! {
 	impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
 		fn build_state(config: Vec<u8>) -> sp_genesis_builder::Result {
 			use frame_support::genesis_builder_helper::build_state;
-
 			build_state::<RuntimeGenesisConfig>(config)
 		}
 
 		fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
 			use frame_support::genesis_builder_helper::get_preset;
-
-			get_preset::<RuntimeGenesisConfig>(id, |_| None)
+			get_preset::<RuntimeGenesisConfig>(id, crate::genesis::get_preset)
 		}
 
 		fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
-			vec![]
+			crate::genesis::preset_names()
 		}
 	}
 
@@ -744,7 +732,6 @@ sp_api::impl_runtime_apis! {
 			// Trying to add benchmarks directly to the Session Pallet caused cyclic dependency
 			// issues. To get around that, we separated the Session benchmarks into its own crate,
 			// which is why we need these two lines below.
-			use pallet_session_benchmarking::Pallet as SessionBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
 			use baseline::Pallet as BaselineBench;
 
@@ -765,11 +752,9 @@ sp_api::impl_runtime_apis! {
 			// Trying to add benchmarks directly to the Session Pallet caused cyclic dependency
 			// issues. To get around that, we separated the Session benchmarks into its own crate,
 			// which is why we need these two lines below.
-			use pallet_session_benchmarking::Pallet as SessionBench;
 			use frame_system_benchmarking::Pallet as SystemBench;
 			use baseline::Pallet as BaselineBench;
 
-			impl pallet_session_benchmarking::Config for Runtime {}
 			impl frame_system_benchmarking::Config for Runtime {}
 			impl baseline::Config for Runtime {}
 

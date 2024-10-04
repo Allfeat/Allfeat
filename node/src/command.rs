@@ -27,6 +27,7 @@ use crate::{
 use sc_cli::{ChainSpec as ChainSpecT, SubstrateCli};
 use sc_service::DatabaseSource;
 use sp_core::crypto::Ss58AddressFormatRegistry;
+use sp_runtime::traits::HashingFor;
 
 use crate::chain_specs::harmonie_chain_spec;
 
@@ -63,6 +64,24 @@ impl SubstrateCli for Cli {
 /// Parse command line arguments into service configuration.
 /// Parse and run command line arguments
 pub fn run() -> sc_cli::Result<()> {
+	//#[cfg(feature = "runtime-benchmarks")]
+	/// Creates partial components for the runtimes that are supported by the benchmarks.
+	macro_rules! construct_benchmark_partials {
+		($config:expr, $cli:ident, |$partials:ident| $code:expr) => {{
+			#[cfg(feature = "harmonie-runtime")]
+			if $config.chain_spec.is_harmonie() {
+				let $partials = service::new_partial::<HarmonieRuntimeApi>(
+					&$config,
+					&$cli.eth.build_eth_rpc_config(),
+				)?;
+
+				return $code;
+			}
+
+			panic!("No feature(harmonie-runtime) is enabled!");
+		}};
+	}
+
 	macro_rules! construct_async_run {
 		(|$components:ident, $cli:ident, $cmd:ident, $config:ident| $( $code:tt )* ) => {{
 			let runner = $cli.create_runner($cmd)?;
@@ -173,9 +192,39 @@ pub fn run() -> sc_cli::Result<()> {
 						};
 					}
 				};
-
 				cmd.run(config.database)
 			})
+		},
+		//#[cfg(feature = "runtime-benchmarks")]
+		Some(Subcommand::Benchmark(cmd)) => {
+			// allfeat
+			use allfeat_primitives::Block;
+			// polkadot-sdk
+			use frame_benchmarking_cli::{BenchmarkCmd, SUBSTRATE_REFERENCE_HARDWARE};
+
+			let runner = cli.create_runner(cmd)?;
+
+			set_default_ss58_version(&runner.config().chain_spec);
+
+			match cmd {
+				BenchmarkCmd::Pallet(cmd) =>
+					Err("Pallet benchmarking has migrated to his own CLI tool, please read https://github.com/paritytech/polkadot-sdk/pull/3512.".into()),
+				BenchmarkCmd::Storage(cmd) => runner.sync_run(|config| {
+					construct_benchmark_partials!(config, cli, |partials| {
+						let db = partials.backend.expose_db();
+						let storage = partials.backend.expose_storage();
+
+						cmd.run(config, partials.client.clone(), db, storage)
+					})
+				}),
+				BenchmarkCmd::Overhead(_) => Err("Unsupported benchmarking command".into()),
+				BenchmarkCmd::Extrinsic(_) => Err("Unsupported benchmarking command".into()),
+				BenchmarkCmd::Block(cmd) => runner.sync_run(|config| {
+					construct_benchmark_partials!(config, cli, |partials| cmd.run(partials.client))
+				}),
+				BenchmarkCmd::Machine(cmd) =>
+					runner.sync_run(|config| cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone())),
+			}
 		},
 		#[cfg(not(feature = "runtime-benchmarks"))]
 		Some(Subcommand::Benchmark(_)) => Err(
@@ -234,9 +283,9 @@ fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpecT>, String> {
 			&include_bytes!("../genesis/harmonie-raw.json")[..],
 		)?),
 		#[cfg(feature = "harmonie-runtime")]
-		"harmonie-local" => Box::new(harmonie_chain_spec::get_chain_spec()),
+		"harmonie-local" => Box::new(harmonie_chain_spec::local_chain_spec().unwrap()),
 		#[cfg(feature = "harmonie-runtime")]
-		"dev" | "harmonie-dev" => Box::new(harmonie_chain_spec::development_chain_spec(None, None)),
+		"dev" | "harmonie-dev" => Box::new(harmonie_chain_spec::development_chain_spec().unwrap()),
 		_ => Box::new(ChainSpec::from_json_file(PathBuf::from(id))?),
 	};
 

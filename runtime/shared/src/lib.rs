@@ -39,6 +39,7 @@ pub mod identity;
 
 pub mod currency;
 pub mod opaque;
+pub mod genesis_utils;
 
 #[cfg(feature = "test")]
 pub mod test;

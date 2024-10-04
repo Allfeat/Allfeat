@@ -3435,6 +3435,7 @@ dependencies = [
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
+ "serde_json",
  "sha3",
  "shared-runtime",
  "sp-api",
@@ -3447,6 +3448,7 @@ dependencies = [
  "sp-genesis-builder",
  "sp-inherents",
  "sp-io",
+ "sp-keyring",
  "sp-offchain",
  "sp-runtime",
  "sp-session",
@@ -9321,6 +9323,7 @@ name = "shared-runtime"
 version = "1.0.0-dev"
 dependencies = [
  "allfeat-primitives",
+ "array-bytes",
  "enumflags2",
  "fp-rpc",
  "frame-metadata-hash-extension",

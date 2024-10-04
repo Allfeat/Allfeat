@@ -19,14 +19,9 @@
 use crate::*;
 use frame_support::parameter_types;
 
-#[cfg(not(feature = "runtime-benchmarks"))]
 parameter_types! {
 	pub const ExistentialDeposit: Balance = 0;
 
-}
-#[cfg(feature = "runtime-benchmarks")]
-parameter_types! {
-	pub const ExistentialDeposit: Balance = 1_000_000;
 }
 
 parameter_types! {

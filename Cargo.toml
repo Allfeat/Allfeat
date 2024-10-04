@@ -43,6 +43,7 @@ static_assertions = "1.1.0"
 log = { version = "0.4.22", default-features = false }
 hex-literal = "0.4.1"
 smallvec = "1.13.2"
+array-bytes  = "6.2"
 
 frame-support = { version = "37.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 frame-election-provider-support = { version = "37.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
@@ -142,7 +143,7 @@ sc-consensus = { version = "0.43.0", git = "https://github.com/paritytech/polkad
 sc-client-api = { version = "37.0.0", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 sc-service-test = { version = "2.0.0", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 sp-timestamp = { version = "34.0.0", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
-sp-keyring = { version = "39.0.0", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
+sp-keyring = { version = "39.0.0", git = "https://github.com/paritytech/polkadot-sdk.git", default-features = false , branch = "stable2407" }
 sp-tracing = { version = "16.0.0", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 
 sp-consensus-grandpa = { version = "21.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
@@ -168,7 +169,7 @@ harmonie-runtime = { version = "1.0.0-dev", path = "./runtime/harmonie" }
 clap = { version = "4.5.13", features = ["derive"] }
 serde = { version = "1.0.204", features = ["derive"] }
 jsonrpsee = { version = "0.23.2", features = ["server", "macros"] }
-serde_json = { version = "1.0.122", features = ["alloc", "arbitrary_precision"] }
+serde_json = { version = "1.0.122", default-features = false }
 futures = "0.3.30"
 rand = "0.8.5"
 tempfile = "3.11.0"
