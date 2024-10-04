@@ -27,7 +27,6 @@ use crate::{
 use sc_cli::{ChainSpec as ChainSpecT, SubstrateCli};
 use sc_service::DatabaseSource;
 use sp_core::crypto::Ss58AddressFormatRegistry;
-use sp_runtime::traits::HashingFor;
 
 use crate::chain_specs::harmonie_chain_spec;
 
@@ -64,7 +63,7 @@ impl SubstrateCli for Cli {
 /// Parse command line arguments into service configuration.
 /// Parse and run command line arguments
 pub fn run() -> sc_cli::Result<()> {
-	//#[cfg(feature = "runtime-benchmarks")]
+	#[cfg(feature = "runtime-benchmarks")]
 	/// Creates partial components for the runtimes that are supported by the benchmarks.
 	macro_rules! construct_benchmark_partials {
 		($config:expr, $cli:ident, |$partials:ident| $code:expr) => {{
@@ -195,7 +194,7 @@ pub fn run() -> sc_cli::Result<()> {
 				cmd.run(config.database)
 			})
 		},
-		//#[cfg(feature = "runtime-benchmarks")]
+		#[cfg(feature = "runtime-benchmarks")]
 		Some(Subcommand::Benchmark(cmd)) => {
 			// allfeat
 			use allfeat_primitives::Block;
