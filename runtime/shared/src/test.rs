@@ -30,7 +30,7 @@ macro_rules! impl_evm_tests {
 				ExtBuilder::default().build().execute_with(|| {
 					// https://github.com/darwinia-network/darwinia/blob/5923b2e0526b67fe05cee6e4e592ceca80e8f2ff/runtime/darwinia/src/pallets/evm.rs#L136
 					assert_err!(
-						Evm::call(
+						EVM::call(
 							RuntimeOrigin::signed(H160::default().into()),
 							H160::default(),
 							H160::default(),
@@ -45,7 +45,7 @@ macro_rules! impl_evm_tests {
 						DispatchError::BadOrigin
 					);
 
-					if let Err(dispatch_info_with_err) = Evm::call(
+					if let Err(dispatch_info_with_err) = EVM::call(
 						RuntimeOrigin::root(),
 						H160::default(),
 						H160::default(),

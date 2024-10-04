@@ -70,10 +70,10 @@ jobs:
             ${{ matrix.action }}-${{ env.CACHE_VERSION }}-${{ runner.os }}-
       - name: Action ${{ matrix.action }}
         if: matrix.action == 'build'
-        run: cargo build --locked --features all-natives --profile ci
+        run: cargo build --locked --features all-runtime --profile ci
       - name: Action ${{ matrix.action }}
         if: matrix.action == 'test'
-        run: SKIP_WASM_BUILD=1 cargo test --locked --features all-natives,runtime-benchmarks --profile ci
+        run: SKIP_WASM_BUILD=1 cargo test --locked --features all-runtime,runtime-benchmarks --profile ci
       - name: Configure artifacts
         if: matrix.action == 'build'
         run: |
