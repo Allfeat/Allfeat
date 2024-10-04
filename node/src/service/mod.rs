@@ -34,7 +34,8 @@ use sc_transaction_pool_api::OffchainTransactionPoolFactory;
 use futures::StreamExt;
 use std::{
 	collections::BTreeMap,
-	sync::{Arc, Mutex}, time::Duration,
+	sync::{Arc, Mutex},
+	time::Duration,
 };
 // crates.io
 use futures::FutureExt;
@@ -42,9 +43,7 @@ use futures::FutureExt;
 use allfeat_primitives::*;
 // polkadot-sdk
 use sc_client_api::{Backend, BlockBackend};
-use sc_network::{
-	event::Event, Multiaddr, NetworkEventStream, NetworkWorker,
-};
+use sc_network::{event::Event, Multiaddr, NetworkEventStream, NetworkWorker};
 use sp_runtime::traits::NumberFor;
 
 /// The minimum period of blocks on which justifications will be
@@ -81,8 +80,8 @@ type Service<RuntimeApi> = sc_service::PartialComponents<
 				FrontierBlockImport<
 					Block,
 					FullGrandpaBlockImport<RuntimeApi>,
-					FullClient<RuntimeApi>
-				>
+					FullClient<RuntimeApi>,
+				>,
 			>,
 			GrandpaLinkHalf<RuntimeApi>,
 			sc_consensus_babe::BabeLink<Block>,
@@ -208,7 +207,8 @@ where
 	)?;
 	let justification_import = grandpa_block_import.clone();
 
-	let frontier_block_import = FrontierBlockImport::new(grandpa_block_import.clone(), client.clone());
+	let frontier_block_import =
+		FrontierBlockImport::new(grandpa_block_import.clone(), client.clone());
 
 	let (block_import, babe_link) = sc_consensus_babe::block_import(
 		sc_consensus_babe::configuration(&*client)?,
@@ -242,8 +242,14 @@ where
 	let import_setup = (block_import, grandpa_link, babe_link, babe_worker_handle);
 
 	// Frontier stuffs.
-	let storage_override = Arc::new(fc_rpc::StorageOverrideHandler::<Block, _, _>::new(client.clone()));
-	let frontier_backend = frontier::backend(client.clone(), config, storage_override.clone(), eth_rpc_config.clone())?;
+	let storage_override =
+		Arc::new(fc_rpc::StorageOverrideHandler::<Block, _, _>::new(client.clone()));
+	let frontier_backend = frontier::backend(
+		client.clone(),
+		config,
+		storage_override.clone(),
+		eth_rpc_config.clone(),
+	)?;
 	let filter_pool = Some(Arc::new(Mutex::new(BTreeMap::new())));
 	let fee_history_cache = Arc::new(Mutex::new(BTreeMap::new()));
 	let fee_history_cache_limit = eth_rpc_config.fee_history_limit;
@@ -298,11 +304,11 @@ where
 				FrontierBlockImport<
 					Block,
 					FullGrandpaBlockImport<RuntimeApi>,
-					FullClient<RuntimeApi>
-				>
+					FullClient<RuntimeApi>,
+				>,
 			>,
 			bool,
-			Option<BackoffAuthoringOnFinalizedHeadLagging<NumberFor<Block>>>
+			Option<BackoffAuthoringOnFinalizedHeadLagging<NumberFor<Block>>>,
 		),
 		// Grandpa related
 		Option<&substrate_prometheus_endpoint::Registry>,
@@ -348,7 +354,6 @@ where
 	let prometheus_registry = config.prometheus_registry().cloned();
 	let mut net_config =
 		sc_network::config::FullNetworkConfiguration::<Block, Hash, NB>::new(&config.network);
-		
 
 	let metrics = NB::register_notification_metrics(
 		config.prometheus_config.as_ref().map(|cfg| &cfg.registry),
@@ -375,7 +380,6 @@ where
 			Arc::clone(&peer_store_handle),
 		);
 	net_config.add_notification_protocol(grandpa_protocol_config);
-
 
 	let auth_disc_publish_non_global_ips = config.network.allow_non_globals_in_dht;
 	let auth_disc_public_addresses = config.network.public_addresses.clone();

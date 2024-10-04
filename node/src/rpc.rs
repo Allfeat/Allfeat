@@ -20,7 +20,10 @@
 use std::{collections::BTreeMap, sync::Arc};
 // Allfeat
 use allfeat_primitives::*;
-use fc_rpc::{Debug, Eth, EthApiServer, EthFilter, EthFilterApiServer, EthPubSub, EthPubSubApiServer, Net, NetApiServer, TxPool, TxPoolApiServer, Web3, Web3ApiServer, DebugApiServer};
+use fc_rpc::{
+	Debug, DebugApiServer, Eth, EthApiServer, EthFilter, EthFilterApiServer, EthPubSub,
+	EthPubSubApiServer, Net, NetApiServer, TxPool, TxPoolApiServer, Web3, Web3ApiServer,
+};
 
 /// A type representing all RPC extensions.
 pub type RpcExtension = jsonrpsee::RpcModule<()>;
@@ -273,13 +276,7 @@ where
 	)?;
 	module.merge(Web3::new(client.clone()).into_rpc())?;
 	module.merge(
-		Debug::new(
-			client.clone(),
-			frontier_backend,
-			storage_override,
-			block_data_cache,
-		)
-		.into_rpc(),
+		Debug::new(client.clone(), frontier_backend, storage_override, block_data_cache).into_rpc(),
 	)?;
 	module.merge(tx_pool.into_rpc())?;
 

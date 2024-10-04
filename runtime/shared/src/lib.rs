@@ -38,8 +38,8 @@ pub mod elections;
 pub mod identity;
 
 pub mod currency;
-pub mod opaque;
 pub mod genesis_utils;
+pub mod opaque;
 
 #[cfg(feature = "test")]
 pub mod test;

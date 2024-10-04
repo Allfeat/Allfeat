@@ -18,18 +18,24 @@
 
 //! Genesis presets to build the runtime.
 
+use allfeat_primitives::{AccountId, Balance};
 use development::development_config_genesis;
 use local::local_config_genesis;
+pub use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
+use shared_runtime::{
+	currency::AFT,
+	genesis_utils::{get_account_id_from_seed, get_from_seed},
+};
+pub use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
+pub use sp_consensus_babe::AuthorityId as BabeId;
+pub use sp_consensus_grandpa::AuthorityId as GrandpaId;
 use sp_genesis_builder::PresetId;
 use sp_std::{vec, vec::Vec};
-use allfeat_primitives::{AccountId, Balance};
-use shared_runtime::{currency::AFT, genesis_utils::{get_account_id_from_seed, get_from_seed}};
-pub use sp_consensus_grandpa::AuthorityId as GrandpaId;
-pub use sp_consensus_babe::AuthorityId as BabeId;
-pub use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
-pub use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 
-use crate::{BabeConfig, BalancesConfig, RuntimeGenesisConfig, SessionConfig, SessionKeys, SudoConfig, ValidatorSetConfig, BABE_GENESIS_EPOCH_CONFIG};
+use crate::{
+	BabeConfig, BalancesConfig, RuntimeGenesisConfig, SessionConfig, SessionKeys, SudoConfig,
+	ValidatorSetConfig, BABE_GENESIS_EPOCH_CONFIG,
+};
 
 mod development;
 mod local;
@@ -57,41 +63,36 @@ pub fn genesis(
 
 	const ENDOWMENT: Balance = 10_000_000 * AFT;
 
-    let config = RuntimeGenesisConfig {
-        balances: BalancesConfig {
-            balances: endowed_accounts.iter().cloned().map(|x| (x, ENDOWMENT)).collect::<Vec<_>>(),
-        },
-        validator_set: ValidatorSetConfig {
-            initial_validators: initial_authorities.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
-        },
-        session: SessionConfig {
-            keys: initial_authorities
-            .iter()
-            .map(|x| {
-                (
-                    x.0.clone(),
-                    x.0.clone(),
-                    SessionKeys { 
-                        grandpa: x.1.clone(),
-                        babe: x.2.clone(),
-                        im_online: x.3.clone(),
-                        authority_discovery: x.4.clone()
-                    },
-                )
-            })
-            .collect::<Vec<_>>(),
-        },
-        babe: BabeConfig {
-            epoch_config: BABE_GENESIS_EPOCH_CONFIG,
-            ..Default::default()
-        },
-        sudo: SudoConfig {
-            key: Some(root_key)
-        },
-        ..Default::default()
-    };
+	let config = RuntimeGenesisConfig {
+		balances: BalancesConfig {
+			balances: endowed_accounts.iter().cloned().map(|x| (x, ENDOWMENT)).collect::<Vec<_>>(),
+		},
+		validator_set: ValidatorSetConfig {
+			initial_validators: initial_authorities.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
+		},
+		session: SessionConfig {
+			keys: initial_authorities
+				.iter()
+				.map(|x| {
+					(
+						x.0.clone(),
+						x.0.clone(),
+						SessionKeys {
+							grandpa: x.1.clone(),
+							babe: x.2.clone(),
+							im_online: x.3.clone(),
+							authority_discovery: x.4.clone(),
+						},
+					)
+				})
+				.collect::<Vec<_>>(),
+		},
+		babe: BabeConfig { epoch_config: BABE_GENESIS_EPOCH_CONFIG, ..Default::default() },
+		sudo: SudoConfig { key: Some(root_key) },
+		..Default::default()
+	};
 
-    serde_json::to_value(config).expect("Could not build genesis config.")
+	serde_json::to_value(config).expect("Could not build genesis config.")
 }
 
 /// Helper function to generate stash, controller and session key from seed
@@ -123,8 +124,5 @@ pub fn get_preset(id: &PresetId) -> Option<Vec<u8>> {
 
 /// List of supported presets.
 pub fn preset_names() -> Vec<PresetId> {
-	vec![
-		PresetId::from("development"),
-		PresetId::from("local_testnet"),
-	]
+	vec![PresetId::from("development"), PresetId::from("local_testnet")]
 }

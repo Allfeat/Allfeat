@@ -16,19 +16,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::{authority_keys_from_seed, genesis};
 use shared_runtime::genesis_utils::development_account;
 use sp_std::vec;
-use super::{authority_keys_from_seed, genesis};
 
 /// Return the development genesis config.
 
-
 pub fn local_config_genesis() -> serde_json::Value {
-    let accounts = development_account();
+	let accounts = development_account();
 
-    genesis(
-        vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
-        accounts[0],
-        accounts
-    )
+	genesis(
+		vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
+		accounts[0],
+		accounts,
+	)
 }
