@@ -22,3 +22,6 @@
 
 # Binary folder
 bin
+
+# Weights benchmarks files
+benchmarking_errors.txt

@@ -196,8 +196,6 @@ pub fn run() -> sc_cli::Result<()> {
 		},
 		#[cfg(feature = "runtime-benchmarks")]
 		Some(Subcommand::Benchmark(cmd)) => {
-			// allfeat
-			use allfeat_primitives::Block;
 			// polkadot-sdk
 			use frame_benchmarking_cli::{BenchmarkCmd, SUBSTRATE_REFERENCE_HARDWARE};
 
@@ -206,7 +204,7 @@ pub fn run() -> sc_cli::Result<()> {
 			set_default_ss58_version(&runner.config().chain_spec);
 
 			match cmd {
-				BenchmarkCmd::Pallet(cmd) =>
+				BenchmarkCmd::Pallet(_) =>
 					Err("Pallet benchmarking has migrated to his own CLI tool, please read https://github.com/paritytech/polkadot-sdk/pull/3512.".into()),
 				BenchmarkCmd::Storage(cmd) => runner.sync_run(|config| {
 					construct_benchmark_partials!(config, cli, |partials| {
