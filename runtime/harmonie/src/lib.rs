@@ -31,7 +31,6 @@ pub use allfeat_primitives::*;
 
 // substrate
 use frame_support::pallet_prelude::*;
-use migrations::migrate_evm_prefix_change::MigrateEvmAlias;
 use sp_std::prelude::*;
 
 #[cfg(any(feature = "std", test))]
@@ -48,6 +47,7 @@ pub use constants::time::*;
 
 mod pallets;
 pub use pallets::*;
+mod midds;
 
 mod genesis;
 mod migrations;
@@ -159,8 +159,13 @@ mod runtime {
 	pub type EVM = pallet_evm;
 
 	// Allfeat related
-	#[runtime::pallet_index(100)]
-	pub type Artists = pallet_artists;
+	//	#[runtime::pallet_index(100)] Old artists pallet
+
+	#[runtime::pallet_index(101)]
+	pub type Stakeholders = pallet_midds<Instance1>;
+
+	#[runtime::pallet_index(102)]
+	pub type MusicalWorks = pallet_midds<Instance2>;
 }
 
 /// Block header type as expected by this runtime.
@@ -206,7 +211,7 @@ pub type Executive = frame_executive::Executive<
 >;
 // All migrations executed on runtime upgrade as a nested tuple of types implementing
 // `OnRuntimeUpgrade`.
-type Migrations = MigrateEvmAlias;
+type Migrations = ();
 
 #[derive(Clone)]
 pub struct TransactionConverter<B>(PhantomData<B>);
@@ -237,13 +242,14 @@ impl<B: sp_runtime::traits::Block>
 #[cfg(feature = "runtime-benchmarks")]
 frame_benchmarking::define_benchmarks!(
 	[frame_benchmarking, BaselineBench::<Runtime>]
-	[pallet_artists, Artists]
 	[pallet_babe, Babe]
 	[pallet_balances, Balances]
 	[pallet_evm, EVM]
 	[pallet_grandpa, Grandpa]
 	[pallet_identity, Identity]
 	[pallet_im_online, ImOnline]
+	[pallet_midds, Stakeholders]
+	[pallet_midds, MusicalWorks]
 	[pallet_mmr, Mmr]
 	[pallet_multisig, Multisig]
 	[pallet_preimage, Preimage]

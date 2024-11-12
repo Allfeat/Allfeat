@@ -16,20 +16,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// MIDDS
-pub mod pallet_midds_musical_works;
-pub mod pallet_midds_stakeholders;
+use crate::*;
+use frame_support::{parameter_types, PalletId};
+use frame_system::EnsureSigned;
 
-pub mod balances;
-pub mod evm;
-pub mod system;
-// pub mod identity;
-pub mod im_online;
-pub mod multisig;
-pub mod preimage;
-pub mod proxy;
-pub mod scheduler;
-pub mod session;
-pub mod sudo;
-pub mod timestamp;
-pub mod utility;
+use super::Stakeholders;
+
+parameter_types! {
+	pub const StakeholderPalletId: PalletId = PalletId(*b"m/stkhld");
+	pub const UnregisterPeriod: u32 = 7 * DAYS;
+	pub const ByteDepositCost: Balance = 1 * MILLIAFT;
+}
+
+impl pallet_midds::Config<Stakeholders> for Runtime {
+	type PalletId = StakeholderPalletId;
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type RuntimeHoldReason = RuntimeHoldReason;
+	type MIDDS = midds_stakeholder::Stakeholder<Self::Hashing>;
+	type ProviderOrigin = EnsureSigned<Self::AccountId>;
+	type ByteDepositCost = ByteDepositCost;
+	type UnregisterPeriod = UnregisterPeriod;
+	type WeightInfo = ();
+}

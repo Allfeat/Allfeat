@@ -35,7 +35,6 @@ mod multisig;
 mod proxy;
 mod scheduler;
 // System stuffs.
-mod artists;
 mod authority_discovery;
 mod authorship;
 mod babe;

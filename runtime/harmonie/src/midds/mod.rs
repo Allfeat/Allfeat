@@ -16,20 +16,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// MIDDS
-pub mod pallet_midds_musical_works;
-pub mod pallet_midds_stakeholders;
+mod song;
+mod stakeholder;
 
-pub mod balances;
-pub mod evm;
-pub mod system;
-// pub mod identity;
-pub mod im_online;
-pub mod multisig;
-pub mod preimage;
-pub mod proxy;
-pub mod scheduler;
-pub mod session;
-pub mod sudo;
-pub mod timestamp;
-pub mod utility;
+pub type Stakeholders = pallet_midds::Instance1;
+pub type MusicalWorks = pallet_midds::Instance2;
