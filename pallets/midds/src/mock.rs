@@ -20,7 +20,7 @@
 
 use crate::{self as pallet_midds};
 use allfeat_support::traits::Midds;
-use frame_support::{derive_impl, parameter_types, PalletId};
+use frame_support::{derive_impl, pallet_prelude::DispatchResult, parameter_types, PalletId};
 use frame_system::EnsureSigned;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
@@ -42,22 +42,12 @@ impl Default for MockMiddsStructEdFields {
 
 #[derive(Encode, Default, Decode, Clone, Eq, PartialEq, RuntimeDebug, TypeInfo, MaxEncodedLen)]
 pub struct MockMiddsStruct {
-	pub provider: <Test as frame_system::Config>::AccountId,
 	pub value: u64,
 }
 
-impl Midds<<Test as frame_system::Config>::Hashing, <Test as frame_system::Config>::AccountId>
-	for MockMiddsStruct
-{
+impl Midds for MockMiddsStruct {
+	type Hash = <Test as frame_system::Config>::Hashing;
 	type EditableFields = MockMiddsStructEdFields;
-
-	fn provider(&self) -> <Test as frame_system::Config>::AccountId {
-		self.provider
-	}
-
-	fn set_provider(&mut self, provider: <Test as frame_system::Config>::AccountId) {
-		self.provider = provider
-	}
 
 	fn is_complete(&self) -> bool {
 		true
@@ -77,12 +67,18 @@ impl Midds<<Test as frame_system::Config>::Hashing, <Test as frame_system::Confi
 		self.encoded_size() as u32
 	}
 
-	fn update_field(&mut self, data: Self::EditableFields) {
+	fn update_field(&mut self, data: Self::EditableFields) -> DispatchResult {
 		match data {
 			MockMiddsStructEdFields::Value(x) => {
 				self.value = x;
 			},
 		}
+		Ok(())
+	}
+
+	#[cfg(feature = "runtime-benchmarks")]
+	fn create_midds() -> Self {
+		Self { value: 0 }
 	}
 }
 
@@ -131,7 +127,6 @@ impl pallet_midds::Config for Test {
 	type PalletId = MiddsPalletId;
 	type Currency = Balances;
 	type MIDDS = MockMiddsStruct;
-	type MIDDSEditableFields = MockMiddsStructEdFields;
 	type ProviderOrigin = EnsureSigned<Self::AccountId>;
 }
 

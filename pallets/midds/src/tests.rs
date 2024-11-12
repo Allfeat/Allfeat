@@ -30,15 +30,15 @@ fn it_registers_midds_to_pending_successfully() {
 	sp_tracing::init_for_tests();
 
 	let provider = 1;
-	let midds = MockMiddsStruct { provider, value: 1 };
+	let midds = MockMiddsStruct { value: 1 };
 	let expected_lock_cost = (midds.total_bytes() as u64)
 		.saturating_mul(<Test as crate::Config>::ByteDepositCost::get());
 
 	new_test_ext().execute_with(|| {
 		assert_ok!(MockMidds::register(RuntimeOrigin::signed(provider), Box::new(midds.clone())));
 
-		assert_eq!(expected_lock_cost as u64, Balances::reserved_balance(&provider));
-		assert_eq!(PendingMidds::<Test>::get(midds.hash()), Some(midds))
+		assert_eq!(expected_lock_cost, Balances::reserved_balance(provider));
+		assert_eq!(PendingMidds::<Test>::get(midds.hash()).expect("testing value").midds, midds)
 	})
 }
 
@@ -47,12 +47,12 @@ fn register_without_enough_funds_fail() {
 	sp_tracing::init_for_tests();
 
 	let provider = 5;
-	let midds = MockMiddsStruct { provider, value: 1 };
+	let midds = MockMiddsStruct { value: 1 };
 	let expected_lock_cost = (midds.total_bytes() as u64)
 		.saturating_mul(<Test as crate::Config>::ByteDepositCost::get());
 
 	new_test_ext().execute_with(|| {
-		assert!(Balances::free_balance(&provider) < expected_lock_cost);
+		assert!(Balances::free_balance(provider) < expected_lock_cost);
 
 		assert_err!(
 			MockMidds::register(RuntimeOrigin::signed(provider), Box::new(midds.clone())),
@@ -66,7 +66,7 @@ fn register_same_midds_data_fail() {
 	sp_tracing::init_for_tests();
 
 	let provider = 1;
-	let midds = MockMiddsStruct { provider, value: 1 };
+	let midds = MockMiddsStruct { value: 1 };
 
 	new_test_ext().execute_with(|| {
 		assert_ok!(MockMidds::register(RuntimeOrigin::signed(provider), Box::new(midds.clone())));
@@ -82,15 +82,20 @@ fn update_field_works() {
 	sp_tracing::init_for_tests();
 
 	let provider = 1;
-	let midds = MockMiddsStruct { provider, value: 1 };
-	
+	let midds = MockMiddsStruct { value: 1 };
+
 	new_test_ext().execute_with(|| {
 		assert_ok!(MockMidds::register(RuntimeOrigin::signed(provider), Box::new(midds.clone())));
-		assert_eq!(PendingMidds::<Test>::get(midds.hash()).unwrap().value, 1);
+		assert_eq!(PendingMidds::<Test>::get(midds.hash()).unwrap().midds.value, 1);
 
 		let new_value = MockMiddsStructEdFields::Value(2);
 
-		assert_ok!(MockMidds::update_field(RuntimeOrigin::signed(provider), midds.hash(), new_value));
-		assert_eq!(PendingMidds::<Test>::get(midds.hash()).unwrap().value, 2);
+		assert_ok!(MockMidds::update_field(
+			RuntimeOrigin::signed(provider),
+			midds.hash(),
+			new_value
+		));
+		assert_eq!(PendingMidds::<Test>::get(midds.hash()).unwrap().midds.value, 2);
 	})
 }
+

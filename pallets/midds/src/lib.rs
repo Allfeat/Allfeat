@@ -19,6 +19,9 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 mod mock;
+mod types;
+mod weights;
+pub use weights::WeightInfo;
 
 #[cfg(test)]
 mod tests;
@@ -27,6 +30,7 @@ mod benchmarking;
 
 extern crate alloc;
 
+use crate::types::MiddsWrapper;
 use allfeat_support::traits::Midds;
 use alloc::boxed::Box;
 use frame_support::{
@@ -35,12 +39,11 @@ use frame_support::{
 	sp_runtime::Saturating,
 	traits::{fungible::MutateHold, Get},
 };
+use frame_system::pallet_prelude::BlockNumberFor;
 pub use pallet::*;
 
-#[frame_support::pallet(dev_mode)]
+#[frame_support::pallet]
 pub mod pallet {
-	use core::fmt::Debug;
-
 	use super::*;
 	use allfeat_support::traits::Midds;
 	use frame_support::{
@@ -48,12 +51,17 @@ pub mod pallet {
 		traits::{fungible::Inspect, tokens::Precision},
 		PalletId,
 	};
-	use frame_system::pallet_prelude::*;
+	use frame_system::pallet_prelude::{BlockNumberFor, *};
 
 	pub type BalanceOf<T, I = ()> =
 		<<T as Config<I>>::Currency as Inspect<<T as frame_system::Config>::AccountId>>::Balance;
 
 	pub type MiddsHashIdOf<T> = <T as frame_system::Config>::Hash;
+	pub type MiddsWrapperOf<T, I> = MiddsWrapper<
+		<T as frame_system::Config>::AccountId,
+		BlockNumberFor<T>,
+		<T as Config<I>>::MIDDS,
+	>;
 
 	/// The in-code storage version.
 	const STORAGE_VERSION: frame_support::traits::StorageVersion =
@@ -80,6 +88,7 @@ pub mod pallet {
 			type RuntimeHoldReason = ();
 			type ByteDepositCost = ConstU64<1>;
 			type UnregisterPeriod = ConstU32<7>;
+			type WeightInfo = ();
 		}
 	}
 
@@ -109,16 +118,14 @@ pub mod pallet {
 
 		#[pallet::no_default_bounds]
 		/// The overarching HoldReason type.
-		type RuntimeHoldReason: From<HoldReason>;
+		type RuntimeHoldReason: From<HoldReason<I>>;
 
 		#[pallet::no_default]
 		/// The MIDDS actor that this pallet instance manage.
-		type MIDDS: Midds<Self::Hashing, Self::AccountId, EditableFields = Self::MIDDSEditableFields>
+		type MIDDS: Midds<Hash = <Self as frame_system::Config>::Hashing>
 			+ Parameter
-			+ Member;
-
-		#[pallet::no_default]
-		type MIDDSEditableFields: Default + Encode + Decode + Clone + PartialEq + TypeInfo + Debug;
+			+ Member
+			+ MaxEncodedLen;
 
 		#[pallet::no_default]
 		/// The origin which may provide new MIDDS to register on-chain for this instance.
@@ -129,14 +136,16 @@ pub mod pallet {
 		/// The per-byte deposit cost when depositing MIDDS on-chain.
 		type ByteDepositCost: Get<BalanceOf<Self, I>>;
 
-		/// How many time a the depositor have to wait to remove the MIDDS.
+		/// How many time the depositor have to wait to remove the MIDDS.
 		#[pallet::constant]
 		type UnregisterPeriod: Get<u32>;
+
+		type WeightInfo: WeightInfo;
 	}
 
 	/// A reason for the pallet MIDDS placing a hold on funds.
 	#[pallet::composite_enum]
-	pub enum HoldReason {
+	pub enum HoldReason<I: 'static = ()> {
 		/// A new MIDDS has been deposited and require colateral data value hold.
 		MiddsRegistration,
 	}
@@ -147,7 +156,7 @@ pub mod pallet {
 
 	#[pallet::storage]
 	pub(super) type PendingMidds<T: Config<I>, I: 'static = ()> =
-		StorageMap<_, Blake2_128Concat, MiddsHashIdOf<T>, T::MIDDS>;
+		StorageMap<_, Blake2_128Concat, MiddsHashIdOf<T>, MiddsWrapperOf<T, I>>;
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
@@ -159,7 +168,10 @@ pub mod pallet {
 		},
 		MIDDSUpdated {
 			hash_id: MiddsHashIdOf<T>,
-		}
+		},
+		MIDDSUnregistered {
+			hash_id: MiddsHashIdOf<T>,
+		},
 	}
 
 	#[pallet::error]
@@ -168,6 +180,8 @@ pub mod pallet {
 		MiddsDataAlreadyExist,
 		/// The specified MIDDS ID is not related to any pending MIDDS.
 		PendingMiddsNotFound,
+		/// The lock-unregister period is still going.
+		UnregisterLocked,
 		/// The caller is not the provider of the MIDDS.
 		NotProvider,
 		/// Funds can't be released at this moment.
@@ -176,66 +190,115 @@ pub mod pallet {
 		CantHoldFunds,
 	}
 
-	#[pallet::call]
+	#[pallet::call(weight(<T as Config<I>>::WeightInfo))]
 	impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		#[pallet::call_index(0)]
-		pub fn register(origin: OriginFor<T>, mut midds: Box<T::MIDDS>) -> DispatchResult {
+		pub fn register(origin: OriginFor<T>, midds: Box<T::MIDDS>) -> DispatchResult {
 			let provider = T::ProviderOrigin::ensure_origin(origin)?;
+			let midds =
+				MiddsWrapper::new(provider, <frame_system::Pallet<T>>::block_number(), *midds);
 
-			midds.set_provider(provider.clone());
-			Self::inner_register(&provider, *midds)
+			Self::inner_register(midds)
 		}
 
 		#[pallet::call_index(1)]
 		pub fn update_field(
 			origin: OriginFor<T>,
 			midds_id: MiddsHashIdOf<T>,
-			field_data: T::MIDDSEditableFields,
+			field_data: <T::MIDDS as Midds>::EditableFields,
 		) -> DispatchResult {
 			let caller = T::ProviderOrigin::ensure_origin(origin)?;
 
-			PendingMidds::<T, I>::try_mutate_exists(midds_id, |x| match x {
-				Some(midds) => {
-					ensure!(midds.provider() == caller, Error::<T, I>::NotProvider);
+			PendingMidds::<T, I>::try_mutate_exists(midds_id, |x| -> DispatchResult {
+				match x {
+					Some(midds) => {
+						ensure!(midds.provider() == caller, Error::<T, I>::NotProvider);
 
-					let old_cost = Self::calculate_midds_colateral(midds);
-					midds.update_field(field_data);
-					let new_cost = Self::calculate_midds_colateral(midds);
+						let old_hash = midds.midds.hash();
+						let old_cost = Self::calculate_midds_colateral(midds);
+						midds.midds.update_field(field_data)?;
+						let new_cost = Self::calculate_midds_colateral(midds);
 
-					if old_cost > new_cost {
-						T::Currency::release(
-							&HoldReason::MiddsRegistration.into(),
-							&caller,
-							old_cost.saturating_sub(new_cost),
-							Precision::BestEffort,
-						)
-						.map_err(|_| Error::<T, I>::CantReleaseFunds)?;
-					} else if old_cost < new_cost {
-						T::Currency::hold(
-							&HoldReason::MiddsRegistration.into(),
-							&caller,
-							new_cost.saturating_sub(old_cost),
-						)
-						.map_err(|_| Error::<T, I>::CantHoldFunds)?;
-					}
+						match old_cost.cmp(&new_cost) {
+							core::cmp::Ordering::Greater => {
+								T::Currency::release(
+									&HoldReason::MiddsRegistration.into(),
+									&caller,
+									old_cost.saturating_sub(new_cost),
+									Precision::BestEffort,
+								)
+								.map_err(|_| Error::<T, I>::CantReleaseFunds)?;
+							},
+							core::cmp::Ordering::Less => {
+								T::Currency::hold(
+									&HoldReason::MiddsRegistration.into(),
+									&caller,
+									new_cost.saturating_sub(old_cost),
+								)
+								.map_err(|_| Error::<T, I>::CantHoldFunds)?;
+							},
+							core::cmp::Ordering::Equal => {},
+						};
 
-					Self::deposit_event(Event::<T, I>::MIDDSUpdated {
-						hash_id: midds.hash(),
-					});
+						let new_hash = midds.midds.hash();
 
-					Ok(())
-				},
-				None => Err(Error::<T, I>::PendingMiddsNotFound),
+						PendingMidds::<T, I>::remove(old_hash);
+						PendingMidds::<T, I>::insert(new_hash, midds);
+
+						Self::deposit_event(Event::<T, I>::MIDDSUpdated { hash_id: new_hash });
+
+						Ok(())
+					},
+					None => Err(Error::<T, I>::PendingMiddsNotFound.into()),
+				}
 			})?;
 
 			Ok(())
+		}
+
+		#[pallet::call_index(2)]
+		pub fn unregister(origin: OriginFor<T>, midds_id: MiddsHashIdOf<T>) -> DispatchResult {
+			let caller = T::ProviderOrigin::ensure_origin(origin)?;
+
+			if let Some(midds) = PendingMidds::<T, I>::get(midds_id) {
+				ensure!(midds.provider() == caller, Error::<T, I>::NotProvider);
+
+				let now = <frame_system::Pallet<T>>::block_number();
+				let spent = now - midds.registered_at();
+				ensure!(
+					spent
+						> sp_runtime::SaturatedConversion::saturated_into(
+							T::UnregisterPeriod::get()
+						),
+					Error::<T, I>::UnregisterLocked
+				);
+
+				let actual_cost = Self::calculate_midds_colateral(&midds);
+				T::Currency::release(
+					&HoldReason::MiddsRegistration.into(),
+					&caller,
+					actual_cost,
+					Precision::BestEffort,
+				)
+				.map_err(|_| Error::<T, I>::CantReleaseFunds)?;
+
+				PendingMidds::<T, I>::remove(midds_id);
+
+				Self::deposit_event(Event::<T, I>::MIDDSUnregistered { hash_id: midds_id });
+
+				Ok(())
+			} else {
+				Err(Error::<T, I>::PendingMiddsNotFound.into())
+			}
 		}
 	}
 }
 
 impl<T: Config<I>, I: 'static> Pallet<T, I> {
-	fn inner_register(provider: &T::AccountId, midds: T::MIDDS) -> DispatchResult {
-		let midds_hash = midds.hash();
+	fn inner_register(
+		midds: MiddsWrapper<T::AccountId, BlockNumberFor<T>, T::MIDDS>,
+	) -> DispatchResult {
+		let midds_hash = midds.midds.hash();
 
 		// Verify that the same MIDDS hash isn't registered already.
 		ensure!(
@@ -246,11 +309,11 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		// data colateral lock
 		let data_lock = Self::calculate_midds_colateral(&midds);
 
-		T::Currency::hold(&HoldReason::MiddsRegistration.into(), provider, data_lock)?;
-		PendingMidds::<T, I>::insert(midds_hash, midds);
+		T::Currency::hold(&HoldReason::MiddsRegistration.into(), &midds.provider(), data_lock)?;
+		PendingMidds::<T, I>::insert(midds_hash, midds.clone());
 
 		Self::deposit_event(Event::<T, I>::MIDDSRegistered {
-			provider: provider.clone(),
+			provider: midds.provider(),
 			hash_id: midds_hash,
 			data_colateral: data_lock,
 		});
@@ -258,8 +321,8 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		Ok(())
 	}
 
-	fn calculate_midds_colateral(midds: &T::MIDDS) -> BalanceOf<T, I> {
-		let bytes = midds.total_bytes();
+	fn calculate_midds_colateral(midds: &MiddsWrapperOf<T, I>) -> BalanceOf<T, I> {
+		let bytes = midds.midds.total_bytes();
 		T::ByteDepositCost::get().saturating_mul(BalanceOf::<T, I>::from(bytes))
 	}
 }

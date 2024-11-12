@@ -24,6 +24,7 @@ use crate::Pallet as MiddsPallet;
 use frame_benchmarking::v2::*;
 use frame_support::{sp_runtime::traits::Bounded, traits::fungible::Mutate};
 use frame_system::RawOrigin;
+use sp_runtime::SaturatedConversion;
 
 fn assert_last_event<T: Config<I>, I: 'static>(generic_event: <T as Config<I>>::RuntimeEvent) {
 	frame_system::Pallet::<T>::assert_last_event(generic_event.into());
@@ -36,7 +37,7 @@ mod benchmarks {
 	#[benchmark]
 	fn register() {
 		let provider = whitelisted_caller();
-		let midds = T::MIDDS::default();
+		let midds = T::MIDDS::create_midds();
 
 		let _ = T::Currency::set_balance(&provider, init_bal::<T, I>());
 
@@ -49,18 +50,50 @@ mod benchmarks {
 	#[benchmark]
 	fn update_field() -> Result<(), BenchmarkError> {
 		let provider = whitelisted_caller();
-		let midds = T::MIDDS::default();
+		let mut midds = T::MIDDS::create_midds();
 
 		let _ = T::Currency::set_balance(&provider, init_bal::<T, I>());
 
-		MiddsPallet::<T, I>::register(RawOrigin::Signed(provider.clone()).into(), Box::new(midds.clone()))?;
+		MiddsPallet::<T, I>::register(
+			RawOrigin::Signed(provider.clone()).into(),
+			Box::new(midds.clone()),
+		)?;
+
+		let original_hash = midds.hash();
+		midds.update_field(<T::MIDDS as Midds>::EditableFields::default())?;
+		let expected_new_hash = midds.hash();
 
 		#[extrinsic_call]
-		_(RawOrigin::Signed(provider), midds.hash(), T::MIDDSEditableFields::default());
+		_(
+			RawOrigin::Signed(provider),
+			original_hash,
+			<T::MIDDS as Midds>::EditableFields::default(),
+		);
 
-		assert_last_event::<T, I>(Event::MIDDSUpdated {
-			hash_id: midds.hash(),
-		}.into());
+		assert_last_event::<T, I>(Event::MIDDSUpdated { hash_id: expected_new_hash }.into());
+		Ok(())
+	}
+
+	#[benchmark]
+	fn unregister() -> Result<(), BenchmarkError> {
+		let provider = whitelisted_caller();
+		let midds = T::MIDDS::create_midds();
+
+		let _ = T::Currency::set_balance(&provider, init_bal::<T, I>());
+
+		MiddsPallet::<T, I>::register(
+			RawOrigin::Signed(provider.clone()).into(),
+			Box::new(midds.clone()),
+		)?;
+
+		frame_system::Pallet::<T>::set_block_number(
+			(T::UnregisterPeriod::get() + 2).saturated_into(),
+		);
+
+		#[extrinsic_call]
+		_(RawOrigin::Signed(provider), midds.hash());
+
+		assert_last_event::<T, I>(Event::MIDDSUnregistered { hash_id: midds.hash() }.into());
 		Ok(())
 	}
 
