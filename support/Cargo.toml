@@ -18,15 +18,17 @@ scale-info = { workspace = true }
 sp-runtime = { workspace = true }
 frame-support = { workspace = true }
 genres-registry = { workspace = true }
+sp-std = { workspace = true }
 
 [features]
 default = ["std"]
-
 std = [
-    "parity-scale-codec/std",
-    "frame-support/std",
-    "scale-info/std",
-    "sp-runtime/std"
+	"parity-scale-codec/std",
+	"frame-support/std",
+	"scale-info/std",
+	"sp-runtime/std",
+	"genres-registry/std",
+	"sp-std/std",
 ]
 runtime-benchmarks = []
 try-runtime = []

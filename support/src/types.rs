@@ -1,7 +1,6 @@
-// This file is part of Allfeat.
-
 // Copyright (C) 2022-2024 Allfeat.
 // SPDX-License-Identifier: GPL-3.0-or-later
+// This file is part of Allfeat.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -20,6 +19,156 @@ use frame_support::traits::ConstU32;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_runtime::{traits::Hash as HashT, BoundedVec, RuntimeDebug};
+
+pub use ipi::IPINameNumber;
+pub use iswc::ISWC;
+
+mod ipi {
+	use super::*;
+	use frame_support::ensure;
+	use sp_runtime::DispatchError;
+
+	#[derive(
+		Encode, Default, Decode, Clone, PartialEq, Eq, RuntimeDebug, MaxEncodedLen, TypeInfo,
+	)]
+	pub struct IPINameNumber(u64);
+
+	impl TryFrom<u64> for IPINameNumber {
+		type Error = DispatchError;
+
+		fn try_from(value: u64) -> Result<Self, DispatchError> {
+			ensure!(value < 100_000_000_000, DispatchError::Other("invalid IPI number length"));
+
+			Ok(Self(value))
+		}
+	}
+}
+
+mod iswc {
+	use super::*;
+	use core::str::FromStr;
+
+	#[derive(
+		Encode, Default, Decode, Clone, PartialEq, Eq, RuntimeDebug, MaxEncodedLen, TypeInfo,
+	)]
+	pub struct ISWC {
+		group1: u16,     // 3 digits
+		group2: u16,     // 3 digits
+		group3: u16,     // 3 digits
+		check_digit: u8, // 1 digit
+	}
+
+	impl ISWC {
+		fn validate_check_digit(&self) -> bool {
+			let mut sum: u32 = 0;
+			let digits = [
+				self.group1 / 100,
+				(self.group1 / 10) % 10,
+				self.group1 % 10,
+				self.group2 / 100,
+				(self.group2 / 10) % 10,
+				self.group2 % 10,
+				self.group3 / 100,
+				(self.group3 / 10) % 10,
+				self.group3 % 10,
+			];
+
+			for (i, &digit) in digits.iter().enumerate() {
+				sum += digit as u32 * (10 - i as u32);
+			}
+
+			let calculated_check_digit = (sum % 10) as u8;
+			calculated_check_digit == self.check_digit
+		}
+
+		fn parse_iswc_string(s: &str) -> Result<(u16, u16, u16, u8), &'static str> {
+			if s.len() != 15 {
+				return Err("Invalid length");
+			}
+
+			// Vérifie que le format est correct
+			if &s[0..2] != "T-" || &s[5..6] != "." || &s[9..10] != "." || &s[13..14] != "-" {
+				return Err("Invalid format");
+			}
+
+			// Extraire et parser chaque groupe et le check digit
+			let group1 = s[2..5].parse::<u16>().map_err(|_| "Invalid group1")?;
+			let group2 = s[6..9].parse::<u16>().map_err(|_| "Invalid group2")?;
+			let group3 = s[10..13].parse::<u16>().map_err(|_| "Invalid group3")?;
+			let check_digit = s[14..15].parse::<u8>().map_err(|_| "Invalid check digit")?;
+
+			Ok((group1, group2, group3, check_digit))
+		}
+	}
+
+	impl FromStr for ISWC {
+		type Err = &'static str;
+
+		fn from_str(s: &str) -> Result<Self, Self::Err> {
+			match ISWC::parse_iswc_string(s) {
+				Ok((group1, group2, group3, check_digit)) => {
+					let iswc = ISWC { group1, group2, group3, check_digit };
+
+					if iswc.validate_check_digit() {
+						Ok(iswc)
+					} else {
+						Err("Invalid check digit")
+					}
+				},
+				Err(e) => Err(e),
+			}
+		}
+	}
+
+	#[cfg(test)]
+	mod tests {
+		use super::*;
+
+		#[test]
+		fn test_valid_iswc() {
+			let iswc_str = "T-123.456.789-0";
+			let iswc = iswc_str.parse::<ISWC>().expect("Should parse successfully");
+			assert_eq!(iswc.group1, 123);
+			assert_eq!(iswc.group2, 456);
+			assert_eq!(iswc.group3, 789);
+			assert_eq!(iswc.check_digit, 0);
+			assert!(iswc.validate_check_digit());
+		}
+
+		#[test]
+		fn test_invalid_check_digit() {
+			let iswc_str = "T-123.456.789-9"; // Intentionally wrong check digit
+			let result = iswc_str.parse::<ISWC>();
+			assert!(result.is_err());
+			assert_eq!(result.unwrap_err(), "Invalid check digit");
+		}
+
+		#[test]
+		fn test_invalid_format() {
+			let iswc_str = "T11233445667890"; // Wrong format, missing hyphens and dots
+			let result = iswc_str.parse::<ISWC>();
+			assert!(result.is_err());
+			assert_eq!(result.unwrap_err(), "Invalid format");
+		}
+
+		#[test]
+		fn test_invalid_length() {
+			let iswc_str = "T-123.456.78-0"; // Wrong length (too short)
+			let result = iswc_str.parse::<ISWC>();
+			assert!(result.is_err());
+			assert_eq!(result.unwrap_err(), "Invalid length");
+		}
+	}
+}
+
+pub type SongTitle = BoundedVec<u8, ConstU32<128>>;
+
+#[derive(Encode, Default, Decode, Clone, PartialEq, Eq, RuntimeDebug, MaxEncodedLen, TypeInfo)]
+pub enum SongType {
+	#[default]
+	Instrumental,
+	Song,
+}
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, MaxEncodedLen, TypeInfo)]
 /// An Asset expected to not be stored on-chain due to the expected size.

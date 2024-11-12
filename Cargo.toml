@@ -1,15 +1,15 @@
 [workspace]
 resolver = "2"
 members = [
-    "node",
-    "runtime/*",
-    "primitives",
-    "precompiles/balances-erc20",
-    "precompiles/artists",
-    "pallets/*",
-    "midds/*",
-    "support",
-    "support/genres-registry"
+	"node",
+	"runtime/*",
+	"primitives",
+	"precompiles/balances-erc20",
+	"pallets/*",
+	"midds/stakeholder",
+	"midds/song",
+	"support",
+	"support/genres-registry",
 ]
 
 [workspace.package]
@@ -30,22 +30,24 @@ version = "1.0.0-dev"
 # Allfeat (wasm)
 allfeat-support = { version = "1.0.0-dev", default-features = false, path = "./support" }
 allfeat-primitives = { version = "1.0.0", default-features = false, path = "./primitives" }
-pallet-artists = { package = "pallet-artists-v2", version = "1.0.0-dev", default-features = false, path = "./pallets/artists" }
+pallet-midds = { version = "1.0.0-dev", default-features = false, path = "./pallets/midds/" }
 genres-registry = { package = "genres-registry", version = "1.0.0-dev", default-features = false, path = "./support/genres-registry" }
-midds-artist = { package = "midds-artist", version = "1.0.0-dev", default-features = false, path = "./midds/artist" }
+midds-artist = { version = "1.0.0-dev", default-features = false, path = "./midds/artist" }
+midds-stakeholder = { version = "1.0.0-dev", default-features = false, path = "./midds/stakeholder" }
+midds-song = { version = "1.0.0-dev", default-features = false, path = "./midds/song" }
 
 # Substrate (wasm)
 parity-scale-codec = { version = "3.6.12", default-features = false, features = [
-    "derive",
+	"derive",
 ] }
 scale-info = { version = "2.11.3", default-features = false, features = [
-    "derive",
+	"derive",
 ] }
 static_assertions = "1.1.0"
 log = { version = "0.4.22", default-features = false }
 hex-literal = "0.4.1"
 smallvec = "1.13.2"
-array-bytes  = "6.2"
+array-bytes = "6.2"
 
 frame-support = { version = "37.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 frame-election-provider-support = { version = "37.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
@@ -93,7 +95,9 @@ pallet-session = { version = "37.0.0", default-features = false, git = "https://
 pallet-session-benchmarking = { version = "37.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 pallet-state-trie-migration = { version = "4.0.0-dev", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 pallet-scheduler = { version = "38.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
-pallet-balances = { version = "38.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407", features = ["insecure_zero_ed"] }
+pallet-balances = { version = "38.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407", features = [
+	"insecure_zero_ed",
+] }
 pallet-grandpa = { version = "37.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 pallet-sudo = { version = "37.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 pallet-timestamp = { version = "36.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
@@ -145,8 +149,8 @@ sc-consensus = { version = "0.43.0", git = "https://github.com/paritytech/polkad
 sc-client-api = { version = "37.0.0", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 sc-service-test = { version = "2.0.0", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 sp-timestamp = { version = "34.0.0", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
-sp-keyring = { version = "39.0.0", git = "https://github.com/paritytech/polkadot-sdk.git", default-features = false , branch = "stable2407" }
-sp-tracing = { version = "16.0.0", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
+sp-keyring = { version = "39.0.0", git = "https://github.com/paritytech/polkadot-sdk.git", default-features = false, branch = "stable2407" }
+sp-tracing = { version = "17.0.0", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 
 sp-consensus-grandpa = { version = "21.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 sc-rpc = { version = "39.0.0", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
@@ -187,10 +191,10 @@ fp-rpc = { version = "3.0.0-dev", git = "https://github.com/paritytech/frontier.
 fp-self-contained = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", default-features = false }
 fp-account = { version = "1.0.0-dev", default-features = false, git = "https://github.com/paritytech/frontier.git", branch = "stable2407" }
 pallet-ethereum = { version = "4.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", default-features = false, features = [
-    "forbid-evm-reentrancy",
+	"forbid-evm-reentrancy",
 ] }
 pallet-evm = { version = "6.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", default-features = false, features = [
-    "forbid-evm-reentrancy",
+	"forbid-evm-reentrancy",
 ] }
 pallet-evm-precompile-modexp = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", default-features = false }
 pallet-evm-precompile-sha3fips = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", default-features = false }
@@ -198,19 +202,23 @@ pallet-evm-precompile-simple = { version = "2.0.0-dev", git = "https://github.co
 pallet-evm-precompile-bn128 = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", default-features = false }
 pallet-evm-precompile-blake2 = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", default-features = false }
 pallet-evm-precompile-balances-erc20 = { path = "./precompiles/balances-erc20", default-features = false }
-pallet-evm-precompile-artists = { path = "./precompiles/artists", default-features = false }
 
 # Frontier (client)
 fc-api = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407" }
 fc-cli = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407" }
 fc-consensus = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407" }
 fc-db = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407" }
-fc-mapping-sync = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", features = ["sql"] }
-fc-rpc = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", features = ["rpc-binary-search-estimate", "txpool"] }
+fc-mapping-sync = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", features = [
+	"sql",
+] }
+fc-rpc = { version = "2.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", features = [
+	"rpc-binary-search-estimate",
+	"txpool",
+] }
 fc-rpc-core = { version = "1.1.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407" }
 fc-storage = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407" }
 fp-dynamic-fee = { version = "1.0.0-dev", git = "https://github.com/paritytech/frontier.git", branch = "stable2407", features = [
-    "default",
+	"default",
 ] }
 
 # make sure dev builds with backtrace do
