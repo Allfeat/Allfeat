@@ -46,14 +46,13 @@ where
 }
 
 #[derive(Encode, Default, MaxEncodedLen, Decode, Clone, PartialEq, Eq, RuntimeDebug, TypeInfo)]
-pub struct Artist<Hash, AccountId, NameLimit, FNameLimit, LNameLimit>
+pub struct Artist<Hash, NameLimit, FNameLimit, LNameLimit>
 where
 	NameLimit: Get<u32> + TypeInfo,
 	FNameLimit: Get<u32> + TypeInfo,
 	LNameLimit: Get<u32> + TypeInfo,
 	Hash: HashT,
 {
-	pub provider: AccountId,
 	pub name: Option<BoundedVec<u8, NameLimit>>,
 	pub first_name: Option<BoundedVec<u8, FNameLimit>>,
 	pub last_name: Option<BoundedVec<u8, LNameLimit>>,
@@ -61,30 +60,19 @@ where
 	pub services_data: ServicesInfo,
 }
 
-impl<H, AI, N, F, L> Midds<H, AI> for Artist<H, AI, N, F, L>
+impl<H, N, F, L> Midds for Artist<H, N, F, L>
 where
-	Artist<H, AI, N, F, L>: Encode + Default,
+	Artist<H, N, F, L>: Encode + Default,
 	N: Get<u32> + TypeInfo + PartialEq + Eq + Clone + Default,
 	F: Get<u32> + TypeInfo + PartialEq + Eq + Clone + Default,
 	L: Get<u32> + TypeInfo + PartialEq + Eq + Clone + Default,
-	AI: Clone,
 	H: HashT + Default,
 {
+	type Hash = H;
 	type EditableFields = ArtistEditableField<H, N, F, L>;
 
-	fn provider(&self) -> AI {
-		self.provider.clone()
-	}
-
-	fn set_provider(&mut self, provider: AI) {
-		self.provider = provider
-	}
-
 	fn is_complete(&self) -> bool {
-		match (&self.name, &self.first_name, &self.last_name) {
-			(Some(_), Some(_), Some(_)) => true,
-			_ => false,
-		}
+		self.name.is_some() && self.first_name.is_some() && self.last_name.is_some()
 	}
 
 	fn hash(&self) -> <H as HashT>::Output {
