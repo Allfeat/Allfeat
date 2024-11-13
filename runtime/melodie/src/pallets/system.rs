@@ -19,6 +19,7 @@
 use crate::*;
 use frame_support::{
 	derive_impl,
+	pallet_prelude::DispatchClass,
 	weights::constants::{
 		BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND,
 	},

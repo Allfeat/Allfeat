@@ -27,8 +27,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 // allfeat
 pub use allfeat_primitives::*;
 
-// substrate
-use frame_support::pallet_prelude::*;
+// substrate use frame_support::pallet_prelude::*;
 use sp_runtime::create_runtime_str;
 use sp_std::prelude::*;
 
