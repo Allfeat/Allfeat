@@ -24,12 +24,14 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+extern crate alloc;
+use alloc::vec::Vec;
+
 // allfeat
 pub use allfeat_primitives::*;
 
 // substrate use frame_support::pallet_prelude::*;
 use sp_runtime::create_runtime_str;
-use sp_std::prelude::*;
 
 #[cfg(any(feature = "std", test))]
 pub use frame_system::Call as SystemCall;

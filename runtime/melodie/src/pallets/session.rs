@@ -17,6 +17,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::*;
+use alloc::vec::Vec;
 use sp_runtime::{impl_opaque_keys, traits::OpaqueKeys};
 
 impl_opaque_keys! {

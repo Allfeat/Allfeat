@@ -63,7 +63,6 @@ sp-inherents = { version = "34.0.0", default-features = false, git = "https://gi
 sp-offchain = { version = "34.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 sp-runtime = { version = "39.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 sp-session = { version = "35.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
-sp-std = { version = "14.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 sp-transaction-pool = { version = "34.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 sp-version = { version = "37.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 sp-authority-discovery = { version = "34.0.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
