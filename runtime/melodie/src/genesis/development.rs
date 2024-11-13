@@ -16,13 +16,30 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{authority_keys_from_seed, genesis};
-use shared_runtime::genesis_utils::development_account;
+use super::genesis;
+use sp_keyring::{AccountKeyring, Ed25519Keyring, Sr25519Keyring};
 use sp_std::vec;
 
 /// Return the development genesis config.
 pub fn development_config_genesis() -> serde_json::Value {
-	let accounts = development_account();
-
-	genesis(vec![authority_keys_from_seed("Alice")], accounts[0], accounts)
+	genesis(
+		vec![(
+			AccountKeyring::Alice.to_account_id(),
+			Ed25519Keyring::Alice.public().into(), // Grandpa
+			Sr25519Keyring::Alice.public().into(), // Babe
+			Sr25519Keyring::Alice.public().into(), // ImOnline
+			Sr25519Keyring::Alice.public().into(), // AuthorityDiscovery
+		)],
+		AccountKeyring::Alice.to_account_id(),
+		vec![
+			AccountKeyring::Alice.to_account_id(),
+			AccountKeyring::Bob.to_account_id(),
+			AccountKeyring::Charlie.to_account_id(),
+			AccountKeyring::Dave.to_account_id(),
+			AccountKeyring::Eve.to_account_id(),
+			AccountKeyring::Ferdie.to_account_id(),
+			AccountKeyring::AliceStash.to_account_id(),
+			AccountKeyring::BobStash.to_account_id(),
+		],
+	)
 }

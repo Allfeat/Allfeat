@@ -18,12 +18,8 @@
 
 //! Service and service factory implementation. Specialized wrapper over substrate service.
 
-pub mod frontier;
-
-use fc_consensus::FrontierBlockImport;
-use fc_rpc::StorageOverride;
 use grandpa::SharedVoterState;
-pub use harmonie_runtime::RuntimeApi as HarmonieRuntimeApi;
+pub use melodie_runtime::apis::RuntimeApi as MelodieRuntimeApi;
 use sc_consensus_babe::{BabeBlockImport, BabeLink, BabeWorkerHandle, SlotProportion};
 use sc_consensus_slots::BackoffAuthoringOnFinalizedHeadLagging;
 use sc_rpc::SubscriptionTaskExecutor;
@@ -32,14 +28,10 @@ use sc_transaction_pool_api::OffchainTransactionPoolFactory;
 
 // std
 use futures::StreamExt;
-use std::{
-	collections::BTreeMap,
-	sync::{Arc, Mutex},
-	time::Duration,
-};
+use std::{sync::Arc, time::Duration};
 // crates.io
 use futures::FutureExt;
-// darwinia
+// allfeat
 use allfeat_primitives::*;
 // polkadot-sdk
 use sc_client_api::{Backend, BlockBackend};
@@ -74,24 +66,11 @@ type Service<RuntimeApi> = sc_service::PartialComponents<
 	sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi>>,
 	(
 		(
-			BabeBlockImport<
-				Block,
-				FullClient<RuntimeApi>,
-				FrontierBlockImport<
-					Block,
-					FullGrandpaBlockImport<RuntimeApi>,
-					FullClient<RuntimeApi>,
-				>,
-			>,
+			BabeBlockImport<Block, FullClient<RuntimeApi>, FullGrandpaBlockImport<RuntimeApi>>,
 			GrandpaLinkHalf<RuntimeApi>,
 			sc_consensus_babe::BabeLink<Block>,
 			BabeWorkerHandle<Block>,
 		),
-		fc_db::Backend<Block, FullClient<RuntimeApi>>,
-		Arc<dyn StorageOverride<Block>>,
-		Option<fc_rpc_core::types::FilterPool>,
-		fc_rpc_core::types::FeeHistoryCache,
-		fc_rpc_core::types::FeeHistoryCacheLimit,
 		Option<sc_telemetry::Telemetry>,
 		Option<sc_telemetry::TelemetryWorkerHandle>,
 	),
@@ -102,9 +81,9 @@ pub trait IdentifyVariant {
 	/// Get spec id.
 	fn id(&self) -> &str;
 
-	/// Returns if this is a configuration for the `Crab` network.
-	fn is_harmonie(&self) -> bool {
-		self.id().starts_with("harmonie")
+	/// Returns if this is a configuration for the `Melodie` network.
+	fn is_melodie(&self) -> bool {
+		self.id().starts_with("melodie")
 	}
 
 	/// Returns true if this configuration is for a development network.
@@ -121,10 +100,7 @@ impl IdentifyVariant for Box<dyn sc_service::ChainSpec> {
 
 /// A set of APIs that allfeat-like runtimes must implement.
 pub trait RuntimeApiCollection:
-	fp_rpc::ConvertTransactionRuntimeApi<Block>
-	+ fp_rpc::EthereumRuntimeRPCApi<Block>
-	// + moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>
-	+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
+	pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
 	+ sp_api::ApiExt<Block>
 	+ sp_api::Metadata<Block>
 	+ sp_block_builder::BlockBuilder<Block>
@@ -138,10 +114,7 @@ pub trait RuntimeApiCollection:
 {
 }
 impl<Api> RuntimeApiCollection for Api where
-	Api: fp_rpc::ConvertTransactionRuntimeApi<Block>
-		+ fp_rpc::EthereumRuntimeRPCApi<Block>
-		// + moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>
-		+ pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
+	Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
 		+ sp_api::ApiExt<Block>
 		+ sp_api::Metadata<Block>
 		+ sp_block_builder::BlockBuilder<Block>
@@ -161,7 +134,6 @@ impl<Api> RuntimeApiCollection for Api where
 /// be able to perform chain operations.
 pub fn new_partial<RuntimeApi>(
 	config: &sc_service::Configuration,
-	eth_rpc_config: &crate::cli::EthRpcConfig,
 ) -> Result<Service<RuntimeApi>, sc_service::Error>
 where
 	RuntimeApi: 'static + Send + Sync + sp_api::ConstructRuntimeApi<Block, FullClient<RuntimeApi>>,
@@ -207,12 +179,9 @@ where
 	)?;
 	let justification_import = grandpa_block_import.clone();
 
-	let frontier_block_import =
-		FrontierBlockImport::new(grandpa_block_import.clone(), client.clone());
-
 	let (block_import, babe_link) = sc_consensus_babe::block_import(
 		sc_consensus_babe::configuration(&*client)?,
-		frontier_block_import.clone(),
+		grandpa_block_import.clone(),
 		client.clone(),
 	)?;
 
@@ -220,7 +189,7 @@ where
 	let (import_queue, babe_worker_handle) =
 		sc_consensus_babe::import_queue(sc_consensus_babe::ImportQueueParams {
 			link: babe_link.clone(),
-			block_import: frontier_block_import,
+			block_import: block_import.clone(),
 			justification_import: Some(Box::new(justification_import)),
 			client: client.clone(),
 			select_chain: select_chain.clone(),
@@ -241,19 +210,6 @@ where
 
 	let import_setup = (block_import, grandpa_link, babe_link, babe_worker_handle);
 
-	// Frontier stuffs.
-	let storage_override =
-		Arc::new(fc_rpc::StorageOverrideHandler::<Block, _, _>::new(client.clone()));
-	let frontier_backend = frontier::backend(
-		client.clone(),
-		config,
-		storage_override.clone(),
-		eth_rpc_config.clone(),
-	)?;
-	let filter_pool = Some(Arc::new(Mutex::new(BTreeMap::new())));
-	let fee_history_cache = Arc::new(Mutex::new(BTreeMap::new()));
-	let fee_history_cache_limit = eth_rpc_config.fee_history_limit;
-
 	Ok(sc_service::PartialComponents {
 		backend: backend.clone(),
 		client,
@@ -262,16 +218,7 @@ where
 		task_manager,
 		transaction_pool,
 		select_chain: sc_consensus::LongestChain::new(backend),
-		other: (
-			import_setup,
-			frontier_backend,
-			storage_override,
-			filter_pool,
-			fee_history_cache,
-			fee_history_cache_limit,
-			telemetry,
-			telemetry_worker_handle,
-		),
+		other: (import_setup, telemetry, telemetry_worker_handle),
 	})
 }
 
@@ -281,11 +228,10 @@ where
 #[allow(clippy::too_many_arguments)]
 #[sc_tracing::logging::prefix_logs_with("Blockchain")]
 async fn start_node_impl<RuntimeApi, SC, NB>(
-	mut config: sc_service::Configuration,
+	config: sc_service::Configuration,
 	start_consensus: SC,
 	no_hardware_benchmarks: bool,
 	storage_monitor: sc_storage_monitor::StorageMonitorParams,
-	eth_rpc_config: &crate::cli::EthRpcConfig,
 ) -> sc_service::error::Result<(sc_service::TaskManager, Arc<FullClient<RuntimeApi>>)>
 where
 	RuntimeApi: 'static + Send + Sync + sp_api::ConstructRuntimeApi<Block, FullClient<RuntimeApi>>,
@@ -298,15 +244,7 @@ where
 		// Babe related
 		(
 			BabeLink<Block>,
-			BabeBlockImport<
-				Block,
-				FullClient<RuntimeApi>,
-				FrontierBlockImport<
-					Block,
-					FullGrandpaBlockImport<RuntimeApi>,
-					FullClient<RuntimeApi>,
-				>,
-			>,
+			BabeBlockImport<Block, FullClient<RuntimeApi>, FullGrandpaBlockImport<RuntimeApi>>,
 			bool,
 			Option<BackoffAuthoringOnFinalizedHeadLagging<NumberFor<Block>>>,
 		),
@@ -329,18 +267,8 @@ where
 		mut task_manager,
 		transaction_pool,
 		select_chain,
-		other:
-			(
-				import_setup,
-				frontier_backend,
-				storage_override,
-				filter_pool,
-				fee_history_cache,
-				fee_history_cache_limit,
-				mut telemetry,
-				_,
-			),
-	} = new_partial::<RuntimeApi>(&config, eth_rpc_config)?;
+		other: (import_setup, mut telemetry, _),
+	} = new_partial::<RuntimeApi>(&config)?;
 	let database_path = config.database.path().map(|p| p.to_path_buf());
 	let hwbench = (!no_hardware_benchmarks)
 		.then_some(database_path.as_ref().map(|p| {
@@ -349,7 +277,6 @@ where
 			sc_sysinfo::gather_hwbench(Some(p))
 		}))
 		.flatten();
-	let frontier_backend = Arc::new(frontier_backend);
 	let validator = config.role.is_authority();
 	let prometheus_registry = config.prometheus_registry().cloned();
 	let mut net_config =
@@ -426,20 +353,6 @@ where
 		);
 	}
 
-	let block_data_cache = Arc::new(fc_rpc::EthBlockDataCacheTask::new(
-		task_manager.spawn_handle(),
-		storage_override.clone(),
-		eth_rpc_config.eth_log_block_cache,
-		eth_rpc_config.eth_statuses_cache,
-		prometheus_registry.clone(),
-	));
-	let pubsub_notification_sinks: fc_mapping_sync::EthereumBlockNotificationSinks<
-		fc_mapping_sync::EthereumBlockNotification<Block>,
-	> = Default::default();
-	let pubsub_notification_sinks = Arc::new(pubsub_notification_sinks);
-	// for ethereum-compatibility rpc.
-	config.rpc_id_provider = Some(Box::new(fc_rpc::EthereumSubIdProvider));
-
 	let rpc_builder = {
 		let (_, grandpa_link, _, babe_worker_handle) = &import_setup;
 
@@ -454,28 +367,9 @@ where
 
 		let client = client.clone();
 		let pool = transaction_pool.clone();
-		let network = network.clone();
 		let select_chain = select_chain.clone();
 		let keystore = keystore_container.keystore();
 		let chain_spec = config.chain_spec.cloned_box();
-		let filter_pool = filter_pool.clone();
-		let pubsub_notification_sinks = pubsub_notification_sinks.clone();
-		let frontier_backend = frontier_backend.clone();
-		let storage_override = storage_override.clone();
-		let fee_history_cache = fee_history_cache.clone();
-		let max_past_logs = eth_rpc_config.max_past_logs;
-		let validator = config.role.is_authority();
-		let sync_service = sync_service.clone();
-		let slot_duration = import_setup.2.clone().config().slot_duration();
-		let pending_create_inherent_data_providers = move |_, ()| async move {
-			let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
-			let slot =
-				sp_consensus_babe::inherents::InherentDataProvider::from_timestamp_and_slot_duration(
-					*timestamp,
-					slot_duration,
-				);
-			Ok((slot, timestamp))
-		};
 
 		Box::new(move |deny_unsafe, subscription_executor: SubscriptionTaskExecutor| {
 			let deps = crate::rpc::FullDeps {
@@ -492,34 +386,12 @@ where
 					subscription_executor: subscription_executor.clone(),
 					finality_provider: finality_proof_provider.clone(),
 				},
-				graph: pool.pool().clone(),
 				deny_unsafe,
 				select_chain: select_chain.clone(),
 				chain_spec: chain_spec.cloned_box(),
-				is_authority: validator,
-				network: network.clone(),
-				sync: sync_service.clone(),
-				filter_pool: filter_pool.clone(),
-				frontier_backend: match &*frontier_backend {
-					fc_db::Backend::KeyValue(bd) => bd.clone(),
-					fc_db::Backend::Sql(bd) => bd.clone(),
-				},
-				max_past_logs,
-				fee_history_cache: fee_history_cache.clone(),
-				fee_history_cache_limit,
-				storage_override: storage_override.clone(),
-				block_data_cache: block_data_cache.clone(),
-				forced_parent_hashes: None,
-				pending_create_inherent_data_providers,
 			};
 
-			crate::rpc::create_full::<_, _, _, _, _, crate::rpc::DefaultEthConfig<_, _>, _>(
-				deps,
-				subscription_executor,
-				pubsub_notification_sinks.clone(),
-				// None,
-			)
-			.map_err(Into::into)
+			crate::rpc::create_full::<_, _, _, _>(deps).map_err(Into::into)
 		})
 	};
 
@@ -538,19 +410,6 @@ where
 		tx_handler_controller,
 		telemetry: telemetry.as_mut(),
 	})?;
-
-	frontier::spawn_tasks(
-		&task_manager,
-		client.clone(),
-		backend,
-		frontier_backend,
-		filter_pool,
-		storage_override,
-		fee_history_cache,
-		fee_history_cache_limit,
-		sync_service.clone(),
-		pubsub_notification_sinks,
-	);
 
 	if let Some(hwbench) = hwbench {
 		sc_sysinfo::print_hwbench(&hwbench);
@@ -658,7 +517,6 @@ pub async fn start_node<RuntimeApi>(
 	config: sc_service::Configuration,
 	no_hardware_benchmarks: bool,
 	storage_monitor: sc_storage_monitor::StorageMonitorParams,
-	eth_rpc_config: &crate::cli::EthRpcConfig,
 ) -> sc_service::error::Result<(sc_service::TaskManager, Arc<FullClient<RuntimeApi>>)>
 where
 	RuntimeApi: sp_api::ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
@@ -666,7 +524,7 @@ where
 	RuntimeApi::RuntimeApi: sp_consensus_babe::BabeApi<Block>,
 {
 	match config.network.network_backend {
-		sc_network::config::NetworkBackendType::Libp2p =>
+		sc_network::config::NetworkBackendType::Libp2p => {
 			start_node_impl::<RuntimeApi, _, NetworkWorker<Block, Hash>>(
 				config,
 				|client,
@@ -767,9 +625,9 @@ where
 				},
 				no_hardware_benchmarks,
 				storage_monitor,
-				eth_rpc_config,
 			)
-			.await,
+			.await
+		},
 		sc_network::config::NetworkBackendType::Litep2p => {
 			todo!()
 		},

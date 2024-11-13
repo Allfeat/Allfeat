@@ -16,16 +16,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::*;
-use frame_support::parameter_types;
-
-parameter_types! {
-	pub const PostBlockAndTxnHashes: pallet_ethereum::PostLogContent = pallet_ethereum::PostLogContent::BlockAndTxnHashes;
-}
-
-impl pallet_ethereum::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type StateRoot = pallet_ethereum::IntermediateStateRoot<Self>;
-	type PostLogContent = PostBlockAndTxnHashes;
-	type ExtraDataLength = ConstU32<64>;
-}
+#[cfg(feature = "runtime-benchmarks")]
+frame_benchmarking::define_benchmarks!(
+	[frame_benchmarking, BaselineBench::<Runtime>]
+	[pallet_babe, Babe]
+	[pallet_balances, Balances]
+	[pallet_grandpa, Grandpa]
+	[pallet_identity, Identity]
+	[pallet_im_online, ImOnline]
+	[pallet_midds, Stakeholders]
+	[pallet_midds, MusicalWorks]
+	[pallet_mmr, Mmr]
+	[pallet_multisig, Multisig]
+	[pallet_preimage, Preimage]
+	[pallet_proxy, Proxy]
+	[pallet_scheduler, Scheduler]
+	[pallet_sudo, Sudo]
+	[frame_system, SystemBench::<Runtime>]
+	[frame_system_extensions, SystemExtensionsBench::<Runtime>]
+	[pallet_timestamp, Timestamp]
+	[pallet_utility, Utility]
+);

@@ -17,7 +17,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::ChainSpec;
-use harmonie_runtime::WASM_BINARY;
+use melodie_runtime::WASM_BINARY;
 use sc_chain_spec::ChainType;
 
 /// Generate a chain spec for use with the development service.
@@ -26,15 +26,14 @@ pub fn development_chain_spec() -> Result<ChainSpec, String> {
 		WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
 		Default::default(),
 	)
-	.with_name("Harmonie Testnet Development")
-	.with_id("harmonie_live")
+	.with_name("Melodie Testnet Development")
+	.with_id("melodie_dev")
 	.with_chain_type(ChainType::Development)
 	.with_protocol_id("aft")
 	.with_properties(
 		serde_json::json!({
-			"isEthereum": true,
 			"tokenDecimals": 18,
-			"tokenSymbol": "HMY",
+			"tokenSymbol": "MEL",
 		})
 		.as_object()
 		.expect("Map given; qed")
@@ -52,14 +51,13 @@ pub fn local_chain_spec() -> Result<ChainSpec, String> {
 		Default::default(),
 	)
 	.with_name("Harmonie Testnet Local")
-	.with_id("harmonie_live")
+	.with_id("harmonie_local")
 	.with_chain_type(ChainType::Local)
 	.with_protocol_id("aft")
 	.with_properties(
 		serde_json::json!({
-			"isEthereum": true,
 			"tokenDecimals": 18,
-			"tokenSymbol": "HMY",
+			"tokenSymbol": "MEL",
 		})
 		.as_object()
 		.expect("Map given; qed")

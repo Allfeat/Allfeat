@@ -22,10 +22,7 @@ use allfeat_primitives::{AccountId, Balance};
 use development::development_config_genesis;
 use local::local_config_genesis;
 pub use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
-use shared_runtime::{
-	currency::AFT,
-	genesis_utils::{get_account_id_from_seed, get_from_seed},
-};
+use shared_runtime::currency::AFT;
 pub use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 pub use sp_consensus_babe::AuthorityId as BabeId;
 pub use sp_consensus_grandpa::AuthorityId as GrandpaId;
@@ -93,19 +90,6 @@ pub fn genesis(
 	};
 
 	serde_json::to_value(config).expect("Could not build genesis config.")
-}
-
-/// Helper function to generate stash, controller and session key from seed
-fn authority_keys_from_seed(
-	seed: &str,
-) -> (AccountId, GrandpaId, BabeId, ImOnlineId, AuthorityDiscoveryId) {
-	(
-		get_account_id_from_seed::<sp_core::ecdsa::Public>(seed),
-		get_from_seed::<GrandpaId>(seed),
-		get_from_seed::<BabeId>(seed),
-		get_from_seed::<ImOnlineId>(seed),
-		get_from_seed::<AuthorityDiscoveryId>(seed),
-	)
 }
 
 /// Provides the JSON representation of predefined genesis config for given `id`.

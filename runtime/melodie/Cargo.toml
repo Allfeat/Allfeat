@@ -1,8 +1,8 @@
 [package]
 authors.workspace = true
-description = "Harmonie runtime."
+description = "Melodie Testnet runtime."
 edition.workspace = true
-name = "harmonie-runtime"
+name = "melodie-runtime"
 readme = "README.md"
 version.workspace = true
 
@@ -68,30 +68,13 @@ pallet-proxy = { workspace = true }
 pallet-session = { workspace = true, features = ["historical"] }
 pallet-session-benchmarking = { workspace = true, optional = true }
 pallet-scheduler = { workspace = true }
-pallet-balances = { workspace = true, features = ["insecure_zero_ed"] }
+pallet-balances = { workspace = true }
 pallet-grandpa = { workspace = true }
 pallet-sudo = { workspace = true }
 pallet-timestamp = { workspace = true }
 pallet-transaction-payment = { workspace = true }
 pallet-utility = { workspace = true }
 pallet-validator-set = { workspace = true }
-
-# Frontier
-fp-evm = { workspace = true, features = ["serde"] }
-fp-rpc = { workspace = true }
-fp-self-contained = { workspace = true, features = ["serde"] }
-# Frontier FRAME
-pallet-ethereum = { workspace = true }
-pallet-evm = { workspace = true }
-pallet-evm-precompile-modexp = { workspace = true }
-pallet-evm-precompile-sha3fips = { workspace = true }
-pallet-evm-precompile-simple = { workspace = true }
-pallet-evm-precompile-bn128 = { workspace = true }
-pallet-evm-precompile-blake2 = { workspace = true }
-precompile-utils = { workspace = true }
-
-# Allfeat precompiles
-pallet-evm-precompile-balances-erc20 = { workspace = true }
 
 # Used for the node template's RPCs
 frame-system-rpc-runtime-api = { workspace = true }
@@ -104,15 +87,13 @@ frame-system-benchmarking = { workspace = true, optional = true }
 # Local Dependencies
 [dev-dependencies]
 sha3 = { workspace = true, features = ["std"] }
-
 shared-runtime = { workspace = true, features = ["std", "test"] }
-precompile-utils = { workspace = true, features = ["std", "testing"] }
 
 [build-dependencies]
 substrate-wasm-builder = { optional = true, workspace = true, default-features = true }
 
 [features]
-default = ["std", "metadata-hash"]
+default = ["std"]
 with-tracing = ["frame-executive/with-tracing"]
 std = [
 	"frame-election-provider-support/std",
@@ -171,23 +152,10 @@ std = [
 	"serde_json/std",
 	"sp-keyring/std",
 	"pallet-midds/std",
+	"substrate-wasm-builder",
 	# MIDDS
 	"midds-stakeholder/std",
 	"midds-song/std",
-	# Frontier
-	"fp-evm/std",
-	"fp-rpc/std",
-	"fp-self-contained/std",
-	# Frontier FRAME
-	"pallet-ethereum/std",
-	"pallet-evm/std",
-	"pallet-evm-precompile-modexp/std",
-	"pallet-evm-precompile-sha3fips/std",
-	"pallet-evm-precompile-simple/std",
-	"pallet-evm-precompile-bn128/std",
-	"pallet-evm-precompile-blake2/std",
-	"precompile-utils/std",
-	"pallet-evm-precompile-balances-erc20/std",
 ]
 runtime-benchmarks = [
 	"frame-election-provider-support/runtime-benchmarks",
@@ -212,8 +180,6 @@ runtime-benchmarks = [
 	"pallet-utility/runtime-benchmarks",
 	"pallet-sudo/runtime-benchmarks",
 	"frame-system-benchmarking/runtime-benchmarks",
-	"pallet-ethereum/runtime-benchmarks",
-	"pallet-evm/runtime-benchmarks",
 	"pallet-validator-set/runtime-benchmarks",
 	"pallet-midds/runtime-benchmarks",
 	"midds-stakeholder/runtime-benchmarks",
@@ -243,10 +209,7 @@ try-runtime = [
 	"pallet-transaction-payment/try-runtime",
 	"pallet-utility/try-runtime",
 	"pallet-identity/try-runtime",
-	"pallet-evm/try-runtime",
-	"pallet-ethereum/try-runtime",
 	"sp-runtime/try-runtime",
-	"fp-self-contained/try-runtime",
 	"pallet-validator-set/try-runtime",
 	"pallet-midds/try-runtime",
 ]
@@ -256,10 +219,6 @@ metadata-hash = ["substrate-wasm-builder/metadata-hash"]
 # Set timing constants (e.g. session period) to faster versions to speed up testing.
 fast-runtime = []
 
-# A feature that should be enabled when the runtime should be build for on-chain
-# deployment. This will disable stuff that shouldn't be part of the on-chain wasm
-# to make it smaller like logging for example.
-on-chain-release-build = [
-	# substrate
-	"sp-api/disable-logging",
-]
+# A convenience feature for enabling things when doing a build
+# for an on-chain release.
+on-chain-release-build = ["metadata-hash", "sp-api/disable-logging"]

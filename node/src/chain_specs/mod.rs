@@ -22,15 +22,13 @@ pub use allfeat_primitives::Block;
 use sc_chain_spec::ChainSpecExtension;
 use serde::{Deserialize, Serialize};
 
-pub mod account_key;
+#[cfg(feature = "melodie-runtime")]
+pub mod melodie;
+#[cfg(feature = "melodie-runtime")]
+pub use melodie::{self as melodie_chain_spec};
 
-#[cfg(feature = "harmonie-runtime")]
-pub mod harmonie;
-#[cfg(feature = "harmonie-runtime")]
-pub use harmonie::{self as harmonie_chain_spec};
-
-#[cfg(not(feature = "harmonie-runtime"))]
-pub type HarmonieChainSpec = DummyChainSpec;
+#[cfg(not(feature = "melodie-runtime"))]
+pub type MelodieChainSpec = DummyChainSpec;
 
 /// Node `ChainSpec` extensions.
 ///

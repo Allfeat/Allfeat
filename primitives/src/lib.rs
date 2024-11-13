@@ -21,19 +21,19 @@
 #![warn(missing_docs)]
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use fp_account::EthereumSignature;
 use sp_runtime::{
 	generic,
 	traits::{BlakeTwo256, IdentifyAccount, Verify},
-	OpaqueExtrinsic,
+	MultiAddress, MultiSignature, OpaqueExtrinsic,
 };
 
 /// An index to a block.
 pub type BlockNumber = u32;
 
 /// Alias to 512-bit hash when used in the context of a transaction signature on the chain.
-pub type Signature = EthereumSignature;
+pub type Signature = MultiSignature;
 
+/// Alias to 512-bit hash when used in the context of a transaction signature on the chain. pub type Signature = MultiSignature;
 /// Some way of identifying an account on the chain. We intentionally make it equivalent
 /// to the public key of our transaction signing scheme.
 pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::AccountId;
@@ -43,7 +43,7 @@ pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::Account
 pub type AccountIndex = u32;
 
 /// The address format for describing accounts.
-pub type Address = AccountId;
+pub type Address = MultiAddress<AccountId, ()>;
 
 /// Balance of an account.
 pub type Balance = u128;
@@ -71,5 +71,7 @@ pub type DigestItem = generic::DigestItem;
 pub type Header = generic::Header<BlockNumber, BlakeTwo256>;
 /// Block type.
 pub type Block = generic::Block<Header, OpaqueExtrinsic>;
+/// A Block signed with a Justification
+pub type SignedBlock = generic::SignedBlock<Block>;
 /// Block ID.
 pub type BlockId = generic::BlockId<Block>;

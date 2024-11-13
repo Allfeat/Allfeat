@@ -2,21 +2,19 @@
 
 BENCHER="frame-omni-bencher"
 
-if ! command -v "$BENCHER" &> /dev/null
-then
-    echo "$BENCHER is not installed ! Please install it by following https://github.com/paritytech/polkadot-sdk/tree/master/substrate/utils/frame/omni-bencher."
-    exit 1
+if ! command -v "$BENCHER" &>/dev/null; then
+  echo "$BENCHER is not installed ! Please install it by following https://github.com/paritytech/polkadot-sdk/tree/master/substrate/utils/frame/omni-bencher."
+  exit 1
 fi
 
 if [ -z "$1" ]; then
-    echo "Runtime: $0 <required_string>"
-    exit 1
+  echo "Runtime: $0 <required_string>"
+  exit 1
 fi
 
 RUNTIME="$1"
 
-if [ "$skip_build" != true ]
-then
+if [ "$skip_build" != true ]; then
   echo "[+] Compiling $RUNTIME runtime with benchmarks feature..."
   cargo build --profile=production --package $RUNTIME-runtime --features runtime-benchmarks
 fi
@@ -50,30 +48,24 @@ rm -f $ERR_FILE
 
 # Benchmark each pallet.
 for PALLET in "${PALLETS[@]}"; do
-    FOLDER="$(echo "${PALLET#*_}" | tr '-' '_')";
-    WEIGHT_FILE="./runtime/shared/src/weights/${FOLDER}.rs"
-    echo "[+] Benchmarking $PALLET with weight file $WEIGHT_FILE";
+  FOLDER="$(echo "${PALLET#*_}" | tr '-' '_')"
+  WEIGHT_FILE="./runtime/shared/src/weights/${FOLDER}.rs"
+  echo "[+] Benchmarking $PALLET with weight file $WEIGHT_FILE"
 
-    EXTRINSIC="*"
-  # pallet-evm have only one function to witdhraw and atm "*" is causing a crash.
-    if [ "$PALLET" = "pallet_evm" ]; then
-      EXTRINSIC="withdraw"
-    fi
-
-    OUTPUT=$(
+  OUTPUT=$(
     $BENCHER v1 benchmark pallet \
-    --runtime $RUNTIME_PATH \
-    --genesis-builder-preset="development" \
-    --pallet="$PALLET" \
-    --extrinsic="$EXTRINSIC" \
-    --output="$WEIGHT_FILE" \
-    --header="./HEADER" \
-    --template=./.maintain/frame-weight-template.hbs 2>&1
-    )
-    if [ $? -ne 0 ]; then
-        echo "$OUTPUT" >> "$ERR_FILE"
-        echo "[-] Failed to benchmark $PALLET. Error written to $ERR_FILE; continuing..."
-    fi
+      --runtime $RUNTIME_PATH \
+      --genesis-builder-preset="development" \
+      --pallet="$PALLET" \
+      --extrinsic="*" \
+      --output="$WEIGHT_FILE" \
+      --header="./HEADER" \
+      --template=./.maintain/frame-weight-template.hbs 2>&1
+  )
+  if [ $? -ne 0 ]; then
+    echo "$OUTPUT" >>"$ERR_FILE"
+    echo "[-] Failed to benchmark $PALLET. Error written to $ERR_FILE; continuing..."
+  fi
 done
 
 # Check if the error file exists.
@@ -84,3 +76,4 @@ else
   echo "[+] All benchmarks passed."
   exit 0
 fi
+

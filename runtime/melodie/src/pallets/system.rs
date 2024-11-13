@@ -19,7 +19,6 @@
 use crate::*;
 use frame_support::{
 	derive_impl,
-	traits::Everything,
 	weights::constants::{
 		BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND,
 	},
@@ -57,29 +56,19 @@ frame_support::parameter_types! {
 		.build_or_panic();
 }
 
-#[derive_impl(frame_system::config_preludes::SolochainDefaultConfig as frame_system::DefaultConfig)]
+#[derive_impl(frame_system::config_preludes::SolochainDefaultConfig)]
 impl frame_system::Config for Runtime {
-	type BaseCallFilter = Everything;
 	type BlockWeights = RuntimeBlockWeights;
 	type BlockLength = RuntimeBlockLength;
-	type RuntimeOrigin = RuntimeOrigin;
-	type RuntimeCall = RuntimeCall;
 	type Nonce = Nonce;
 	type Block = Block;
 	type Hash = Hash;
-	type Hashing = Hashing;
 	type AccountId = AccountId;
-	type Lookup = sp_runtime::traits::IdentityLookup<AccountId>;
-	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = shared_runtime::BlockHashCount;
 	type DbWeight = RocksDbWeight;
 	type Version = Version;
-	type PalletInfo = PalletInfo;
 	type AccountData = pallet_balances::AccountData<Balance>;
-	type OnNewAccount = ();
-	type OnKilledAccount = ();
 	type SystemWeightInfo = weights::system::AllfeatWeight<Runtime>;
 	type SS58Prefix = ConstU16<441>;
-	type OnSetCode = ();
 	type MaxConsumers = ConstU32<16>;
 }

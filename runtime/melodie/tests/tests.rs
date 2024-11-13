@@ -17,6 +17,5 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 pub mod mock;
 
-shared_runtime::impl_evm_tests! {}
 shared_runtime::impl_weight_tests! {}
 shared_runtime::impl_fee_tests! {}

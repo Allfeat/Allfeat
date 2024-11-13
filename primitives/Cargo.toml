@@ -14,12 +14,7 @@ targets = ["x86_64-unknown-linux-gnu"]
 [dependencies]
 sp-core = { workspace = true }
 sp-runtime = { workspace = true }
-fp-account = { workspace = true, features = ["serde"] }
 
 [features]
 default = ["std"]
-std = [
-	"sp-core/std",
-	"sp-runtime/std",
-	"fp-account/std"
-]
+std = ["sp-core/std", "sp-runtime/std"]

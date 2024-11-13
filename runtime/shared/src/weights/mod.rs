@@ -21,7 +21,6 @@ pub mod pallet_midds_musical_works;
 pub mod pallet_midds_stakeholders;
 
 pub mod balances;
-pub mod evm;
 pub mod system;
 // pub mod identity;
 pub mod im_online;
