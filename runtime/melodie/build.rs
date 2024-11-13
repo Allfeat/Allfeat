@@ -16,18 +16,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{authority_keys_from_seed, genesis};
-use shared_runtime::genesis_utils::development_account;
-use sp_std::vec;
-
-/// Return the development genesis config.
-
-pub fn local_config_genesis() -> serde_json::Value {
-	let accounts = development_account();
-
-	genesis(
-		vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
-		accounts[0],
-		accounts,
-	)
+#[cfg(all(feature = "std", not(feature = "metadata-hash")))]
+fn main() {
+	substrate_wasm_builder::WasmBuilder::build_using_defaults()
 }
+
+#[cfg(all(feature = "std", feature = "metadata-hash"))]
+fn main() {
+	substrate_wasm_builder::WasmBuilder::init_with_defaults()
+		.enable_metadata_hash("MEL", 18)
+		.build()
+}
+
+#[cfg(not(feature = "std"))]
+fn main() {}

@@ -39,8 +39,6 @@ mod authority_discovery;
 mod authorship;
 mod babe;
 mod balances;
-mod ethereum;
-mod evm;
 mod grandpa;
 mod identity;
 mod im_online;
@@ -57,7 +55,6 @@ mod validator_set;
 // External required imports
 pub use babe::*;
 pub use balances::*;
-pub use evm::*;
 pub use im_online::*;
 pub use session::*;
 pub use system::*;

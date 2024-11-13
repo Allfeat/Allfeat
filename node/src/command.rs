@@ -21,14 +21,13 @@ use std::{env, path::PathBuf};
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::{
 	chain_specs::ChainSpec,
-	cli::{Cli, FrontierBackendType, Subcommand},
+	cli::{Cli, Subcommand},
 	service::{self, *},
 };
 use sc_cli::{ChainSpec as ChainSpecT, SubstrateCli};
-use sc_service::DatabaseSource;
 use sp_core::crypto::Ss58AddressFormatRegistry;
 
-use crate::chain_specs::harmonie_chain_spec;
+use crate::chain_specs::melodie_chain_spec;
 
 impl SubstrateCli for Cli {
 	fn impl_name() -> String {
@@ -67,17 +66,14 @@ pub fn run() -> sc_cli::Result<()> {
 	/// Creates partial components for the runtimes that are supported by the benchmarks.
 	macro_rules! construct_benchmark_partials {
 		($config:expr, $cli:ident, |$partials:ident| $code:expr) => {{
-			#[cfg(feature = "harmonie-runtime")]
-			if $config.chain_spec.is_harmonie() {
-				let $partials = service::new_partial::<HarmonieRuntimeApi>(
-					&$config,
-					&$cli.eth.build_eth_rpc_config(),
-				)?;
+			#[cfg(feature = "melodie-runtime")]
+			if $config.chain_spec.is_melodie() {
+				let $partials = service::new_partial::<MelodieRuntimeApi>(&$config)?;
 
 				return $code;
 			}
 
-			panic!("No feature(harmonie-runtime) is enabled!");
+			panic!("No feature(melodie-runtime) is enabled!");
 		}};
 	}
 
@@ -88,12 +84,11 @@ pub fn run() -> sc_cli::Result<()> {
 
 			set_default_ss58_version(chain_spec);
 
-			#[cfg(feature = "harmonie-runtime")]
-			if chain_spec.is_harmonie() {
+			#[cfg(feature = "melodie-runtime")]
+			if chain_spec.is_melodie() {
 				return runner.async_run(|$config| {
-					let $components = service::new_partial::<HarmonieRuntimeApi>(
+					let $components = service::new_partial::<MelodieRuntimeApi>(
 						&$config,
-						&$cli.eth.build_eth_rpc_config()
 					)?;
 					let task_manager = $components.task_manager;
 
@@ -101,7 +96,7 @@ pub fn run() -> sc_cli::Result<()> {
 				});
 			}
 
-			panic!("No feature(harmonie-runtime) is enabled!");
+			panic!("No feature(melodie-runtime) is enabled!");
 		}}
 	}
 
@@ -147,50 +142,6 @@ pub fn run() -> sc_cli::Result<()> {
 
 			set_default_ss58_version(chain_spec);
 			runner.sync_run(|config| {
-				// Remove Frontier off-chain db
-				let db_config_dir = frontier::db_config_dir(&config);
-
-				match cli.eth.frontier_backend_type {
-					FrontierBackendType::KeyValue => {
-						let frontier_database_config = match config.database {
-							DatabaseSource::RocksDb { .. } => DatabaseSource::RocksDb {
-								path: fc_db::kv::frontier_database_dir(&db_config_dir, "db"),
-								cache_size: 0,
-							},
-							DatabaseSource::ParityDb { .. } => DatabaseSource::ParityDb {
-								path: fc_db::kv::frontier_database_dir(&db_config_dir, "paritydb"),
-							},
-							_ => {
-								return Err(format!(
-									"Cannot purge `{:?}` database",
-									config.database
-								)
-								.into())
-							}
-						};
-
-						cmd.run(frontier_database_config)?;
-					}
-					FrontierBackendType::Sql => {
-						let db_path = db_config_dir.join("sql");
-
-						match std::fs::remove_dir_all(&db_path) {
-							Ok(_) => {
-								println!("{:?} removed.", &db_path);
-							}
-							Err(ref err) if err.kind() == std::io::ErrorKind::NotFound => {
-								eprintln!("{:?} did not exist.", &db_path);
-							}
-							Err(err) => {
-								return Err(format!(
-									"Cannot purge `{:?}` database: {:?}",
-									db_path, err,
-								)
-								.into())
-							}
-						};
-					}
-				};
 				cmd.run(config.database)
 			})
 		},
@@ -237,27 +188,25 @@ pub fn run() -> sc_cli::Result<()> {
 
 				let no_hardware_benchmarks = cli.no_hardware_benchmarks;
 				let storage_monitor = cli.storage_monitor;
-				let eth_rpc_config = cli.eth.build_eth_rpc_config();
 
 				log::info!(
 					"Is validating: {}",
 					if config.role.is_authority() { "yes" } else { "no" }
 				);
 
-				#[cfg(feature = "harmonie-runtime")]
-				if chain_spec.is_harmonie() {
-					return service::start_node::<HarmonieRuntimeApi>(
+				#[cfg(feature = "melodie-runtime")]
+				if chain_spec.is_melodie() {
+					return service::start_node::<MelodieRuntimeApi>(
 						config,
 						no_hardware_benchmarks,
 						storage_monitor,
-						&eth_rpc_config,
 					)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into);
 				}
 
-				panic!("No feature(harmonie-runtime) is enabled!");
+				panic!("No feature(melodie-runtime) is enabled!");
 			})
 		},
 	}
@@ -266,23 +215,19 @@ pub fn run() -> sc_cli::Result<()> {
 fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpecT>, String> {
 	let id = if id.is_empty() {
 		let n = get_exec_name().unwrap_or_default();
-		["harmonie"]
+		["melodie"]
 			.iter()
 			.cloned()
 			.find(|&chain| n.starts_with(chain))
-			.unwrap_or("harmonie")
+			.unwrap_or("melodie")
 	} else {
 		id
 	};
 	let chain_spec = match id.to_lowercase().as_str() {
-		#[cfg(feature = "harmonie-runtime")]
-		"harmonie" => Box::new(ChainSpec::from_json_bytes(
-			&include_bytes!("../genesis/harmonie-raw.json")[..],
-		)?),
-		#[cfg(feature = "harmonie-runtime")]
-		"harmonie-local" => Box::new(harmonie_chain_spec::local_chain_spec().unwrap()),
-		#[cfg(feature = "harmonie-runtime")]
-		"dev" | "harmonie-dev" => Box::new(harmonie_chain_spec::development_chain_spec().unwrap()),
+		#[cfg(feature = "melodie-runtime")]
+		"melodie-local" => Box::new(melodie_chain_spec::local_chain_spec().unwrap()),
+		#[cfg(feature = "melodie-runtime")]
+		"" | "dev" | "melodie-dev" => Box::new(melodie_chain_spec::development_chain_spec().unwrap()),
 		_ => Box::new(ChainSpec::from_json_file(PathBuf::from(id))?),
 	};
 
@@ -297,7 +242,7 @@ fn get_exec_name() -> Option<String> {
 }
 
 fn set_default_ss58_version(chain_spec: &dyn IdentifyVariant) {
-	let ss58_version = if chain_spec.is_harmonie() {
+	let ss58_version = if chain_spec.is_melodie() {
 		Ss58AddressFormatRegistry::SubstrateAccount
 	} else {
 		Ss58AddressFormatRegistry::AllfeatNetworkAccount
