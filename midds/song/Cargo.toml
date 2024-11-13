@@ -20,7 +20,6 @@ frame-system = { workspace = true }
 parity-scale-codec = { workspace = true }
 scale-info = { workspace = true }
 sp-runtime = { workspace = true }
-sp-std = { workspace = true }
 frame-benchmarking = { workspace = true, optional = true }
 
 allfeat-support = { workspace = true }
@@ -30,7 +29,6 @@ default = ["std"]
 std = [
 	"parity-scale-codec/std",
 	"scale-info/std",
-	"sp-std/std",
 	"sp-runtime/std",
 	"log/std",
 	"frame-support/std",
@@ -50,4 +48,3 @@ try-runtime = [
 	"frame-system/try-runtime",
 	"sp-runtime/try-runtime",
 ]
-

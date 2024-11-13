@@ -18,17 +18,18 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+extern crate alloc;
 use core::marker::PhantomData;
 
 use allfeat_support::{
 	traits::Midds,
 	types::{SongTitle, SongType, ISWC},
 };
+use alloc::{vec, vec::Vec};
 use frame_support::{ensure, pallet_prelude::DispatchResult, traits::ConstU32, Parameter};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_runtime::{BoundedVec, DispatchError, Percent, RuntimeDebug};
-use sp_std::{vec, vec::Vec};
 
 pub type SharesVec<StakeholderHashId> = BoundedVec<Share<StakeholderHashId>, ConstU32<64>>;
 

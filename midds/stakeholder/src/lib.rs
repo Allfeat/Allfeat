@@ -18,7 +18,11 @@
 //
 #![cfg_attr(not(feature = "std"), no_std)]
 
+extern crate alloc;
 use allfeat_support::{traits::Midds, types::IPINameNumber};
+#[cfg(feature = "runtime-benchmarks")]
+use alloc::vec;
+use alloc::vec::Vec;
 use core::marker::PhantomData;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
@@ -26,9 +30,6 @@ use sp_runtime::{
 	traits::{ConstU32, Hash as HashT},
 	BoundedVec, DispatchError, RuntimeDebug,
 };
-#[cfg(feature = "runtime-benchmarks")]
-use sp_std::vec;
-use sp_std::vec::Vec;
 
 pub type NameLike = BoundedVec<u8, ConstU32<256>>;
 

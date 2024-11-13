@@ -24,7 +24,6 @@ use frame_support::{
 use pallet_identity::{Data, IdentityInformationProvider};
 use scale_info::{build::Variants, Path, Type};
 use sp_core::{Decode, Encode, Get, RuntimeDebug};
-use sp_std::prelude::*;
 
 #[cfg(feature = "runtime-benchmarks")]
 use enumflags2::BitFlag;
