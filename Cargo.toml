@@ -162,6 +162,7 @@ sc-consensus-grandpa-rpc = { version = "0.29.0", git = "https://github.com/parit
 substrate-frame-rpc-system = { version = "38.0.0", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 pallet-transaction-payment-rpc = { version = "40.0.0", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 substrate-state-trie-migration-rpc = { version = "4.0.0-dev", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
+
 substrate-build-script-utils = { version = "11.0.0", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 frame-benchmarking-cli = { version = "42.0.0", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 substrate-prometheus-endpoint = { git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
