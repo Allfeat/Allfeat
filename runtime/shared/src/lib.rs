@@ -21,20 +21,19 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use allfeat_primitives::{Balance, BlockNumber};
-use frame::arithmetic::Bounded;
-use frame::arithmetic::FixedPointNumber;
-use frame::arithmetic::Perbill;
-use frame::arithmetic::Perquintill;
-use frame::deps::frame_support::weights::constants::ExtrinsicBaseWeight;
-use frame::deps::frame_system::limits::BlockLength;
-use frame::deps::sp_core::U256;
-use frame::prelude::*;
-use frame::runtime::prelude::*;
-use polkadot_sdk::pallet_transaction_payment::Multiplier;
-use polkadot_sdk::pallet_transaction_payment::TargetedFeeAdjustment;
-use polkadot_sdk::polkadot_sdk_frame as frame;
-use polkadot_sdk::sp_weights::{
-	WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
+use frame::{
+	arithmetic::{Bounded, FixedPointNumber, Perbill, Perquintill},
+	deps::{
+		frame_support::weights::constants::ExtrinsicBaseWeight, frame_system::limits::BlockLength,
+		sp_core::U256,
+	},
+	prelude::*,
+	runtime::prelude::*,
+};
+use polkadot_sdk::{
+	pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment},
+	polkadot_sdk_frame as frame,
+	sp_weights::{WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial},
 };
 
 pub mod elections;

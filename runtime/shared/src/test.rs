@@ -91,8 +91,8 @@ macro_rules! impl_fee_tests {
 			#[test]
 			fn multiplier_can_grow_from_zero() {
 				let minimum_multiplier = MinimumMultiplier::get();
-				let target = TargetBlockFullness::get()
-					* RuntimeBlockWeights::get().get(DispatchClass::Normal).max_total.unwrap();
+				let target = TargetBlockFullness::get() *
+					RuntimeBlockWeights::get().get(DispatchClass::Normal).max_total.unwrap();
 				// if the min is too small, then this will not change, and we are doomed forever.
 				// the weight is 1/100th bigger than target.
 				run_with_system_weight(target.saturating_mul(101) / 100, || {

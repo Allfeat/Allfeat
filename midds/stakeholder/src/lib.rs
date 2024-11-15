@@ -24,8 +24,7 @@ use allfeat_support::{traits::Midds, types::IPINameNumber};
 use alloc::vec;
 use alloc::vec::Vec;
 use core::marker::PhantomData;
-use frame::prelude::*;
-use frame::traits::Hash as HashT;
+use frame::{prelude::*, traits::Hash as HashT};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use polkadot_sdk::polkadot_sdk_frame as frame;
 use scale_info::TypeInfo;
@@ -66,8 +65,8 @@ where
 	type EditableFields = EditableStakeholderField;
 
 	fn is_complete(&self) -> bool {
-		self.ipi.is_some()
-			&& (self.nickname.is_some() || (self.last_name.is_some() || self.first_name.is_some()))
+		self.ipi.is_some() &&
+			(self.nickname.is_some() || (self.last_name.is_some() || self.first_name.is_some()))
 	}
 
 	fn hash(&self) -> <Hash as HashT>::Output {

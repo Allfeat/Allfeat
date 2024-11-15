@@ -19,8 +19,7 @@
 use crate::*;
 use frame_support::parameter_types;
 use frame_system::EnsureRoot;
-use shared_runtime::currency::deposit;
-use shared_runtime::identity::IdentityInfo;
+use shared_runtime::{currency::deposit, identity::IdentityInfo};
 use sp_runtime::traits::Verify;
 
 parameter_types! {
