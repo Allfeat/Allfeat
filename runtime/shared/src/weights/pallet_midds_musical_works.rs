@@ -42,7 +42,8 @@
 #![allow(unused_imports)]
 #![allow(missing_docs)]
 
-use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
+use polkadot_sdk::polkadot_sdk_frame as frame;
+use frame::{traits::Get, deps::frame_support::weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
 /// Weight functions needed for pallet_midds.
@@ -54,7 +55,7 @@ pub trait WeightInfo {
 
 /// Weights for pallet_midds using the Allfeat node and recommended hardware.
 pub struct AllfeatWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> pallet_midds::WeightInfo for AllfeatWeight<T> {
+impl<T: frame::deps::frame_system::Config> pallet_midds::WeightInfo for AllfeatWeight<T> {
 	/// Storage: `MusicalWorks::PendingMidds` (r:1 w:1)
 	/// Proof: `MusicalWorks::PendingMidds` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `Balances::Holds` (r:1 w:1)

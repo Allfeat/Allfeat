@@ -19,17 +19,18 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 extern crate alloc;
-use core::marker::PhantomData;
-
 use allfeat_support::{
 	traits::Midds,
 	types::{SongTitle, SongType, ISWC},
 };
 use alloc::{vec, vec::Vec};
-use frame_support::{ensure, pallet_prelude::DispatchResult, traits::ConstU32, Parameter};
+use core::marker::PhantomData;
+use frame::deps::sp_runtime::Percent;
+use frame::prelude::*;
+use frame::traits::Hash as HashT;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use polkadot_sdk::polkadot_sdk_frame as frame;
 use scale_info::TypeInfo;
-use sp_runtime::{BoundedVec, DispatchError, Percent, RuntimeDebug};
 
 pub type SharesVec<StakeholderHashId> = BoundedVec<Share<StakeholderHashId>, ConstU32<64>>;
 
@@ -87,7 +88,7 @@ impl<Hash, StakeholderHashId> Song<Hash, StakeholderHashId> {
 
 impl<Hash, StakeholderHashId> Midds for Song<Hash, StakeholderHashId>
 where
-	Hash: sp_runtime::traits::Hash,
+	Hash: HashT,
 	StakeholderHashId: Parameter + 'static,
 {
 	type Hash = Hash;
@@ -102,7 +103,7 @@ where
 			&& self.validate_shares().is_ok() // Shares should be valid to be complete
 	}
 
-	fn hash(&self) -> <Self::Hash as sp_runtime::traits::Hash>::Output {
+	fn hash(&self) -> <Self::Hash as HashT>::Output {
 		let mut bytes = Vec::new();
 
 		bytes.extend_from_slice(&self.iswc.encode());
@@ -111,7 +112,7 @@ where
 		bytes.extend_from_slice(&self.title.encode());
 		bytes.extend_from_slice(&self.shares.encode());
 
-		<Self::Hash as sp_runtime::traits::Hash>::hash(&bytes)
+		<Self::Hash as HashT>::hash(&bytes)
 	}
 
 	fn update_field(&mut self, data: Self::EditableFields) -> DispatchResult {

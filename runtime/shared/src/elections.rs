@@ -17,4 +17,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /// The accuracy type used for genesis election provider;
-pub type OnChainAccuracy = sp_runtime::Perbill;
+use super::frame;
+
+pub type OnChainAccuracy = frame::arithmetic::Perbill;

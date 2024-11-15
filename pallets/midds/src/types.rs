@@ -17,10 +17,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use allfeat_support::traits::Midds;
-use frame_support::Parameter;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use polkadot_sdk::{frame_support::Parameter, sp_runtime::traits::Member};
 use scale_info::TypeInfo;
-use sp_runtime::traits::Member;
 
 #[derive(Encode, MaxEncodedLen, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct MiddsWrapper<AccountId, BlockNumber, Inner>

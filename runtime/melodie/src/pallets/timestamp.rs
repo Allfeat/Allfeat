@@ -18,6 +18,7 @@
 
 use crate::*;
 use frame_support::parameter_types;
+use shared_runtime::weights;
 
 parameter_types! {
 	pub const MinimumPeriod: Moment = SLOT_DURATION / 2;

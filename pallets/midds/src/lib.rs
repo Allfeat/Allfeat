@@ -33,25 +33,20 @@ extern crate alloc;
 use crate::types::MiddsWrapper;
 use allfeat_support::traits::Midds;
 use alloc::boxed::Box;
-use frame_support::{
-	dispatch::DispatchResult,
-	ensure,
-	sp_runtime::Saturating,
-	traits::{fungible::MutateHold, Get},
-};
-use frame_system::pallet_prelude::BlockNumberFor;
+use frame::prelude::*;
+use frame::traits::{fungible::MutateHold, Saturating};
+use polkadot_sdk::polkadot_sdk_frame as frame;
+
 pub use pallet::*;
 
-#[frame_support::pallet]
+#[frame::pallet]
 pub mod pallet {
 	use super::*;
 	use allfeat_support::traits::Midds;
-	use frame_support::{
-		pallet_prelude::*,
-		traits::{fungible::Inspect, tokens::Precision},
-		PalletId,
-	};
-	use frame_system::pallet_prelude::{BlockNumberFor, *};
+	use frame::deps::frame_support::PalletId;
+	#[cfg(feature = "runtime-benchmarks")]
+	use frame::traits::fungible::Mutate;
+	use frame::traits::{fungible::Inspect, tokens::Precision};
 
 	pub type BalanceOf<T, I = ()> =
 		<<T as Config<I>>::Currency as Inspect<<T as frame_system::Config>::AccountId>>::Balance;
@@ -64,23 +59,19 @@ pub mod pallet {
 	>;
 
 	/// The in-code storage version.
-	const STORAGE_VERSION: frame_support::traits::StorageVersion =
-		frame_support::traits::StorageVersion::new(1);
+	const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
 
 	/// Default implementations of [`DefaultConfig`], which can be used to implement [`Config`].
 	pub mod config_preludes {
 		use super::*;
-		use frame_support::{
-			derive_impl,
-			traits::{ConstU32, ConstU64},
-		};
+		use polkadot_sdk::{frame_support::derive_impl, sp_core::ConstU64};
 
 		pub struct TestDefaultConfig;
 
 		#[derive_impl(frame_system::config_preludes::TestDefaultConfig, no_aggregated_types)]
-		impl frame_system::DefaultConfig for TestDefaultConfig {}
+		impl polkadot_sdk::frame_system::DefaultConfig for TestDefaultConfig {}
 
-		#[frame_support::register_default_impl(TestDefaultConfig)]
+		#[polkadot_sdk::frame_support::register_default_impl(TestDefaultConfig)]
 		impl DefaultConfig for TestDefaultConfig {
 			#[inject_runtime_type]
 			type RuntimeEvent = ();
@@ -93,7 +84,7 @@ pub mod pallet {
 	}
 
 	#[pallet::config(with_default)]
-	pub trait Config<I: 'static = ()>: frame_system::Config {
+	pub trait Config<I: 'static = ()>: polkadot_sdk::frame_system::Config {
 		/// The MIDDS pallet instance pallet id
 		#[pallet::no_default]
 		#[pallet::constant]
@@ -102,7 +93,7 @@ pub mod pallet {
 		#[pallet::no_default_bounds]
 		/// The overarching event type.
 		type RuntimeEvent: From<Event<Self, I>>
-			+ IsType<<Self as frame_system::Config>::RuntimeEvent>;
+			+ IsType<<Self as polkadot_sdk::frame_system::Config>::RuntimeEvent>;
 
 		#[pallet::no_default]
 		#[cfg(not(feature = "runtime-benchmarks"))]
@@ -113,7 +104,7 @@ pub mod pallet {
 		#[cfg(feature = "runtime-benchmarks")]
 		/// The way to handle the storage deposit cost of Artist creation
 		/// Include Currency trait to have access to NegativeImbalance
-		type Currency: frame_support::traits::fungible::Mutate<Self::AccountId>
+		type Currency: Mutate<Self::AccountId>
 			+ MutateHold<Self::AccountId, Reason = Self::RuntimeHoldReason>;
 
 		#[pallet::no_default_bounds]
@@ -122,7 +113,7 @@ pub mod pallet {
 
 		#[pallet::no_default]
 		/// The MIDDS actor that this pallet instance manage.
-		type MIDDS: Midds<Hash = <Self as frame_system::Config>::Hashing>
+		type MIDDS: Midds<Hash = <Self as polkadot_sdk::frame_system::Config>::Hashing>
 			+ Parameter
 			+ Member
 			+ MaxEncodedLen;
@@ -267,7 +258,7 @@ pub mod pallet {
 				let spent = now - midds.registered_at();
 				ensure!(
 					spent
-						> sp_runtime::SaturatedConversion::saturated_into(
+						> polkadot_sdk::sp_runtime::SaturatedConversion::saturated_into(
 							T::UnregisterPeriod::get()
 						),
 					Error::<T, I>::UnregisterLocked

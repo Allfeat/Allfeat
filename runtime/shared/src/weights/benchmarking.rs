@@ -43,7 +43,8 @@
 #![allow(unused_imports)]
 #![allow(missing_docs)]
 
-use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
+use polkadot_sdk::polkadot_sdk_frame as frame;
+use frame::{traits::Get, deps::frame_support::weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
 /// Weight functions needed for frame_benchmarking.
@@ -58,7 +59,7 @@ pub trait WeightInfo {
 
 /// Weights for frame_benchmarking using the Allfeat node and recommended hardware.
 pub struct AllfeatWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> frame_benchmarking::WeightInfo for AllfeatWeight<T> {
+impl<T: polkadot_sdk::frame_system::Config> frame_benchmarking::WeightInfo for AllfeatWeight<T> {
 	/// The range of component `i` is `[0, 1000000]`.
 	fn addition(_i: u32, ) -> Weight {
 		// Proof Size summary in bytes:

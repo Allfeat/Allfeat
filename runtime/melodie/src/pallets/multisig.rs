@@ -18,6 +18,7 @@
 
 use crate::*;
 use frame_support::parameter_types;
+use shared_runtime::currency::deposit;
 
 parameter_types! {
 	// One storage item; key size is 32; value is size 4+4+16+32 bytes = 56 bytes.

@@ -24,8 +24,8 @@ use crate::{
 	cli::{Cli, Subcommand},
 	service::{self, *},
 };
-use sc_cli::{ChainSpec as ChainSpecT, SubstrateCli};
-use sp_core::crypto::Ss58AddressFormatRegistry;
+use polkadot_sdk::sc_cli::{ChainSpec as ChainSpecT, SubstrateCli};
+use polkadot_sdk::sp_core::crypto::Ss58AddressFormatRegistry;
 
 use crate::chain_specs::melodie_chain_spec;
 
@@ -61,7 +61,7 @@ impl SubstrateCli for Cli {
 
 /// Parse command line arguments into service configuration.
 /// Parse and run command line arguments
-pub fn run() -> sc_cli::Result<()> {
+pub fn run() -> polkadot_sdk::sc_cli::Result<()> {
 	#[cfg(feature = "runtime-benchmarks")]
 	/// Creates partial components for the runtimes that are supported by the benchmarks.
 	macro_rules! construct_benchmark_partials {
@@ -148,7 +148,7 @@ pub fn run() -> sc_cli::Result<()> {
 		#[cfg(feature = "runtime-benchmarks")]
 		Some(Subcommand::Benchmark(cmd)) => {
 			// polkadot-sdk
-			use frame_benchmarking_cli::{BenchmarkCmd, SUBSTRATE_REFERENCE_HARDWARE};
+			use polkadot_sdk::frame_benchmarking_cli::{BenchmarkCmd, SUBSTRATE_REFERENCE_HARDWARE};
 
 			let runner = cli.create_runner(cmd)?;
 
@@ -249,5 +249,5 @@ fn set_default_ss58_version(chain_spec: &dyn IdentifyVariant) {
 	}
 	.into();
 
-	sp_core::crypto::set_default_ss58_version(ss58_version);
+	polkadot_sdk::sp_core::crypto::set_default_ss58_version(ss58_version);
 }

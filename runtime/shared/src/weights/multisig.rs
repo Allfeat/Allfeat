@@ -43,7 +43,8 @@
 #![allow(unused_imports)]
 #![allow(missing_docs)]
 
-use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
+use polkadot_sdk::polkadot_sdk_frame as frame;
+use frame::{traits::Get, deps::frame_support::weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
 /// Weight functions needed for pallet_multisig.
@@ -59,7 +60,7 @@ pub trait WeightInfo {
 
 /// Weights for pallet_multisig using the Allfeat node and recommended hardware.
 pub struct AllfeatWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> pallet_multisig::WeightInfo for AllfeatWeight<T> {
+impl<T: polkadot_sdk::frame_system::Config> polkadot_sdk::pallet_multisig::WeightInfo for AllfeatWeight<T> {
 	/// The range of component `z` is `[0, 10000]`.
 	fn as_multi_threshold_1(z: u32, ) -> Weight {
 		// Proof Size summary in bytes:

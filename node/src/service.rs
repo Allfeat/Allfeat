@@ -18,13 +18,7 @@
 
 //! Service and service factory implementation. Specialized wrapper over substrate service.
 
-use grandpa::SharedVoterState;
 pub use melodie_runtime::apis::RuntimeApi as MelodieRuntimeApi;
-use sc_consensus_babe::{BabeBlockImport, BabeLink, BabeWorkerHandle, SlotProportion};
-use sc_consensus_slots::BackoffAuthoringOnFinalizedHeadLagging;
-use sc_rpc::SubscriptionTaskExecutor;
-use sc_service::WarpSyncParams;
-use sc_transaction_pool_api::OffchainTransactionPoolFactory;
 
 // std
 use futures::StreamExt;
@@ -34,9 +28,18 @@ use futures::FutureExt;
 // allfeat
 use allfeat_primitives::*;
 // polkadot-sdk
-use sc_client_api::{Backend, BlockBackend};
-use sc_network::{event::Event, Multiaddr, NetworkEventStream, NetworkWorker};
-use sp_runtime::traits::NumberFor;
+use polkadot_sdk::{
+	frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE,
+	polkadot_service::NumberFor,
+	sc_client_api::{backend::Backend, BlockBackend},
+	sc_consensus_babe::{BabeBlockImport, BabeLink, BabeWorkerHandle},
+	sc_consensus_slots::{BackoffAuthoringOnFinalizedHeadLagging, SlotProportion},
+	sc_network::{Event, Multiaddr, NetworkWorker},
+	sc_rpc_spec_v2::SubscriptionTaskExecutor,
+	sc_service::WarpSyncConfig,
+	sc_transaction_pool_api::OffchainTransactionPoolFactory,
+	*,
+};
 
 /// The minimum period of blocks on which justifications will be
 /// imported and generated.
@@ -55,8 +58,8 @@ type FullClient<RuntimeApi> =
 	sc_service::TFullClient<Block, RuntimeApi, sc_executor::WasmExecutor<HostFunctions>>;
 type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
 type FullGrandpaBlockImport<RA> =
-	grandpa::GrandpaBlockImport<FullBackend, Block, FullClient<RA>, FullSelectChain>;
-type GrandpaLinkHalf<RA> = grandpa::LinkHalf<Block, FullClient<RA>, FullSelectChain>;
+	sc_consensus_grandpa::GrandpaBlockImport<FullBackend, Block, FullClient<RA>, FullSelectChain>;
+type GrandpaLinkHalf<RA> = sc_consensus_grandpa::LinkHalf<Block, FullClient<RA>, FullSelectChain>;
 
 type Service<RuntimeApi> = sc_service::PartialComponents<
 	FullClient<RuntimeApi>,
@@ -149,7 +152,7 @@ where
 			Ok((worker, telemetry))
 		})
 		.transpose()?;
-	let executor = sc_service::new_wasm_executor::<HostFunctions>(config);
+	let executor = sc_service::new_wasm_executor(&config.executor);
 	let (client, backend, keystore_container, task_manager) =
 		sc_service::new_full_parts::<Block, RuntimeApi, _>(
 			config,
@@ -170,7 +173,7 @@ where
 		client.clone(),
 	);
 	let select_chain = sc_consensus::LongestChain::new(backend.clone());
-	let (grandpa_block_import, grandpa_link) = grandpa::block_import(
+	let (grandpa_block_import, grandpa_link) = sc_consensus_grandpa::block_import(
 		client.clone(),
 		GRANDPA_JUSTIFICATION_PERIOD,
 		&client,
@@ -226,7 +229,6 @@ where
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
 #[allow(clippy::too_many_arguments)]
-#[sc_tracing::logging::prefix_logs_with("Blockchain")]
 async fn start_node_impl<RuntimeApi, SC, NB>(
 	config: sc_service::Configuration,
 	start_consensus: SC,
@@ -274,25 +276,27 @@ where
 		.then_some(database_path.as_ref().map(|p| {
 			let _ = std::fs::create_dir_all(p);
 
-			sc_sysinfo::gather_hwbench(Some(p))
+			sc_sysinfo::gather_hwbench(Some(p), &SUBSTRATE_REFERENCE_HARDWARE)
 		}))
 		.flatten();
 	let validator = config.role.is_authority();
 	let prometheus_registry = config.prometheus_registry().cloned();
-	let mut net_config =
-		sc_network::config::FullNetworkConfiguration::<Block, Hash, NB>::new(&config.network);
+	let mut net_config = sc_network::config::FullNetworkConfiguration::<Block, Hash, NB>::new(
+		&config.network,
+		config.prometheus_config.as_ref().map(|cfg| cfg.registry.clone()),
+	);
 
 	let metrics = NB::register_notification_metrics(
 		config.prometheus_config.as_ref().map(|cfg| &cfg.registry),
 	);
-	let warp_sync = Arc::new(grandpa::warp_proof::NetworkProvider::new(
+	let warp_sync = Arc::new(sc_consensus_grandpa::warp_proof::NetworkProvider::new(
 		backend.clone(),
 		import_setup.1.shared_authority_set().clone(),
 		Vec::default(),
 	));
 
 	let peer_store_handle = net_config.peer_store_handle();
-	let grandpa_protocol_name = grandpa::protocol_standard_name(
+	let grandpa_protocol_name = sc_consensus_grandpa::protocol_standard_name(
 		&client
 			.block_hash(0u32.into())
 			.ok()
@@ -301,7 +305,7 @@ where
 		&config.chain_spec,
 	);
 	let (grandpa_protocol_config, grandpa_notification_service) =
-		grandpa::grandpa_peers_set_config::<_, NB>(
+		sc_consensus_grandpa::grandpa_peers_set_config::<_, NB>(
 			grandpa_protocol_name.clone(),
 			metrics.clone(),
 			Arc::clone(&peer_store_handle),
@@ -325,7 +329,7 @@ where
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue,
 			block_announce_validator_builder: None,
-			warp_sync_params: Some(WarpSyncParams::WithProvider(warp_sync)),
+			warp_sync_config: Some(WarpSyncConfig::WithProvider(warp_sync)),
 			block_relay: None,
 			metrics,
 		})?;
@@ -359,8 +363,8 @@ where
 		let babe_worker_handle = babe_worker_handle.clone();
 		let justification_stream = grandpa_link.justification_stream();
 		let shared_authority_set = grandpa_link.shared_authority_set().clone();
-		let shared_voter_state = grandpa::SharedVoterState::empty();
-		let finality_proof_provider = grandpa::FinalityProofProvider::new_for_service(
+		let shared_voter_state = sc_consensus_grandpa::SharedVoterState::empty();
+		let finality_proof_provider = sc_consensus_grandpa::FinalityProofProvider::new_for_service(
 			backend.clone(),
 			Some(shared_authority_set.clone()),
 		);
@@ -371,7 +375,7 @@ where
 		let keystore = keystore_container.keystore();
 		let chain_spec = config.chain_spec.cloned_box();
 
-		Box::new(move |deny_unsafe, subscription_executor: SubscriptionTaskExecutor| {
+		Box::new(move |subscription_executor: SubscriptionTaskExecutor| {
 			let deps = crate::rpc::FullDeps {
 				client: client.clone(),
 				pool: pool.clone(),
@@ -386,7 +390,6 @@ where
 					subscription_executor: subscription_executor.clone(),
 					finality_provider: finality_proof_provider.clone(),
 				},
-				deny_unsafe,
 				select_chain: select_chain.clone(),
 				chain_spec: chain_spec.cloned_box(),
 			};
@@ -413,16 +416,14 @@ where
 
 	if let Some(hwbench) = hwbench {
 		sc_sysinfo::print_hwbench(&hwbench);
-
-		// Here you can check whether the hardware meets your chains' requirements. Putting a link
-		// in there and swapping out the requirements for your own are probably a good idea. The
-		// requirements for a para-chain are dictated by its relay-chain.
-		if let Err(e) =
-			frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE.check_hardware(&hwbench)
-		{
-			log::warn!(
-				"⚠️  The hardware does not meet the minimal requirements {e} for role 'Validator'.",
-			);
+		match SUBSTRATE_REFERENCE_HARDWARE.check_hardware(&hwbench, false) {
+			Err(err) if role.is_authority() => {
+				log::warn!(
+					"⚠️  The hardware does not meet the minimal requirements {} for role 'Authority'.",
+					err
+				);
+			},
+			_ => {},
 		}
 
 		if let Some(ref mut telemetry) = telemetry {
@@ -434,6 +435,7 @@ where
 			);
 		}
 	}
+
 	if let Some(database_path) = database_path {
 		sc_storage_monitor::StorageMonitorService::try_spawn(
 			storage_monitor,
@@ -467,7 +469,7 @@ where
 		// need a keystore, regardless of which protocol we use below.
 		let keystore = if role.is_authority() { Some(keystore_container.keystore()) } else { None };
 
-		let grandpa_config = grandpa::Config {
+		let grandpa_config = sc_consensus_grandpa::Config {
 			// FIXME #1578 make this available through chainspec
 			gossip_duration: Duration::from_millis(333),
 			justification_generation_period: GRANDPA_JUSTIFICATION_PERIOD,
@@ -485,15 +487,15 @@ where
 		// and vote data availability than the observer. The observer has not
 		// been tested extensively yet and having most nodes in a network run it
 		// could lead to finality stalls.
-		let grandpa_config = grandpa::GrandpaParams {
+		let grandpa_config = sc_consensus_grandpa::GrandpaParams {
 			config: grandpa_config,
 			link: grandpa_link,
 			network: network.clone(),
 			sync: Arc::new(sync_service),
 			notification_service: grandpa_notification_service,
-			voting_rule: grandpa::VotingRulesBuilder::default().build(),
+			voting_rule: sc_consensus_grandpa::VotingRulesBuilder::default().build(),
 			prometheus_registry,
-			shared_voter_state: SharedVoterState::empty(),
+			shared_voter_state: sc_consensus_grandpa::SharedVoterState::empty(),
 			telemetry: telemetry.as_ref().map(|x| x.handle()),
 			offchain_tx_pool_factory: OffchainTransactionPoolFactory::new(transaction_pool.clone()),
 		};
@@ -503,7 +505,7 @@ where
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"grandpa-voter",
 			None,
-			grandpa::run_grandpa_voter(grandpa_config)?,
+			sc_consensus_grandpa::run_grandpa_voter(grandpa_config)?,
 		);
 	}
 

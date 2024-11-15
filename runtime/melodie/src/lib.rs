@@ -30,13 +30,17 @@ use alloc::vec::Vec;
 // allfeat
 pub use allfeat_primitives::*;
 
-// substrate use frame_support::pallet_prelude::*;
-use sp_runtime::create_runtime_str;
+use polkadot_sdk::{
+	polkadot_sdk_frame::{
+		self as frame, deps::sp_runtime::generic, prelude::*, runtime::prelude::*,
+	},
+	*,
+};
 
 #[cfg(any(feature = "std", test))]
-pub use frame_system::Call as SystemCall;
+pub use frame::deps::frame_system::Call as SystemCall;
 #[cfg(any(feature = "std", test))]
-pub use pallet_balances::Call as BalancesCall;
+pub use polkadot_sdk::pallet_balances::Call as BalancesCall;
 
 /// Constant values used within the runtime.
 pub mod constants;
@@ -52,8 +56,8 @@ mod midds;
 mod benchmarks;
 
 /// Runtime version.
-#[sp_version::runtime_version]
-pub const VERSION: sp_version::RuntimeVersion = sp_version::RuntimeVersion {
+#[runtime_version]
+pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("allfeat-testnet"),
 	impl_name: create_runtime_str!("allfeatlabs-melodie"),
 	authoring_version: 1,
@@ -70,14 +74,14 @@ pub const VERSION: sp_version::RuntimeVersion = sp_version::RuntimeVersion {
 
 /// The version information used to identify this runtime when compiled natively.
 #[cfg(feature = "std")]
-pub fn native_version() -> sp_version::NativeVersion {
-	sp_version::NativeVersion { runtime_version: VERSION, can_author_with: Default::default() }
+pub fn native_version() -> NativeVersion {
+	NativeVersion { runtime_version: VERSION, can_author_with: Default::default() }
 }
 
 /// Block header type as expected by this runtime.
-pub type Header = sp_runtime::generic::Header<BlockNumber, Hashing>;
+pub type Header = allfeat_primitives::Header;
 /// Block type as expected by this runtime.
-pub type Block = sp_runtime::generic::Block<Header, UncheckedExtrinsic>;
+pub type Block = generic::Block<Header, UncheckedExtrinsic>;
 
 //// The `TransactionExtension` to the basic transaction logic.
 pub type SignedExtra = (
@@ -94,13 +98,13 @@ pub type SignedExtra = (
 
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic =
-	sp_runtime::generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
+	generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
 
 /// The payload being signed in transactions.
-pub type SignedPayload = sp_runtime::generic::SignedPayload<RuntimeCall, SignedExtra>;
+pub type SignedPayload = generic::SignedPayload<RuntimeCall, SignedExtra>;
 
 /// Executive: handles dispatch to the various modules.
-pub type Executive = frame_executive::Executive<
+pub type RuntimeExecutive = Executive<
 	Runtime,
 	Block,
 	frame_system::ChainContext<Runtime>,
@@ -115,7 +119,7 @@ pub type Executive = frame_executive::Executive<
 #[allow(unused_parens)]
 type Migrations = ();
 
-#[frame_support::runtime]
+#[frame_construct_runtime]
 mod runtime {
 	#[runtime::runtime]
 	#[runtime::derive(

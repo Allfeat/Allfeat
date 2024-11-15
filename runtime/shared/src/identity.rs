@@ -16,14 +16,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::*;
 use enumflags2::{bitflags, BitFlags};
-use frame_support::{
-	pallet_prelude::{MaxEncodedLen, TypeInfo},
-	BoundedVec, CloneNoBound, EqNoBound, PartialEqNoBound, RuntimeDebugNoBound,
-};
-use pallet_identity::{Data, IdentityInformationProvider};
+use polkadot_sdk::pallet_identity::{Data, IdentityInformationProvider};
 use scale_info::{build::Variants, Path, Type};
-use sp_core::{Decode, Encode, Get, RuntimeDebug};
 
 #[cfg(feature = "runtime-benchmarks")]
 use enumflags2::BitFlag;

@@ -16,28 +16,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::marker::PhantomData;
-
 use crate::*;
+use frame::traits::fungible::{Balanced, Credit};
 use frame_support::{
 	parameter_types,
-	traits::{
-		fungible::{Balanced, Credit},
-		Imbalance, OnUnbalanced,
-	},
+	traits::{Imbalance, OnUnbalanced},
 	weights::ConstantMultiplier,
 };
+use shared_runtime::{currency::MICROAFT, SlowAdjustingFeeUpdate, WeightToFee};
 
-pub struct DealWithFees<R>(PhantomData<R>);
-impl<R> OnUnbalanced<Credit<R::AccountId, pallet_balances::Pallet<R>>> for DealWithFees<R>
-where
-	R: pallet_authorship::Config + pallet_balances::Config,
-	<R as frame_system::Config>::AccountId: From<allfeat_primitives::AccountId>,
-	<R as frame_system::Config>::AccountId: Into<allfeat_primitives::AccountId>,
-{
-	fn on_unbalanceds<B>(
-		mut fees_then_tips: impl Iterator<Item = Credit<R::AccountId, pallet_balances::Pallet<R>>>,
-	) {
+pub struct DealWithFees;
+impl OnUnbalanced<Credit<AccountId, Balances>> for DealWithFees {
+	fn on_unbalanceds(mut fees_then_tips: impl Iterator<Item = Credit<AccountId, Balances>>) {
 		if let Some(mut amount) = fees_then_tips.next() {
 			// for fees, 100% to author
 			if let Some(tips) = fees_then_tips.next() {
@@ -45,20 +35,14 @@ where
 				tips.merge_into(&mut amount);
 			}
 
-			if let Some(author) = <pallet_authorship::Pallet<R>>::author() {
-				let _ = <pallet_balances::Pallet<R>>::resolve(&author, amount);
+			if let Some(author) = Authorship::author() {
+				match Balances::resolve(&author, amount) {
+					Ok(_) => (),
+					Err(_amount) => {
+						todo!()
+					},
+				}
 			}
-		}
-	}
-
-	// this is called from pallet_evm for Ethereum-based transactions
-	// (technically, it calls on_unbalanced, which calls this when non-zero)
-	fn on_nonzero_unbalanced(
-		amount: Credit<<R as frame_system::Config>::AccountId, pallet_balances::Pallet<R>>,
-	) {
-		// 100% to author
-		if let Some(author) = <pallet_authorship::Pallet<R>>::author() {
-			let _ = <pallet_balances::Pallet<R>>::resolve(&author, amount);
 		}
 	}
 }
@@ -70,8 +54,7 @@ parameter_types! {
 
 impl pallet_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type OnChargeTransaction =
-		pallet_transaction_payment::FungibleAdapter<Balances, DealWithFees<Runtime>>;
+	type OnChargeTransaction = pallet_transaction_payment::FungibleAdapter<Balances, DealWithFees>;
 	type OperationalFeeMultiplier = OperationalFeeMultiplier;
 	type WeightToFee = WeightToFee;
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;

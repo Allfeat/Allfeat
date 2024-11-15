@@ -25,6 +25,7 @@ use frame_support::{
 	},
 };
 use frame_system::limits::BlockWeights;
+use shared_runtime::{weights, RuntimeBlockLength};
 
 /// We allow for 4 seconds of compute with a 12 second average block time, with maximum proof size
 pub const WEIGHT_MILLISECS_PER_BLOCK: u64 = 4000;

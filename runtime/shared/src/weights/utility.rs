@@ -43,7 +43,8 @@
 #![allow(unused_imports)]
 #![allow(missing_docs)]
 
-use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
+use polkadot_sdk::polkadot_sdk_frame as frame;
+use frame::{traits::Get, deps::frame_support::weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
 /// Weight functions needed for pallet_utility.
@@ -57,7 +58,7 @@ pub trait WeightInfo {
 
 /// Weights for pallet_utility using the Allfeat node and recommended hardware.
 pub struct AllfeatWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> pallet_utility::WeightInfo for AllfeatWeight<T> {
+impl<T: polkadot_sdk::frame_system::Config> polkadot_sdk::pallet_utility::WeightInfo for AllfeatWeight<T> {
 	/// The range of component `c` is `[0, 1000]`.
 	fn batch(c: u32, ) -> Weight {
 		// Proof Size summary in bytes:

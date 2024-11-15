@@ -16,9 +16,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use frame_support::{pallet_prelude::DispatchResult, Parameter};
 use parity_scale_codec::Encode;
-use sp_runtime::traits::Hash as HashT;
+use polkadot_sdk::frame_support::{pallet_prelude::DispatchResult, Parameter};
+use polkadot_sdk::sp_runtime::traits::Hash as HashT;
 
 /// Base definition of a MIDDS (Music Industry Decentralized Data Structure)
 pub trait Midds

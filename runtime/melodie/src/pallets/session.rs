@@ -18,6 +18,7 @@
 
 use crate::*;
 use alloc::vec::Vec;
+use shared_runtime::weights;
 use sp_runtime::{impl_opaque_keys, traits::OpaqueKeys};
 
 impl_opaque_keys! {

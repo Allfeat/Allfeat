@@ -19,6 +19,7 @@
 use crate::*;
 use frame_support::{parameter_types, PalletId};
 use frame_system::EnsureSigned;
+use shared_runtime::currency::MILLIAFT;
 
 use super::Stakeholders;
 

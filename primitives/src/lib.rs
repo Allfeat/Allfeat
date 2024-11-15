@@ -18,10 +18,10 @@
 
 //! Low-level types used throughout the Substrate code.
 
-#![warn(missing_docs)]
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use sp_runtime::{
+use polkadot_sdk::sp_core::H256;
+use polkadot_sdk::sp_runtime::{
 	generic,
 	traits::{BlakeTwo256, IdentifyAccount, Verify},
 	MultiAddress, MultiSignature, OpaqueExtrinsic,
@@ -55,7 +55,7 @@ pub type Moment = u64;
 pub type Nonce = u32;
 
 /// A hash of some data used by the chain.
-pub type Hash = sp_core::H256;
+pub type Hash = H256;
 
 /// The hashing algorithm used by the chain.
 pub type Hashing = BlakeTwo256;

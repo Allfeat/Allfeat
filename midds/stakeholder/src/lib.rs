@@ -24,12 +24,11 @@ use allfeat_support::{traits::Midds, types::IPINameNumber};
 use alloc::vec;
 use alloc::vec::Vec;
 use core::marker::PhantomData;
+use frame::prelude::*;
+use frame::traits::Hash as HashT;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use polkadot_sdk::polkadot_sdk_frame as frame;
 use scale_info::TypeInfo;
-use sp_runtime::{
-	traits::{ConstU32, Hash as HashT},
-	BoundedVec, DispatchError, RuntimeDebug,
-};
 
 pub type NameLike = BoundedVec<u8, ConstU32<256>>;
 
@@ -71,7 +70,7 @@ where
 			&& (self.nickname.is_some() || (self.last_name.is_some() || self.first_name.is_some()))
 	}
 
-	fn hash(&self) -> <Hash as sp_runtime::traits::Hash>::Output {
+	fn hash(&self) -> <Hash as HashT>::Output {
 		let mut bytes = Vec::new();
 
 		bytes.extend_from_slice(&self.ipi.encode());

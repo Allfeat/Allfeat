@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use sc_cli::RunCmd;
+use polkadot_sdk::{sc_cli::RunCmd, sc_storage_monitor::StorageMonitorParams, *};
 
 #[derive(Debug, clap::Parser)]
 pub struct Cli {
@@ -37,7 +37,7 @@ pub struct Cli {
 	pub no_hardware_benchmarks: bool,
 
 	#[clap(flatten)]
-	pub storage_monitor: sc_storage_monitor::StorageMonitorParams,
+	pub storage_monitor: StorageMonitorParams,
 }
 
 #[derive(Debug, clap::Subcommand)]
