@@ -92,11 +92,11 @@ where
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
 	use sc_consensus_babe_rpc::{Babe, BabeApiServer};
 	use sc_consensus_grandpa_rpc::{Grandpa, GrandpaApiServer};
-	use sc_rpc_spec_v2::chain_spec::{ChainSpec, ChainSpecApiServer};
 	use sc_sync_state_rpc::{SyncState, SyncStateApiServer};
 	use substrate_frame_rpc_system::{System, SystemApiServer};
 
 	let mut module = RpcExtension::new(());
+
 	let FullDeps { client, pool, babe, grandpa, select_chain, chain_spec } = deps;
 	let BabeDeps { keystore, babe_worker_handle } = babe;
 	let GrandpaDeps {
@@ -107,14 +107,6 @@ where
 		finality_provider,
 	} = grandpa;
 
-	let chain_name = chain_spec.name().to_string();
-	let genesis_hash = client
-		.block_hash(0u32.into())
-		.ok()
-		.flatten()
-		.expect("Genesis block exists; qed");
-	let properties = chain_spec.properties();
-	module.merge(ChainSpec::new(chain_name, genesis_hash, properties).into_rpc())?;
 	module.merge(System::new(client.clone(), pool.clone()).into_rpc())?;
 	module.merge(TransactionPayment::new(client.clone()).into_rpc())?;
 	module.merge(

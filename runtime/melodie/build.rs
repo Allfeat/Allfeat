@@ -16,17 +16,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(all(feature = "std", not(feature = "metadata-hash")))]
+#[cfg(feature = "std")]
 fn main() {
 	polkadot_sdk::substrate_wasm_builder::WasmBuilder::build_using_defaults()
 }
 
-#[cfg(all(feature = "std", feature = "metadata-hash"))]
+/* Waiting Umbrella implementation of metadata-hash feature
+/// #[cfg(all(feature = "std", feature = "metadata-hash"))]
 fn main() {
 	polkadot_sdk::substrate_wasm_builder::WasmBuilder::init_with_defaults()
 		.enable_metadata_hash("MEL", 18)
 		.build()
 }
+*/
 
 #[cfg(not(feature = "std"))]
 fn main() {}

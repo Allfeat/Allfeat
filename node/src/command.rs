@@ -24,8 +24,11 @@ use crate::{
 	cli::{Cli, Subcommand},
 	service::{self, *},
 };
-use polkadot_sdk::sc_cli::{ChainSpec as ChainSpecT, SubstrateCli};
 use polkadot_sdk::sp_core::crypto::Ss58AddressFormatRegistry;
+use polkadot_sdk::{
+	sc_cli::{ChainSpec as ChainSpecT, SubstrateCli},
+	sc_network::Litep2pNetworkBackend,
+};
 
 use crate::chain_specs::melodie_chain_spec;
 
@@ -186,9 +189,6 @@ pub fn run() -> polkadot_sdk::sc_cli::Result<()> {
 
 				set_default_ss58_version(chain_spec);
 
-				let no_hardware_benchmarks = cli.no_hardware_benchmarks;
-				let storage_monitor = cli.storage_monitor;
-
 				log::info!(
 					"Is validating: {}",
 					if config.role.is_authority() { "yes" } else { "no" }
@@ -196,13 +196,10 @@ pub fn run() -> polkadot_sdk::sc_cli::Result<()> {
 
 				#[cfg(feature = "melodie-runtime")]
 				if chain_spec.is_melodie() {
-					return service::start_node::<MelodieRuntimeApi>(
+					return service::new_full::<MelodieRuntimeApi, Litep2pNetworkBackend>(
 						config,
-						no_hardware_benchmarks,
-						storage_monitor,
 					)
-					.await
-					.map(|r| r.0)
+					.map(|r| r)
 					.map_err(Into::into);
 				}
 
