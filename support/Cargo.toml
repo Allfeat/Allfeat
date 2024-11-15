@@ -13,19 +13,17 @@ readme = "README.md"
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
+polkadot-sdk = { workspace = true, features = ["sp-runtime", "frame-support"] }
 parity-scale-codec = { workspace = true }
 scale-info = { workspace = true }
-sp-runtime = { workspace = true }
-frame-support = { workspace = true }
 genres-registry = { workspace = true }
 
 [features]
 default = ["std"]
 std = [
+	"polkadot-sdk/std",
 	"parity-scale-codec/std",
-	"frame-support/std",
 	"scale-info/std",
-	"sp-runtime/std",
 	"genres-registry/std",
 ]
 runtime-benchmarks = []

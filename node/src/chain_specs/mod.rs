@@ -19,7 +19,7 @@
 //! Substrate chain configurations.
 
 pub use allfeat_primitives::Block;
-use sc_chain_spec::ChainSpecExtension;
+use polkadot_sdk::{sc_chain_spec::ChainSpecExtension, *};
 use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "melodie-runtime")]

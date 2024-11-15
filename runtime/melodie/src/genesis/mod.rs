@@ -23,12 +23,12 @@ use allfeat_primitives::{AccountId, Balance};
 use alloc::{vec, vec::Vec};
 use development::development_config_genesis;
 use local::local_config_genesis;
-pub use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
+pub use polkadot_sdk::pallet_im_online::sr25519::AuthorityId as ImOnlineId;
+pub use polkadot_sdk::sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
+pub use polkadot_sdk::sp_consensus_babe::AuthorityId as BabeId;
+pub use polkadot_sdk::sp_consensus_grandpa::AuthorityId as GrandpaId;
+use polkadot_sdk::sp_genesis_builder::PresetId;
 use shared_runtime::currency::AFT;
-pub use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
-pub use sp_consensus_babe::AuthorityId as BabeId;
-pub use sp_consensus_grandpa::AuthorityId as GrandpaId;
-use sp_genesis_builder::PresetId;
 
 use crate::{
 	BabeConfig, BalancesConfig, RuntimeGenesisConfig, SessionConfig, SessionKeys, SudoConfig,
@@ -84,6 +84,7 @@ pub fn genesis(
 					)
 				})
 				.collect::<Vec<_>>(),
+			non_authority_keys: Default::default(),
 		},
 		babe: BabeConfig { epoch_config: BABE_GENESIS_EPOCH_CONFIG, ..Default::default() },
 		sudo: SudoConfig { key: Some(root_key) },

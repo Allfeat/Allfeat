@@ -22,6 +22,8 @@ use frame_support::{
 	traits::{fungible::HoldConsideration, LinearStoragePrice},
 };
 use frame_system::EnsureRoot;
+use shared_runtime::currency::deposit;
+use shared_runtime::weights;
 
 parameter_types! {
 	pub const PreimageBaseDeposit: Balance = deposit(2, 64);

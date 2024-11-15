@@ -4,17 +4,16 @@ version = "1.0.0"
 authors = { workspace = true }
 description = "Allfeat node/runtime low-level primitives."
 edition = "2021"
-license = "Apache-2.0"
-homepage = "https://allfeat.network"
+license = "GPL-3.0"
+homepage = "https://allfeat.com"
 repository = "https://github.com/Allfeat/Allfeat"
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-sp-core = { workspace = true }
-sp-runtime = { workspace = true }
+polkadot-sdk = { workspace = true, features = ["sp-core", "sp-runtime"] }
 
 [features]
 default = ["std"]
-std = ["sp-core/std", "sp-runtime/std"]
+std = ["polkadot-sdk/std"]

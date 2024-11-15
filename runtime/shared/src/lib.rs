@@ -21,20 +21,26 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use allfeat_primitives::{Balance, BlockNumber};
-use frame_support::weights::{
-	constants::ExtrinsicBaseWeight, WeightToFeeCoefficient, WeightToFeeCoefficients,
-	WeightToFeePolynomial,
+use frame::arithmetic::Bounded;
+use frame::arithmetic::FixedPointNumber;
+use frame::arithmetic::Perbill;
+use frame::arithmetic::Perquintill;
+use frame::deps::frame_support::weights::constants::ExtrinsicBaseWeight;
+use frame::deps::frame_system::limits::BlockLength;
+use frame::deps::sp_core::U256;
+use frame::prelude::*;
+use frame::runtime::prelude::*;
+use polkadot_sdk::pallet_transaction_payment::Multiplier;
+use polkadot_sdk::pallet_transaction_payment::TargetedFeeAdjustment;
+use polkadot_sdk::polkadot_sdk_frame as frame;
+use polkadot_sdk::sp_weights::{
+	WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
 };
-use frame_system::limits::BlockLength;
-use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
-use sp_core::parameter_types;
-use sp_runtime::{traits::Bounded, FixedPointNumber, Perbill, Perquintill};
 
 pub mod elections;
 pub mod identity;
 
 pub mod currency;
-pub mod opaque;
 
 #[cfg(feature = "test")]
 pub mod test;
@@ -104,17 +110,17 @@ pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 
 /// Convert a balance to an unsigned 256-bit number, use in nomination pools.
 pub struct BalanceToU256;
-impl sp_runtime::traits::Convert<Balance, sp_core::U256> for BalanceToU256 {
-	fn convert(n: Balance) -> sp_core::U256 {
+impl frame::traits::Convert<Balance, U256> for BalanceToU256 {
+	fn convert(n: Balance) -> U256 {
 		n.into()
 	}
 }
 
 /// Convert an unsigned 256-bit number to balance, use in nomination pools.
 pub struct U256ToBalance;
-impl sp_runtime::traits::Convert<sp_core::U256, Balance> for U256ToBalance {
-	fn convert(n: sp_core::U256) -> Balance {
-		use frame_support::traits::Defensive;
+impl frame::traits::Convert<U256, Balance> for U256ToBalance {
+	fn convert(n: U256) -> Balance {
+		use frame::traits::Defensive;
 		n.try_into().defensive_unwrap_or(Balance::MAX)
 	}
 }

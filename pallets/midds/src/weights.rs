@@ -42,7 +42,9 @@
 #![allow(unused_imports)]
 #![allow(missing_docs)]
 
-use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
+use polkadot_sdk::frame_support::weights::constants::RocksDbWeight;
+use polkadot_sdk::frame_support::weights::Weight;
+use polkadot_sdk::frame_support::traits::Get;
 use core::marker::PhantomData;
 
 /// Weight functions needed for pallet_midds.

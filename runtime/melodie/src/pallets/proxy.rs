@@ -18,9 +18,9 @@
 
 use crate::*;
 use frame_election_provider_support::{Decode, Encode};
-use frame_support::{
-	__private::RuntimeDebug, pallet_prelude::MaxEncodedLen, parameter_types, traits::InstanceFilter,
-};
+use frame_support::{pallet_prelude::MaxEncodedLen, parameter_types, traits::InstanceFilter};
+use shared_runtime::currency::deposit;
+use shared_runtime::weights;
 
 parameter_types! {
 	// One storage item; key size 32, value size 8; .

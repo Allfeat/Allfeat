@@ -18,11 +18,10 @@
 
 // std
 use std::sync::Arc;
+// Substrate
+use polkadot_sdk::{polkadot_rpc::RpcExtension, *};
 // Allfeat
 use allfeat_primitives::*;
-
-/// A type representing all RPC extensions.
-pub type RpcExtension = jsonrpsee::RpcModule<()>;
 
 /// Extra dependencies for BABE.
 pub struct BabeDeps {
@@ -35,16 +34,16 @@ pub struct BabeDeps {
 /// Extra dependencies for GRANDPA
 pub struct GrandpaDeps<BE> {
 	/// Voting round info.
-	pub shared_voter_state: grandpa::SharedVoterState,
+	pub shared_voter_state: sc_consensus_grandpa::SharedVoterState,
 	/// Authority set info.
 	pub shared_authority_set:
-		grandpa::SharedAuthoritySet<Hash, sp_runtime::traits::NumberFor<Block>>,
+		sc_consensus_grandpa::SharedAuthoritySet<Hash, sp_runtime::traits::NumberFor<Block>>,
 	/// Receives notifications about justification events from Grandpa.
-	pub justification_stream: grandpa::GrandpaJustificationStream<Block>,
+	pub justification_stream: sc_consensus_grandpa::GrandpaJustificationStream<Block>,
 	/// Executor to drive the subscription manager in the Grandpa RPC handler.
 	pub subscription_executor: sc_rpc_spec_v2::SubscriptionTaskExecutor,
 	/// Finality proof provider.
-	pub finality_provider: Arc<grandpa::FinalityProofProvider<BE, Block>>,
+	pub finality_provider: Arc<sc_consensus_grandpa::FinalityProofProvider<BE, Block>>,
 }
 
 /// Full client dependencies
@@ -55,8 +54,6 @@ pub struct FullDeps<C, P, SC, BE> {
 	pub pool: Arc<P>,
 	/// The SelectChain Strategy
 	pub select_chain: SC,
-	/// Whether to deny unsafe calls
-	pub deny_unsafe: sc_rpc::DenyUnsafe,
 	/// BABE specific dependencies.
 	pub babe: BabeDeps,
 	/// GRANDPA specific dependencies.
@@ -100,7 +97,7 @@ where
 	use substrate_frame_rpc_system::{System, SystemApiServer};
 
 	let mut module = RpcExtension::new(());
-	let FullDeps { client, pool, babe, grandpa, select_chain, deny_unsafe, chain_spec } = deps;
+	let FullDeps { client, pool, babe, grandpa, select_chain, chain_spec } = deps;
 	let BabeDeps { keystore, babe_worker_handle } = babe;
 	let GrandpaDeps {
 		shared_voter_state,
@@ -118,11 +115,10 @@ where
 		.expect("Genesis block exists; qed");
 	let properties = chain_spec.properties();
 	module.merge(ChainSpec::new(chain_name, genesis_hash, properties).into_rpc())?;
-	module.merge(System::new(client.clone(), pool.clone(), deny_unsafe).into_rpc())?;
+	module.merge(System::new(client.clone(), pool.clone()).into_rpc())?;
 	module.merge(TransactionPayment::new(client.clone()).into_rpc())?;
 	module.merge(
-		Babe::new(client.clone(), babe_worker_handle.clone(), keystore, select_chain, deny_unsafe)
-			.into_rpc(),
+		Babe::new(client.clone(), babe_worker_handle.clone(), keystore, select_chain).into_rpc(),
 	)?;
 	module.merge(
 		Grandpa::new(

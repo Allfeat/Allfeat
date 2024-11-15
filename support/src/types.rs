@@ -15,18 +15,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use frame_support::traits::ConstU32;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use polkadot_sdk::frame_support::traits::ConstU32;
+use polkadot_sdk::sp_runtime::{traits::Hash as HashT, BoundedVec, RuntimeDebug};
 use scale_info::TypeInfo;
-use sp_runtime::{traits::Hash as HashT, BoundedVec, RuntimeDebug};
 
 pub use ipi::IPINameNumber;
 pub use iswc::ISWC;
 
 mod ipi {
 	use super::*;
-	use frame_support::ensure;
-	use sp_runtime::DispatchError;
+	use polkadot_sdk::frame_support::ensure;
+	use polkadot_sdk::sp_runtime::DispatchError;
 
 	#[derive(
 		Encode, Default, Decode, Clone, PartialEq, Eq, RuntimeDebug, MaxEncodedLen, TypeInfo,

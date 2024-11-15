@@ -15,12 +15,9 @@ log = { workspace = true }
 enumflags2 = { workspace = true }
 
 # Substrate
-frame-support = { workspace = true }
-frame-system = { workspace = true }
+polkadot-sdk = { workspace = true, features = ["experimental", "runtime"] }
 parity-scale-codec = { workspace = true }
 scale-info = { workspace = true }
-sp-runtime = { workspace = true }
-frame-benchmarking = { workspace = true, optional = true }
 
 allfeat-support = { workspace = true }
 
@@ -29,22 +26,13 @@ default = ["std"]
 std = [
 	"parity-scale-codec/std",
 	"scale-info/std",
-	"sp-runtime/std",
 	"log/std",
-	"frame-support/std",
-	"frame-system/std",
-	"frame-benchmarking?/std",
+	"polkadot-sdk/std",
 	"allfeat-support/std",
 	"enumflags2/std",
 ]
 runtime-benchmarks = [
-	"frame-support/runtime-benchmarks",
-	"frame-benchmarking/runtime-benchmarks",
-	"sp-runtime/runtime-benchmarks",
-	"frame-system/runtime-benchmarks",
+	"polkadot-sdk/runtime-benchmarks",
+	"allfeat-support/runtime-benchmarks",
 ]
-try-runtime = [
-	"frame-support/try-runtime",
-	"frame-system/try-runtime",
-	"sp-runtime/try-runtime",
-]
+try-runtime = ["polkadot-sdk/try-runtime"]
