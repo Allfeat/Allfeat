@@ -20,11 +20,13 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use polkadot_sdk::sp_core::H256;
-use polkadot_sdk::sp_runtime::{
-	generic,
-	traits::{BlakeTwo256, IdentifyAccount, Verify},
-	MultiAddress, MultiSignature, OpaqueExtrinsic,
+use polkadot_sdk::{
+	sp_core::H256,
+	sp_runtime::{
+		generic,
+		traits::{BlakeTwo256, IdentifyAccount, Verify},
+		MultiAddress, MultiSignature, OpaqueExtrinsic,
+	},
 };
 
 /// An index to a block.
@@ -33,9 +35,9 @@ pub type BlockNumber = u32;
 /// Alias to 512-bit hash when used in the context of a transaction signature on the chain.
 pub type Signature = MultiSignature;
 
-/// Alias to 512-bit hash when used in the context of a transaction signature on the chain. pub type Signature = MultiSignature;
-/// Some way of identifying an account on the chain. We intentionally make it equivalent
-/// to the public key of our transaction signing scheme.
+/// Alias to 512-bit hash when used in the context of a transaction signature on the chain. pub type
+/// Signature = MultiSignature; Some way of identifying an account on the chain. We intentionally
+/// make it equivalent to the public key of our transaction signing scheme.
 pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::AccountId;
 
 /// The type for looking up accounts. We don't expect more than 4 billion of them, but you

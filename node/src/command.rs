@@ -24,10 +24,10 @@ use crate::{
 	cli::{Cli, Subcommand},
 	service::{self, *},
 };
-use polkadot_sdk::sp_core::crypto::Ss58AddressFormatRegistry;
 use polkadot_sdk::{
 	sc_cli::{ChainSpec as ChainSpecT, SubstrateCli},
 	sc_network::Litep2pNetworkBackend,
+	sp_core::crypto::Ss58AddressFormatRegistry,
 };
 
 use crate::chain_specs::melodie_chain_spec;

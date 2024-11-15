@@ -33,8 +33,10 @@ extern crate alloc;
 use crate::types::MiddsWrapper;
 use allfeat_support::traits::Midds;
 use alloc::boxed::Box;
-use frame::prelude::*;
-use frame::traits::{fungible::MutateHold, Saturating};
+use frame::{
+	prelude::*,
+	traits::{fungible::MutateHold, Saturating},
+};
 use polkadot_sdk::polkadot_sdk_frame as frame;
 
 pub use pallet::*;
@@ -43,10 +45,12 @@ pub use pallet::*;
 pub mod pallet {
 	use super::*;
 	use allfeat_support::traits::Midds;
-	use frame::deps::frame_support::PalletId;
 	#[cfg(feature = "runtime-benchmarks")]
 	use frame::traits::fungible::Mutate;
-	use frame::traits::{fungible::Inspect, tokens::Precision};
+	use frame::{
+		deps::frame_support::PalletId,
+		traits::{fungible::Inspect, tokens::Precision},
+	};
 
 	pub type BalanceOf<T, I = ()> =
 		<<T as Config<I>>::Currency as Inspect<<T as frame_system::Config>::AccountId>>::Balance;
@@ -257,8 +261,8 @@ pub mod pallet {
 				let now = <frame_system::Pallet<T>>::block_number();
 				let spent = now - midds.registered_at();
 				ensure!(
-					spent
-						> polkadot_sdk::sp_runtime::SaturatedConversion::saturated_into(
+					spent >
+						polkadot_sdk::sp_runtime::SaturatedConversion::saturated_into(
 							T::UnregisterPeriod::get()
 						),
 					Error::<T, I>::UnregisterLocked

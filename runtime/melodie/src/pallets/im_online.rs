@@ -19,8 +19,7 @@
 use crate::*;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use parity_scale_codec::Encode;
-use shared_runtime::weights;
-use shared_runtime::BlockHashCount;
+use shared_runtime::{weights, BlockHashCount};
 use sp_runtime::{
 	generic::Era, traits, traits::StaticLookup, transaction_validity::TransactionPriority,
 	SaturatedConversion,

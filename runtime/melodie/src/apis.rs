@@ -23,9 +23,10 @@ use alloc::vec::Vec;
 use crate::{EpochDuration, BABE_GENESIS_EPOCH_CONFIG};
 
 // Local module imports
-use super::frame::runtime::apis;
-use super::frame::traits::NumberFor;
-use super::*;
+use super::{
+	frame::{runtime::apis, traits::NumberFor},
+	*,
+};
 
 impl_runtime_apis! {
 	impl apis::Core<Block> for Runtime {

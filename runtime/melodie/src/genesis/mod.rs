@@ -23,11 +23,12 @@ use allfeat_primitives::{AccountId, Balance};
 use alloc::{vec, vec::Vec};
 use development::development_config_genesis;
 use local::local_config_genesis;
-pub use polkadot_sdk::pallet_im_online::sr25519::AuthorityId as ImOnlineId;
-pub use polkadot_sdk::sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
-pub use polkadot_sdk::sp_consensus_babe::AuthorityId as BabeId;
-pub use polkadot_sdk::sp_consensus_grandpa::AuthorityId as GrandpaId;
 use polkadot_sdk::sp_genesis_builder::PresetId;
+pub use polkadot_sdk::{
+	pallet_im_online::sr25519::AuthorityId as ImOnlineId,
+	sp_authority_discovery::AuthorityId as AuthorityDiscoveryId,
+	sp_consensus_babe::AuthorityId as BabeId, sp_consensus_grandpa::AuthorityId as GrandpaId,
+};
 use shared_runtime::currency::AFT;
 
 use crate::{

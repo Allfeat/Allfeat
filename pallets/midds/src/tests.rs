@@ -98,4 +98,3 @@ fn update_field_works() {
 		assert_eq!(PendingMidds::<Test>::get(midds.hash()).unwrap().midds.value, 2);
 	})
 }
-
