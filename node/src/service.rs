@@ -61,21 +61,25 @@ type FullGrandpaBlockImport<RA> =
 	sc_consensus_grandpa::GrandpaBlockImport<FullBackend, Block, FullClient<RA>, FullSelectChain>;
 type GrandpaLinkHalf<RA> = sc_consensus_grandpa::LinkHalf<Block, FullClient<RA>, FullSelectChain>;
 
+pub(crate) struct ConsensusParts<RuntimeApi> {
+	pub babe_block_import:
+		BabeBlockImport<Block, FullClient<RuntimeApi>, FullGrandpaBlockImport<RuntimeApi>>,
+	pub grandpa_link: GrandpaLinkHalf<RuntimeApi>,
+	pub babe_link: sc_consensus_babe::BabeLink<Block>,
+	pub babe_worker_handle: BabeWorkerHandle<Block>,
+}
+pub(crate) struct ExtraParts<RuntimeApi> {
+	pub consensus_parts: ConsensusParts<RuntimeApi>,
+	pub telemetry: Option<sc_telemetry::Telemetry>,
+}
+
 type Service<RuntimeApi> = sc_service::PartialComponents<
 	FullClient<RuntimeApi>,
 	FullBackend,
 	FullSelectChain,
 	sc_consensus::DefaultImportQueue<Block>,
 	sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi>>,
-	(
-		(
-			BabeBlockImport<Block, FullClient<RuntimeApi>, FullGrandpaBlockImport<RuntimeApi>>,
-			GrandpaLinkHalf<RuntimeApi>,
-			sc_consensus_babe::BabeLink<Block>,
-			BabeWorkerHandle<Block>,
-		),
-		Option<sc_telemetry::Telemetry>,
-	),
+	ExtraParts<RuntimeApi>,
 >;
 
 /// Can be called for a `Configuration` to check if it is the specific network.
@@ -199,7 +203,12 @@ where
 		telemetry: telemetry.as_ref().map(|x| x.handle()),
 		offchain_tx_pool_factory: OffchainTransactionPoolFactory::new(transaction_pool.clone()),
 	})?;
-	let import_setup = (block_import, grandpa_link, babe_link, babe_worker_handle);
+	let consensus_parts = ConsensusParts::<RuntimeApi> {
+		babe_block_import: block_import,
+		grandpa_link,
+		babe_link,
+		babe_worker_handle,
+	};
 
 	Ok(sc_service::PartialComponents {
 		client,
@@ -209,12 +218,12 @@ where
 		keystore_container,
 		select_chain,
 		transaction_pool,
-		other: (import_setup, telemetry),
+		other: ExtraParts::<RuntimeApi> { consensus_parts, telemetry },
 	})
 }
 
 /// Builds a new service for a full client.
-pub fn new_full<RuntimeApi, N>(config: Configuration) -> Result<TaskManager, ServiceError>
+fn new_full<RuntimeApi, N>(config: Configuration) -> Result<TaskManager, ServiceError>
 where
 	N: sc_network::NetworkBackend<Block, <Block as sp_runtime::traits::Block>::Hash>,
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>>,
@@ -229,10 +238,8 @@ where
 		keystore_container,
 		select_chain,
 		transaction_pool,
-		other: (import_setup, mut telemetry),
+		other: mut extra_parts,
 	} = new_partial::<RuntimeApi>(&config)?;
-
-	let (block_import, grandpa_link, babe_link, babe_worker_handle) = import_setup;
 
 	let mut net_config = sc_network::config::FullNetworkConfiguration::<
 		Block,
@@ -258,7 +265,7 @@ where
 
 	let warp_sync = Arc::new(sc_consensus_grandpa::warp_proof::NetworkProvider::new(
 		backend.clone(),
-		grandpa_link.shared_authority_set().clone(),
+		extra_parts.consensus_parts.grandpa_link.shared_authority_set().clone(),
 		Vec::default(),
 	));
 
@@ -305,7 +312,10 @@ where
 	let prometheus_registry = config.prometheus_registry().cloned();
 
 	let rpc_extensions_builder = {
-		let (grandpa_link, babe_worker_handle) = (&grandpa_link, &babe_worker_handle);
+		let (grandpa_link, babe_worker_handle) = (
+			&extra_parts.consensus_parts.grandpa_link,
+			&extra_parts.consensus_parts.babe_worker_handle,
+		);
 
 		let client = client.clone();
 		let pool = transaction_pool.clone();
@@ -355,7 +365,7 @@ where
 		tx_handler_controller,
 		sync_service: sync_service.clone(),
 		config,
-		telemetry: telemetry.as_mut(),
+		telemetry: extra_parts.telemetry.as_mut(),
 	})?;
 
 	if let sc_service::config::Role::Authority { .. } = &role {
@@ -364,17 +374,17 @@ where
 			client.clone(),
 			transaction_pool.clone(),
 			prometheus_registry.as_ref(),
-			telemetry.as_ref().map(|x| x.handle()),
+			extra_parts.telemetry.as_ref().map(|x| x.handle()),
 		);
 
 		let client_clone = client.clone();
-		let slot_duration = babe_link.config().slot_duration();
+		let slot_duration = extra_parts.consensus_parts.babe_link.config().slot_duration();
 		let babe_config = sc_consensus_babe::BabeParams {
 			keystore: keystore_container.keystore(),
 			client: client.clone(),
 			select_chain,
 			env: proposer,
-			block_import,
+			block_import: extra_parts.consensus_parts.babe_block_import,
 			sync_oracle: sync_service.clone(),
 			justification_sync_link: sync_service.clone(),
 			create_inherent_data_providers: move |parent, ()| {
@@ -399,10 +409,10 @@ where
 			},
 			force_authoring,
 			backoff_authoring_blocks,
-			babe_link,
+			babe_link: extra_parts.consensus_parts.babe_link,
 			block_proposal_slot_portion: SlotProportion::new(0.5),
 			max_block_proposal_slot_portion: None,
-			telemetry: telemetry.as_ref().map(|x| x.handle()),
+			telemetry: extra_parts.telemetry.as_ref().map(|x| x.handle()),
 		};
 
 		let babe = sc_consensus_babe::start_babe(babe_config)?;
@@ -458,7 +468,7 @@ where
 			observer_enabled: false,
 			keystore,
 			local_role: role,
-			telemetry: telemetry.as_ref().map(|x| x.handle()),
+			telemetry: extra_parts.telemetry.as_ref().map(|x| x.handle()),
 			protocol_name: grandpa_protocol_name,
 		};
 
@@ -470,14 +480,14 @@ where
 		// could lead to finality stalls.
 		let grandpa_config = sc_consensus_grandpa::GrandpaParams {
 			config: grandpa_config,
-			link: grandpa_link,
+			link: extra_parts.consensus_parts.grandpa_link,
 			network,
 			sync: Arc::new(sync_service),
 			notification_service: grandpa_notification_service,
 			voting_rule: sc_consensus_grandpa::VotingRulesBuilder::default().build(),
 			prometheus_registry,
 			shared_voter_state: sc_consensus_grandpa::SharedVoterState::empty(),
-			telemetry: telemetry.as_ref().map(|x| x.handle()),
+			telemetry: extra_parts.telemetry.as_ref().map(|x| x.handle()),
 			offchain_tx_pool_factory: OffchainTransactionPoolFactory::new(transaction_pool),
 		};
 
@@ -492,4 +502,23 @@ where
 
 	network_starter.start_network();
 	Ok(task_manager)
+}
+
+pub fn new_full_from_network_cfg<RuntimeApi>(
+	config: Configuration,
+) -> Result<TaskManager, ServiceError>
+where
+	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>>,
+	RuntimeApi: Send + Sync + 'static,
+	RuntimeApi::RuntimeApi: RuntimeApiCollection,
+{
+	match config.network.network_backend {
+		sc_network::config::NetworkBackendType::Libp2p => new_full::<
+			RuntimeApi,
+			sc_network::NetworkWorker<Block, <Block as sp_runtime::traits::Block>::Hash>,
+		>(config),
+		sc_network::config::NetworkBackendType::Litep2p => {
+			new_full::<RuntimeApi, sc_network::Litep2pNetworkBackend>(config)
+		},
+	}
 }

@@ -26,7 +26,6 @@ use crate::{
 };
 use polkadot_sdk::{
 	sc_cli::{ChainSpec as ChainSpecT, SubstrateCli},
-	sc_network::Litep2pNetworkBackend,
 	sp_core::crypto::Ss58AddressFormatRegistry,
 };
 
@@ -196,7 +195,7 @@ pub fn run() -> polkadot_sdk::sc_cli::Result<()> {
 
 				#[cfg(feature = "melodie-runtime")]
 				if chain_spec.is_melodie() {
-					return service::new_full::<MelodieRuntimeApi, Litep2pNetworkBackend>(
+					return service::new_full_from_network_cfg::<MelodieRuntimeApi>(
 						config,
 					)
 					.map(|r| r)
