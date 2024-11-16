@@ -26,7 +26,7 @@ use super::Stakeholders;
 parameter_types! {
 	pub const StakeholderPalletId: PalletId = PalletId(*b"m/stkhld");
 	pub const UnregisterPeriod: u32 = 7 * DAYS;
-	pub const ByteDepositCost: Balance = 1 * MILLIAFT;
+	pub const ByteDepositCost: Balance = MILLIAFT;
 }
 
 impl pallet_midds::Config<Stakeholders> for Runtime {

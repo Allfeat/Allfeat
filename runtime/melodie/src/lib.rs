@@ -83,7 +83,7 @@ pub type Header = allfeat_primitives::Header;
 /// Block type as expected by this runtime.
 pub type Block = generic::Block<Header, UncheckedExtrinsic>;
 
-//// The `TransactionExtension` to the basic transaction logic.
+/// The `TransactionExtension` to the basic transaction logic.
 pub type SignedExtra = (
 	frame_system::CheckNonZeroSender<Runtime>,
 	frame_system::CheckSpecVersion<Runtime>,

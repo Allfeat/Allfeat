@@ -198,7 +198,6 @@ pub fn run() -> polkadot_sdk::sc_cli::Result<()> {
 					return service::new_full_from_network_cfg::<MelodieRuntimeApi>(
 						config,
 					)
-					.map(|r| r)
 					.map_err(Into::into);
 				}
 

@@ -50,7 +50,7 @@ pub mod time {
 
 	// NOTE: Currently it is not possible to change the epoch duration after the chain has started.
 	//       Attempting to do so will brick block production.
-	pub const EPOCH_DURATION_IN_SLOTS: u32 = prod_or_fast!(2 * HOURS, 1 * MINUTES);
+	pub const EPOCH_DURATION_IN_SLOTS: u32 = prod_or_fast!(2 * HOURS, MINUTES);
 
 	// These time units are defined in number of blocks.
 	pub const MINUTES: BlockNumber = 60 / (SECS_PER_BLOCK as BlockNumber);

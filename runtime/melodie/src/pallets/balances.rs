@@ -21,7 +21,7 @@ use frame_support::parameter_types;
 use shared_runtime::{currency::MILLIAFT, weights};
 
 parameter_types! {
-	pub const ExistentialDeposit: Balance = 1 * MILLIAFT;
+	pub const ExistentialDeposit: Balance = MILLIAFT;
 
 }
 
