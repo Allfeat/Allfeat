@@ -21,10 +21,11 @@
 use super::*;
 use crate::Pallet as MiddsPallet;
 
-use frame_benchmarking::v2::*;
-use frame_support::{sp_runtime::traits::Bounded, traits::fungible::Mutate};
+use frame::arithmetic::Bounded;
+use frame::arithmetic::SaturatedConversion;
+use frame::traits::fungible::Mutate;
 use frame_system::RawOrigin;
-use sp_runtime::SaturatedConversion;
+use polkadot_sdk::frame_benchmarking::v2::*;
 
 fn assert_last_event<T: Config<I>, I: 'static>(generic_event: <T as Config<I>>::RuntimeEvent) {
 	frame_system::Pallet::<T>::assert_last_event(generic_event.into());
