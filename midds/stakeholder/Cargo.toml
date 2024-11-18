@@ -12,7 +12,6 @@ targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
 log = { workspace = true }
-enumflags2 = { workspace = true }
 
 # Substrate
 polkadot-sdk = { workspace = true, features = ["experimental", "runtime"] }
@@ -29,7 +28,6 @@ std = [
 	"scale-info/std",
 	"log/std",
 	"allfeat-support/std",
-	"enumflags2/std",
 ]
 runtime-benchmarks = [
 	"polkadot-sdk/runtime-benchmarks",

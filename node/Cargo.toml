@@ -15,11 +15,8 @@ clap = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 futures = { workspace = true }
-hex-literal = { workspace = true }
 log = { workspace = true }
 rand = { workspace = true }
-bip32 = { workspace = true }
-sha3 = { workspace = true }
 tokio = { version = "1.40" }
 async-trait = { version = "0.1.83" }
 

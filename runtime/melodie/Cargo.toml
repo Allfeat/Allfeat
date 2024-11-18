@@ -6,15 +6,16 @@ name = "melodie-runtime"
 readme = "README.md"
 version.workspace = true
 
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
 [dependencies]
 parity-scale-codec = { workspace = true, features = [
 	"derive",
 	"max-encoded-len",
 ] }
 scale-info = { workspace = true, features = ["derive"] }
-static_assertions = { workspace = true }
 log = { workspace = true }
-num_enum = { workspace = true }
 serde_json = { workspace = true, default-features = false, features = [
 	"alloc",
 ] }
@@ -41,8 +42,6 @@ polkadot-sdk = { workspace = true, features = [
 	"pallet-identity",
 	"pallet-authority-discovery",
 ] }
-
-
 shared-runtime = { workspace = true }
 allfeat-primitives = { workspace = true }
 
@@ -57,20 +56,16 @@ pallet-validator-set = { workspace = true }
 
 # Local Dependencies
 [dev-dependencies]
-sha3 = { workspace = true, features = ["std"] }
 shared-runtime = { workspace = true, features = ["std", "test"] }
 
 [build-dependencies]
-polkadot-sdk = { optional = true, workspace = true, features = [
-	"substrate-wasm-builder",
-] }
+substrate-wasm-builder = { optional = true, default-features = true, workspace = true }
 
 [features]
 default = ["std"]
 with-tracing = ["polkadot-sdk/with-tracing"]
 std = [
 	"polkadot-sdk/std",
-	"num_enum/std",
 	"parity-scale-codec/std",
 	"scale-info/std",
 	"log/std",
@@ -78,6 +73,7 @@ std = [
 	"shared-runtime/std",
 	"serde_json/std",
 	"pallet-midds/std",
+	"substrate-wasm-builder",
 	# MIDDS
 	"midds-stakeholder/std",
 	"midds-song/std",
@@ -85,7 +81,8 @@ std = [
 runtime-benchmarks = [
 	"polkadot-sdk/runtime-benchmarks",
 	"shared-runtime/runtime-benchmarks",
-	"pallet-validator-set/runtime-benchmarks",
+	# Waiting FIX https://github.com/Allfeat/substrate-validator-set/issues/1
+	#	"pallet-validator-set/runtime-benchmarks",
 	"pallet-midds/runtime-benchmarks",
 	"midds-stakeholder/runtime-benchmarks",
 	"midds-song/runtime-benchmarks",
@@ -96,11 +93,11 @@ try-runtime = [
 	"pallet-midds/try-runtime",
 ]
 
-# TODO metadata-hash = ["substrate-wasm-builder/metadata-hash"]
+metadata-hash = ["substrate-wasm-builder/metadata-hash"]
 
 # Set timing constants (e.g. session period) to faster versions to speed up testing.
 fast-runtime = []
 
 # A convenience feature for enabling things when doing a build
 # for an on-chain release.
-# on-chain-release-build = ["metadata-hash", "sp-api/disable-logging"]
+on-chain-release-build = ["metadata-hash"]

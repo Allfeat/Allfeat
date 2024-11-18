@@ -162,6 +162,9 @@ impl<FieldLimit: Get<u32> + 'static> IdentityInformationProvider for IdentityInf
 
 	#[cfg(feature = "runtime-benchmarks")]
 	fn create_identity_info() -> Self {
+		extern crate alloc;
+		use alloc::vec;
+
 		let data = Data::Raw(vec![0; 32].try_into().unwrap());
 
 		IdentityInfo {

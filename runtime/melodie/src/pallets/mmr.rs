@@ -25,4 +25,6 @@ impl pallet_mmr::Config for Runtime {
 	type BlockHashProvider = pallet_mmr::DefaultBlockHashProvider<Runtime>;
 	type OnNewRoot = ();
 	type WeightInfo = ();
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
 }

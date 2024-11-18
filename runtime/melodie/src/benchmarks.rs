@@ -17,15 +17,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "runtime-benchmarks")]
-frame_benchmarking::define_benchmarks!(
+polkadot_sdk::frame_benchmarking::define_benchmarks!(
 	[frame_benchmarking, BaselineBench::<Runtime>]
 	[pallet_babe, Babe]
 	[pallet_balances, Balances]
 	[pallet_grandpa, Grandpa]
 	[pallet_identity, Identity]
 	[pallet_im_online, ImOnline]
-	[pallet_midds, Stakeholders]
-	[pallet_midds, MusicalWorks]
+	[pallet_midds_stakeholders, Stakeholders]
+	[pallet_midds_songs, MusicalWorks]
 	[pallet_mmr, Mmr]
 	[pallet_multisig, Multisig]
 	[pallet_preimage, Preimage]
@@ -33,7 +33,6 @@ frame_benchmarking::define_benchmarks!(
 	[pallet_scheduler, Scheduler]
 	[pallet_sudo, Sudo]
 	[frame_system, SystemBench::<Runtime>]
-	[frame_system_extensions, SystemExtensionsBench::<Runtime>]
 	[pallet_timestamp, Timestamp]
 	[pallet_utility, Utility]
 );
