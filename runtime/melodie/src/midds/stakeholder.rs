@@ -19,7 +19,7 @@
 use crate::*;
 use frame_support::{parameter_types, PalletId};
 use frame_system::EnsureSigned;
-use shared_runtime::currency::MILLIAFT;
+use shared_runtime::{currency::MILLIAFT, weights};
 
 use super::Stakeholders;
 
@@ -38,5 +38,5 @@ impl pallet_midds::Config<Stakeholders> for Runtime {
 	type ProviderOrigin = EnsureSigned<Self::AccountId>;
 	type ByteDepositCost = ByteDepositCost;
 	type UnregisterPeriod = UnregisterPeriod;
-	type WeightInfo = ();
+	type WeightInfo = weights::midds_stakeholders::AllfeatWeight<Runtime>;
 }

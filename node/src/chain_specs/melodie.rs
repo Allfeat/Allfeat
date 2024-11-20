@@ -32,7 +32,7 @@ pub fn development_chain_spec() -> Result<ChainSpec, String> {
 	.with_protocol_id("aft")
 	.with_properties(
 		serde_json::json!({
-			"tokenDecimals": 18,
+			"tokenDecimals": 9,
 			"tokenSymbol": "MEL",
 		})
 		.as_object()
@@ -50,13 +50,13 @@ pub fn local_chain_spec() -> Result<ChainSpec, String> {
 		WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
 		Default::default(),
 	)
-	.with_name("Harmonie Testnet Local")
-	.with_id("harmonie_local")
+	.with_name("Melodie Testnet Local")
+	.with_id("melodie_local")
 	.with_chain_type(ChainType::Local)
 	.with_protocol_id("aft")
 	.with_properties(
 		serde_json::json!({
-			"tokenDecimals": 18,
+			"tokenDecimals": 9,
 			"tokenSymbol": "MEL",
 		})
 		.as_object()

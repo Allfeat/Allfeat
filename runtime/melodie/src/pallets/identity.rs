@@ -19,7 +19,7 @@
 use crate::*;
 use frame_support::parameter_types;
 use frame_system::EnsureRoot;
-use shared_runtime::{currency::deposit, identity::IdentityInfo};
+use shared_runtime::{currency::deposit, identity::IdentityInfo, weights};
 use sp_runtime::traits::Verify;
 
 parameter_types! {
@@ -50,6 +50,5 @@ impl pallet_identity::Config for Runtime {
 	type PendingUsernameExpiration = ConstU32<{ 7 * DAYS }>;
 	type MaxSuffixLength = ConstU32<7>;
 	type MaxUsernameLength = ConstU32<32>;
-	//type WeightInfo = weights::identity::AllfeatWeight<Runtime>;
-	type WeightInfo = pallet_identity::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = weights::identity::AllfeatWeight<Runtime>;
 }

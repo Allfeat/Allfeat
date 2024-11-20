@@ -17,12 +17,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // MIDDS
-pub mod pallet_midds_musical_works;
-pub mod pallet_midds_stakeholders;
+pub mod midds_songs;
+pub mod midds_stakeholders;
 
 pub mod balances;
-pub mod system;
-// pub mod identity;
+pub mod identity;
 pub mod im_online;
 pub mod multisig;
 pub mod preimage;
@@ -30,5 +29,6 @@ pub mod proxy;
 pub mod scheduler;
 pub mod session;
 pub mod sudo;
+pub mod system;
 pub mod timestamp;
 pub mod utility;

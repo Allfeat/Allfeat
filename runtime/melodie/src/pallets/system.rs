@@ -71,6 +71,6 @@ impl frame_system::Config for Runtime {
 	type Version = Version;
 	type AccountData = pallet_balances::AccountData<Balance>;
 	type SystemWeightInfo = weights::system::AllfeatWeight<Runtime>;
-	type SS58Prefix = ConstU16<441>;
+	type SS58Prefix = ConstU16<42>;
 	type MaxConsumers = ConstU32<16>;
 }
