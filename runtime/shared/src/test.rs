@@ -27,7 +27,7 @@ macro_rules! impl_weight_tests {
 				assert!(fit >= 1000, "{} should be at least 1000", fit);
 			}
 
-			// The fee for one transfer is at most 1 AFT.
+			// The fee for one transfer is at most 1 ALFT.
 			#[test]
 			fn sane_transfer_fee() {
 				// substrate
@@ -38,7 +38,7 @@ macro_rules! impl_weight_tests {
 					base + weights::balances::AllfeatWeight::<Runtime>::transfer_allow_death();
 				let fee = WeightToFee::weight_to_fee(&transfer);
 
-				assert!(fee <= AFT, "{} MILLIAFT should be at most 1000", fee / MILLIAFT);
+				assert!(fee <= ALFT, "{} MILLIALFT should be at most 1000", fee / MILLIALFT);
 			}
 
 			// Weight is being charged for both dimensions.
@@ -49,7 +49,7 @@ macro_rules! impl_weight_tests {
 				assert!(!fee.is_zero(), "Charges for ref time");
 
 				let fee = WeightToFee::weight_to_fee(&Weight::from_parts(0, 10_000));
-				assert_eq!(fee, AFT, "10kb maps to AFT");
+				assert_eq!(fee, ALFT, "10kb maps to ALFT");
 			}
 		}
 	};
@@ -91,8 +91,8 @@ macro_rules! impl_fee_tests {
 			#[test]
 			fn multiplier_can_grow_from_zero() {
 				let minimum_multiplier = MinimumMultiplier::get();
-				let target = TargetBlockFullness::get() *
-					RuntimeBlockWeights::get().get(DispatchClass::Normal).max_total.unwrap();
+				let target = TargetBlockFullness::get()
+					* RuntimeBlockWeights::get().get(DispatchClass::Normal).max_total.unwrap();
 				// if the min is too small, then this will not change, and we are doomed forever.
 				// the weight is 1/100th bigger than target.
 				run_with_system_weight(target.saturating_mul(101) / 100, || {

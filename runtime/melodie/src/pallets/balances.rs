@@ -18,10 +18,10 @@
 
 use crate::*;
 use frame_support::parameter_types;
-use shared_runtime::{currency::MILLIAFT, weights};
+use shared_runtime::{currency::MILLIALFT, weights};
 
 parameter_types! {
-	pub const ExistentialDeposit: Balance = MILLIAFT;
+	pub const ExistentialDeposit: Balance = MILLIALFT;
 
 }
 

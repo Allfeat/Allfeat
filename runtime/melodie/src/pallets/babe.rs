@@ -33,7 +33,7 @@ parameter_types! {
 	pub EpochDuration: u64 = shared_runtime::prod_or_fast!(
 		EPOCH_DURATION_IN_SLOTS as u64,
 		2 * MINUTES as u64,
-		"AFT_EPOCH_DURATION"
+		"ALFT_EPOCH_DURATION"
 	);
 	pub const ExpectedBlockTime: Moment = MILLISECS_PER_BLOCK;
 }

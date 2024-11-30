@@ -18,10 +18,10 @@
 
 use allfeat_primitives::Balance;
 
-pub const MICROAFT: Balance = 1_000;
-pub const MILLIAFT: Balance = 1_000_000;
-pub const AFT: Balance = 1_000_000_000;
+pub const MICROALFT: Balance = 1_000;
+pub const MILLIALFT: Balance = 1_000_000;
+pub const ALFT: Balance = 1_000_000_000;
 
 pub const fn deposit(items: u32, bytes: u32) -> Balance {
-	items as Balance * 10 * AFT + (bytes as Balance) * 100 * MICROAFT
+	items as Balance * 10 * ALFT + (bytes as Balance) * 100 * MICROALFT
 }

@@ -22,12 +22,12 @@ use super::MusicalWorks;
 use allfeat_primitives::Balance;
 use frame_support::{parameter_types, PalletId};
 use frame_system::EnsureSigned;
-use shared_runtime::{currency::MILLIAFT, weights};
+use shared_runtime::{currency::MILLIALFT, weights};
 
 parameter_types! {
 	pub const StakeholderPalletId: PalletId = PalletId(*b"m/muwork");
 	pub const UnregisterPeriod: u32 = 7 * DAYS;
-	pub const ByteDepositCost: Balance = MILLIAFT;
+	pub const ByteDepositCost: Balance = MILLIALFT;
 }
 
 impl pallet_midds::Config<MusicalWorks> for Runtime {

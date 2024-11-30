@@ -36,7 +36,7 @@ use polkadot_sdk::{
 	sp_weights::{WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial},
 };
 
-use crate::currency::MICROAFT;
+use crate::currency::MICROALFT;
 
 pub mod elections;
 pub mod identity;
@@ -91,7 +91,7 @@ pub struct WeightToFee;
 impl WeightToFeePolynomial for WeightToFee {
 	type Balance = Balance;
 	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-		let p = 100 * MICROAFT; // Around 0.0001 AFT
+		let p = 100 * MICROALFT; // Around 0.0001 ALFT
 		let q = Balance::from(ExtrinsicBaseWeight::get().ref_time());
 		smallvec::smallvec![WeightToFeeCoefficient {
 			degree: 1,

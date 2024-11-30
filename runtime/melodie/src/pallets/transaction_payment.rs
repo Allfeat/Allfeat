@@ -23,7 +23,7 @@ use frame_support::{
 	traits::{Imbalance, OnUnbalanced},
 	weights::ConstantMultiplier,
 };
-use shared_runtime::{currency::MICROAFT, SlowAdjustingFeeUpdate, WeightToFee};
+use shared_runtime::{currency::MICROALFT, SlowAdjustingFeeUpdate, WeightToFee};
 
 pub struct DealWithFees;
 impl OnUnbalanced<Credit<AccountId, Balances>> for DealWithFees {
@@ -48,7 +48,7 @@ impl OnUnbalanced<Credit<AccountId, Balances>> for DealWithFees {
 }
 
 parameter_types! {
-	pub const TransactionByteFee: Balance = 10 * MICROAFT;
+	pub const TransactionByteFee: Balance = 10 * MICROALFT;
 	pub const OperationalFeeMultiplier: u8 = 5;
 }
 
