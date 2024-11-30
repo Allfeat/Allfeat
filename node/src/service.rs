@@ -45,10 +45,6 @@ use polkadot_sdk::{
 /// imported and generated.
 const GRANDPA_JUSTIFICATION_PERIOD: u32 = 512;
 
-#[cfg(feature = "runtime-benchmarks")]
-pub type HostFunctions =
-	(frame_benchmarking::benchmarking::HostFunctions, sp_io::SubstrateHostFunctions);
-#[cfg(not(feature = "runtime-benchmarks"))]
 type HostFunctions = sp_io::SubstrateHostFunctions;
 
 /// Full client backend type.

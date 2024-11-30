@@ -34,7 +34,8 @@ melodie-runtime = { workspace = true, optional = true }
 polkadot-sdk = { workspace = true, features = ["substrate-build-script-utils"] }
 
 [features]
-default = ["all-runtime"]
+default = ["std", "all-runtime"]
+std = ["melodie-runtime/std", "polkadot-sdk/std"]
 all-runtime = ["melodie-runtime"]
 
 runtime-benchmarks = [
