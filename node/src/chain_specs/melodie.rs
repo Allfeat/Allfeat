@@ -29,7 +29,7 @@ pub fn development_chain_spec() -> Result<ChainSpec, String> {
 	.with_name("Melodie Testnet Development")
 	.with_id("melodie_dev")
 	.with_chain_type(ChainType::Development)
-	.with_protocol_id("aft")
+	.with_protocol_id("alft")
 	.with_properties(
 		serde_json::json!({
 			"tokenDecimals": 9,
@@ -53,7 +53,7 @@ pub fn local_chain_spec() -> Result<ChainSpec, String> {
 	.with_name("Melodie Testnet Local")
 	.with_id("melodie_local")
 	.with_chain_type(ChainType::Local)
-	.with_protocol_id("aft")
+	.with_protocol_id("alft")
 	.with_properties(
 		serde_json::json!({
 			"tokenDecimals": 9,
