@@ -32,7 +32,7 @@ pub fn development_chain_spec() -> Result<ChainSpec, String> {
 	.with_protocol_id("alft")
 	.with_properties(
 		serde_json::json!({
-			"tokenDecimals": 9,
+			"tokenDecimals": 12,
 			"tokenSymbol": "MEL",
 		})
 		.as_object()
@@ -56,7 +56,7 @@ pub fn local_chain_spec() -> Result<ChainSpec, String> {
 	.with_protocol_id("alft")
 	.with_properties(
 		serde_json::json!({
-			"tokenDecimals": 9,
+			"tokenDecimals": 12,
 			"tokenSymbol": "MEL",
 		})
 		.as_object()
