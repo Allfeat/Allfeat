@@ -43,8 +43,6 @@ pub mod identity;
 
 pub mod currency;
 
-#[cfg(feature = "test")]
-pub mod test;
 /// Custom weights for Allfeat runtimes
 pub mod weights;
 
