@@ -37,7 +37,7 @@ use frame::{
 	prelude::*,
 	traits::{fungible::MutateHold, Saturating},
 };
-use polkadot_sdk::polkadot_sdk_frame as frame;
+pub use polkadot_sdk::polkadot_sdk_frame as frame;
 
 pub use pallet::*;
 
@@ -261,8 +261,8 @@ pub mod pallet {
 				let now = <frame_system::Pallet<T>>::block_number();
 				let spent = now - midds.registered_at();
 				ensure!(
-					spent >
-						polkadot_sdk::sp_runtime::SaturatedConversion::saturated_into(
+					spent
+						> polkadot_sdk::sp_runtime::SaturatedConversion::saturated_into(
 							T::UnregisterPeriod::get()
 						),
 					Error::<T, I>::UnregisterLocked

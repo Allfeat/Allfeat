@@ -18,14 +18,16 @@
 
 #![cfg(test)]
 
+use super::frame;
 use crate::{self as pallet_midds};
 use allfeat_support::traits::Midds;
-use frame_support::{derive_impl, pallet_prelude::DispatchResult, parameter_types, PalletId};
-use frame_system::EnsureSigned;
+use frame::testing_prelude::*;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use polkadot_sdk::{
+	frame_support::{self, PalletId},
+	pallet_balances, sp_io, sp_runtime,
+};
 use scale_info::TypeInfo;
-use sp_core::RuntimeDebug;
-use sp_runtime::BuildStorage;
 
 type Block = frame_system::mocking::MockBlock<Test>;
 

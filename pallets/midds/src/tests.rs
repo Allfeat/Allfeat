@@ -16,12 +16,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![cfg(test)]
-
+use super::frame;
 use allfeat_support::traits::Midds;
-use frame_support::{assert_err, assert_ok};
-use sp_core::Get;
-use sp_runtime::TokenError;
+use frame::testing_prelude::*;
+use polkadot_sdk::{sp_runtime::TokenError, sp_tracing};
 
 use crate::{mock::*, PendingMidds};
 
@@ -32,7 +30,7 @@ fn it_registers_midds_to_pending_successfully() {
 	let provider = 1;
 	let midds = MockMiddsStruct { value: 1 };
 	let expected_lock_cost = (midds.total_bytes() as u64)
-		.saturating_mul(<Test as crate::Config>::ByteDepositCost::get());
+		.saturating_mul(<<Test as crate::Config>::ByteDepositCost as TypedGet>::get());
 
 	new_test_ext().execute_with(|| {
 		assert_ok!(MockMidds::register(RuntimeOrigin::signed(provider), Box::new(midds.clone())));
@@ -49,7 +47,7 @@ fn register_without_enough_funds_fail() {
 	let provider = 5;
 	let midds = MockMiddsStruct { value: 1 };
 	let expected_lock_cost = (midds.total_bytes() as u64)
-		.saturating_mul(<Test as crate::Config>::ByteDepositCost::get());
+		.saturating_mul(<<Test as crate::Config>::ByteDepositCost as TypedGet>::get());
 
 	new_test_ext().execute_with(|| {
 		assert!(Balances::free_balance(provider) < expected_lock_cost);
