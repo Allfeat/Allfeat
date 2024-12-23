@@ -16,17 +16,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::Stakeholders;
 use crate::*;
 use frame_support::{parameter_types, PalletId};
 use frame_system::EnsureSigned;
+use shared_runtime::currency::ALFT;
 use shared_runtime::{currency::MILLIALFT, weights};
-
-use super::Stakeholders;
 
 parameter_types! {
 	pub const StakeholderPalletId: PalletId = PalletId(*b"m/stkhld");
 	pub const UnregisterPeriod: u32 = 7 * DAYS;
 	pub const ByteDepositCost: Balance = MILLIALFT;
+	pub const MaxDepositCost: Balance = 100 * ALFT;
 }
 
 impl pallet_midds::Config<Stakeholders> for Runtime {
@@ -37,6 +38,7 @@ impl pallet_midds::Config<Stakeholders> for Runtime {
 	type MIDDS = midds_stakeholder::Stakeholder<Self::Hashing>;
 	type ProviderOrigin = EnsureSigned<Self::AccountId>;
 	type ByteDepositCost = ByteDepositCost;
+	type MaxDepositCost = ();
 	type UnregisterPeriod = UnregisterPeriod;
 	type WeightInfo = weights::midds_stakeholders::AllfeatWeight<Runtime>;
 }

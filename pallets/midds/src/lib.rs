@@ -82,6 +82,7 @@ pub mod pallet {
 			#[inject_runtime_type]
 			type RuntimeHoldReason = ();
 			type ByteDepositCost = ConstU64<1>;
+			type MaxDepositCost = ConstU64<10000>;
 			type UnregisterPeriod = ConstU32<7>;
 			type WeightInfo = ();
 		}
@@ -130,6 +131,13 @@ pub mod pallet {
 		#[pallet::no_default_bounds]
 		/// The per-byte deposit cost when depositing MIDDS on-chain.
 		type ByteDepositCost: Get<BalanceOf<Self, I>>;
+
+		#[pallet::constant]
+		#[pallet::no_default_bounds]
+		/// The maximum cost a user can lock in collateral for this MIDDS entity.
+		/// This help to ensure we don't go higher than the max of the balance type, in such case
+		/// the user would be able to don't pay any fees higher than this value.
+		type MaxDepositCost: Get<BalanceOf<Self, I>>;
 
 		/// How many time the depositor have to wait to remove the MIDDS.
 		#[pallet::constant]
@@ -183,6 +191,8 @@ pub mod pallet {
 		CantReleaseFunds,
 		/// Funds can't be held at this moment.
 		CantHoldFunds,
+		/// The provider tried to register/update a MIDDS that exceed data size cost maximum authorized.
+		OverflowedAuthorizedDataCost,
 	}
 
 	#[pallet::call(weight(<T as Config<I>>::WeightInfo))]
@@ -213,6 +223,11 @@ pub mod pallet {
 						let old_cost = Self::calculate_midds_colateral(midds);
 						midds.midds.update_field(field_data)?;
 						let new_cost = Self::calculate_midds_colateral(midds);
+
+						ensure!(
+							new_cost <= T::MaxDepositCost::get(),
+							Error::<T, I>::OverflowedAuthorizedDataCost
+						);
 
 						match old_cost.cmp(&new_cost) {
 							core::cmp::Ordering::Greater => {
@@ -303,6 +318,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 
 		// data colateral lock
 		let data_lock = Self::calculate_midds_colateral(&midds);
+		ensure!(data_lock <= T::MaxDepositCost::get(), Error::<T, I>::OverflowedAuthorizedDataCost);
 
 		T::Currency::hold(&HoldReason::MiddsRegistration.into(), &midds.provider(), data_lock)?;
 		PendingMidds::<T, I>::insert(midds_hash, midds.clone());

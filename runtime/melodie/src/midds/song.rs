@@ -22,12 +22,14 @@ use super::MusicalWorks;
 use allfeat_primitives::Balance;
 use frame_support::{parameter_types, PalletId};
 use frame_system::EnsureSigned;
+use shared_runtime::currency::ALFT;
 use shared_runtime::{currency::MILLIALFT, weights};
 
 parameter_types! {
 	pub const StakeholderPalletId: PalletId = PalletId(*b"m/muwork");
 	pub const UnregisterPeriod: u32 = 7 * DAYS;
 	pub const ByteDepositCost: Balance = MILLIALFT;
+	pub const MaxDepositCost: Balance = 100 * ALFT;
 }
 
 impl pallet_midds::Config<MusicalWorks> for Runtime {
@@ -39,6 +41,7 @@ impl pallet_midds::Config<MusicalWorks> for Runtime {
 		midds_song::Song<Self::Hashing, <Self::Hashing as sp_runtime::traits::Hash>::Output>;
 	type ProviderOrigin = EnsureSigned<Self::AccountId>;
 	type ByteDepositCost = ByteDepositCost;
+	type MaxDepositCost = MaxDepositCost;
 	type UnregisterPeriod = UnregisterPeriod;
 	type WeightInfo = weights::midds_songs::AllfeatWeight<Runtime>;
 }
