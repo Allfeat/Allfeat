@@ -38,7 +38,7 @@ impl pallet_midds::Config<Stakeholders> for Runtime {
 	type MIDDS = midds_stakeholder::Stakeholder<Self::Hashing>;
 	type ProviderOrigin = EnsureSigned<Self::AccountId>;
 	type ByteDepositCost = ByteDepositCost;
-	type MaxDepositCost = ();
+	type MaxDepositCost = MaxDepositCost;
 	type UnregisterPeriod = UnregisterPeriod;
 	type WeightInfo = weights::midds_stakeholders::AllfeatWeight<Runtime>;
 }

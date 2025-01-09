@@ -18,7 +18,7 @@
 
 //! Service and service factory implementation. Specialized wrapper over substrate service.
 
-pub use melodie_runtime::apis::RuntimeApi as MelodieRuntimeApi;
+pub use melodie_runtime::RuntimeApi as MelodieRuntimeApi;
 
 // std
 use futures::StreamExt;
