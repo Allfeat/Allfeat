@@ -58,8 +58,6 @@ pub struct FullDeps<C, P, SC, BE> {
 	pub babe: BabeDeps,
 	/// GRANDPA specific dependencies.
 	pub grandpa: GrandpaDeps<BE>,
-	/// A copy of the chain spec.
-	pub chain_spec: Box<dyn sc_chain_spec::ChainSpec>,
 }
 
 /// Instantiate all RPC extensions.
@@ -92,12 +90,11 @@ where
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
 	use sc_consensus_babe_rpc::{Babe, BabeApiServer};
 	use sc_consensus_grandpa_rpc::{Grandpa, GrandpaApiServer};
-	use sc_sync_state_rpc::{SyncState, SyncStateApiServer};
 	use substrate_frame_rpc_system::{System, SystemApiServer};
 
 	let mut module = RpcExtension::new(());
 
-	let FullDeps { client, pool, babe, grandpa, select_chain, chain_spec } = deps;
+	let FullDeps { client, pool, babe, grandpa, select_chain } = deps;
 	let BabeDeps { keystore, babe_worker_handle } = babe;
 	let GrandpaDeps {
 		shared_voter_state,
@@ -121,10 +118,6 @@ where
 			finality_provider,
 		)
 		.into_rpc(),
-	)?;
-	module.merge(
-		SyncState::new(chain_spec, client.clone(), shared_authority_set, babe_worker_handle)?
-			.into_rpc(),
 	)?;
 
 	Ok(module)

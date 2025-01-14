@@ -14,7 +14,7 @@ members = [
 [workspace.package]
 authors = ["Allfeat labs. <hello@allfeat.com>"]
 edition = "2021"
-homepage = "https://allfeat.network"
+homepage = "https://allfeat.com"
 license = "GPL-3.0"
 repository = "https://github.com/allfeat/allfeat"
 version = "1.0.0-dev"
@@ -29,29 +29,28 @@ version = "1.0.0-dev"
 # Allfeat (wasm)
 allfeat-support = { version = "1.0.0-dev", default-features = false, path = "./support" }
 allfeat-primitives = { version = "1.0.0", default-features = false, path = "./primitives" }
-pallet-midds = { version = "1.0.0-dev", default-features = false, path = "./pallets/midds/" }
+pallet-midds = { version = "1.0.0-dev", default-features = false, path = "./pallets/midds" }
 genres-registry = { package = "genres-registry", version = "1.0.0-dev", default-features = false, path = "./support/genres-registry" }
 # midds-artist = { version = "1.0.0-dev", default-features = false, path = "./midds/artist" }
 midds-stakeholder = { version = "1.0.0-dev", default-features = false, path = "./midds/stakeholder" }
 midds-song = { version = "1.0.0-dev", default-features = false, path = "./midds/song" }
 
-polkadot-sdk = { version = "0.7.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk", tag = "polkadot-stable2409-2" }
-substrate-wasm-builder = { version = "*", git = "https://github.com/paritytech/polkadot-sdk.git", tag = "polkadot-stable2409-2" }
+polkadot-sdk = { version = "0.10.0", default-features = false, git = "https://github.com/paritytech/polkadot-sdk", branch = "stable2412" }
+substrate-wasm-builder = { version = "*", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2412" }
 
 # Substrate (wasm)
 parity-scale-codec = { version = "3.6.12", default-features = false, features = [
 	"derive",
 ] }
-scale-info = { version = "2.11.3", default-features = false, features = [
+scale-info = { version = "2.11.1", default-features = false, features = [
 	"derive",
 ] }
 log = { version = "0.4.22", default-features = false }
 smallvec = { version = "1.9.0", default-features = false }
 
-pallet-validator-set = { package = "substrate-validator-set", version = "1.1.0", default-features = false, git = "https://github.com/Allfeat/substrate-validator-set.git", tag = "polkadot-stable2409-2" }
+pallet-validator-set = { package = "substrate-validator-set", version = "1.1.0", default-features = false, git = "https://github.com/Allfeat/substrate-validator-set.git", branch = "stable2412" }
 
 # Other (wasm)
-num_enum = { version = "0.7.3", default-features = false }
 enumflags2 = { version = "0.7.10", default-features = false }
 
 # Allfeat (client)
@@ -60,12 +59,10 @@ melodie-runtime = { version = "1.0.0-dev", path = "./runtime/melodie" }
 
 # Other (client)
 clap = { version = "4.5.13", features = ["derive"] }
-serde = { version = "1.0.204", features = ["derive"] }
-jsonrpsee = { version = "0.23.2", features = ["server", "macros"] }
-serde_json = { version = "1.0.122", default-features = false }
-futures = "0.3.30"
-rand = "0.8.5"
-tempfile = "3.11.0"
+jsonrpsee = { version = "0.24.3", features = ["server", "macros"] }
+serde_json = { version = "1.0.132", default-features = false }
+futures = "0.3.31"
+rand = { version = "0.8.5", default-features = false }
 
 # make sure dev builds with backtrace do
 # not slow us down
@@ -80,7 +77,6 @@ opt-level = "z"
 
 [profile.production]
 codegen-units = 1
-incremental = false
 inherits = "release"
 lto = true
 

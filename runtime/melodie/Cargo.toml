@@ -22,7 +22,6 @@ serde_json = { workspace = true, default-features = false, features = [
 
 polkadot-sdk = { workspace = true, features = [
 	"runtime",
-	"experimental",
 	"pallet-authorship",
 	"pallet-mmr",
 	"pallet-babe",

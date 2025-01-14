@@ -28,7 +28,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 // allfeat
-pub use allfeat_primitives::*;
+pub use allfeat_primitives::{AccountId, Address, Balance, BlockNumber, Moment, Nonce, Signature};
 
 use polkadot_sdk::{
 	polkadot_sdk_frame::{
@@ -58,18 +58,14 @@ mod benchmarks;
 /// Runtime version.
 #[runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("allfeat-testnet"),
-	impl_name: create_runtime_str!("allfeatlabs-melodie"),
+	spec_name: alloc::borrow::Cow::Borrowed("allfeat-melodie"),
+	impl_name: alloc::borrow::Cow::Borrowed("allfeatlabs-melodie"),
 	authoring_version: 1,
-	// Per convention: if the runtime behavior changes, increment spec_version
-	// and set impl_version to 0. If only runtime
-	// implementation changes and behavior does not, then leave spec_version as
-	// is and increment impl_version.
 	spec_version: 100,
-	impl_version: 1,
+	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
-	state_version: 1,
+	system_version: 1,
 };
 
 /// The version information used to identify this runtime when compiled natively.
@@ -196,7 +192,6 @@ mod runtime {
 	pub type Multisig = pallet_multisig;
 
 	// Allfeat related
-	//	#[runtime::pallet_index(100)] Old artists pallet
 
 	#[runtime::pallet_index(101)]
 	pub type Stakeholders = pallet_midds<Instance1>;

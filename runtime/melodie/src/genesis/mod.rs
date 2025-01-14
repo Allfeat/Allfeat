@@ -97,11 +97,9 @@ pub fn genesis(
 
 /// Provides the JSON representation of predefined genesis config for given `id`.
 pub fn get_preset(id: &PresetId) -> Option<Vec<u8>> {
-	let patch = match id.try_into() {
-		Ok(polkadot_sdk::sp_genesis_builder::DEV_RUNTIME_PRESET) => development_config_genesis(),
-		Ok(polkadot_sdk::sp_genesis_builder::LOCAL_TESTNET_RUNTIME_PRESET) => {
-			local_config_genesis()
-		},
+	let patch = match id.as_ref() {
+		polkadot_sdk::sp_genesis_builder::DEV_RUNTIME_PRESET => development_config_genesis(),
+		polkadot_sdk::sp_genesis_builder::LOCAL_TESTNET_RUNTIME_PRESET => local_config_genesis(),
 		_ => return None,
 	};
 	Some(

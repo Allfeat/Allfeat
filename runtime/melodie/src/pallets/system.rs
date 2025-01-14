@@ -64,7 +64,7 @@ impl frame_system::Config for Runtime {
 	type BlockLength = RuntimeBlockLength;
 	type Nonce = Nonce;
 	type Block = Block;
-	type Hash = Hash;
+	type Hash = allfeat_primitives::Hash;
 	type AccountId = AccountId;
 	type BlockHashCount = shared_runtime::BlockHashCount;
 	type DbWeight = RocksDbWeight;
