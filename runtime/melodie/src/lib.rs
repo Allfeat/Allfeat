@@ -200,6 +200,7 @@ mod runtime {
 	pub type MusicalWorks = pallet_midds<Instance2>;
 }
 
+use alloc::string::String;
 use frame::{runtime::apis, traits::NumberFor};
 
 impl_runtime_apis! {
@@ -475,7 +476,7 @@ impl sp_consensus_grandpa::GrandpaApi<Block> for Runtime {
 
 		fn dispatch_benchmark(
 			config: frame_benchmarking::BenchmarkConfig
-		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
+		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, String> {
 			use frame_benchmarking::*;
 			use frame_support::traits::TrackedStorageKey;
 
