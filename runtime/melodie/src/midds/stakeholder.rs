@@ -20,14 +20,14 @@ use super::Stakeholders;
 use crate::*;
 use frame_support::{parameter_types, PalletId};
 use frame_system::EnsureSigned;
-use shared_runtime::currency::ALFT;
-use shared_runtime::{currency::MILLIALFT, weights};
+use shared_runtime::currency::AFT;
+use shared_runtime::{currency::MILLIAFT, weights};
 
 parameter_types! {
 	pub const StakeholderPalletId: PalletId = PalletId(*b"m/stkhld");
 	pub const UnregisterPeriod: u32 = 7 * DAYS;
-	pub const ByteDepositCost: Balance = MILLIALFT;
-	pub const MaxDepositCost: Balance = 100 * ALFT;
+	pub const ByteDepositCost: Balance = 10 * MILLIAFT;
+	pub const MaxDepositCost: Balance = 100 * AFT;
 }
 
 impl pallet_midds::Config<Stakeholders> for Runtime {

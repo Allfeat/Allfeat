@@ -23,20 +23,15 @@
 use allfeat_primitives::{Balance, BlockNumber};
 use frame::{
 	arithmetic::{Bounded, FixedPointNumber, Perbill, Perquintill},
-	deps::{
-		frame_support::weights::constants::ExtrinsicBaseWeight, frame_system::limits::BlockLength,
-		sp_core::U256,
-	},
+	deps::sp_core::U256,
 	prelude::*,
 	runtime::prelude::*,
 };
+use frame_system::limits::BlockLength;
 use polkadot_sdk::{
 	pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment},
 	polkadot_sdk_frame as frame,
-	sp_weights::{WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial},
 };
-
-use crate::currency::MICROALFT;
 
 pub mod elections;
 pub mod identity;
@@ -74,31 +69,6 @@ pub type SlowAdjustingFeeUpdate<R> = TargetedFeeAdjustment<
 	MinimumMultiplier,
 	MaximumMultiplier,
 >;
-
-/// Handles converting a weight scalar to a fee value, based on the scale and granularity of the
-/// node's balance type.
-///
-/// This should typically create a mapping between the following ranges:
-///   - [0, MAXIMUM_BLOCK_WEIGHT]
-///   - [Balance::min, Balance::max]
-///
-/// Yet, it can be used for any other sort of change to weight-fee. Some examples being:
-///   - Setting it to `0` will essentially disable the weight fee.
-///   - Setting it to `1` will cause the literal `#[weight = x]` values to be charged.
-pub struct WeightToFee;
-impl WeightToFeePolynomial for WeightToFee {
-	type Balance = Balance;
-	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-		let p = 100 * MICROALFT; // Around 0.0001 ALFT
-		let q = Balance::from(ExtrinsicBaseWeight::get().ref_time());
-		smallvec::smallvec![WeightToFeeCoefficient {
-			degree: 1,
-			negative: false,
-			coeff_frac: Perbill::from_rational(p % q, q),
-			coeff_integer: p / q,
-		}]
-	}
-}
 
 /// We assume that an on-initialize consumes 1% of the weight on average, hence a single extrinsic
 /// will not be allowed to consume more than `AvailableBlockRatio - 1%`.

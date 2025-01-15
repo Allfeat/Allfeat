@@ -23,7 +23,7 @@ use shared_runtime::{currency::deposit, identity::IdentityInfo};
 use sp_runtime::traits::Verify;
 
 parameter_types! {
-	// Minimum 4 MILLIALFT/byte
+	// Minimum 4 MILLIAFT/byte
 	pub const ByteDeposit: Balance = deposit(0, 1);
 	pub const BasicDeposit: Balance = deposit(1, 258);
 	pub const SubAccountDeposit: Balance = deposit(1, 53);

@@ -200,6 +200,7 @@ mod runtime {
 	pub type MusicalWorks = pallet_midds<Instance2>;
 }
 
+#[cfg(feature = "runtime-benchmarks")]
 use alloc::string::String;
 use frame::{runtime::apis, traits::NumberFor};
 

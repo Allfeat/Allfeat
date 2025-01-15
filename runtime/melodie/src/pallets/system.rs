@@ -19,43 +19,21 @@
 use crate::*;
 use frame_support::{
 	derive_impl,
-	pallet_prelude::DispatchClass,
-	weights::constants::{
-		BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND,
-	},
+	weights::constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
 };
 use frame_system::limits::BlockWeights;
-use shared_runtime::{weights, RuntimeBlockLength};
+use shared_runtime::{weights, RuntimeBlockLength, NORMAL_DISPATCH_RATIO};
 
 /// We allow for 4 seconds of compute with a 12 second average block time, with maximum proof size
 pub const WEIGHT_MILLISECS_PER_BLOCK: u64 = 4000;
 
-pub const MAXIMUM_BLOCK_WEIGHT: frame_support::weights::Weight =
-	frame_support::weights::Weight::from_parts(
-		WEIGHT_MILLISECS_PER_BLOCK * WEIGHT_REF_TIME_PER_SECOND,
-		u64::MAX,
-	);
-
 frame_support::parameter_types! {
 	pub const Version: sp_version::RuntimeVersion = VERSION;
-	pub RuntimeBlockWeights: BlockWeights = BlockWeights::builder()
-		.base_block(BlockExecutionWeight::get())
-		.for_class(DispatchClass::all(), |weights| {
-			weights.base_extrinsic = ExtrinsicBaseWeight::get();
-		})
-		.for_class(DispatchClass::Normal, |weights| {
-			weights.max_total = Some(shared_runtime::NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT);
-		})
-		.for_class(DispatchClass::Operational, |weights| {
-			weights.max_total = Some(MAXIMUM_BLOCK_WEIGHT);
-			// Operational transactions have some extra reserved space, so that they
-			// are included even if block reached `MAXIMUM_BLOCK_WEIGHT`.
-			weights.reserved = Some(
-				MAXIMUM_BLOCK_WEIGHT - shared_runtime::NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT
-			);
-		})
-		.avg_block_initialization(shared_runtime::AVERAGE_ON_INITIALIZE_RATIO)
-		.build_or_panic();
+	/// We allow for 2 seconds of compute with a 6 second average block time.
+	pub RuntimeBlockWeights: BlockWeights = BlockWeights::with_sensible_defaults(
+		Weight::from_parts(2u64 * WEIGHT_REF_TIME_PER_SECOND, u64::MAX),
+		NORMAL_DISPATCH_RATIO,
+	);
 }
 
 #[derive_impl(frame_system::config_preludes::SolochainDefaultConfig)]

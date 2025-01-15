@@ -12,7 +12,6 @@ parity-scale-codec = { workspace = true, features = [
 	"max-encoded-len",
 ] }
 scale-info = { workspace = true, features = ["derive"] }
-smallvec = { workspace = true }
 
 polkadot-sdk = { workspace = true, features = [
 	"experimental",

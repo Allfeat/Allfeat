@@ -29,7 +29,7 @@ pub use polkadot_sdk::{
 	sp_authority_discovery::AuthorityId as AuthorityDiscoveryId,
 	sp_consensus_babe::AuthorityId as BabeId, sp_consensus_grandpa::AuthorityId as GrandpaId,
 };
-use shared_runtime::currency::ALFT;
+use shared_runtime::currency::AFT;
 
 use crate::{
 	BabeConfig, BalancesConfig, RuntimeGenesisConfig, SessionConfig, SessionKeys, SudoConfig,
@@ -60,7 +60,7 @@ pub fn genesis(
 		}
 	});
 
-	const ENDOWMENT: Balance = 10_000_000 * ALFT;
+	const ENDOWMENT: Balance = 10_000_000 * AFT;
 
 	let config = RuntimeGenesisConfig {
 		balances: BalancesConfig {

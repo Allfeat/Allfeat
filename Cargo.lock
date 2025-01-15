@@ -6988,6 +6988,7 @@ dependencies = [
  "scale-info",
  "serde_json",
  "shared-runtime",
+ "smallvec",
  "substrate-validator-set",
  "substrate-wasm-builder",
 ]
@@ -14977,7 +14978,6 @@ dependencies = [
  "parity-scale-codec",
  "polkadot-sdk",
  "scale-info",
- "smallvec",
 ]
 
 [[package]]
