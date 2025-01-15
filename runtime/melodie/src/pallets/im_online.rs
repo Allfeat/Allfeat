@@ -54,7 +54,7 @@ where
 	type Extension = SignedExtra;
 
 	fn create_transaction(call: RuntimeCall, extension: SignedExtra) -> UncheckedExtrinsic {
-		generic::UncheckedExtrinsic::new_transaction(call, extension).into()
+		generic::UncheckedExtrinsic::new_transaction(call, extension)
 	}
 }
 
@@ -100,8 +100,7 @@ where
 		let signature = raw_payload.using_encoded(|payload| C::sign(payload, public))?;
 		let address = Self::Lookup::unlookup(account);
 		let (call, tx_ext, _) = raw_payload.deconstruct();
-		let transaction =
-			generic::UncheckedExtrinsic::new_signed(call, address, signature, tx_ext).into();
+		let transaction = generic::UncheckedExtrinsic::new_signed(call, address, signature, tx_ext);
 		Some(transaction)
 	}
 }
@@ -111,7 +110,7 @@ where
 	RuntimeCall: From<LocalCall>,
 {
 	fn create_inherent(call: RuntimeCall) -> UncheckedExtrinsic {
-		generic::UncheckedExtrinsic::new_bare(call).into()
+		generic::UncheckedExtrinsic::new_bare(call)
 	}
 }
 
