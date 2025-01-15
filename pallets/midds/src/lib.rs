@@ -52,13 +52,14 @@ pub mod pallet {
 		traits::{fungible::Inspect, tokens::Precision},
 	};
 
+	pub type MomentOf<T> = <T as polkadot_sdk::pallet_timestamp::Config>::Moment;
 	pub type BalanceOf<T, I = ()> =
 		<<T as Config<I>>::Currency as Inspect<<T as frame_system::Config>::AccountId>>::Balance;
 
 	pub type MiddsHashIdOf<T> = <T as frame_system::Config>::Hash;
 	pub type MiddsWrapperOf<T, I> = MiddsWrapper<
 		<T as frame_system::Config>::AccountId,
-		BlockNumberFor<T>,
+		<T as polkadot_sdk::pallet_timestamp::Config>::Moment,
 		<T as Config<I>>::MIDDS,
 	>;
 
@@ -83,13 +84,16 @@ pub mod pallet {
 			type RuntimeHoldReason = ();
 			type ByteDepositCost = ConstU64<1>;
 			type MaxDepositCost = ConstU64<10000>;
-			type UnregisterPeriod = ConstU32<7>;
+			type UnregisterPeriod = ConstU64<60>; // 60 seconds
 			type WeightInfo = ();
 		}
 	}
 
 	#[pallet::config(with_default)]
-	pub trait Config<I: 'static = ()>: polkadot_sdk::frame_system::Config {
+	pub trait Config<I: 'static = ()>:
+		polkadot_sdk::frame_system::Config
+		+ polkadot_sdk::pallet_timestamp::Config<Moment = allfeat_primitives::Moment>
+	{
 		/// The MIDDS pallet instance pallet id
 		#[pallet::no_default]
 		#[pallet::constant]
@@ -141,7 +145,8 @@ pub mod pallet {
 
 		/// How many time the depositor have to wait to remove the MIDDS.
 		#[pallet::constant]
-		type UnregisterPeriod: Get<u32>;
+		#[pallet::no_default_bounds]
+		type UnregisterPeriod: Get<MomentOf<Self>>;
 
 		type WeightInfo: WeightInfo;
 	}
@@ -200,8 +205,11 @@ pub mod pallet {
 		#[pallet::call_index(0)]
 		pub fn register(origin: OriginFor<T>, midds: Box<T::MIDDS>) -> DispatchResult {
 			let provider = T::ProviderOrigin::ensure_origin(origin)?;
-			let midds =
-				MiddsWrapper::new(provider, <frame_system::Pallet<T>>::block_number(), *midds);
+			let midds = MiddsWrapper::new(
+				provider,
+				polkadot_sdk::pallet_timestamp::Pallet::<T>::get(),
+				*midds,
+			);
 
 			Self::inner_register(midds)
 		}
@@ -273,7 +281,7 @@ pub mod pallet {
 			if let Some(midds) = PendingMidds::<T, I>::get(midds_id) {
 				ensure!(midds.provider() == caller, Error::<T, I>::NotProvider);
 
-				let now = <frame_system::Pallet<T>>::block_number();
+				let now = polkadot_sdk::pallet_timestamp::Pallet::<T>::get();
 				let spent = now - midds.registered_at();
 				ensure!(
 					spent
@@ -305,9 +313,7 @@ pub mod pallet {
 }
 
 impl<T: Config<I>, I: 'static> Pallet<T, I> {
-	fn inner_register(
-		midds: MiddsWrapper<T::AccountId, BlockNumberFor<T>, T::MIDDS>,
-	) -> DispatchResult {
+	fn inner_register(midds: MiddsWrapperOf<T, I>) -> DispatchResult {
 		let midds_hash = midds.midds.hash();
 
 		// Verify that the same MIDDS hash isn't registered already.

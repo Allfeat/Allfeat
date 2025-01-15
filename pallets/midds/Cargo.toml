@@ -20,7 +20,14 @@ parity-scale-codec = { features = [
 log = { workspace = true }
 scale-info = { features = ["derive"], workspace = true }
 allfeat-support = { workspace = true }
+allfeat-primitives = { workspace = true }
 polkadot-sdk = { workspace = true, features = ["experimental", "runtime"] }
+
+[dev-dependencies]
+polkadot-sdk = { workspace = true, features = [
+	"pallet-timestamp",
+	"pallet-balances",
+] }
 
 [features]
 default = ["std"]
@@ -30,6 +37,7 @@ std = [
 	"log/std",
 	"scale-info/std",
 	"allfeat-support/std",
+	"allfeat-primitives/std",
 ]
 runtime-benchmarks = [
 	"polkadot-sdk/runtime-benchmarks",

@@ -22,23 +22,23 @@ use polkadot_sdk::{frame_support::Parameter, sp_runtime::traits::Member};
 use scale_info::TypeInfo;
 
 #[derive(Encode, MaxEncodedLen, Decode, Clone, PartialEq, Eq, TypeInfo)]
-pub struct MiddsWrapper<AccountId, BlockNumber, Inner>
+pub struct MiddsWrapper<AccountId, Moment, Inner>
 where
 	AccountId: Parameter + Member,
-	BlockNumber: Parameter + Member,
+	Moment: Parameter + Member,
 	Inner: Midds + Parameter + Member,
 {
-	pub(crate) base: BaseInfos<AccountId, BlockNumber>,
+	pub(crate) base: BaseInfos<AccountId, Moment>,
 	pub midds: Inner,
 }
 
-impl<AccountId, BlockNumber, Inner> MiddsWrapper<AccountId, BlockNumber, Inner>
+impl<AccountId, Moment, Inner> MiddsWrapper<AccountId, Moment, Inner>
 where
 	AccountId: Parameter + Member,
-	BlockNumber: Parameter + Member,
+	Moment: Parameter + Member,
 	Inner: Midds + Parameter + Member,
 {
-	pub(crate) fn new(provider: AccountId, timestamp: BlockNumber, inner_midds: Inner) -> Self {
+	pub(crate) fn new(provider: AccountId, timestamp: Moment, inner_midds: Inner) -> Self {
 		Self { base: BaseInfos { provider, registered_at: timestamp }, midds: inner_midds }
 	}
 
@@ -46,17 +46,17 @@ where
 		self.base.provider.clone()
 	}
 
-	pub fn registered_at(&self) -> BlockNumber {
+	pub fn registered_at(&self) -> Moment {
 		self.base.registered_at.clone()
 	}
 }
 
 #[derive(Encode, MaxEncodedLen, Decode, Clone, PartialEq, Eq, TypeInfo)]
 /// Basic informations on the MIDDS entity used to manage the MIDDS pallet database
-pub struct BaseInfos<AccountId, BlockNumber>
+pub struct BaseInfos<AccountId, Moment>
 where
 	AccountId: Parameter + Member,
 {
 	provider: AccountId,
-	registered_at: BlockNumber,
+	registered_at: Moment,
 }

@@ -25,7 +25,7 @@ use frame::testing_prelude::*;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use polkadot_sdk::{
 	frame_support::{self, PalletId},
-	pallet_balances, sp_io, sp_runtime,
+	pallet_balances, pallet_timestamp, sp_io, sp_runtime,
 };
 use scale_info::TypeInfo;
 
@@ -86,6 +86,7 @@ impl Midds for MockMiddsStruct {
 
 #[frame_support::runtime]
 mod runtime {
+
 	#[runtime::runtime]
 	#[runtime::derive(
 		RuntimeCall,
@@ -103,9 +104,12 @@ mod runtime {
 	pub type System = frame_system;
 
 	#[runtime::pallet_index(1)]
-	pub type Balances = pallet_balances;
+	pub type Time = pallet_timestamp;
 
 	#[runtime::pallet_index(2)]
+	pub type Balances = pallet_balances;
+
+	#[runtime::pallet_index(3)]
 	pub type MockMidds = pallet_midds;
 }
 
@@ -123,6 +127,9 @@ impl pallet_balances::Config for Test {
 parameter_types! {
 	pub MiddsPalletId: PalletId = PalletId(*b"mckmidds");
 }
+
+#[derive_impl(pallet_timestamp::config_preludes::TestDefaultConfig)]
+impl pallet_timestamp::Config for Test {}
 
 #[derive_impl(pallet_midds::config_preludes::TestDefaultConfig)]
 impl pallet_midds::Config for Test {

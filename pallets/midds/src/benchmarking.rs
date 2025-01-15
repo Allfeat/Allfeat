@@ -87,8 +87,10 @@ mod benchmarks {
 			Box::new(midds.clone()),
 		)?;
 
-		frame_system::Pallet::<T>::set_block_number(
-			(T::UnregisterPeriod::get() + 2).saturated_into(),
+		let now = polkadot_sdk::pallet_timestamp::Pallet::<T>::get();
+		let unregister_period = T::UnregisterPeriod::get().saturating_add(1);
+		polkadot_sdk::pallet_timestamp::Pallet::<T>::set_timestamp(
+			now.saturating_add(unregister_period),
 		);
 
 		#[extrinsic_call]
