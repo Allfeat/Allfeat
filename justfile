@@ -7,6 +7,7 @@ optimized_node_args := "-- --database=paritydb \
 
 # Cargo profile used to execute cargo commands.
 CARGO_PROFILE := env("PROFILE", "release")
+BENCHER := env("BENCHER_PATH", "frame-omni-bencher")
 
 # Build the node (default to release profile)
 [no-exit-message]
@@ -14,6 +15,7 @@ build:
   echo "Starting to build Allfeat Node with profile '{{CARGO_PROFILE}}'"
   cargo build --profile {{CARGO_PROFILE}}
 
+[no-exit-message]
 build-melodie:
   cargo build --profile=production --package melodie-runtime --features on-chain-release-build
 
@@ -24,6 +26,17 @@ start args='': (_start-base "--sync=warp" args)
 # Start the node with default arguments in development mode.
 [no-exit-message]
 start-dev args='': (_start-base "--dev" args)
+
+[no-exit-message]
+benchmark-pallet runtime="melodie" pallet="":
+    cargo build --profile production --features runtime-benchmarks --package {{runtime}}-runtime
+    {{BENCHER}} v1 benchmark pallet \
+      --runtime "./target/production/wbuild/{{runtime}}-runtime/{{runtime}}_runtime.compact.compressed.wasm" \
+      --genesis-builder-preset="development" \
+      --pallet={{pallet}} \
+      --extrinsic="*" \
+      --header="./HEADER" \
+      --template=./.maintain/frame-weight-template.hbs 2>&1
 
 # Check for compilation errors, default to debug mode
 [no-exit-message]
