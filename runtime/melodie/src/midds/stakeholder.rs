@@ -27,14 +27,24 @@ use shared_runtime::{
 
 parameter_types! {
 	pub const StakeholderPalletId: PalletId = PalletId(*b"m/stkhld");
-	pub const UnregisterPeriod: u32 = 7 * DAYS;
 	pub const ByteDepositCost: Balance = 10 * MILLIAFT;
 	pub const MaxDepositCost: Balance = 100 * AFT;
+}
+
+#[cfg(not(feature = "runtime-benchmarks"))]
+parameter_types! {
+	pub const UnregisterPeriod: Option<Moment> = Some(7 * DAYS as u64);
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+parameter_types! {
+	pub const UnregisterPeriod: Option<Moment> = None;
 }
 
 impl pallet_midds::Config<Stakeholders> for Runtime {
 	type PalletId = StakeholderPalletId;
 	type RuntimeEvent = RuntimeEvent;
+	type Timestamp = Timestamp;
 	type Currency = Balances;
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type MIDDS = midds_stakeholder::Stakeholder<Self::Hashing>;

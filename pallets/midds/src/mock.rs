@@ -134,6 +134,7 @@ impl pallet_timestamp::Config for Test {}
 #[derive_impl(pallet_midds::config_preludes::TestDefaultConfig)]
 impl pallet_midds::Config for Test {
 	type PalletId = MiddsPalletId;
+	type Timestamp = Time;
 	type Currency = Balances;
 	type MIDDS = MockMiddsStruct;
 	type ProviderOrigin = EnsureSigned<Self::AccountId>;

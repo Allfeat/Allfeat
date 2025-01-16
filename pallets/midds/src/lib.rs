@@ -44,6 +44,7 @@ pub use pallet::*;
 #[frame::pallet]
 pub mod pallet {
 	use super::*;
+	use allfeat_primitives::Moment;
 	use allfeat_support::traits::Midds;
 	#[cfg(feature = "runtime-benchmarks")]
 	use frame::traits::fungible::Mutate;
@@ -51,15 +52,16 @@ pub mod pallet {
 		deps::frame_support::PalletId,
 		traits::{fungible::Inspect, tokens::Precision},
 	};
+	use polkadot_sdk::frame_support::traits::Time;
 
-	pub type MomentOf<T> = <T as polkadot_sdk::pallet_timestamp::Config>::Moment;
+	pub type MomentOf<T, I> = <<T as Config<I>>::Timestamp as Time>::Moment;
 	pub type BalanceOf<T, I = ()> =
 		<<T as Config<I>>::Currency as Inspect<<T as frame_system::Config>::AccountId>>::Balance;
 
 	pub type MiddsHashIdOf<T> = <T as frame_system::Config>::Hash;
 	pub type MiddsWrapperOf<T, I> = MiddsWrapper<
 		<T as frame_system::Config>::AccountId,
-		<T as polkadot_sdk::pallet_timestamp::Config>::Moment,
+		MomentOf<T, I>,
 		<T as Config<I>>::MIDDS,
 	>;
 
@@ -69,9 +71,16 @@ pub mod pallet {
 	/// Default implementations of [`DefaultConfig`], which can be used to implement [`Config`].
 	pub mod config_preludes {
 		use super::*;
-		use polkadot_sdk::{frame_support::derive_impl, sp_core::ConstU64};
+		use polkadot_sdk::{
+			frame_support::{derive_impl, parameter_types},
+			sp_core::ConstU64,
+		};
 
 		pub struct TestDefaultConfig;
+
+		parameter_types! {
+			pub const UnregisterPeriod: Option<u64> = None;
+		}
 
 		#[derive_impl(frame_system::config_preludes::TestDefaultConfig, no_aggregated_types)]
 		impl polkadot_sdk::frame_system::DefaultConfig for TestDefaultConfig {}
@@ -84,16 +93,13 @@ pub mod pallet {
 			type RuntimeHoldReason = ();
 			type ByteDepositCost = ConstU64<1>;
 			type MaxDepositCost = ConstU64<10000>;
-			type UnregisterPeriod = ConstU64<60>; // 60 seconds
+			type UnregisterPeriod = UnregisterPeriod;
 			type WeightInfo = ();
 		}
 	}
 
 	#[pallet::config(with_default)]
-	pub trait Config<I: 'static = ()>:
-		polkadot_sdk::frame_system::Config
-		+ polkadot_sdk::pallet_timestamp::Config<Moment = allfeat_primitives::Moment>
-	{
+	pub trait Config<I: 'static = ()>: polkadot_sdk::frame_system::Config {
 		/// The MIDDS pallet instance pallet id
 		#[pallet::no_default]
 		#[pallet::constant]
@@ -108,6 +114,9 @@ pub mod pallet {
 		#[cfg(not(feature = "runtime-benchmarks"))]
 		/// The currency trait used to manage MIDDS payments.
 		type Currency: MutateHold<Self::AccountId, Reason = Self::RuntimeHoldReason>;
+
+		#[pallet::no_default]
+		type Timestamp: Time<Moment = Moment>;
 
 		#[pallet::no_default]
 		#[cfg(feature = "runtime-benchmarks")]
@@ -146,7 +155,7 @@ pub mod pallet {
 		/// How many time the depositor have to wait to remove the MIDDS.
 		#[pallet::constant]
 		#[pallet::no_default_bounds]
-		type UnregisterPeriod: Get<MomentOf<Self>>;
+		type UnregisterPeriod: Get<Option<MomentOf<Self, I>>>;
 
 		type WeightInfo: WeightInfo;
 	}
@@ -206,11 +215,7 @@ pub mod pallet {
 		#[pallet::call_index(0)]
 		pub fn register(origin: OriginFor<T>, midds: Box<T::MIDDS>) -> DispatchResult {
 			let provider = T::ProviderOrigin::ensure_origin(origin)?;
-			let midds = MiddsWrapper::new(
-				provider,
-				polkadot_sdk::pallet_timestamp::Pallet::<T>::get(),
-				*midds,
-			);
+			let midds = MiddsWrapper::new(provider, T::Timestamp::now(), *midds);
 
 			Self::inner_register(midds)
 		}
@@ -282,15 +287,17 @@ pub mod pallet {
 			if let Some(midds) = PendingMidds::<T, I>::get(midds_id) {
 				ensure!(midds.provider() == caller, Error::<T, I>::NotProvider);
 
-				let now = polkadot_sdk::pallet_timestamp::Pallet::<T>::get();
-				let spent = now - midds.registered_at();
-				ensure!(
-					spent >
-						polkadot_sdk::sp_runtime::SaturatedConversion::saturated_into(
-							T::UnregisterPeriod::get()
-						),
-					Error::<T, I>::UnregisterLocked
-				);
+				if T::UnregisterPeriod::get().is_some() {
+					let now = T::Timestamp::now();
+					let spent = now - midds.registered_at();
+					ensure!(
+						spent
+							> polkadot_sdk::sp_runtime::SaturatedConversion::saturated_into(
+								T::UnregisterPeriod::get().unwrap()
+							),
+						Error::<T, I>::UnregisterLocked
+					);
+				}
 
 				let actual_cost = Self::calculate_midds_colateral(&midds);
 				T::Currency::release(
