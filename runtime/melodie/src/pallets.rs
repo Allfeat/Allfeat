@@ -29,6 +29,7 @@ mod identity;
 mod im_online;
 mod mmr;
 mod preimage;
+mod safe_mode;
 mod session;
 mod sudo;
 mod system;

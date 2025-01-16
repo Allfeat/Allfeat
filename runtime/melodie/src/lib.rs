@@ -135,7 +135,7 @@ mod runtime {
 	pub type System = frame_system;
 
 	#[runtime::pallet_index(1)]
-	pub type Balances = pallet_balances;
+	pub type Utility = pallet_utility;
 
 	#[runtime::pallet_index(2)]
 	pub type Babe = pallet_babe;
@@ -143,56 +143,58 @@ mod runtime {
 	#[runtime::pallet_index(3)]
 	pub type Timestamp = pallet_timestamp;
 
-	#[runtime::pallet_index(26)]
-	pub type TransactionPayment = pallet_transaction_payment;
-
 	#[runtime::pallet_index(4)]
-	pub type ImOnline = pallet_im_online;
-
-	#[runtime::pallet_index(5)]
 	pub type Authorship = pallet_authorship;
 
-	#[runtime::pallet_index(201)]
-	pub type Mmr = pallet_mmr;
+	#[runtime::pallet_index(5)]
+	pub type Balances = pallet_balances;
 
-	#[runtime::pallet_index(8)]
+	#[runtime::pallet_index(6)]
+	pub type TransactionPayment = pallet_transaction_payment;
+
+	#[runtime::pallet_index(7)]
 	pub type ValidatorSet = pallet_validator_set;
 
-	#[runtime::pallet_index(27)]
-	pub type Historical = pallet_session::historical;
-
-	#[runtime::pallet_index(9)]
+	#[runtime::pallet_index(8)]
 	pub type Session = pallet_session;
 
-	#[runtime::pallet_index(10)]
+	#[runtime::pallet_index(9)]
 	pub type Grandpa = pallet_grandpa;
+
+	#[runtime::pallet_index(10)]
+	pub type Sudo = pallet_sudo;
+
+	#[runtime::pallet_index(11)]
+	pub type ImOnline = pallet_im_online;
 
 	#[runtime::pallet_index(12)]
 	pub type AuthorityDiscovery = pallet_authority_discovery;
 
-	#[runtime::pallet_index(16)]
-	pub type Utility = pallet_utility;
+	#[runtime::pallet_index(13)]
+	pub type Historical = pallet_session::historical;
 
-	#[runtime::pallet_index(17)]
+	#[runtime::pallet_index(14)]
 	pub type Identity = pallet_identity;
 
-	#[runtime::pallet_index(20)]
+	#[runtime::pallet_index(15)]
 	pub type Scheduler = pallet_scheduler;
 
-	#[runtime::pallet_index(28)]
+	#[runtime::pallet_index(16)]
 	pub type Preimage = pallet_preimage;
 
-	#[runtime::pallet_index(21)]
-	pub type Sudo = pallet_sudo;
-
-	#[runtime::pallet_index(22)]
+	#[runtime::pallet_index(17)]
 	pub type Proxy = pallet_proxy;
 
-	#[runtime::pallet_index(23)]
+	#[runtime::pallet_index(18)]
 	pub type Multisig = pallet_multisig;
 
-	// Allfeat related
+	#[runtime::pallet_index(19)]
+	pub type SafeMode = pallet_safe_mode;
 
+	#[runtime::pallet_index(50)]
+	pub type Mmr = pallet_mmr;
+
+	// Allfeat related
 	#[runtime::pallet_index(101)]
 	pub type Stakeholders = pallet_midds<Instance1>;
 

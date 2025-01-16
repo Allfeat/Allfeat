@@ -41,6 +41,7 @@ polkadot-sdk = { workspace = true, features = [
 	"pallet-transaction-payment-rpc-runtime-api",
 	"pallet-identity",
 	"pallet-authority-discovery",
+	"pallet-safe-mode",
 ] }
 shared-runtime = { workspace = true }
 allfeat-primitives = { workspace = true }
