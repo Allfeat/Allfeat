@@ -14,6 +14,9 @@ build:
   echo "Starting to build Allfeat Node with profile '{{CARGO_PROFILE}}'"
   cargo build --profile {{CARGO_PROFILE}}
 
+build-melodie:
+  cargo build --profile=production --package melodie-runtime --features on-chain-release-build
+
 # Start the node with default arguments in default mode (Melodie Testnet Live)
 [no-exit-message]
 start args='': (_start-base "--sync=warp" args)
