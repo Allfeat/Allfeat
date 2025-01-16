@@ -17,10 +17,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::*;
-use frame_support::{
-	derive_impl,
-	weights::constants::{RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND},
-};
+use frame::weights_prelude::ParityDbWeight;
+use frame_support::{derive_impl, weights::constants::WEIGHT_REF_TIME_PER_SECOND};
 use frame_system::limits::BlockWeights;
 use shared_runtime::{weights, RuntimeBlockLength, NORMAL_DISPATCH_RATIO};
 
@@ -45,7 +43,7 @@ impl frame_system::Config for Runtime {
 	type Hash = allfeat_primitives::Hash;
 	type AccountId = AccountId;
 	type BlockHashCount = shared_runtime::BlockHashCount;
-	type DbWeight = RocksDbWeight;
+	type DbWeight = ParityDbWeight;
 	type Version = Version;
 	type AccountData = pallet_balances::AccountData<Balance>;
 	type SystemWeightInfo = weights::system::AllfeatWeight<Runtime>;
