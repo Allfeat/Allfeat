@@ -57,5 +57,5 @@ impl pallet_midds::Config<MusicalWorks> for Runtime {
 	type ByteDepositCost = ByteDepositCost;
 	type MaxDepositCost = MaxDepositCost;
 	type UnregisterPeriod = UnregisterPeriod;
-	type WeightInfo = weights::midds_songs::AllfeatWeight<Runtime>;
+	type WeightInfo = weights::midds_musical_works::AllfeatWeight<Runtime>;
 }

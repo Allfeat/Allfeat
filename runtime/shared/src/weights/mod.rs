@@ -18,16 +18,17 @@
 
 // MIDDS
 pub mod balances;
-// pub mod identity;
+pub mod identity;
 pub mod im_online;
-pub mod midds_songs;
+pub mod midds_musical_works;
 pub mod midds_stakeholders;
-pub mod multisig;
+// pub mod multisig;
 pub mod preimage;
 pub mod proxy;
+pub mod safe_mode;
 pub mod scheduler;
 pub mod session;
-// pub mod sudo;
+pub mod sudo;
 pub mod system;
 pub mod timestamp;
 pub mod utility;

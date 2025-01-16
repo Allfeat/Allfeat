@@ -35,5 +35,6 @@ impl pallet_multisig::Config for Runtime {
 	type DepositBase = DepositBase;
 	type DepositFactor = DepositFactor;
 	type MaxSignatories = MaxSignatories;
-	type WeightInfo = shared_runtime::weights::multisig::AllfeatWeight<Runtime>;
+	type WeightInfo = pallet_multisig::weights::SubstrateWeight<Runtime>;
+	//type WeightInfo = shared_runtime::weights::multisig::AllfeatWeight<Runtime>;
 }
