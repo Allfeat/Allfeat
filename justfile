@@ -38,6 +38,10 @@ benchmark-pallet runtime="melodie" pallet="":
       --header="./HEADER" \
       --template=./.maintain/frame-weight-template.hbs 2>&1
 
+[no-exit-message]
+format:
+  cargo +nightly fmt --all
+
 # Check for compilation errors, default to debug mode
 [no-exit-message]
 check:
