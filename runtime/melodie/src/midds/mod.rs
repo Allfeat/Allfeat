@@ -16,8 +16,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod song;
-mod stakeholder;
+mod musical_works;
+mod stakeholders;
 
 pub type Stakeholders = pallet_midds::Instance1;
 pub type MusicalWorks = pallet_midds::Instance2;

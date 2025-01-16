@@ -1,7 +1,7 @@
 [package]
-name = "midds-song"
+name = "midds-musical-work"
 version = "1.0.0-dev"
-description = "MIDDS representating a Song (aka Musical Work) entity"
+description = "MIDDS representating a Musical Work entity"
 authors.workspace = true
 edition.workspace = true
 homepage.workspace = true

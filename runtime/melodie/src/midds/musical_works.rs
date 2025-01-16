@@ -49,8 +49,10 @@ impl pallet_midds::Config<MusicalWorks> for Runtime {
 	type Timestamp = Timestamp;
 	type Currency = Balances;
 	type RuntimeHoldReason = RuntimeHoldReason;
-	type MIDDS =
-		midds_song::Song<Self::Hashing, <Self::Hashing as sp_runtime::traits::Hash>::Output>;
+	type MIDDS = midds_musical_work::MusicalWork<
+		Self::Hashing,
+		<Self::Hashing as sp_runtime::traits::Hash>::Output,
+	>;
 	type ProviderOrigin = EnsureSigned<Self::AccountId>;
 	type ByteDepositCost = ByteDepositCost;
 	type MaxDepositCost = MaxDepositCost;

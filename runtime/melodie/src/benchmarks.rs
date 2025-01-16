@@ -25,7 +25,7 @@ polkadot_sdk::frame_benchmarking::define_benchmarks!(
 	[pallet_identity, Identity]
 	[pallet_im_online, ImOnline]
 	[pallet_midds_stakeholders, Stakeholders]
-	[pallet_midds_songs, MusicalWorks]
+	[pallet_midds_musical_works, MusicalWorks]
 	[pallet_mmr, Mmr]
 	[pallet_multisig, Multisig]
 	[pallet_preimage, Preimage]

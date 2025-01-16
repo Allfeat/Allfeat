@@ -21,7 +21,7 @@
 extern crate alloc;
 use allfeat_support::{
 	traits::Midds,
-	types::{SongTitle, SongType, ISWC},
+	types::{MusicalWorkTitle, MusicalWorkType, ISWC},
 };
 use alloc::{vec, vec::Vec};
 use core::marker::PhantomData;
@@ -33,17 +33,17 @@ use scale_info::TypeInfo;
 pub type SharesVec<StakeholderHashId> = BoundedVec<Share<StakeholderHashId>, ConstU32<64>>;
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, TypeInfo)]
-pub enum SongEditableField<StakeholderHashId> {
+pub enum MusicalWorkEditableField<StakeholderHashId> {
 	ISWC(Option<ISWC>),
-	Title(Option<SongTitle>),
+	Title(Option<MusicalWorkTitle>),
 	Duration(Option<u32>),
-	Type(Option<SongType>),
+	Type(Option<MusicalWorkType>),
 	Shares(SharesEditAction<StakeholderHashId>),
 }
 
-impl<StakeholderHashId> Default for SongEditableField<StakeholderHashId> {
+impl<StakeholderHashId> Default for MusicalWorkEditableField<StakeholderHashId> {
 	fn default() -> Self {
-		SongEditableField::ISWC(Some(Default::default()))
+		MusicalWorkEditableField::ISWC(Some(Default::default()))
 	}
 }
 
@@ -54,16 +54,16 @@ pub enum SharesEditAction<StakeholderHashId> {
 }
 
 #[derive(Encode, Default, MaxEncodedLen, Decode, Clone, PartialEq, Eq, RuntimeDebug, TypeInfo)]
-pub struct Song<Hash, StakeholderHashId> {
+pub struct MusicalWork<Hash, StakeholderHashId> {
 	pub iswc: Option<ISWC>,
-	pub title: Option<SongTitle>,
+	pub title: Option<MusicalWorkTitle>,
 	pub duration: Option<u32>,
-	pub _type: Option<SongType>,
+	pub _type: Option<MusicalWorkType>,
 	pub shares: Option<SharesVec<StakeholderHashId>>,
 	_phantom_data: PhantomData<Hash>,
 }
 
-impl<Hash, StakeholderHashId> Song<Hash, StakeholderHashId> {
+impl<Hash, StakeholderHashId> MusicalWork<Hash, StakeholderHashId> {
 	pub fn validate_shares(&self) -> Result<(), DispatchError> {
 		if let Some(shares) = &self.shares {
 			let total_performance_share: u8 = shares
@@ -84,13 +84,13 @@ impl<Hash, StakeholderHashId> Song<Hash, StakeholderHashId> {
 	}
 }
 
-impl<Hash, StakeholderHashId> Midds for Song<Hash, StakeholderHashId>
+impl<Hash, StakeholderHashId> Midds for MusicalWork<Hash, StakeholderHashId>
 where
 	Hash: HashT,
 	StakeholderHashId: Parameter + 'static,
 {
 	type Hash = Hash;
-	type EditableFields = SongEditableField<StakeholderHashId>;
+	type EditableFields = MusicalWorkEditableField<StakeholderHashId>;
 
 	fn is_complete(&self) -> bool {
 		self.iswc.is_some() &&
@@ -115,11 +115,11 @@ where
 
 	fn update_field(&mut self, data: Self::EditableFields) -> DispatchResult {
 		match data {
-			SongEditableField::ISWC(x) => self.iswc = x,
-			SongEditableField::Type(x) => self._type = x,
-			SongEditableField::Duration(x) => self.duration = x,
-			SongEditableField::Title(x) => self.title = x,
-			SongEditableField::Shares(action) => match action {
+			MusicalWorkEditableField::ISWC(x) => self.iswc = x,
+			MusicalWorkEditableField::Type(x) => self._type = x,
+			MusicalWorkEditableField::Duration(x) => self.duration = x,
+			MusicalWorkEditableField::Title(x) => self.title = x,
+			MusicalWorkEditableField::Shares(action) => match action {
 				SharesEditAction::Add(share) =>
 					if self.shares.is_some() {
 						self.shares.as_mut().expect("already checked").try_push(share).map_err(
@@ -151,7 +151,7 @@ where
 			iswc: Default::default(),
 			title: Some(sample_data),
 			duration: Some(1u32),
-			_type: Some(SongType::Song),
+			_type: Some(MusicalWorkType::Song),
 			shares: Default::default(),
 			_phantom_data: Default::default(),
 		}

@@ -6980,7 +6980,7 @@ version = "1.0.0-dev"
 dependencies = [
  "allfeat-primitives",
  "log",
- "midds-song",
+ "midds-musical-work",
  "midds-stakeholder",
  "pallet-midds",
  "parity-scale-codec",
@@ -7071,7 +7071,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "midds-song"
+name = "midds-musical-work"
 version = "1.0.0-dev"
 dependencies = [
  "allfeat-support",

@@ -162,10 +162,10 @@ mod iswc {
 	}
 }
 
-pub type SongTitle = BoundedVec<u8, ConstU32<128>>;
+pub type MusicalWorkTitle = BoundedVec<u8, ConstU32<128>>;
 
 #[derive(Encode, Default, Decode, Clone, PartialEq, Eq, RuntimeDebug, MaxEncodedLen, TypeInfo)]
-pub enum SongType {
+pub enum MusicalWorkType {
 	#[default]
 	Instrumental,
 	Song,

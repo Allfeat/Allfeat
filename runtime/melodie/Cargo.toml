@@ -51,7 +51,7 @@ pallet-midds = { workspace = true }
 
 # Allfeat MIDDS
 midds-stakeholder = { workspace = true }
-midds-song = { workspace = true }
+midds-musical-work = { workspace = true }
 
 pallet-validator-set = { workspace = true }
 
@@ -77,7 +77,7 @@ std = [
 	"substrate-wasm-builder",
 	# MIDDS
 	"midds-stakeholder/std",
-	"midds-song/std",
+	"midds-musical-work/std",
 ]
 runtime-benchmarks = [
 	"polkadot-sdk/runtime-benchmarks",
@@ -86,7 +86,7 @@ runtime-benchmarks = [
 	#	"pallet-validator-set/runtime-benchmarks",
 	"pallet-midds/runtime-benchmarks",
 	"midds-stakeholder/runtime-benchmarks",
-	"midds-song/runtime-benchmarks",
+	"midds-musical-work/runtime-benchmarks",
 ]
 try-runtime = [
 	"polkadot-sdk/try-runtime",

@@ -291,8 +291,8 @@ pub mod pallet {
 					let now = T::Timestamp::now();
 					let spent = now - midds.registered_at();
 					ensure!(
-						spent
-							> polkadot_sdk::sp_runtime::SaturatedConversion::saturated_into(
+						spent >
+							polkadot_sdk::sp_runtime::SaturatedConversion::saturated_into(
 								T::UnregisterPeriod::get().unwrap()
 							),
 						Error::<T, I>::UnregisterLocked
