@@ -1,55 +1,28 @@
 #!/usr/bin/env bash
 set -e
 
-if [ "$#" -ne 1 ]; then
-	echo "Please provide the number of initial validators!"
-	exit 1
-fi
-
 generate_account_id() {
-	subkey inspect ${3:-} ${4:-} "$SECRET//$1//$2" | grep "Account ID" | awk '{ print $3 }'
+  subkey inspect ${2:-} ${3:-} "$SECRET//$1" | grep "Account ID" | awk '{ print $3 }'
 }
 
 generate_address() {
-	subkey inspect ${3:-} ${4:-} "$SECRET//$1//$2" | grep "SS58 Address" | awk '{ print $3 }'
-}
-
-generate_public_key() {
-	subkey inspect ${3:-} ${4:-} "$SECRET//$1//$2" | grep "Public" | awk '{ print $4 }'
-}
-
-generate_address_and_public_key() {
-	ADDRESS=$(generate_address $1 $2 $3)
-	PUBLIC_KEY=$(generate_public_key $1 $2 $3)
-
-	printf "//$ADDRESS\nhex![\"${PUBLIC_KEY#'0x'}\"].unchecked_into(),"
+  subkey inspect ${2:-} ${3:-} "$SECRET//$1" | grep "SS58 Address" | awk '{ print $3 }'
 }
 
 generate_address_and_account_id() {
-	ACCOUNT=$(generate_account_id $1 $2 $3)
-	ADDRESS=$(generate_address $1 $2 $3)
-	if ${4:-false}; then
-		INTO="unchecked_into"
-	else
-		INTO="into"
-	fi
+  ACCOUNT=$(generate_account_id $1 $2 $3)
+  ADDRESS=$(generate_address $1 $2 $3)
 
-	printf "//$ADDRESS\nhex![\"${ACCOUNT#'0x'}\"].$INTO(),"
+  printf "//$ADDRESS\n<[u8; 32]>::dehexify(\"${ACCOUNT#'0x'}\").unwrap().unchecked_into(),"
 }
-
-V_NUM=$1
 
 AUTHORITIES=""
 
-for i in $(seq 1 $V_NUM); do
-	AUTHORITIES+="(\n"
-	AUTHORITIES+="$(generate_address_and_account_id $i stash)\n"
-	AUTHORITIES+="$(generate_address_and_account_id $i controller)\n"
-	AUTHORITIES+="$(generate_address_and_account_id $i grandpa '--scheme ed25519' true)\n"
-	AUTHORITIES+="$(generate_address_and_account_id $i babe '--scheme sr25519' true)\n"
-	AUTHORITIES+="$(generate_address_and_account_id $i im_online '--scheme sr25519' true)\n"
-	AUTHORITIES+="$(generate_address_and_account_id $i authority_discovery '--scheme sr25519' true)\n"
-	AUTHORITIES+="),\n"
-done
+AUTHORITIES+="(\n"
+AUTHORITIES+="$(generate_address_and_account_id grandpa '--scheme ed25519')\n"
+AUTHORITIES+="$(generate_address_and_account_id babe '--scheme sr25519')\n"
+AUTHORITIES+="$(generate_address_and_account_id im_online '--scheme sr25519')\n"
+AUTHORITIES+="$(generate_address_and_account_id authority_discovery '--scheme sr25519')\n"
+AUTHORITIES+="),\n"
 
 printf "$AUTHORITIES"
