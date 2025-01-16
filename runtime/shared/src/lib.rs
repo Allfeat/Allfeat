@@ -34,7 +34,6 @@ use polkadot_sdk::{
 };
 
 pub mod elections;
-pub mod identity;
 
 pub mod currency;
 
