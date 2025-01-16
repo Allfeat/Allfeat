@@ -196,7 +196,8 @@ pub mod pallet {
 		CantReleaseFunds,
 		/// Funds can't be held at this moment.
 		CantHoldFunds,
-		/// The provider tried to register/update a MIDDS that exceed data size cost maximum authorized.
+		/// The provider tried to register/update a MIDDS that exceed data size cost maximum
+		/// authorized.
 		OverflowedAuthorizedDataCost,
 	}
 
@@ -284,8 +285,8 @@ pub mod pallet {
 				let now = polkadot_sdk::pallet_timestamp::Pallet::<T>::get();
 				let spent = now - midds.registered_at();
 				ensure!(
-					spent
-						> polkadot_sdk::sp_runtime::SaturatedConversion::saturated_into(
+					spent >
+						polkadot_sdk::sp_runtime::SaturatedConversion::saturated_into(
 							T::UnregisterPeriod::get()
 						),
 					Error::<T, I>::UnregisterLocked

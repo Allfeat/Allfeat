@@ -18,8 +18,7 @@
 
 use crate::*;
 use frame_support::parameter_types;
-use shared_runtime::currency::AFT;
-use shared_runtime::weights;
+use shared_runtime::{currency::AFT, weights};
 
 parameter_types! {
 	pub const ExistentialDeposit: Balance =  AFT / 10; // 0.1 AFT

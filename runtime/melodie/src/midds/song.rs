@@ -22,8 +22,10 @@ use super::MusicalWorks;
 use allfeat_primitives::Balance;
 use frame_support::{parameter_types, PalletId};
 use frame_system::EnsureSigned;
-use shared_runtime::currency::AFT;
-use shared_runtime::{currency::MILLIAFT, weights};
+use shared_runtime::{
+	currency::{AFT, MILLIAFT},
+	weights,
+};
 
 parameter_types! {
 	pub const StakeholderPalletId: PalletId = PalletId(*b"m/muwork");
