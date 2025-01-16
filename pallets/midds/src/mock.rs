@@ -55,6 +55,10 @@ impl Midds for MockMiddsStruct {
 		true
 	}
 
+	fn is_valid(&self) -> bool {
+		true // TODO write test for validity
+	}
+
 	fn hash(
 		&self,
 	) -> <<Test as frame_system::Config>::Hashing as sp_runtime::traits::Hash>::Output {

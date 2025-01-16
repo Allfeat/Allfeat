@@ -33,6 +33,8 @@ where
 	/// Return true if the MIDDS is judged as complete, all fields are filled.
 	/// (e.g in case of Option fields, they all should be `Some`)
 	fn is_complete(&self) -> bool;
+	/// Perform any required check that ensure MIDDS data are all valid
+	fn is_valid(&self) -> bool;
 	/// Hash combined fields of the MIDDS to output a general MIDDS Hash.
 	fn hash(&self) -> <Self::Hash as HashT>::Output;
 	fn total_bytes(&self) -> u32 {

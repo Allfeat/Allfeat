@@ -32,7 +32,7 @@ mod ipi {
 	#[derive(
 		Encode, Default, Decode, Clone, PartialEq, Eq, RuntimeDebug, MaxEncodedLen, TypeInfo,
 	)]
-	pub struct IPINameNumber(u64);
+	pub struct IPINameNumber(pub u64);
 
 	impl TryFrom<u64> for IPINameNumber {
 		type Error = DispatchError;

@@ -197,6 +197,8 @@ pub mod pallet {
 		MiddsDataAlreadyExist,
 		/// The specified MIDDS ID is not related to any pending MIDDS.
 		PendingMiddsNotFound,
+		/// Some data in the MIDDS aren't valid.
+		UnvalidMiddsData,
 		/// The lock-unregister period is still going.
 		UnregisterLocked,
 		/// The caller is not the provider of the MIDDS.
@@ -215,7 +217,9 @@ pub mod pallet {
 		#[pallet::call_index(0)]
 		pub fn register(origin: OriginFor<T>, midds: Box<T::MIDDS>) -> DispatchResult {
 			let provider = T::ProviderOrigin::ensure_origin(origin)?;
-			let midds = MiddsWrapper::new(provider, T::Timestamp::now(), *midds);
+			let midds = *midds;
+			ensure!(midds.is_valid(), Error::<T, I>::UnvalidMiddsData);
+			let midds = MiddsWrapper::new(provider, T::Timestamp::now(), midds);
 
 			Self::inner_register(midds)
 		}
@@ -236,6 +240,7 @@ pub mod pallet {
 						let old_hash = midds.midds.hash();
 						let old_cost = Self::calculate_midds_colateral(midds);
 						midds.midds.update_field(field_data)?;
+						ensure!(midds.midds.is_valid(), Error::<T, I>::UnvalidMiddsData);
 						let new_cost = Self::calculate_midds_colateral(midds);
 
 						ensure!(
@@ -291,8 +296,8 @@ pub mod pallet {
 					let now = T::Timestamp::now();
 					let spent = now - midds.registered_at();
 					ensure!(
-						spent >
-							polkadot_sdk::sp_runtime::SaturatedConversion::saturated_into(
+						spent
+							> polkadot_sdk::sp_runtime::SaturatedConversion::saturated_into(
 								T::UnregisterPeriod::get().unwrap()
 							),
 						Error::<T, I>::UnregisterLocked
