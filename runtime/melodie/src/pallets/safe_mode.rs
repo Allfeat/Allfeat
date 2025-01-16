@@ -22,10 +22,7 @@ use crate::*;
 pub struct SafeModeWhitelistedCalls;
 impl Contains<RuntimeCall> for SafeModeWhitelistedCalls {
 	fn contains(call: &RuntimeCall) -> bool {
-		match call {
-			RuntimeCall::System(_) | RuntimeCall::SafeMode(_) => true,
-			_ => false,
-		}
+		matches!(call, RuntimeCall::System(_) | RuntimeCall::SafeMode(_))
 	}
 }
 
