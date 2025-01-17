@@ -220,11 +220,14 @@ fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpecT>, String> {
 	};
 	let chain_spec = match id.to_lowercase().as_str() {
 		#[cfg(feature = "melodie-runtime")]
+		"" | "melodie" =>
+			Box::new(ChainSpec::from_json_file(PathBuf::from("./node/specs/melodie_raw.json"))?),
+		#[cfg(feature = "melodie-runtime")]
 		"melodie-staging" => Box::new(melodie_chain_spec::live_chain_spec().unwrap()),
 		#[cfg(feature = "melodie-runtime")]
 		"melodie-local" => Box::new(melodie_chain_spec::local_chain_spec().unwrap()),
 		#[cfg(feature = "melodie-runtime")]
-		"" | "dev" | "melodie-dev" => Box::new(melodie_chain_spec::development_chain_spec().unwrap()),
+		"dev" | "melodie-dev" => Box::new(melodie_chain_spec::development_chain_spec().unwrap()),
 		_ => Box::new(ChainSpec::from_json_file(PathBuf::from(id))?),
 	};
 

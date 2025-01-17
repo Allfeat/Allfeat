@@ -62,7 +62,7 @@ pub fn genesis(
 		}
 	});
 
-	const ENDOWMENT: Balance = 10_000_000 * AFT;
+	const ENDOWMENT: Balance = 300_000_000 * AFT;
 
 	build_struct_json_patch!(RuntimeGenesisConfig {
 		balances: BalancesConfig {
