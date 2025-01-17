@@ -23,13 +23,14 @@ use allfeat_primitives::{AccountId, Balance};
 use alloc::{vec, vec::Vec};
 use development::development_config_genesis;
 use local::local_config_genesis;
-use polkadot_sdk::sp_genesis_builder::PresetId;
+use polkadot_sdk::{frame_support::build_struct_json_patch, sp_genesis_builder::PresetId};
 pub use polkadot_sdk::{
 	pallet_im_online::sr25519::AuthorityId as ImOnlineId,
 	sp_authority_discovery::AuthorityId as AuthorityDiscoveryId,
 	sp_consensus_babe::AuthorityId as BabeId, sp_consensus_grandpa::AuthorityId as GrandpaId,
 };
 use shared_runtime::currency::AFT;
+use staging::staging_config_genesis;
 
 use crate::{
 	BabeConfig, BalancesConfig, RuntimeGenesisConfig, SessionConfig, SessionKeys, SudoConfig,
@@ -38,6 +39,7 @@ use crate::{
 
 mod development;
 mod local;
+mod staging;
 
 // Returns the genesis config template populated with given parameters.
 pub fn genesis(
@@ -62,7 +64,7 @@ pub fn genesis(
 
 	const ENDOWMENT: Balance = 10_000_000 * AFT;
 
-	let config = RuntimeGenesisConfig {
+	build_struct_json_patch!(RuntimeGenesisConfig {
 		balances: BalancesConfig {
 			balances: endowed_accounts.iter().cloned().map(|x| (x, ENDOWMENT)).collect::<Vec<_>>(),
 		},
@@ -87,12 +89,9 @@ pub fn genesis(
 				.collect::<Vec<_>>(),
 			non_authority_keys: Default::default(),
 		},
-		babe: BabeConfig { epoch_config: BABE_GENESIS_EPOCH_CONFIG, ..Default::default() },
+		babe: BabeConfig { epoch_config: BABE_GENESIS_EPOCH_CONFIG },
 		sudo: SudoConfig { key: Some(root_key) },
-		..Default::default()
-	};
-
-	serde_json::to_value(config).expect("Could not build genesis config.")
+	})
 }
 
 /// Provides the JSON representation of predefined genesis config for given `id`.
@@ -100,6 +99,7 @@ pub fn get_preset(id: &PresetId) -> Option<Vec<u8>> {
 	let patch = match id.as_ref() {
 		polkadot_sdk::sp_genesis_builder::DEV_RUNTIME_PRESET => development_config_genesis(),
 		polkadot_sdk::sp_genesis_builder::LOCAL_TESTNET_RUNTIME_PRESET => local_config_genesis(),
+		"staging" => staging_config_genesis(),
 		_ => return None,
 	};
 	Some(
@@ -114,5 +114,6 @@ pub fn preset_names() -> Vec<PresetId> {
 	vec![
 		PresetId::from(polkadot_sdk::sp_genesis_builder::DEV_RUNTIME_PRESET),
 		PresetId::from(polkadot_sdk::sp_genesis_builder::LOCAL_TESTNET_RUNTIME_PRESET),
+		PresetId::from("staging"),
 	]
 }

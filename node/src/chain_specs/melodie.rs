@@ -29,7 +29,7 @@ pub fn development_chain_spec() -> Result<ChainSpec, String> {
 	.with_name("Melodie Testnet Development")
 	.with_id("melodie_dev")
 	.with_chain_type(ChainType::Development)
-	.with_protocol_id("alft")
+	.with_protocol_id("aft")
 	.with_properties(
 		serde_json::json!({
 			"tokenDecimals": 12,
@@ -43,8 +43,6 @@ pub fn development_chain_spec() -> Result<ChainSpec, String> {
 	.build())
 }
 
-/// Generate a default spec for the parachain service. Use this as a starting point when launching
-/// a custom chain.
 pub fn local_chain_spec() -> Result<ChainSpec, String> {
 	Ok(ChainSpec::builder(
 		WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
@@ -53,7 +51,7 @@ pub fn local_chain_spec() -> Result<ChainSpec, String> {
 	.with_name("Melodie Testnet Local")
 	.with_id("melodie_local")
 	.with_chain_type(ChainType::Local)
-	.with_protocol_id("alft")
+	.with_protocol_id("aft")
 	.with_properties(
 		serde_json::json!({
 			"tokenDecimals": 12,
@@ -64,5 +62,27 @@ pub fn local_chain_spec() -> Result<ChainSpec, String> {
 		.clone(),
 	)
 	.with_genesis_config_preset_name("local_testnet")
+	.build())
+}
+
+pub fn live_chain_spec() -> Result<ChainSpec, String> {
+	Ok(ChainSpec::builder(
+		WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
+		Default::default(),
+	)
+	.with_name("Melodie Testnet Live")
+	.with_id("melodie_staging")
+	.with_chain_type(ChainType::Live)
+	.with_protocol_id("aft")
+	.with_properties(
+		serde_json::json!({
+			"tokenDecimals": 12,
+			"tokenSymbol": "MEL",
+		})
+		.as_object()
+		.expect("Map given; qed")
+		.clone(),
+	)
+	.with_genesis_config_preset_name("staging")
 	.build())
 }
