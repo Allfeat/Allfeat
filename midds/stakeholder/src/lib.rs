@@ -68,8 +68,8 @@ where
 	type EditableFields = EditableStakeholderField;
 
 	fn is_complete(&self) -> bool {
-		self.ipi.is_some()
-			&& (self.nickname.is_some() || (self.last_name.is_some() || self.first_name.is_some()))
+		self.ipi.is_some() &&
+			(self.nickname.is_some() || (self.last_name.is_some() || self.first_name.is_some()))
 	}
 
 	fn is_valid(&self) -> bool {

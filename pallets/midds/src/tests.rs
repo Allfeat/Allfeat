@@ -17,9 +17,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use allfeat_support::traits::Midds;
-use frame_support::pallet_prelude::TypedGet;
-use frame_support::sp_runtime::TokenError;
-use frame_support::testing_prelude::*;
+use frame_support::{pallet_prelude::TypedGet, sp_runtime::TokenError, testing_prelude::*};
 
 use crate::{mock::*, PendingMidds};
 

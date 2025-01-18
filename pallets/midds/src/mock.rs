@@ -20,12 +20,12 @@
 
 use crate::{self as pallet_midds};
 use allfeat_support::traits::Midds;
-use frame_support::sp_runtime::traits::Hash as HashT;
-use frame_support::sp_runtime::BuildStorage;
-use frame_support::sp_runtime::DispatchResult;
-use frame_support::sp_runtime::RuntimeDebug;
-use frame_support::{self, PalletId};
-use frame_support::{derive_impl, testing_prelude::*};
+use frame_support::{
+	self, derive_impl,
+	sp_runtime::{traits::Hash as HashT, BuildStorage, DispatchResult, RuntimeDebug},
+	testing_prelude::*,
+	PalletId,
+};
 use frame_system::EnsureSigned;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;

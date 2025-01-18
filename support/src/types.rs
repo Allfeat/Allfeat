@@ -15,8 +15,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use frame_support::sp_runtime::{traits::Hash as HashT, BoundedVec, RuntimeDebug};
-use frame_support::traits::ConstU32;
+use frame_support::{
+	sp_runtime::{traits::Hash as HashT, BoundedVec, RuntimeDebug},
+	traits::ConstU32,
+};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
@@ -25,8 +27,7 @@ pub use iswc::ISWC;
 
 mod ipi {
 	use super::*;
-	use frame_support::ensure;
-	use frame_support::sp_runtime::DispatchError;
+	use frame_support::{ensure, sp_runtime::DispatchError};
 
 	#[derive(
 		Encode, Default, Decode, Clone, PartialEq, Eq, RuntimeDebug, MaxEncodedLen, TypeInfo,

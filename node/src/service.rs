@@ -511,8 +511,7 @@ where
 			RuntimeApi,
 			sc_network::NetworkWorker<Block, <Block as sp_runtime::traits::Block>::Hash>,
 		>(config),
-		sc_network::config::NetworkBackendType::Litep2p => {
-			new_full::<RuntimeApi, sc_network::Litep2pNetworkBackend>(config)
-		},
+		sc_network::config::NetworkBackendType::Litep2p =>
+			new_full::<RuntimeApi, sc_network::Litep2pNetworkBackend>(config),
 	}
 }

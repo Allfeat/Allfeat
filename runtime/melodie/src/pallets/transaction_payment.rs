@@ -17,16 +17,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::*;
-use frame_support::dispatch::DispatchClass;
-use frame_support::sp_runtime::Perbill;
-use frame_support::traits::fungible::{Balanced, Credit};
-use frame_support::weights::{
-	WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
-};
 use frame_support::{
+	dispatch::DispatchClass,
 	parameter_types,
-	traits::{Imbalance, OnUnbalanced},
-	weights::ConstantMultiplier,
+	sp_runtime::Perbill,
+	traits::{
+		fungible::{Balanced, Credit},
+		Imbalance, OnUnbalanced,
+	},
+	weights::{
+		ConstantMultiplier, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
+	},
 };
 use shared_runtime::{
 	currency::{MICROAFT, MILLIAFT},

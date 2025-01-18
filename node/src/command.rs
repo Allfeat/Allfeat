@@ -19,9 +19,8 @@
 use std::{env, path::PathBuf};
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::chain_specs::melodie_chain_spec;
 use crate::{
-	chain_specs::ChainSpec,
+	chain_specs::{melodie_chain_spec, ChainSpec},
 	cli::{Cli, Subcommand},
 	service::{self, *},
 };
@@ -217,9 +216,8 @@ fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpecT>, String> {
 	};
 	let chain_spec = match id.to_lowercase().as_str() {
 		#[cfg(feature = "melodie-runtime")]
-		"" | "melodie" => {
-			Box::new(ChainSpec::from_json_file(PathBuf::from("./node/specs/melodie_raw.json"))?)
-		},
+		"" | "melodie" =>
+			Box::new(ChainSpec::from_json_file(PathBuf::from("./node/specs/melodie_raw.json"))?),
 		#[cfg(feature = "melodie-runtime")]
 		"melodie-staging" => Box::new(melodie_chain_spec::live_chain_spec().unwrap()),
 		#[cfg(feature = "melodie-runtime")]

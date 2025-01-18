@@ -33,9 +33,7 @@ extern crate alloc;
 use crate::types::MiddsWrapper;
 use allfeat_support::traits::Midds;
 use alloc::boxed::Box;
-use frame_support::pallet_prelude::*;
-use frame_support::sp_runtime::Saturating;
-use frame_support::traits::fungible::MutateHold;
+use frame_support::{pallet_prelude::*, sp_runtime::Saturating, traits::fungible::MutateHold};
 use frame_system::pallet_prelude::*;
 
 pub use pallet::*;
@@ -296,8 +294,8 @@ pub mod pallet {
 					let now = T::Timestamp::now();
 					let spent = now - midds.registered_at();
 					ensure!(
-						spent
-							> frame_support::sp_runtime::SaturatedConversion::saturated_into(
+						spent >
+							frame_support::sp_runtime::SaturatedConversion::saturated_into(
 								T::UnregisterPeriod::get().unwrap()
 							),
 						Error::<T, I>::UnregisterLocked
