@@ -14,7 +14,7 @@ targets = ["x86_64-unknown-linux-gnu"]
 log = { workspace = true }
 
 # Substrate
-polkadot-sdk = { workspace = true, features = ["experimental", "runtime"] }
+frame-support = { workspace = true }
 parity-scale-codec = { workspace = true }
 scale-info = { workspace = true }
 
@@ -23,14 +23,14 @@ allfeat-support = { workspace = true }
 [features]
 default = ["std"]
 std = [
-	"polkadot-sdk/std",
+	"frame-support/std",
 	"parity-scale-codec/std",
 	"scale-info/std",
 	"log/std",
 	"allfeat-support/std",
 ]
 runtime-benchmarks = [
-	"polkadot-sdk/runtime-benchmarks",
+	"frame-support/runtime-benchmarks",
 	"allfeat-support/runtime-benchmarks",
 ]
-try-runtime = ["polkadot-sdk/try-runtime"]
+try-runtime = ["frame-support/try-runtime"]

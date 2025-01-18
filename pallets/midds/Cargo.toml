@@ -21,26 +21,43 @@ log = { workspace = true }
 scale-info = { features = ["derive"], workspace = true }
 allfeat-support = { workspace = true }
 allfeat-primitives = { workspace = true }
-polkadot-sdk = { workspace = true, features = ["experimental", "runtime"] }
+frame-benchmarking = { workspace = true }
+frame-support = { workspace = true }
+frame-system = { workspace = true }
 
 [dev-dependencies]
-polkadot-sdk = { workspace = true, features = [
-	"pallet-timestamp",
-	"pallet-balances",
-] }
+sp-tracing = { workspace = true }
+sp-io = { workspace = true }
+pallet-timestamp = { workspace = true }
+pallet-balances = { workspace = true }
 
 [features]
 default = ["std"]
 std = [
-	"polkadot-sdk/std",
+	"frame-support/std",
+	"frame-system/std",
 	"parity-scale-codec/std",
 	"log/std",
 	"scale-info/std",
 	"allfeat-support/std",
 	"allfeat-primitives/std",
+	"pallet-timestamp/std",
+	"pallet-balances/std",
+	"frame-benchmarking/std",
+	"sp-tracing/std",
+	"sp-io/std",
 ]
 runtime-benchmarks = [
-	"polkadot-sdk/runtime-benchmarks",
+	"frame-benchmarking/runtime-benchmarks",
+	"frame-support/runtime-benchmarks",
+	"frame-system/runtime-benchmarks",
+	"pallet-timestamp/runtime-benchmarks",
+	"pallet-balances/runtime-benchmarks",
 	"allfeat-support/runtime-benchmarks",
 ]
-try-runtime = ["polkadot-sdk/try-runtime"]
+try-runtime = [
+	"frame-support/try-runtime",
+	"frame-system/try-runtime",
+	"pallet-timestamp/try-runtime",
+	"pallet-balances/try-runtime",
+]

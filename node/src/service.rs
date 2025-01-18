@@ -28,18 +28,15 @@ use futures::FutureExt;
 // allfeat
 use allfeat_primitives::*;
 // polkadot-sdk
-use polkadot_sdk::{
-	sc_client_api::{backend::Backend, BlockBackend},
-	sc_consensus_babe::{BabeBlockImport, BabeWorkerHandle, ImportQueueParams},
-	sc_consensus_slots::SlotProportion,
-	sc_network::Event,
-	sc_rpc_spec_v2::SubscriptionTaskExecutor,
-	sc_service::{error::Error as ServiceError, Configuration, TaskManager, WarpSyncConfig},
-	sc_telemetry::TelemetryWorker,
-	sc_transaction_pool_api::OffchainTransactionPoolFactory,
-	sp_api::ConstructRuntimeApi,
-	*,
-};
+use sc_client_api::{backend::Backend, BlockBackend};
+use sc_consensus_babe::{BabeBlockImport, BabeWorkerHandle, ImportQueueParams};
+use sc_consensus_slots::SlotProportion;
+use sc_network::Event;
+use sc_rpc_spec_v2::SubscriptionTaskExecutor;
+use sc_service::{error::Error as ServiceError, Configuration, TaskManager, WarpSyncConfig};
+use sc_telemetry::TelemetryWorker;
+use sc_transaction_pool_api::OffchainTransactionPoolFactory;
+use sp_api::ConstructRuntimeApi;
 
 /// The minimum period of blocks on which justifications will be
 /// imported and generated.
@@ -514,7 +511,8 @@ where
 			RuntimeApi,
 			sc_network::NetworkWorker<Block, <Block as sp_runtime::traits::Block>::Hash>,
 		>(config),
-		sc_network::config::NetworkBackendType::Litep2p =>
-			new_full::<RuntimeApi, sc_network::Litep2pNetworkBackend>(config),
+		sc_network::config::NetworkBackendType::Litep2p => {
+			new_full::<RuntimeApi, sc_network::Litep2pNetworkBackend>(config)
+		},
 	}
 }

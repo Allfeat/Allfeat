@@ -19,6 +19,7 @@
 use crate::*;
 use frame_support::parameter_types;
 use shared_runtime::{currency::AFT, weights};
+use sp_core::ConstU32;
 
 parameter_types! {
 	pub const ExistentialDeposit: Balance =  AFT / 10; // 0.1 AFT

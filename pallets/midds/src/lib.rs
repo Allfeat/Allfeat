@@ -33,26 +33,29 @@ extern crate alloc;
 use crate::types::MiddsWrapper;
 use allfeat_support::traits::Midds;
 use alloc::boxed::Box;
-use frame::{
-	prelude::*,
-	traits::{fungible::MutateHold, Saturating},
-};
-pub use polkadot_sdk::polkadot_sdk_frame as frame;
+use frame_support::pallet_prelude::*;
+use frame_support::sp_runtime::Saturating;
+use frame_support::traits::fungible::MutateHold;
+use frame_system::pallet_prelude::*;
 
 pub use pallet::*;
 
-#[frame::pallet]
+#[frame_support::pallet]
 pub mod pallet {
 	use super::*;
 	use allfeat_primitives::Moment;
 	use allfeat_support::traits::Midds;
 	#[cfg(feature = "runtime-benchmarks")]
-	use frame::traits::fungible::Mutate;
-	use frame::{
-		deps::frame_support::PalletId,
-		traits::{fungible::Inspect, tokens::Precision},
+	use frame_support::traits::fungible::Mutate;
+	use frame_support::{
+		sp_runtime::traits::Saturating,
+		traits::{
+			fungible::{Inspect, MutateHold},
+			tokens::Precision,
+			Time,
+		},
+		PalletId,
 	};
-	use polkadot_sdk::frame_support::traits::Time;
 
 	pub type MomentOf<T, I> = <<T as Config<I>>::Timestamp as Time>::Moment;
 	pub type BalanceOf<T, I = ()> =
@@ -71,10 +74,7 @@ pub mod pallet {
 	/// Default implementations of [`DefaultConfig`], which can be used to implement [`Config`].
 	pub mod config_preludes {
 		use super::*;
-		use polkadot_sdk::{
-			frame_support::{derive_impl, parameter_types},
-			sp_core::ConstU64,
-		};
+		use frame_support::{derive_impl, parameter_types, traits::ConstU64};
 
 		pub struct TestDefaultConfig;
 
@@ -83,9 +83,9 @@ pub mod pallet {
 		}
 
 		#[derive_impl(frame_system::config_preludes::TestDefaultConfig, no_aggregated_types)]
-		impl polkadot_sdk::frame_system::DefaultConfig for TestDefaultConfig {}
+		impl frame_system::DefaultConfig for TestDefaultConfig {}
 
-		#[polkadot_sdk::frame_support::register_default_impl(TestDefaultConfig)]
+		#[frame_support::register_default_impl(TestDefaultConfig)]
 		impl DefaultConfig for TestDefaultConfig {
 			#[inject_runtime_type]
 			type RuntimeEvent = ();
@@ -99,7 +99,7 @@ pub mod pallet {
 	}
 
 	#[pallet::config(with_default)]
-	pub trait Config<I: 'static = ()>: polkadot_sdk::frame_system::Config {
+	pub trait Config<I: 'static = ()>: frame_system::Config {
 		/// The MIDDS pallet instance pallet id
 		#[pallet::no_default]
 		#[pallet::constant]
@@ -108,7 +108,7 @@ pub mod pallet {
 		#[pallet::no_default_bounds]
 		/// The overarching event type.
 		type RuntimeEvent: From<Event<Self, I>>
-			+ IsType<<Self as polkadot_sdk::frame_system::Config>::RuntimeEvent>;
+			+ IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
 		#[pallet::no_default]
 		#[cfg(not(feature = "runtime-benchmarks"))]
@@ -131,7 +131,7 @@ pub mod pallet {
 
 		#[pallet::no_default]
 		/// The MIDDS actor that this pallet instance manage.
-		type MIDDS: Midds<Hash = <Self as polkadot_sdk::frame_system::Config>::Hashing>
+		type MIDDS: Midds<Hash = <Self as frame_system::Config>::Hashing>
 			+ Parameter
 			+ Member
 			+ MaxEncodedLen;
@@ -296,8 +296,8 @@ pub mod pallet {
 					let now = T::Timestamp::now();
 					let spent = now - midds.registered_at();
 					ensure!(
-						spent >
-							polkadot_sdk::sp_runtime::SaturatedConversion::saturated_into(
+						spent
+							> frame_support::sp_runtime::SaturatedConversion::saturated_into(
 								T::UnregisterPeriod::get().unwrap()
 							),
 						Error::<T, I>::UnregisterLocked

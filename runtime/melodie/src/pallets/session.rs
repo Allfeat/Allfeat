@@ -18,8 +18,8 @@
 
 use crate::*;
 use alloc::vec::Vec;
+use frame_support::sp_runtime::{impl_opaque_keys, traits::OpaqueKeys};
 use shared_runtime::weights;
-use sp_runtime::{impl_opaque_keys, traits::OpaqueKeys};
 
 impl_opaque_keys! {
 	pub struct SessionKeys {

@@ -18,7 +18,7 @@
 
 use super::ChainSpec;
 use melodie_runtime::WASM_BINARY;
-use polkadot_sdk::sc_chain_spec::ChainType;
+use sc_service::ChainType;
 
 /// Generate a chain spec for use with the development service.
 pub fn development_chain_spec() -> Result<ChainSpec, String> {

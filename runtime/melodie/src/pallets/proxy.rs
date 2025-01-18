@@ -17,8 +17,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::*;
-use frame_election_provider_support::{Decode, Encode};
-use frame_support::{pallet_prelude::MaxEncodedLen, parameter_types, traits::InstanceFilter};
+use frame_support::{
+	pallet_prelude::{Decode, Encode, MaxEncodedLen, RuntimeDebug},
+	parameter_types,
+	traits::InstanceFilter,
+};
 use shared_runtime::{currency::deposit, weights};
 
 parameter_types! {
@@ -82,7 +85,7 @@ impl pallet_proxy::Config for Runtime {
 	type MaxProxies = MaxProxies;
 	type WeightInfo = weights::proxy::AllfeatWeight<Runtime>;
 	type MaxPending = MaxPending;
-	type CallHasher = sp_runtime::traits::BlakeTwo256;
+	type CallHasher = frame_support::sp_runtime::traits::BlakeTwo256;
 	type AnnouncementDepositBase = AnnouncementDepositBase;
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }

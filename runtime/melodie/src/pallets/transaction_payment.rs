@@ -17,7 +17,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::*;
-use frame::traits::fungible::{Balanced, Credit};
+use frame_support::dispatch::DispatchClass;
+use frame_support::sp_runtime::Perbill;
+use frame_support::traits::fungible::{Balanced, Credit};
+use frame_support::weights::{
+	WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
+};
 use frame_support::{
 	parameter_types,
 	traits::{Imbalance, OnUnbalanced},
@@ -27,8 +32,6 @@ use shared_runtime::{
 	currency::{MICROAFT, MILLIAFT},
 	SlowAdjustingFeeUpdate,
 };
-use sp_runtime::Perbill;
-use weights::{WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial};
 
 pub struct DealWithFees;
 impl OnUnbalanced<Credit<AccountId, Balances>> for DealWithFees {

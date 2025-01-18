@@ -16,10 +16,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::frame;
 use allfeat_support::traits::Midds;
-use frame::testing_prelude::*;
-use polkadot_sdk::{sp_runtime::TokenError, sp_tracing};
+use frame_support::pallet_prelude::TypedGet;
+use frame_support::sp_runtime::TokenError;
+use frame_support::testing_prelude::*;
 
 use crate::{mock::*, PendingMidds};
 

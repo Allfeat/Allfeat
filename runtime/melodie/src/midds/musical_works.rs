@@ -51,7 +51,7 @@ impl pallet_midds::Config<MusicalWorks> for Runtime {
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type MIDDS = midds_musical_work::MusicalWork<
 		Self::Hashing,
-		<Self::Hashing as sp_runtime::traits::Hash>::Output,
+		<Self::Hashing as frame_support::sp_runtime::traits::Hash>::Output,
 	>;
 	type ProviderOrigin = EnsureSigned<Self::AccountId>;
 	type ByteDepositCost = ByteDepositCost;

@@ -20,8 +20,8 @@
 
 mod macros;
 
+use frame_support::sp_runtime::RuntimeDebug;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
-use polkadot_sdk::sp_runtime::RuntimeDebug;
 use scale_info::TypeInfo;
 
 declare_music_genre! {

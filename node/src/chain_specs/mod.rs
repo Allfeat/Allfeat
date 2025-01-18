@@ -18,8 +18,6 @@
 
 //! Substrate chain configurations.
 
-use polkadot_sdk::*;
-
 #[cfg(feature = "melodie-runtime")]
 pub mod melodie;
 #[cfg(feature = "melodie-runtime")]

@@ -21,17 +21,13 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use allfeat_primitives::{Balance, BlockNumber};
-use frame::{
-	arithmetic::{Bounded, FixedPointNumber, Perbill, Perquintill},
-	deps::sp_core::U256,
-	prelude::*,
-	runtime::prelude::*,
+use frame_support::{
+	parameter_types,
+	sp_runtime::{traits::Bounded, FixedPointNumber, Perbill, Perquintill},
 };
 use frame_system::limits::BlockLength;
-use polkadot_sdk::{
-	pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment},
-	polkadot_sdk_frame as frame,
-};
+use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
+use sp_core::U256;
 
 pub mod elections;
 
@@ -78,7 +74,7 @@ pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 
 /// Convert a balance to an unsigned 256-bit number, use in nomination pools.
 pub struct BalanceToU256;
-impl frame::traits::Convert<Balance, U256> for BalanceToU256 {
+impl frame_support::sp_runtime::traits::Convert<Balance, U256> for BalanceToU256 {
 	fn convert(n: Balance) -> U256 {
 		n.into()
 	}
@@ -86,9 +82,9 @@ impl frame::traits::Convert<Balance, U256> for BalanceToU256 {
 
 /// Convert an unsigned 256-bit number to balance, use in nomination pools.
 pub struct U256ToBalance;
-impl frame::traits::Convert<U256, Balance> for U256ToBalance {
+impl frame_support::sp_runtime::traits::Convert<U256, Balance> for U256ToBalance {
 	fn convert(n: U256) -> Balance {
-		use frame::traits::Defensive;
+		use frame_support::traits::Defensive;
 		n.try_into().defensive_unwrap_or(Balance::MAX)
 	}
 }

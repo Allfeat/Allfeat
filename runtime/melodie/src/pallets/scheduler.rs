@@ -17,12 +17,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::*;
-use frame_support::{parameter_types, traits::EqualPrivilegeOnly};
+use frame_support::{
+	parameter_types,
+	traits::{ConstU32, EqualPrivilegeOnly},
+};
 use frame_system::EnsureRoot;
 use shared_runtime::weights;
 
 parameter_types! {
-	pub MaximumSchedulerWeight: frame_support::weights::Weight = sp_runtime::Perbill::from_percent(80) *
+	pub MaximumSchedulerWeight: frame_support::weights::Weight = frame_support::sp_runtime::Perbill::from_percent(80) *
 		RuntimeBlockWeights::get().max_block;
 }
 

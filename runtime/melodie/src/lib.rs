@@ -30,17 +30,16 @@ use alloc::vec::Vec;
 // allfeat
 pub use allfeat_primitives::{AccountId, Address, Balance, BlockNumber, Moment, Nonce, Signature};
 
-use polkadot_sdk::{
-	polkadot_sdk_frame::{
-		self as frame, deps::sp_runtime::generic, prelude::*, runtime::prelude::*,
-	},
-	*,
-};
+use frame_support::sp_runtime::{generic, traits::NumberFor};
+use sp_api::impl_runtime_apis;
 
 #[cfg(any(feature = "std", test))]
-pub use frame::deps::frame_system::Call as SystemCall;
+pub use frame_system::Call as SystemCall;
 #[cfg(any(feature = "std", test))]
-pub use polkadot_sdk::pallet_balances::Call as BalancesCall;
+pub use pallet_balances::Call as BalancesCall;
+
+#[cfg(feature = "std")]
+use sp_version::NativeVersion;
 
 /// Constant values used within the runtime.
 pub mod constants;
@@ -100,7 +99,7 @@ pub type UncheckedExtrinsic =
 pub type SignedPayload = generic::SignedPayload<RuntimeCall, SignedExtra>;
 
 /// Executive: handles dispatch to the various modules.
-pub type RuntimeExecutive = Executive<
+pub type RuntimeExecutive = frame_executive::Executive<
 	Runtime,
 	Block,
 	frame_system::ChainContext<Runtime>,
@@ -115,7 +114,7 @@ pub type RuntimeExecutive = Executive<
 #[allow(unused_parens)]
 type Migrations = ();
 
-#[frame_construct_runtime]
+#[frame_support::runtime]
 mod runtime {
 	#[runtime::runtime]
 	#[runtime::derive(
@@ -204,10 +203,11 @@ mod runtime {
 
 #[cfg(feature = "runtime-benchmarks")]
 use alloc::string::String;
-use frame::{runtime::apis, traits::NumberFor};
+use frame_support::pallet_prelude::*;
+use sp_version::{runtime_version, RuntimeVersion};
 
 impl_runtime_apis! {
-	impl apis::Core<Block> for Runtime {
+	impl sp_api::Core<Block> for Runtime {
 		fn version() -> sp_version::RuntimeVersion {
 			VERSION
 		}
@@ -216,7 +216,7 @@ impl_runtime_apis! {
 			RuntimeExecutive::execute_block(block);
 		}
 
-		fn initialize_block(header: &<Block as sp_runtime::traits::Block>::Header) -> sp_runtime::ExtrinsicInclusionMode {
+		fn initialize_block(header: &<Block as frame_support::sp_runtime::traits::Block>::Header) -> frame_support::sp_runtime::ExtrinsicInclusionMode {
 			RuntimeExecutive::initialize_block(header)
 		}
 	}
@@ -236,15 +236,15 @@ impl_runtime_apis! {
 	}
 
 	impl sp_block_builder::BlockBuilder<Block> for Runtime {
-		fn apply_extrinsic(extrinsic: <Block as sp_runtime::traits::Block>::Extrinsic) -> sp_runtime::ApplyExtrinsicResult {
+		fn apply_extrinsic(extrinsic: <Block as frame_support::sp_runtime::traits::Block>::Extrinsic) -> frame_support::sp_runtime::ApplyExtrinsicResult {
 			RuntimeExecutive::apply_extrinsic(extrinsic)
 		}
 
-		fn finalize_block() -> <Block as sp_runtime::traits::Block>::Header {
+		fn finalize_block() -> <Block as frame_support::sp_runtime::traits::Block>::Header {
 			RuntimeExecutive::finalize_block()
 		}
 
-		fn inherent_extrinsics(data: InherentData) -> Vec<<Block as sp_runtime::traits::Block>::Extrinsic> {
+		fn inherent_extrinsics(data: InherentData) -> Vec<<Block as frame_support::sp_runtime::traits::Block>::Extrinsic> {
 			data.create_extrinsics()
 		}
 
@@ -256,15 +256,15 @@ impl_runtime_apis! {
 	impl sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block> for Runtime {
 		fn validate_transaction(
 			source: TransactionSource,
-			tx: <Block as sp_runtime::traits::Block>::Extrinsic,
-			block_hash: <Block as sp_runtime::traits::Block>::Hash,
+			tx: <Block as frame_support::sp_runtime::traits::Block>::Extrinsic,
+			block_hash: <Block as frame_support::sp_runtime::traits::Block>::Hash,
 		) -> TransactionValidity {
 			RuntimeExecutive::validate_transaction(source, tx, block_hash)
 		}
 	}
 
 	impl sp_offchain::OffchainWorkerApi<Block> for Runtime {
-		fn offchain_worker(header: &<Block as sp_runtime::traits::Block>::Header) {
+		fn offchain_worker(header: &<Block as frame_support::sp_runtime::traits::Block>::Header) {
 			RuntimeExecutive::offchain_worker(header)
 		}
 	}
@@ -280,7 +280,7 @@ impl sp_consensus_grandpa::GrandpaApi<Block> for Runtime {
 
 		fn submit_report_equivocation_unsigned_extrinsic(
 			equivocation_proof: sp_consensus_grandpa::EquivocationProof<
-				<Block as sp_runtime::traits::Block>::Hash,
+				<Block as frame_support::sp_runtime::traits::Block>::Hash,
 				NumberFor<Block>,
 			>,
 			key_owner_proof: sp_consensus_grandpa::OpaqueKeyOwnershipProof,
@@ -339,7 +339,7 @@ impl sp_consensus_grandpa::GrandpaApi<Block> for Runtime {
 		}
 
 		fn submit_report_equivocation_unsigned_extrinsic(
-			equivocation_proof: sp_consensus_babe::EquivocationProof<<Block as sp_runtime::traits::Block>::Header>,
+			equivocation_proof: sp_consensus_babe::EquivocationProof<<Block as frame_support::sp_runtime::traits::Block>::Header>,
 			key_owner_proof: sp_consensus_babe::OpaqueKeyOwnershipProof,
 		) -> Option<()> {
 			let key_owner_proof = key_owner_proof.decode()?;
@@ -367,10 +367,10 @@ impl sp_consensus_grandpa::GrandpaApi<Block> for Runtime {
 		Block,
 		Balance,
 	> for Runtime {
-		fn query_info(uxt: <Block as sp_runtime::traits::Block>::Extrinsic, len: u32) -> pallet_transaction_payment::RuntimeDispatchInfo<Balance> {
+		fn query_info(uxt: <Block as frame_support::sp_runtime::traits::Block>::Extrinsic, len: u32) -> pallet_transaction_payment::RuntimeDispatchInfo<Balance> {
 			TransactionPayment::query_info(uxt, len)
 		}
-		fn query_fee_details(uxt: <Block as sp_runtime::traits::Block>::Extrinsic, len: u32) -> pallet_transaction_payment::FeeDetails<Balance> {
+		fn query_fee_details(uxt: <Block as frame_support::sp_runtime::traits::Block>::Extrinsic, len: u32) -> pallet_transaction_payment::FeeDetails<Balance> {
 			TransactionPayment::query_fee_details(uxt, len)
 		}
 		fn query_weight_to_fee(weight: frame_support::weights::Weight) -> Balance {
@@ -411,7 +411,7 @@ impl sp_consensus_grandpa::GrandpaApi<Block> for Runtime {
 
 		fn decode_session_keys(
 			encoded: Vec<u8>,
-		) -> Option<Vec<(Vec<u8>, sp_runtime::KeyTypeId)>> {
+		) -> Option<Vec<(Vec<u8>, frame_support::sp_runtime::KeyTypeId)>> {
 			SessionKeys::decode_into_raw_public_keys(&encoded)
 		}
 	}
@@ -462,10 +462,6 @@ impl sp_consensus_grandpa::GrandpaApi<Block> for Runtime {
 		) {
 			use frame_benchmarking::{baseline, Benchmarking, BenchmarkList};
 			use frame_support::traits::StorageInfoTrait;
-
-			// Trying to add benchmarks directly to the Session Pallet caused cyclic dependency
-			// issues. To get around that, we separated the Session benchmarks into its own crate,
-			// which is why we need these two lines below.
 			use frame_system_benchmarking::Pallet as SystemBench;
 			use baseline::Pallet as BaselineBench;
 
@@ -479,13 +475,9 @@ impl sp_consensus_grandpa::GrandpaApi<Block> for Runtime {
 
 		fn dispatch_benchmark(
 			config: frame_benchmarking::BenchmarkConfig
-		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, String> {
-			use frame_benchmarking::*;
-			use frame_support::traits::TrackedStorageKey;
-
-			// Trying to add benchmarks directly to the Session Pallet caused cyclic dependency
-			// issues. To get around that, we separated the Session benchmarks into its own crate,
-			// which is why we need these two lines below.
+		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, alloc::string::String> {
+			use sp_core::storage::TrackedStorageKey;
+			use frame_benchmarking::{baseline, Benchmarking, BenchmarkBatch};
 			use frame_system_benchmarking::Pallet as SystemBench;
 			use baseline::Pallet as BaselineBench;
 

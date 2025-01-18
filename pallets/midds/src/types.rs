@@ -17,8 +17,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use allfeat_support::traits::Midds;
+use frame_support::{sp_runtime::traits::Member, Parameter};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
-use polkadot_sdk::{frame_support::Parameter, sp_runtime::traits::Member};
 use scale_info::TypeInfo;
 
 #[derive(Encode, MaxEncodedLen, Decode, Clone, PartialEq, Eq, TypeInfo)]

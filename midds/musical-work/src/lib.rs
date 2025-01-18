@@ -25,9 +25,13 @@ use allfeat_support::{
 };
 use alloc::{vec, vec::Vec};
 use core::marker::PhantomData;
-use frame::{deps::sp_runtime::Percent, prelude::*, traits::Hash as HashT};
+use frame_support::{
+	ensure,
+	sp_runtime::{traits::Hash as HashT, DispatchError, DispatchResult, Percent, RuntimeDebug},
+	traits::ConstU32,
+	BoundedVec, Parameter,
+};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
-use polkadot_sdk::polkadot_sdk_frame as frame;
 use scale_info::TypeInfo;
 
 pub type SharesVec<StakeholderHashId> = BoundedVec<Share<StakeholderHashId>, ConstU32<64>>;
@@ -93,12 +97,12 @@ where
 	type EditableFields = MusicalWorkEditableField<StakeholderHashId>;
 
 	fn is_complete(&self) -> bool {
-		self.iswc.is_some() &&
-			self.duration.is_some() &&
-			self.title.is_some() &&
-			self._type.is_some() &&
-			self.shares.is_some() &&
-			self.validate_shares().is_ok() // Shares should be valid to be complete
+		self.iswc.is_some()
+			&& self.duration.is_some()
+			&& self.title.is_some()
+			&& self._type.is_some()
+			&& self.shares.is_some()
+			&& self.validate_shares().is_ok() // Shares should be valid to be complete
 	}
 
 	fn is_valid(&self) -> bool {
@@ -124,7 +128,7 @@ where
 			MusicalWorkEditableField::Duration(x) => self.duration = x,
 			MusicalWorkEditableField::Title(x) => self.title = x,
 			MusicalWorkEditableField::Shares(action) => match action {
-				SharesEditAction::Add(share) =>
+				SharesEditAction::Add(share) => {
 					if self.shares.is_some() {
 						self.shares.as_mut().expect("already checked").try_push(share).map_err(
 							|_| {
@@ -135,13 +139,15 @@ where
 						)?
 					} else {
 						self.shares = Some(vec![share].try_into().unwrap())
-					},
-				SharesEditAction::Remove(index) =>
+					}
+				},
+				SharesEditAction::Remove(index) => {
 					if let Some(shares) = self.shares.as_mut() {
 						if (index as usize) < shares.len() {
 							shares.swap_remove(index as usize);
 						}
-					},
+					}
+				},
 			},
 		};
 		Ok(())

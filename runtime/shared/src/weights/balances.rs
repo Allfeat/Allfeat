@@ -43,8 +43,7 @@
 #![allow(unused_imports)]
 #![allow(missing_docs)]
 
-use polkadot_sdk::polkadot_sdk_frame as frame;
-use frame::{traits::Get, deps::frame_support::weights::{Weight, constants::RocksDbWeight}};
+use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
 /// Weight functions needed for pallet_balances.
@@ -64,7 +63,7 @@ pub trait WeightInfo {
 
 /// Weights for pallet_balances using the Allfeat node and recommended hardware.
 pub struct AllfeatWeight<T>(PhantomData<T>);
-impl<T: polkadot_sdk::frame_system::Config> polkadot_sdk::pallet_balances::WeightInfo for AllfeatWeight<T> {
+impl<T: frame_system::Config> pallet_balances::WeightInfo for AllfeatWeight<T> {
 	/// Storage: `System::Account` (r:1 w:1)
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(128), added: 2603, mode: `MaxEncodedLen`)
 	fn transfer_allow_death() -> Weight {

@@ -16,7 +16,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use polkadot_sdk::{sc_cli::RunCmd, sc_storage_monitor::StorageMonitorParams, *};
+use sc_cli::RunCmd;
+use sc_storage_monitor::StorageMonitorParams;
 
 #[derive(Debug, clap::Parser)]
 pub struct Cli {

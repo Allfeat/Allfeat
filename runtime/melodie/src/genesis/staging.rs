@@ -20,7 +20,8 @@ use super::genesis;
 use allfeat_primitives::AccountId;
 use alloc::vec;
 use array_bytes::Dehexify;
-use polkadot_sdk::{sp_application_crypto::Ss58Codec, sp_core::crypto::UncheckedInto};
+use sp_application_crypto::Ss58Codec;
+use sp_core::crypto::UncheckedInto;
 
 pub fn staging_config_genesis() -> serde_json::Value {
 	genesis(

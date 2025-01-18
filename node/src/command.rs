@@ -19,17 +19,14 @@
 use std::{env, path::PathBuf};
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+use crate::chain_specs::melodie_chain_spec;
 use crate::{
 	chain_specs::ChainSpec,
 	cli::{Cli, Subcommand},
 	service::{self, *},
 };
-use polkadot_sdk::{
-	sc_cli::{ChainSpec as ChainSpecT, SubstrateCli},
-	sp_core::crypto::Ss58AddressFormatRegistry,
-};
-
-use crate::chain_specs::melodie_chain_spec;
+use sc_cli::{ChainSpec as ChainSpecT, SubstrateCli};
+use sp_core::crypto::Ss58AddressFormatRegistry;
 
 impl SubstrateCli for Cli {
 	fn impl_name() -> String {
@@ -63,7 +60,7 @@ impl SubstrateCli for Cli {
 
 /// Parse command line arguments into service configuration.
 /// Parse and run command line arguments
-pub fn run() -> polkadot_sdk::sc_cli::Result<()> {
+pub fn run() -> sc_cli::Result<()> {
 	#[cfg(feature = "runtime-benchmarks")]
 	/// Creates partial components for the runtimes that are supported by the benchmarks.
 	macro_rules! construct_benchmark_partials {
@@ -150,7 +147,7 @@ pub fn run() -> polkadot_sdk::sc_cli::Result<()> {
 		#[cfg(feature = "runtime-benchmarks")]
 		Some(Subcommand::Benchmark(cmd)) => {
 			// polkadot-sdk
-			use polkadot_sdk::frame_benchmarking_cli::{BenchmarkCmd, SUBSTRATE_REFERENCE_HARDWARE};
+			use frame_benchmarking_cli::{BenchmarkCmd, SUBSTRATE_REFERENCE_HARDWARE};
 
 			let runner = cli.create_runner(cmd)?;
 
@@ -220,8 +217,9 @@ fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpecT>, String> {
 	};
 	let chain_spec = match id.to_lowercase().as_str() {
 		#[cfg(feature = "melodie-runtime")]
-		"" | "melodie" =>
-			Box::new(ChainSpec::from_json_file(PathBuf::from("./node/specs/melodie_raw.json"))?),
+		"" | "melodie" => {
+			Box::new(ChainSpec::from_json_file(PathBuf::from("./node/specs/melodie_raw.json"))?)
+		},
 		#[cfg(feature = "melodie-runtime")]
 		"melodie-staging" => Box::new(melodie_chain_spec::live_chain_spec().unwrap()),
 		#[cfg(feature = "melodie-runtime")]
@@ -249,5 +247,5 @@ fn set_default_ss58_version(chain_spec: &dyn IdentifyVariant) {
 	}
 	.into();
 
-	polkadot_sdk::sp_core::crypto::set_default_ss58_version(ss58_version);
+	sp_core::crypto::set_default_ss58_version(ss58_version);
 }

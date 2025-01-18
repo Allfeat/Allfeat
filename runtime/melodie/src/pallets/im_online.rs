@@ -17,13 +17,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::*;
-use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
-use parity_scale_codec::Encode;
-use shared_runtime::{weights, BlockHashCount};
-use sp_runtime::{
+use frame_support::sp_runtime::{
 	generic::Era, traits, traits::StaticLookup, transaction_validity::TransactionPriority,
 	SaturatedConversion,
 };
+use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
+use parity_scale_codec::Encode;
+use shared_runtime::{weights, BlockHashCount};
 
 frame_support::parameter_types! {
 	pub const ImOnlineUnsignedPriority: TransactionPriority = TransactionPriority::MAX;
@@ -110,7 +110,7 @@ where
 	RuntimeCall: From<LocalCall>,
 {
 	fn create_inherent(call: RuntimeCall) -> UncheckedExtrinsic {
-		generic::UncheckedExtrinsic::new_bare(call)
+		generic::UncheckedExtrinsic::new_bare(call).into()
 	}
 }
 

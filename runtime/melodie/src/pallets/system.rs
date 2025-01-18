@@ -17,8 +17,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::*;
-use frame::weights_prelude::ParityDbWeight;
-use frame_support::{derive_impl, weights::constants::WEIGHT_REF_TIME_PER_SECOND};
+use frame_support::{
+	derive_impl,
+	traits::{ConstU16, ConstU32},
+	weights::{
+		constants::{ParityDbWeight, WEIGHT_REF_TIME_PER_SECOND},
+		Weight,
+	},
+};
 use frame_system::limits::BlockWeights;
 use shared_runtime::{weights, RuntimeBlockLength, NORMAL_DISPATCH_RATIO};
 

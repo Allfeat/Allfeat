@@ -22,28 +22,6 @@ serde_json = { workspace = true, default-features = false, features = [
 ] }
 array-bytes = { workspace = true }
 
-polkadot-sdk = { workspace = true, features = [
-	"runtime",
-	"pallet-authorship",
-	"pallet-mmr",
-	"pallet-babe",
-	"pallet-grandpa",
-	"pallet-timestamp",
-	"pallet-utility",
-	"pallet-sudo",
-	"pallet-session",
-	"pallet-scheduler",
-	"pallet-preimage",
-	"pallet-proxy",
-	"pallet-multisig",
-	"pallet-balances",
-	"pallet-im-online",
-	"pallet-transaction-payment",
-	"pallet-transaction-payment-rpc-runtime-api",
-	"pallet-identity",
-	"pallet-authority-discovery",
-	"pallet-safe-mode",
-] }
 shared-runtime = { workspace = true }
 allfeat-primitives = { workspace = true }
 
@@ -54,20 +32,60 @@ pallet-midds = { workspace = true }
 midds-stakeholder = { workspace = true }
 midds-musical-work = { workspace = true }
 
+sp-core = { workspace = true }
+sp-application-crypto = { workspace = true }
+sp-keyring = { workspace = true }
+sp-version = { workspace = true }
+sp-consensus-babe = { workspace = true }
+sp-consensus-grandpa = { workspace = true }
+sp-authority-discovery = { workspace = true }
+sp-genesis-builder = { workspace = true }
+sp-api = { workspace = true }
+sp-inherents = { workspace = true }
+sp-offchain = { workspace = true }
+sp-session = { workspace = true }
+sp-transaction-pool = { workspace = true }
+sp-block-builder = { workspace = true }
+
+frame-try-runtime = { workspace = true, optional = true }
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+frame-system-rpc-runtime-api = { workspace = true }
+frame-metadata-hash-extension = { workspace = true }
+frame-executive = { workspace = true }
+pallet-timestamp = { workspace = true }
+pallet-utility = { workspace = true }
+pallet-babe = { workspace = true }
+pallet-grandpa = { workspace = true }
+pallet-mmr = { workspace = true }
+pallet-authorship = { workspace = true }
+pallet-sudo = { workspace = true }
+pallet-session = { workspace = true }
+pallet-scheduler = { workspace = true }
+pallet-preimage = { workspace = true }
+pallet-proxy = { workspace = true }
+pallet-multisig = { workspace = true }
+pallet-balances = { workspace = true }
+pallet-im-online = { workspace = true }
+pallet-transaction-payment = { workspace = true }
+pallet-transaction-payment-rpc-runtime-api = { workspace = true }
+pallet-identity = { workspace = true }
+pallet-authority-discovery = { workspace = true }
+pallet-safe-mode = { workspace = true }
+
 pallet-validator-set = { workspace = true }
 
-# Local Dependencies
-[dev-dependencies]
-shared-runtime = { workspace = true, features = ["std", "test"] }
+# Benchmarking
+frame-benchmarking = { optional = true, workspace = true }
+frame-system-benchmarking = { optional = true, workspace = true }
 
 [build-dependencies]
-substrate-wasm-builder = { optional = true, default-features = true, workspace = true }
+substrate-wasm-builder = { workspace = true, optional = true, default-features = true }
 
 [features]
-default = ["std"]
-with-tracing = ["polkadot-sdk/with-tracing"]
+default = ["std", "metadata-hash"]
+with-tracing = []
 std = [
-	"polkadot-sdk/std",
 	"parity-scale-codec/std",
 	"scale-info/std",
 	"log/std",
@@ -75,24 +93,103 @@ std = [
 	"shared-runtime/std",
 	"serde_json/std",
 	"pallet-midds/std",
+	"pallet-timestamp/std",
+	"frame-support/std",
+	"frame-system/std",
+	"frame-try-runtime?/std",
+	"pallet-utility/std",
+	"pallet-babe/std",
+	"pallet-grandpa/std",
+	"pallet-mmr/std",
+	"pallet-authorship/std",
+	"pallet-sudo/std",
+	"pallet-session/std",
+	"pallet-scheduler/std",
+	"pallet-preimage/std",
+	"pallet-proxy/std",
+	"pallet-multisig/std",
+	"pallet-balances/std",
+	"pallet-im-online/std",
+	"pallet-transaction-payment/std",
+	"pallet-transaction-payment-rpc-runtime-api/std",
+	"pallet-identity/std",
+	"pallet-authority-discovery/std",
+	"pallet-safe-mode/std",
+	"sp-version/std",
+	"sp-consensus-babe/std",
+	"sp-consensus-grandpa/std",
+	"sp-authority-discovery/std",
+	"sp-genesis-builder/std",
+	"sp-application-crypto/std",
+	"sp-keyring/std",
+	"sp-core/std",
+	"sp-api/std",
+	"sp-inherents/std",
+	"sp-offchain/std",
+	"sp-session/std",
+	"sp-transaction-pool/std",
+	"sp-block-builder/std",
+	"frame-metadata-hash-extension/std",
+	"frame-executive/std",
+	"frame-system-rpc-runtime-api/std",
+	"frame-benchmarking?/std",
+	"frame-system-benchmarking?/std",
 	"substrate-wasm-builder",
 	# MIDDS
 	"midds-stakeholder/std",
 	"midds-musical-work/std",
 ]
 runtime-benchmarks = [
-	"polkadot-sdk/runtime-benchmarks",
-	"shared-runtime/runtime-benchmarks",
+	"frame-benchmarking/runtime-benchmarks",
+	"frame-support/runtime-benchmarks",
+	"frame-system-benchmarking/runtime-benchmarks",
+	"frame-system/runtime-benchmarks",
 	# Waiting FIX https://github.com/Allfeat/substrate-validator-set/issues/1
 	#	"pallet-validator-set/runtime-benchmarks",
 	"pallet-midds/runtime-benchmarks",
 	"midds-stakeholder/runtime-benchmarks",
 	"midds-musical-work/runtime-benchmarks",
+	"pallet-timestamp/runtime-benchmarks",
+	"pallet-utility/runtime-benchmarks",
+	"pallet-babe/runtime-benchmarks",
+	"pallet-grandpa/runtime-benchmarks",
+	"pallet-mmr/runtime-benchmarks",
+	"pallet-sudo/runtime-benchmarks",
+	"pallet-scheduler/runtime-benchmarks",
+	"pallet-preimage/runtime-benchmarks",
+	"pallet-proxy/runtime-benchmarks",
+	"pallet-multisig/runtime-benchmarks",
+	"pallet-balances/runtime-benchmarks",
+	"pallet-im-online/runtime-benchmarks",
+	"pallet-transaction-payment/runtime-benchmarks",
+	"pallet-identity/runtime-benchmarks",
+	"pallet-safe-mode/runtime-benchmarks",
 ]
 try-runtime = [
-	"polkadot-sdk/try-runtime",
+	"frame-executive/try-runtime",
+	"frame-support/try-runtime",
+	"frame-system/try-runtime",
+	"frame-try-runtime/try-runtime",
 	"pallet-validator-set/try-runtime",
 	"pallet-midds/try-runtime",
+	"pallet-timestamp/try-runtime",
+	"pallet-utility/try-runtime",
+	"pallet-babe/try-runtime",
+	"pallet-grandpa/try-runtime",
+	"pallet-mmr/try-runtime",
+	"pallet-authorship/try-runtime",
+	"pallet-sudo/try-runtime",
+	"pallet-session/try-runtime",
+	"pallet-scheduler/try-runtime",
+	"pallet-preimage/try-runtime",
+	"pallet-proxy/try-runtime",
+	"pallet-multisig/try-runtime",
+	"pallet-balances/try-runtime",
+	"pallet-im-online/try-runtime",
+	"pallet-transaction-payment/try-runtime",
+	"pallet-identity/try-runtime",
+	"pallet-authority-discovery/try-runtime",
+	"pallet-safe-mode/try-runtime",
 ]
 
 metadata-hash = ["substrate-wasm-builder/metadata-hash"]

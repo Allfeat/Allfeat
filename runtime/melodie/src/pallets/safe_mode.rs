@@ -16,6 +16,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use frame_support::{parameter_types, traits::Contains};
+use frame_system::{EnsureRoot, EnsureRootWithSuccess};
+use sp_core::ConstU32;
+
 use crate::*;
 
 /// Calls that can bypass the safe-mode pallet.
@@ -34,7 +38,7 @@ parameter_types! {
 	pub const ReleaseDelay: u32 = 2 * DAYS;
 }
 
-impl polkadot_sdk::pallet_safe_mode::Config for Runtime {
+impl pallet_safe_mode::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type RuntimeHoldReason = RuntimeHoldReason;

@@ -43,8 +43,7 @@
 #![allow(unused_imports)]
 #![allow(missing_docs)]
 
-use polkadot_sdk::polkadot_sdk_frame as frame;
-use frame::{traits::Get, deps::frame_support::weights::{Weight, constants::RocksDbWeight}};
+use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
 /// Weight functions needed for pallet_scheduler.
@@ -70,7 +69,7 @@ pub trait WeightInfo {
 
 /// Weights for pallet_scheduler using the Allfeat node and recommended hardware.
 pub struct AllfeatWeight<T>(PhantomData<T>);
-impl<T: polkadot_sdk::frame_system::Config> polkadot_sdk::pallet_scheduler::WeightInfo for AllfeatWeight<T> {
+impl<T: frame_system::Config> pallet_scheduler::WeightInfo for AllfeatWeight<T> {
 	/// Storage: `Scheduler::IncompleteSince` (r:1 w:1)
 	/// Proof: `Scheduler::IncompleteSince` (`max_values`: Some(1), `max_size`: Some(4), added: 499, mode: `MaxEncodedLen`)
 	fn service_agendas_base() -> Weight {

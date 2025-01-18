@@ -22,14 +22,14 @@ extern crate alloc;
 use allfeat_primitives::{AccountId, Balance};
 use alloc::{vec, vec::Vec};
 use development::development_config_genesis;
+use frame_support::build_struct_json_patch;
 use local::local_config_genesis;
-use polkadot_sdk::{frame_support::build_struct_json_patch, sp_genesis_builder::PresetId};
-pub use polkadot_sdk::{
-	pallet_im_online::sr25519::AuthorityId as ImOnlineId,
-	sp_authority_discovery::AuthorityId as AuthorityDiscoveryId,
-	sp_consensus_babe::AuthorityId as BabeId, sp_consensus_grandpa::AuthorityId as GrandpaId,
-};
+use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use shared_runtime::currency::AFT;
+use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
+use sp_consensus_babe::AuthorityId as BabeId;
+use sp_consensus_grandpa::AuthorityId as GrandpaId;
+use sp_genesis_builder::PresetId;
 use staging::staging_config_genesis;
 
 use crate::{
@@ -97,8 +97,8 @@ pub fn genesis(
 /// Provides the JSON representation of predefined genesis config for given `id`.
 pub fn get_preset(id: &PresetId) -> Option<Vec<u8>> {
 	let patch = match id.as_ref() {
-		polkadot_sdk::sp_genesis_builder::DEV_RUNTIME_PRESET => development_config_genesis(),
-		polkadot_sdk::sp_genesis_builder::LOCAL_TESTNET_RUNTIME_PRESET => local_config_genesis(),
+		sp_genesis_builder::DEV_RUNTIME_PRESET => development_config_genesis(),
+		sp_genesis_builder::LOCAL_TESTNET_RUNTIME_PRESET => local_config_genesis(),
 		"staging" => staging_config_genesis(),
 		_ => return None,
 	};
@@ -112,8 +112,8 @@ pub fn get_preset(id: &PresetId) -> Option<Vec<u8>> {
 /// List of supported presets.
 pub fn preset_names() -> Vec<PresetId> {
 	vec![
-		PresetId::from(polkadot_sdk::sp_genesis_builder::DEV_RUNTIME_PRESET),
-		PresetId::from(polkadot_sdk::sp_genesis_builder::LOCAL_TESTNET_RUNTIME_PRESET),
+		PresetId::from(sp_genesis_builder::DEV_RUNTIME_PRESET),
+		PresetId::from(sp_genesis_builder::LOCAL_TESTNET_RUNTIME_PRESET),
 		PresetId::from("staging"),
 	]
 }

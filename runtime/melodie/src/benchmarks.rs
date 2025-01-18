@@ -17,7 +17,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "runtime-benchmarks")]
-polkadot_sdk::frame_benchmarking::define_benchmarks!(
+frame_benchmarking::define_benchmarks!(
 	[frame_benchmarking, BaselineBench::<Runtime>]
 	[pallet_babe, Babe]
 	[pallet_balances, Balances]

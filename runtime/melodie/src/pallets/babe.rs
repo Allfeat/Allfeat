@@ -45,7 +45,7 @@ impl pallet_babe::Config for Runtime {
 	type DisabledValidators = Session;
 
 	type KeyOwnerProof = <Historical as frame_support::traits::KeyOwnerProofSystem<(
-		sp_runtime::KeyTypeId,
+		frame_support::sp_runtime::KeyTypeId,
 		pallet_babe::AuthorityId,
 	)>>::Proof;
 

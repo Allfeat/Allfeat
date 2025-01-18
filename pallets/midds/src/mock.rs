@@ -18,15 +18,16 @@
 
 #![cfg(test)]
 
-use super::frame;
 use crate::{self as pallet_midds};
 use allfeat_support::traits::Midds;
-use frame::testing_prelude::*;
+use frame_support::sp_runtime::traits::Hash as HashT;
+use frame_support::sp_runtime::BuildStorage;
+use frame_support::sp_runtime::DispatchResult;
+use frame_support::sp_runtime::RuntimeDebug;
+use frame_support::{self, PalletId};
+use frame_support::{derive_impl, testing_prelude::*};
+use frame_system::EnsureSigned;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
-use polkadot_sdk::{
-	frame_support::{self, PalletId},
-	pallet_balances, pallet_timestamp, sp_io, sp_runtime,
-};
 use scale_info::TypeInfo;
 
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -59,14 +60,12 @@ impl Midds for MockMiddsStruct {
 		true // TODO write test for validity
 	}
 
-	fn hash(
-		&self,
-	) -> <<Test as frame_system::Config>::Hashing as sp_runtime::traits::Hash>::Output {
+	fn hash(&self) -> <<Test as frame_system::Config>::Hashing as HashT>::Output {
 		let mut bytes = Vec::new();
 
 		bytes.extend_from_slice(&self.value.encode());
 
-		<<Test as frame_system::Config>::Hashing as sp_runtime::traits::Hash>::hash(&bytes)
+		<<Test as frame_system::Config>::Hashing as HashT>::hash(&bytes)
 	}
 
 	fn total_bytes(&self) -> u32 {

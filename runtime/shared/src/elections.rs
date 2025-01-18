@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/// The accuracy type used for genesis election provider;
-use super::frame;
+use frame_support::sp_runtime::Perbill;
 
-pub type OnChainAccuracy = frame::arithmetic::Perbill;
+/// The accuracy type used for genesis election provider;
+pub type OnChainAccuracy = Perbill;

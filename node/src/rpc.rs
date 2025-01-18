@@ -18,10 +18,9 @@
 
 // std
 use std::sync::Arc;
-// Substrate
-use polkadot_sdk::{polkadot_rpc::RpcExtension, *};
 // Allfeat
 use allfeat_primitives::*;
+use jsonrpsee::RpcModule;
 
 /// Extra dependencies for BABE.
 pub struct BabeDeps {
@@ -63,7 +62,7 @@ pub struct FullDeps<C, P, SC, BE> {
 /// Instantiate all RPC extensions.
 pub fn create_full<C, P, SC, BE>(
 	deps: FullDeps<C, P, SC, BE>,
-) -> Result<RpcExtension, Box<dyn std::error::Error + Send + Sync>>
+) -> Result<RpcModule<()>, Box<dyn std::error::Error + Send + Sync>>
 where
 	BE: 'static + sc_client_api::backend::Backend<Block>,
 	BE::State: sc_client_api::backend::StateBackend<Hashing>,
@@ -92,7 +91,7 @@ where
 	use sc_consensus_grandpa_rpc::{Grandpa, GrandpaApiServer};
 	use substrate_frame_rpc_system::{System, SystemApiServer};
 
-	let mut module = RpcExtension::new(());
+	let mut module = RpcModule::new(());
 
 	let FullDeps { client, pool, babe, grandpa, select_chain } = deps;
 	let BabeDeps { keystore, babe_worker_handle } = babe;

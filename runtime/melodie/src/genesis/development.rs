@@ -18,7 +18,7 @@
 
 use super::genesis;
 use alloc::vec;
-use polkadot_sdk::sp_keyring::{AccountKeyring, Ed25519Keyring, Sr25519Keyring};
+use sp_keyring::{AccountKeyring, Ed25519Keyring, Sr25519Keyring};
 
 /// Return the development genesis config.
 pub fn development_config_genesis() -> serde_json::Value {

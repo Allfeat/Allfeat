@@ -31,7 +31,7 @@ impl pallet_grandpa::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 
 	type KeyOwnerProof = <Historical as frame_support::traits::KeyOwnerProofSystem<(
-		sp_runtime::KeyTypeId,
+		frame_support::sp_runtime::KeyTypeId,
 		sp_consensus_grandpa::AuthorityId,
 	)>>::Proof;
 
