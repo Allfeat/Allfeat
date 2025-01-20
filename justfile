@@ -2,8 +2,7 @@
 
 set positional-arguments := true
 
-optimized_node_args := "-- --database=paritydb \
-  --rpc-methods=unsafe"
+optimized_node_args := "-- --database=paritydb"
 
 # Cargo profile used to execute cargo commands.
 CARGO_PROFILE := env("PROFILE", "release")
