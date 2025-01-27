@@ -110,7 +110,7 @@ where
 	RuntimeCall: From<LocalCall>,
 {
 	fn create_inherent(call: RuntimeCall) -> UncheckedExtrinsic {
-		generic::UncheckedExtrinsic::new_bare(call).into()
+		generic::UncheckedExtrinsic::new_bare(call)
 	}
 }
 
