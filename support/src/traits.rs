@@ -43,3 +43,9 @@ where
 	#[cfg(feature = "runtime-benchmarks")]
 	fn create_midds() -> Self;
 }
+
+/// Trait for pallets that handle certification of MIDDS.
+pub trait Certifier<MiddsId> {
+	/// Add the specified MIDDS into the certification logic process of the pallet.
+	fn add_to_certif_process(midds_id: MiddsId) -> DispatchResult;
+}
