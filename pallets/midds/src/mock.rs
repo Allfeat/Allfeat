@@ -140,6 +140,7 @@ impl pallet_midds::Config for Test {
 	type Timestamp = Time;
 	type Currency = Balances;
 	type MIDDS = MockMiddsStruct;
+	type Certification = ();
 	type ProviderOrigin = EnsureSigned<Self::AccountId>;
 }
 

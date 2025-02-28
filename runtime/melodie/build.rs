@@ -25,7 +25,7 @@ fn main() {
 	#[cfg(all(feature = "std", feature = "metadata-hash"))]
 	{
 		substrate_wasm_builder::WasmBuilder::init_with_defaults()
-			.enable_metadata_hash("MEL", 18)
+			.enable_metadata_hash("MEL", 12)
 			.build()
 	}
 }

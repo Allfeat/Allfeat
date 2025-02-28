@@ -49,3 +49,11 @@ pub trait Certifier<MiddsId> {
 	/// Add the specified MIDDS into the certification logic process of the pallet.
 	fn add_to_certif_process(midds_id: MiddsId) -> DispatchResult;
 }
+
+/// Empty implementation mostly for testing or if there is no certification process to associate
+/// with a specific MIDDS registry.
+impl<T> Certifier<T> for () {
+	fn add_to_certif_process(_midds_id: T) -> DispatchResult {
+		Ok(())
+	}
+}

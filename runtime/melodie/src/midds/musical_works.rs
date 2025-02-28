@@ -48,6 +48,8 @@ impl pallet_midds::Config<MusicalWorks> for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Timestamp = Timestamp;
 	type Currency = Balances;
+	/// TODO: Add impl of certification pallet when done
+	type Certification = ();
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type MIDDS = midds_musical_work::MusicalWork<
 		Self::Hashing,

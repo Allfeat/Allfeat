@@ -31,7 +31,7 @@ mod benchmarking;
 extern crate alloc;
 
 use crate::types::MiddsWrapper;
-use allfeat_support::traits::Midds;
+use allfeat_support::traits::{Certifier, Midds};
 use alloc::boxed::Box;
 use frame_support::{pallet_prelude::*, sp_runtime::Saturating, traits::fungible::MutateHold};
 use frame_system::pallet_prelude::*;
@@ -42,7 +42,7 @@ pub use pallet::*;
 pub mod pallet {
 	use super::*;
 	use allfeat_primitives::Moment;
-	use allfeat_support::traits::Midds;
+	use allfeat_support::traits::{Certifier, Midds};
 	#[cfg(feature = "runtime-benchmarks")]
 	use frame_support::traits::fungible::Mutate;
 	use frame_support::{
@@ -133,6 +133,9 @@ pub mod pallet {
 			+ Parameter
 			+ Member
 			+ MaxEncodedLen;
+
+		#[pallet::no_default]
+		type Certification: Certifier<MiddsHashIdOf<Self>>;
 
 		#[pallet::no_default]
 		/// The origin which may provide new MIDDS to register on-chain for this instance.
@@ -320,6 +323,11 @@ pub mod pallet {
 				Err(Error::<T, I>::PendingMiddsNotFound.into())
 			}
 		}
+
+		// #[pallet::call_index(3)]
+		// pub fn seal(origin: OriginFor<T>) -> DispatchResult {
+		// Ok(())
+		// }
 	}
 }
 
@@ -352,5 +360,11 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	fn calculate_midds_colateral(midds: &MiddsWrapperOf<T, I>) -> BalanceOf<T, I> {
 		let bytes = midds.midds.total_bytes();
 		T::ByteDepositCost::get().saturating_mul(BalanceOf::<T, I>::from(bytes))
+	}
+
+	/// Wrapper function that trigger the addition of the MIDDS to the certification process after
+	/// the MIDDS being sucessfuly sealed.
+	fn on_seal(midds_id: MiddsHashIdOf<T>) -> DispatchResult {
+		<T::Certification as Certifier<MiddsHashIdOf<T>>>::add_to_certif_process(midds_id)
 	}
 }
