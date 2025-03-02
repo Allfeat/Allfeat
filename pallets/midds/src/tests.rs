@@ -72,25 +72,3 @@ fn register_same_midds_data_fail() {
 		);
 	})
 }
-
-#[test]
-fn update_field_works() {
-	sp_tracing::init_for_tests();
-
-	let provider = 1;
-	let midds = MockMiddsStruct { value: 1 };
-
-	new_test_ext().execute_with(|| {
-		assert_ok!(MockMidds::register(RuntimeOrigin::signed(provider), Box::new(midds.clone())));
-		assert_eq!(PendingMidds::<Test>::get(midds.hash()).unwrap().midds.value, 1);
-
-		let new_value = MockMiddsStructEdFields::Value(2);
-
-		assert_ok!(MockMidds::update_field(
-			RuntimeOrigin::signed(provider),
-			midds.hash(),
-			new_value
-		));
-		assert_eq!(PendingMidds::<Test>::get(midds.hash()).unwrap().midds.value, 2);
-	})
-}

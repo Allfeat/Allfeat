@@ -47,33 +47,6 @@ mod benchmarks {
 	}
 
 	#[benchmark]
-	fn update_field() -> Result<(), BenchmarkError> {
-		let provider = whitelisted_caller();
-		let mut midds = T::MIDDS::create_midds();
-
-		let _ = T::Currency::set_balance(&provider, init_bal::<T, I>());
-
-		MiddsPallet::<T, I>::register(
-			RawOrigin::Signed(provider.clone()).into(),
-			Box::new(midds.clone()),
-		)?;
-
-		let original_hash = midds.hash();
-		midds.update_field(<T::MIDDS as Midds>::EditableFields::default())?;
-		let expected_new_hash = midds.hash();
-
-		#[extrinsic_call]
-		_(
-			RawOrigin::Signed(provider),
-			original_hash,
-			<T::MIDDS as Midds>::EditableFields::default(),
-		);
-
-		assert_last_event::<T, I>(Event::MIDDSUpdated { hash_id: expected_new_hash }.into());
-		Ok(())
-	}
-
-	#[benchmark]
 	fn unregister() -> Result<(), BenchmarkError> {
 		let provider = whitelisted_caller();
 		let midds = T::MIDDS::create_midds();

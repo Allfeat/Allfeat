@@ -22,6 +22,7 @@ use frame_support::{
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
+pub use certification::CertifStatus;
 pub use ipi::IPINameNumber;
 pub use iswc::ISWC;
 
@@ -158,6 +159,35 @@ mod iswc {
 			let result = iswc_str.parse::<ISWC>();
 			assert!(result.is_err());
 			assert_eq!(result.unwrap_err(), "Invalid length");
+		}
+	}
+}
+
+mod certification {
+	use frame_support::{pallet_prelude::Member, sp_runtime::RuntimeDebug, Parameter};
+	use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+	use scale_info::TypeInfo;
+
+	#[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, MaxEncodedLen, TypeInfo)]
+	pub enum CertifStatus<VData, PData, CData>
+	where
+		VData: Parameter + Member,
+		PData: Parameter + Member,
+		CData: Parameter + Member,
+	{
+		Voting(VData),    // The MIDDS just got sealed by the provider and is awaiting votes.
+		Precertif(PData), // The MIDDS got the certification threshold and enter the pre-certification period.
+		Certif(CData), // The pre-certification period ended without conflict and the MIDDS is certified.
+	}
+
+	impl<VData, PData, CData> Default for CertifStatus<VData, PData, CData>
+	where
+		VData: Parameter + Member + Default,
+		PData: Parameter + Member + Default,
+		CData: Parameter + Member + Default,
+	{
+		fn default() -> Self {
+			Self::Voting(Default::default())
 		}
 	}
 }

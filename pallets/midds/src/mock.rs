@@ -22,7 +22,7 @@ use crate::{self as pallet_midds};
 use allfeat_support::traits::Midds;
 use frame_support::{
 	self, derive_impl,
-	sp_runtime::{traits::Hash as HashT, BuildStorage, DispatchResult, RuntimeDebug},
+	sp_runtime::{traits::Hash as HashT, BuildStorage, RuntimeDebug},
 	testing_prelude::*,
 	PalletId,
 };
@@ -32,17 +32,6 @@ use scale_info::TypeInfo;
 
 type Block = frame_system::mocking::MockBlock<Test>;
 
-#[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, TypeInfo)]
-pub enum MockMiddsStructEdFields {
-	Value(u64),
-}
-
-impl Default for MockMiddsStructEdFields {
-	fn default() -> Self {
-		Self::Value(0)
-	}
-}
-
 #[derive(Encode, Default, Decode, Clone, Eq, PartialEq, RuntimeDebug, TypeInfo, MaxEncodedLen)]
 pub struct MockMiddsStruct {
 	pub value: u64,
@@ -50,11 +39,6 @@ pub struct MockMiddsStruct {
 
 impl Midds for MockMiddsStruct {
 	type Hash = <Test as frame_system::Config>::Hashing;
-	type EditableFields = MockMiddsStructEdFields;
-
-	fn is_complete(&self) -> bool {
-		true
-	}
 
 	fn is_valid(&self) -> bool {
 		true // TODO: write test for validity
@@ -70,15 +54,6 @@ impl Midds for MockMiddsStruct {
 
 	fn total_bytes(&self) -> u32 {
 		self.encoded_size() as u32
-	}
-
-	fn update_field(&mut self, data: Self::EditableFields) -> DispatchResult {
-		match data {
-			MockMiddsStructEdFields::Value(x) => {
-				self.value = x;
-			},
-		}
-		Ok(())
 	}
 
 	#[cfg(feature = "runtime-benchmarks")]

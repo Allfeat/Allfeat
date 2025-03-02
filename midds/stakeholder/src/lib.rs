@@ -25,7 +25,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 use core::marker::PhantomData;
 use frame_support::{
-	sp_runtime::{traits::Hash as HashT, DispatchError, RuntimeDebug},
+	sp_runtime::{traits::Hash as HashT, RuntimeDebug},
 	traits::ConstU32,
 	BoundedVec,
 };
@@ -46,31 +46,11 @@ where
 	_phantom_data: PhantomData<Hash>,
 }
 
-#[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, TypeInfo)]
-pub enum EditableStakeholderField {
-	IPIBase(Option<IPINameNumber>),
-	FirstName(Option<NameLike>),
-	LastName(Option<NameLike>),
-	Nickname(Option<NameLike>),
-}
-
-impl Default for EditableStakeholderField {
-	fn default() -> Self {
-		Self::IPIBase(Default::default())
-	}
-}
-
 impl<Hash> Midds for Stakeholder<Hash>
 where
 	Hash: HashT,
 {
 	type Hash = Hash;
-	type EditableFields = EditableStakeholderField;
-
-	fn is_complete(&self) -> bool {
-		self.ipi.is_some() &&
-			(self.nickname.is_some() || (self.last_name.is_some() || self.first_name.is_some()))
-	}
 
 	fn is_valid(&self) -> bool {
 		// IPI valid format check
@@ -90,16 +70,6 @@ where
 		bytes.extend_from_slice(&self.nickname.encode());
 
 		<Self::Hash as HashT>::hash(&bytes)
-	}
-
-	fn update_field(&mut self, data: Self::EditableFields) -> Result<(), DispatchError> {
-		match data {
-			EditableStakeholderField::IPIBase(x) => self.ipi = x,
-			EditableStakeholderField::LastName(x) => self.last_name = x,
-			EditableStakeholderField::Nickname(x) => self.nickname = x,
-			EditableStakeholderField::FirstName(x) => self.first_name = x,
-		}
-		Ok(())
 	}
 
 	/// Create a basic instance of the midds.

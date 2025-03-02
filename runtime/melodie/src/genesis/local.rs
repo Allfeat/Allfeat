@@ -21,7 +21,6 @@ use alloc::vec;
 use sp_keyring::{AccountKeyring, Ed25519Keyring, Sr25519Keyring};
 
 /// Return the development genesis config.
-
 pub fn local_config_genesis() -> serde_json::Value {
 	genesis(
 		vec![

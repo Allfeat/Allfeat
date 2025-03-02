@@ -18,36 +18,28 @@
 
 use core::time::Duration;
 
+use frame_support::pallet_prelude::Member;
 use frame_support::sp_runtime::RuntimeDebug;
+use frame_support::Parameter;
 use frame_support::{pallet_prelude::Zero, traits::DefensiveSaturating};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
+pub type CertifStatus<Balance> =
+	allfeat_support::types::CertifStatus<VotingInfos<Balance>, PrecertifInfos, ()>;
+
 #[derive(Encode, Default, Decode, Clone, PartialEq, Eq, RuntimeDebug, MaxEncodedLen, TypeInfo)]
-pub struct CertifState<Balance: Clone + Zero + DefensiveSaturating> {
+pub struct CertifState<Balance: Parameter + Member + Zero + DefensiveSaturating> {
 	pub(crate) status: CertifStatus<Balance>,
 }
 
-impl<Balance: DefensiveSaturating + Zero + Clone> CertifState<Balance> {
+impl<Balance: Parameter + Member + DefensiveSaturating + Zero + Clone> CertifState<Balance> {
 	pub(crate) fn new() -> Self {
 		CertifState { status: Default::default() }
 	}
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, MaxEncodedLen, TypeInfo)]
-pub enum CertifStatus<Balance> {
-	VOTING(VotingInfos<Balance>), // The MIDDS just got sealed by the provider and is awaiting votes.
-	PRECERTIF(PrecertifInfos), // The MIDDS got the certification threshold and enter the pre-certification period.
-	CERTIF, // The pre-certification period ended without conflict and the MIDDS is certified.
-}
-
-impl<Balance: Zero> Default for CertifStatus<Balance> {
-	fn default() -> Self {
-		CertifStatus::VOTING(VotingInfos { total_staked: Zero::zero() })
-	}
-}
-
-#[derive(Encode, Default, Decode, Clone, PartialEq, Eq, RuntimeDebug, MaxEncodedLen, TypeInfo)]
 pub struct VotingInfos<Balance> {
 	total_staked: Balance,
 }
@@ -59,6 +51,12 @@ impl<Balance: Clone + DefensiveSaturating> VotingInfos<Balance> {
 
 	pub(crate) fn add_staked(&mut self, amount: Balance) {
 		self.total_staked = self.total_staked.clone().defensive_saturating_add(amount)
+	}
+}
+
+impl<Balance: Zero> Default for VotingInfos<Balance> {
+	fn default() -> Self {
+		VotingInfos { total_staked: Zero::zero() }
 	}
 }
 

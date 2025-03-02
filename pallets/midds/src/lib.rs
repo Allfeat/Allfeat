@@ -35,7 +35,6 @@ use allfeat_support::traits::{Certifier, Midds};
 use alloc::boxed::Box;
 use frame_support::{pallet_prelude::*, sp_runtime::Saturating, traits::fungible::MutateHold};
 use frame_system::pallet_prelude::*;
-
 pub use pallet::*;
 
 #[frame_support::pallet]
@@ -46,7 +45,6 @@ pub mod pallet {
 	#[cfg(feature = "runtime-benchmarks")]
 	use frame_support::traits::fungible::Mutate;
 	use frame_support::{
-		sp_runtime::traits::Saturating,
 		traits::{
 			fungible::{Inspect, MutateHold},
 			tokens::Precision,
@@ -184,9 +182,6 @@ pub mod pallet {
 			hash_id: MiddsHashIdOf<T>,
 			data_colateral: BalanceOf<T, I>,
 		},
-		MIDDSUpdated {
-			hash_id: MiddsHashIdOf<T>,
-		},
 		MIDDSUnregistered {
 			hash_id: MiddsHashIdOf<T>,
 		},
@@ -208,7 +203,6 @@ pub mod pallet {
 		CantReleaseFunds,
 		/// Funds can't be held at this moment.
 		CantHoldFunds,
-		/// The provider tried to register/update a MIDDS that exceed data size cost maximum
 		/// authorized.
 		OverflowedAuthorizedDataCost,
 	}
@@ -223,67 +217,6 @@ pub mod pallet {
 			let midds = MiddsWrapper::new(provider, T::Timestamp::now(), midds);
 
 			Self::inner_register(midds)
-		}
-
-		#[pallet::call_index(1)]
-		pub fn update_field(
-			origin: OriginFor<T>,
-			midds_id: MiddsHashIdOf<T>,
-			field_data: <T::MIDDS as Midds>::EditableFields,
-		) -> DispatchResult {
-			let caller = T::ProviderOrigin::ensure_origin(origin)?;
-
-			PendingMidds::<T, I>::try_mutate_exists(midds_id, |x| -> DispatchResult {
-				match x {
-					Some(midds) => {
-						ensure!(midds.provider() == caller, Error::<T, I>::NotProvider);
-
-						let old_hash = midds.midds.hash();
-						let old_cost = Self::calculate_midds_colateral(midds);
-						midds.midds.update_field(field_data)?;
-						ensure!(midds.midds.is_valid(), Error::<T, I>::UnvalidMiddsData);
-						let new_cost = Self::calculate_midds_colateral(midds);
-
-						ensure!(
-							new_cost <= T::MaxDepositCost::get(),
-							Error::<T, I>::OverflowedAuthorizedDataCost
-						);
-
-						match old_cost.cmp(&new_cost) {
-							core::cmp::Ordering::Greater => {
-								T::Currency::release(
-									&HoldReason::MiddsRegistration.into(),
-									&caller,
-									old_cost.saturating_sub(new_cost),
-									Precision::BestEffort,
-								)
-								.map_err(|_| Error::<T, I>::CantReleaseFunds)?;
-							},
-							core::cmp::Ordering::Less => {
-								T::Currency::hold(
-									&HoldReason::MiddsRegistration.into(),
-									&caller,
-									new_cost.saturating_sub(old_cost),
-								)
-								.map_err(|_| Error::<T, I>::CantHoldFunds)?;
-							},
-							core::cmp::Ordering::Equal => {},
-						};
-
-						let new_hash = midds.midds.hash();
-
-						PendingMidds::<T, I>::remove(old_hash);
-						PendingMidds::<T, I>::insert(new_hash, midds);
-
-						Self::deposit_event(Event::<T, I>::MIDDSUpdated { hash_id: new_hash });
-
-						Ok(())
-					},
-					None => Err(Error::<T, I>::PendingMiddsNotFound.into()),
-				}
-			})?;
-
-			Ok(())
 		}
 
 		#[pallet::call_index(2)]
@@ -323,11 +256,6 @@ pub mod pallet {
 				Err(Error::<T, I>::PendingMiddsNotFound.into())
 			}
 		}
-
-		// #[pallet::call_index(3)]
-		// pub fn seal(origin: OriginFor<T>) -> DispatchResult {
-		// Ok(())
-		// }
 	}
 }
 
@@ -364,7 +292,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 
 	/// Wrapper function that trigger the addition of the MIDDS to the certification process after
 	/// the MIDDS being sucessfuly sealed.
-	fn on_seal(midds_id: MiddsHashIdOf<T>) -> DispatchResult {
+	fn on_certif_ready(midds_id: MiddsHashIdOf<T>) -> DispatchResult {
 		<T::Certification as Certifier<MiddsHashIdOf<T>>>::add_to_certif_process(midds_id)
 	}
 }

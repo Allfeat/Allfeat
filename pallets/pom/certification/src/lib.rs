@@ -246,7 +246,7 @@ pub mod pallet {
 			Certifications::<T>::try_mutate_exists(midds_id, |maybe_state| -> DispatchResult {
 				if let Some(state) = maybe_state {
 					match state.status {
-						CertifStatus::VOTING(ref mut infos) => {
+						CertifStatus::Voting(ref mut infos) => {
 							infos.add_staked(amount);
 							// We check if the threshold for the certification is triggered or not
 							// and upgrade to pre-certified state if it is.
@@ -323,7 +323,7 @@ pub mod pallet {
 						// Then we upgrade it to Certified status.
 						Certifications::<T>::mutate(midds_id, |maybe_certif| {
 							if let Some(ref mut certif) = maybe_certif {
-								certif.status = CertifStatus::CERTIF;
+								certif.status = CertifStatus::Certif(());
 							} else {
 								unreachable!("Certif state should exist. This is unexpected.")
 							}
@@ -350,7 +350,7 @@ pub mod pallet {
 				let certif_status =
 					certif_data.expect("certif data not found, this is highly unexpected.").status;
 				match certif_status {
-					CertifStatus::PRECERTIF(x) => {
+					CertifStatus::Precertif(x) => {
 						let now = T::Time::now();
 						let elapsed_time = now
 							.as_millis()
@@ -371,7 +371,7 @@ pub mod pallet {
 		fn upgrade_to_precertif(midds_id: MiddsHashIdOf<T>) -> DispatchResult {
 			Certifications::<T>::try_mutate_exists(midds_id, |maybe_state| -> DispatchResult {
 				if let Some(state) = maybe_state {
-					state.status = CertifStatus::PRECERTIF(PrecertifInfos {
+					state.status = CertifStatus::Precertif(PrecertifInfos {
 						precertif_timestamp: T::Time::now(),
 					});
 					Ok(())

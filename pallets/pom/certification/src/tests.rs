@@ -97,7 +97,7 @@ mod vote {
 
 		let mut expected_certif_state = CertifState::<u64>::new();
 		match expected_certif_state.status {
-			CertifStatus::VOTING(ref mut infos) => infos.add_staked(vote_amount),
+			CertifStatus::Voting(ref mut infos) => infos.add_staked(vote_amount),
 			_ => unreachable!("expecting VOTING status"),
 		}
 
@@ -125,7 +125,7 @@ mod vote {
 
 			let new_vote_amount = 5;
 			match expected_certif_state.status {
-				CertifStatus::VOTING(ref mut infos) => infos.add_staked(new_vote_amount),
+				CertifStatus::Voting(ref mut infos) => infos.add_staked(new_vote_amount),
 				_ => unreachable!("expecting VOTING status"),
 			}
 
@@ -166,7 +166,7 @@ mod vote {
 
 		let mut expected_certif_state = CertifState::<u64>::new();
 		match expected_certif_state.status {
-			CertifStatus::VOTING(ref mut infos) => infos.add_staked(vote_amount),
+			CertifStatus::Voting(ref mut infos) => infos.add_staked(vote_amount),
 			_ => unreachable!("expecting VOTING status"),
 		}
 
@@ -195,7 +195,7 @@ mod vote {
 				Error::<Test>::NoVotingPeriod
 			);
 
-			expected_certif_state.status = CertifStatus::PRECERTIF(PrecertifInfos {
+			expected_certif_state.status = CertifStatus::Precertif(PrecertifInfos {
 				precertif_timestamp: Duration::from_millis(1),
 			});
 			let mut expected_queue = VecDeque::new();
@@ -252,10 +252,10 @@ mod hooks {
 			let mut test_queue: VecDeque<MiddsHashIdOf<Test>> = VecDeque::new();
 			let mut certif_state = CertifState::<u64>::new();
 			let mut certif_state_2 = CertifState::<u64>::new();
-			certif_state.status = CertifStatus::PRECERTIF(PrecertifInfos {
+			certif_state.status = CertifStatus::Precertif(PrecertifInfos {
 				precertif_timestamp: Duration::from_millis(0),
 			});
-			certif_state_2.status = CertifStatus::PRECERTIF(PrecertifInfos {
+			certif_state_2.status = CertifStatus::Precertif(PrecertifInfos {
 				precertif_timestamp: Duration::from_millis(102),
 			});
 			test_queue.push_back(midds_id);
@@ -296,7 +296,7 @@ mod hooks {
 				Certification::on_idle(current_block, 1000000.into());
 				test_queue.pop_front();
 				test_queue.pop_front();
-				certif_state.status = CertifStatus::CERTIF;
+				certif_state.status = CertifStatus::Certif(());
 				assert_eq!(test_queue, PreCertificationsQueue::<Test>::get());
 				assert_eq!(Some(certif_state.clone()), Certifications::<Test>::get(midds_id));
 				assert_eq!(Some(certif_state), Certifications::<Test>::get(midds_id_2));
