@@ -19,7 +19,7 @@
 use allfeat_support::traits::Midds;
 use frame_support::{pallet_prelude::TypedGet, sp_runtime::TokenError, testing_prelude::*};
 
-use crate::{mock::*, PendingMidds};
+use crate::{mock::*, MiddsDb};
 
 #[test]
 fn it_registers_midds_to_pending_successfully() {
@@ -34,7 +34,7 @@ fn it_registers_midds_to_pending_successfully() {
 		assert_ok!(MockMidds::register(RuntimeOrigin::signed(provider), Box::new(midds.clone())));
 
 		assert_eq!(expected_lock_cost, Balances::reserved_balance(provider));
-		assert_eq!(PendingMidds::<Test>::get(midds.hash()).expect("testing value").midds, midds)
+		assert_eq!(MiddsDb::<Test>::get(midds.hash()).expect("testing value").midds, midds)
 	})
 }
 

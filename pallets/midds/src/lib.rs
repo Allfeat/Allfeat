@@ -171,7 +171,7 @@ pub mod pallet {
 	pub struct Pallet<T, I = ()>(PhantomData<(T, I)>);
 
 	#[pallet::storage]
-	pub(super) type PendingMidds<T: Config<I>, I: 'static = ()> =
+	pub(super) type MiddsDb<T: Config<I>, I: 'static = ()> =
 		StorageMap<_, Blake2_128Concat, MiddsHashIdOf<T>, MiddsWrapperOf<T, I>>;
 
 	#[pallet::event]
@@ -192,7 +192,7 @@ pub mod pallet {
 		/// A MIDDS with the same hash ID (so the same data) is already registered.
 		MiddsDataAlreadyExist,
 		/// The specified MIDDS ID is not related to any pending MIDDS.
-		PendingMiddsNotFound,
+		MiddsNotFound,
 		/// Some data in the MIDDS aren't valid.
 		UnvalidMiddsData,
 		/// The lock-unregister period is still going.
@@ -223,7 +223,7 @@ pub mod pallet {
 		pub fn unregister(origin: OriginFor<T>, midds_id: MiddsHashIdOf<T>) -> DispatchResult {
 			let caller = T::ProviderOrigin::ensure_origin(origin)?;
 
-			if let Some(midds) = PendingMidds::<T, I>::get(midds_id) {
+			if let Some(midds) = MiddsDb::<T, I>::get(midds_id) {
 				ensure!(midds.provider() == caller, Error::<T, I>::NotProvider);
 
 				if T::UnregisterPeriod::get().is_some() {
@@ -247,13 +247,13 @@ pub mod pallet {
 				)
 				.map_err(|_| Error::<T, I>::CantReleaseFunds)?;
 
-				PendingMidds::<T, I>::remove(midds_id);
+				MiddsDb::<T, I>::remove(midds_id);
 
 				Self::deposit_event(Event::<T, I>::MIDDSUnregistered { hash_id: midds_id });
 
 				Ok(())
 			} else {
-				Err(Error::<T, I>::PendingMiddsNotFound.into())
+				Err(Error::<T, I>::MiddsNotFound.into())
 			}
 		}
 	}
@@ -264,17 +264,17 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
 		let midds_hash = midds.midds.hash();
 
 		// Verify that the same MIDDS hash isn't registered already.
-		ensure!(
-			!PendingMidds::<T, I>::contains_key(midds_hash),
-			Error::<T, I>::MiddsDataAlreadyExist
-		);
+		ensure!(!MiddsDb::<T, I>::contains_key(midds_hash), Error::<T, I>::MiddsDataAlreadyExist);
 
 		// data colateral lock
 		let data_lock = Self::calculate_midds_colateral(&midds);
 		ensure!(data_lock <= T::MaxDepositCost::get(), Error::<T, I>::OverflowedAuthorizedDataCost);
 
 		T::Currency::hold(&HoldReason::MiddsRegistration.into(), &midds.provider(), data_lock)?;
-		PendingMidds::<T, I>::insert(midds_hash, midds.clone());
+		MiddsDb::<T, I>::insert(midds_hash, midds.clone());
+
+		// We add it to the certif process on registration
+		Self::on_certif_ready(midds_hash)?;
 
 		Self::deposit_event(Event::<T, I>::MIDDSRegistered {
 			provider: midds.provider(),
