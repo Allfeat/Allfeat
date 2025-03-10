@@ -81,7 +81,7 @@ zeroize = { opt-level = 3 }
 allfeat-support = { version = "1.0.0-dev", default-features = false, path = "./support" }
 allfeat-primitives = { version = "1.0.0", default-features = false, path = "./primitives" }
 pallet-midds = { version = "1.0.0-dev", default-features = false, path = "./pallets/midds" }
-pallet-pom-trusters = { version = "1.0.0-dev", default-features = false, path = "./pallets/pom/trusters" }
+pallet-pom-certification = { version = "1.0.0-dev", default-features = false, path = "./pallets/pom/certification" }
 genres-registry = { package = "genres-registry", version = "1.0.0-dev", default-features = false, path = "./support/genres-registry" }
 # midds-artist = { version = "1.0.0-dev", default-features = false, path = "./midds/artist" }
 midds-stakeholder = { version = "1.0.0-dev", default-features = false, path = "./midds/stakeholder" }

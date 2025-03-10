@@ -31,14 +31,13 @@ mod vote {
 
 	use crate::{
 		tests::{Balance, RuntimeOrigin, System, Test, Timestamp},
-		types::PrecertifInfos,
 		Certifications, Config, Error, Event, PreCertificationsQueue, Votes,
 	};
 	use alloc::collections::VecDeque;
 	use frame_support::traits::Get;
 
 	use super::{generate_midds_id, new_test_ext, CertifState, CertifStatus, Certification};
-	use allfeat_support::traits::Certifier;
+	use allfeat_support::{traits::Certifier, types::certification::PrecertifInfos};
 	use frame_support::{assert_err, assert_ok};
 
 	#[test]
@@ -210,6 +209,7 @@ mod hooks {
 	mod on_idle {
 		use core::time::Duration;
 
+		use allfeat_support::types::certification::PrecertifInfos;
 		use alloc::collections::VecDeque;
 		use frame_support::traits::{Get, Hooks, UnixTime};
 
@@ -218,7 +218,6 @@ mod hooks {
 				generate_midds_id, new_test_ext, CertifState, CertifStatus, Certification, System,
 				Test, Timestamp,
 			},
-			types::PrecertifInfos,
 			Certifications, Config, MiddsHashIdOf, PreCertificationsQueue,
 		};
 

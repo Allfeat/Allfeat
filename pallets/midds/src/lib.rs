@@ -197,6 +197,8 @@ pub mod pallet {
 		UnvalidMiddsData,
 		/// The lock-unregister period is still going.
 		UnregisterLocked,
+		/// The MIDDS can't be unregistered when pre-certifier/certified.
+		UnregisterLockedNoVoting,
 		/// The caller is not the provider of the MIDDS.
 		NotProvider,
 		/// Funds can't be released at this moment.
@@ -222,6 +224,12 @@ pub mod pallet {
 		#[pallet::call_index(2)]
 		pub fn unregister(origin: OriginFor<T>, midds_id: MiddsHashIdOf<T>) -> DispatchResult {
 			let caller = T::ProviderOrigin::ensure_origin(origin)?;
+
+			// Ensure the MIDDS is in a valid state to be removed
+			ensure!(
+				<T::Certification as Certifier<MiddsHashIdOf<T>>>::is_voting_period(midds_id),
+				Error::<T, I>::UnregisterLockedNoVoting
+			);
 
 			if let Some(midds) = MiddsDb::<T, I>::get(midds_id) {
 				ensure!(midds.provider() == caller, Error::<T, I>::NotProvider);

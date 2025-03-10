@@ -1,0 +1,65 @@
+[package]
+name = "e2e-tests-pom"
+version = "1.0.0"
+authors.workspace = true
+edition.workspace = true
+license = "GPL-3"
+homepage.workspace = true
+repository.workspace = true
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+parity-scale-codec = { features = [
+	"derive",
+	"max-encoded-len",
+], workspace = true }
+log = { workspace = true }
+scale-info = { features = ["derive"], workspace = true }
+allfeat-support = { workspace = true }
+allfeat-primitives = { workspace = true }
+frame-benchmarking = { workspace = true }
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+
+[dev-dependencies]
+sp-tracing = { workspace = true }
+sp-io = { workspace = true }
+pallet-timestamp = { workspace = true }
+pallet-balances = { workspace = true }
+pallet-collective = { workspace = true }
+
+[features]
+default = ["std"]
+std = [
+	"frame-support/std",
+	"frame-system/std",
+	"parity-scale-codec/std",
+	"log/std",
+	"scale-info/std",
+	"allfeat-support/std",
+	"allfeat-primitives/std",
+	"pallet-timestamp/std",
+	"pallet-balances/std",
+	"pallet-collective/std",
+	"frame-benchmarking/std",
+	"sp-tracing/std",
+	"sp-io/std",
+]
+runtime-benchmarks = [
+	"frame-benchmarking/runtime-benchmarks",
+	"frame-support/runtime-benchmarks",
+	"frame-system/runtime-benchmarks",
+	"pallet-timestamp/runtime-benchmarks",
+	"pallet-balances/runtime-benchmarks",
+	"pallet-collective/runtime-benchmarks",
+	"allfeat-support/runtime-benchmarks",
+]
+try-runtime = [
+	"frame-support/try-runtime",
+	"frame-system/try-runtime",
+	"pallet-timestamp/try-runtime",
+	"pallet-balances/try-runtime",
+	"pallet-collective/try-runtime",
+]

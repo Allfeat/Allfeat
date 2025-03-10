@@ -43,6 +43,10 @@ where
 pub trait Certifier<MiddsId> {
 	/// Add the specified MIDDS into the certification logic process of the pallet.
 	fn add_to_certif_process(midds_id: MiddsId) -> DispatchResult;
+
+	fn is_voting_period(midds_id: MiddsId) -> bool;
+	fn is_precertified(midds_id: MiddsId) -> bool;
+	fn is_certified(midds_id: MiddsId) -> bool;
 }
 
 /// Empty implementation mostly for testing or if there is no certification process to associate
@@ -50,5 +54,15 @@ pub trait Certifier<MiddsId> {
 impl<T> Certifier<T> for () {
 	fn add_to_certif_process(_midds_id: T) -> DispatchResult {
 		Ok(())
+	}
+
+	fn is_voting_period(_midds_id: T) -> bool {
+		true
+	}
+	fn is_precertified(_midds_id: T) -> bool {
+		true
+	}
+	fn is_certified(_midds_id: T) -> bool {
+		true
 	}
 }

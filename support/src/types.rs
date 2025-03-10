@@ -163,31 +163,59 @@ mod iswc {
 	}
 }
 
-mod certification {
-	use frame_support::{pallet_prelude::Member, sp_runtime::RuntimeDebug, Parameter};
+pub mod certification {
+	use core::time::Duration;
+
+	use frame_support::{
+		pallet_prelude::Zero, sp_runtime::RuntimeDebug, traits::DefensiveSaturating,
+	};
 	use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 	use scale_info::TypeInfo;
 
 	#[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, MaxEncodedLen, TypeInfo)]
-	pub enum CertifStatus<VData, PData, CData>
-	where
-		VData: Parameter + Member,
-		PData: Parameter + Member,
-		CData: Parameter + Member,
-	{
-		Voting(VData),    // The MIDDS just got sealed by the provider and is awaiting votes.
-		Precertif(PData), // The MIDDS got the certification threshold and enter the pre-certification period.
-		Certif(CData), // The pre-certification period ended without conflict and the MIDDS is certified.
+	pub enum CertifStatus<Balance> {
+		Voting(VotingInfos<Balance>), // The MIDDS just got sealed by the provider and is awaiting votes.
+		Precertif(PrecertifInfos), // The MIDDS got the certification threshold and enter the pre-certification period.
+		Certif(()), // The pre-certification period ended without conflict and the MIDDS is certified.
 	}
 
-	impl<VData, PData, CData> Default for CertifStatus<VData, PData, CData>
-	where
-		VData: Parameter + Member + Default,
-		PData: Parameter + Member + Default,
-		CData: Parameter + Member + Default,
-	{
+	impl<Balance: Zero> Default for CertifStatus<Balance> {
 		fn default() -> Self {
 			Self::Voting(Default::default())
+		}
+	}
+
+	#[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, MaxEncodedLen, TypeInfo)]
+	pub struct VotingInfos<Balance> {
+		total_staked: Balance,
+	}
+
+	impl<Balance: Clone + DefensiveSaturating> VotingInfos<Balance> {
+		pub fn total_staked(&self) -> Balance {
+			self.total_staked.clone()
+		}
+
+		pub fn add_staked(&mut self, amount: Balance) {
+			self.total_staked = self.total_staked.clone().defensive_saturating_add(amount)
+		}
+	}
+
+	impl<Balance: Zero> Default for VotingInfos<Balance> {
+		fn default() -> Self {
+			VotingInfos { total_staked: Zero::zero() }
+		}
+	}
+
+	#[derive(
+		Encode, Default, Decode, Clone, PartialEq, Eq, RuntimeDebug, MaxEncodedLen, TypeInfo,
+	)]
+	pub struct PrecertifInfos {
+		pub precertif_timestamp: Duration,
+	}
+
+	impl PrecertifInfos {
+		pub fn precertif_timestamp(&self) -> Duration {
+			self.precertif_timestamp
 		}
 	}
 }

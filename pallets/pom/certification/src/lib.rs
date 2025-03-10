@@ -46,11 +46,24 @@ impl<T: Config> Certifier<MiddsHashIdOf<T>> for Pallet<T> {
 		Certifications::<T>::insert(midds_id, CertifState::new());
 		Ok(())
 	}
+
+	fn is_voting_period(midds_id: MiddsHashIdOf<T>) -> bool {
+		Certifications::<T>::get(midds_id)
+			.is_some_and(|state| matches!(state.status, CertifStatus::Voting(_)))
+	}
+	fn is_precertified(midds_id: MiddsHashIdOf<T>) -> bool {
+		Certifications::<T>::get(midds_id)
+			.is_some_and(|state| matches!(state.status, CertifStatus::Precertif(_)))
+	}
+	fn is_certified(midds_id: MiddsHashIdOf<T>) -> bool {
+		Certifications::<T>::get(midds_id)
+			.is_some_and(|state| matches!(state.status, CertifStatus::Certif(_)))
+	}
 }
 
 #[frame_support::pallet(dev_mode)]
 pub mod pallet {
-	use types::PrecertifInfos;
+	use allfeat_support::types::certification::PrecertifInfos;
 
 	use super::*;
 
