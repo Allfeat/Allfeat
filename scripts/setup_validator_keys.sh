@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # We generate a random seed to generate the validator keys to inject.
-RANDOM_SECRET=$(subkey generate | grep "Secret phrase" | awk -F': ' '{print $2}' | sed 's/^ *//')
+RANDOM_SECRET=$(cargo run --release -- key generate | grep "Secret phrase" | awk -F': ' '{print $2}' | sed 's/^ *//')
 
 printf "=======================================================================================\n"
 printf "KEEP THIS SEED SAFE, IT GIVES CONTROL TO YOUR VALIDATOR\n"
@@ -9,10 +9,10 @@ printf "%s\n" "$RANDOM_SECRET"
 printf "=======================================================================================\n"
 
 # Assign public keys
-GRANDPA_PUBLIC_KEY=$(subkey inspect --scheme ed25519 "$RANDOM_SECRET//grandpa" | grep "Account ID" | awk '{print $3}')
-BABE_PUBLIC_KEY=$(subkey inspect --scheme sr25519 "$RANDOM_SECRET//babe" | grep "Account ID" | awk '{print $3}')
-IM_ONLINE_PUBLIC_KEY=$(subkey inspect --scheme sr25519 "$RANDOM_SECRET//im_online" | grep "Account ID" | awk '{print $3}')
-AUTH_DISCOVERY_PUBLIC_KEY=$(subkey inspect --scheme sr25519 "$RANDOM_SECRET//authority_discovery" | grep "Account ID" | awk '{print $3}')
+GRANDPA_PUBLIC_KEY=$(cargo run --release -- key inspect --scheme ed25519 "$RANDOM_SECRET//grandpa" | grep "Account ID" | awk '{print $3}')
+BABE_PUBLIC_KEY=$(cargo run --release -- key inspect --scheme sr25519 "$RANDOM_SECRET//babe" | grep "Account ID" | awk '{print $3}')
+IM_ONLINE_PUBLIC_KEY=$(cargo run --release -- key inspect --scheme sr25519 "$RANDOM_SECRET//im_online" | grep "Account ID" | awk '{print $3}')
+AUTH_DISCOVERY_PUBLIC_KEY=$(cargo run --release -- key inspect --scheme sr25519 "$RANDOM_SECRET//authority_discovery" | grep "Account ID" | awk '{print $3}')
 
 # NODE_PATH="${NODE_PATH:-/path/to/your/node}"
 
