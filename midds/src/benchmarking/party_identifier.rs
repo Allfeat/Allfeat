@@ -16,30 +16,31 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[macro_export]
-macro_rules! declare_subtype {
-    ($enum_name:ident { $($variant:ident),* $(,)? }) => {
-        #[derive(
-            Clone, Copy, PartialEq, Eq, PartialOrd, Ord,
-            RuntimeDebug, Encode, Decode, TypeInfo, MaxEncodedLen
-        )]
-        pub enum $enum_name {
-            $($variant),*
-        }
-    }
-}
+use crate::{
+	pallet_prelude::PartyIdentifier,
+	party_identifier::{PartyType, Person, PersonGender, PersonType},
+};
 
-#[macro_export]
-macro_rules! declare_music_genre {
-    ($($genre:ident($subtype:ident { $($variant:ident),* $(,)? }),)*) => {
-        $(declare_subtype!($subtype { $($variant),* });)*
+use super::{fill_boundedvec, BenchmarkHelperT};
 
-        #[derive(
-            Clone, Copy, PartialEq, Eq, PartialOrd, Ord,
-            RuntimeDebug, Encode, Decode, TypeInfo, MaxEncodedLen
-        )]
-        pub enum MusicGenre {
-            $($genre(Option<$subtype>)),*
-        }
-    }
+pub struct BenchmarkHelper;
+
+impl BenchmarkHelperT<PartyIdentifier> for BenchmarkHelper {
+	const FIELD_MAX_SIZE: u32 = 256;
+
+	fn build_mock(size: u32) -> PartyIdentifier {
+		let isni = b"0000000106751234".to_vec().try_into().expect("benchmark value valid");
+		let ipi = 987654321;
+
+		PartyIdentifier {
+			isni,
+			ipi,
+			party_type: PartyType::Person(Person {
+				full_name: fill_boundedvec(b'x', size),
+				aliases: fill_boundedvec(fill_boundedvec(b'x', size), size),
+				person_type: PersonType::Solo,
+				genre: PersonGender::Male,
+			}),
+		}
+	}
 }

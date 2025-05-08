@@ -17,7 +17,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod musical_works;
-mod stakeholders;
+mod party_identifier;
+mod release;
+mod track;
 
-pub type Stakeholders = pallet_midds::Instance1;
+pub type PartyIdentifiers = pallet_midds::Instance1;
 pub type MusicalWorks = pallet_midds::Instance2;
+pub type Tracks = pallet_midds::Instance3;
+pub type Releases = pallet_midds::Instance4;

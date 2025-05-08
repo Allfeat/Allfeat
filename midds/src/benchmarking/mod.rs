@@ -16,9 +16,33 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![cfg_attr(not(feature = "std"), no_std)]
+pub mod musical_work;
+pub mod party_identifier;
+pub mod release;
+pub mod track;
 
-pub mod traits;
-pub mod types;
+use core::fmt::Debug;
+use frame_support::{traits::Get, BoundedVec};
 
-pub use genres_registry::*;
+use crate::Midds;
+
+pub trait BenchmarkHelperT<T: Midds> {
+	const FIELD_MAX_SIZE: u32;
+
+	fn build_mock(size: u32) -> T;
+}
+
+/// Benchmark helper function to generate a boundedvec type based on a specified size.
+pub fn fill_boundedvec<T: Clone + Debug, N: Get<u32>>(
+	value: T,
+	requested_size: u32,
+) -> BoundedVec<T, N> {
+	let max_size = N::get();
+	let actual_size = requested_size.min(max_size);
+
+	let mut vec = BoundedVec::<T, N>::with_bounded_capacity(actual_size as usize);
+	for _ in 0..actual_size {
+		vec.try_push(value.clone()).expect("Within bounds");
+	}
+	vec
+}

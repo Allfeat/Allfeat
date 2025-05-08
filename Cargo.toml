@@ -5,11 +5,7 @@ members = [
 	"runtime/*",
 	"primitives",
 	"pallets/midds",
-	"pallets/pom/*",
-	"midds/stakeholder",
-	"midds/musical-work",
-	"support",
-	"support/genres-registry",
+	"midds",
 ]
 
 [workspace.package]
@@ -78,14 +74,11 @@ zeroize = { opt-level = 3 }
 # - "client" dependencies are only used in the client, and thus don't need to be no_std compatible.
 
 # Allfeat (wasm)
-allfeat-support = { version = "1.0.0-dev", default-features = false, path = "./support" }
 allfeat-primitives = { version = "1.0.0", default-features = false, path = "./primitives" }
 pallet-midds = { version = "1.0.0-dev", default-features = false, path = "./pallets/midds" }
-pallet-pom-certification = { version = "1.0.0-dev", default-features = false, path = "./pallets/pom/certification" }
-genres-registry = { package = "genres-registry", version = "1.0.0-dev", default-features = false, path = "./support/genres-registry" }
-# midds-artist = { version = "1.0.0-dev", default-features = false, path = "./midds/artist" }
-midds-stakeholder = { version = "1.0.0-dev", default-features = false, path = "./midds/stakeholder" }
-midds-musical-work = { version = "1.0.0-dev", default-features = false, path = "./midds/musical-work" }
+
+midds = { version = "1.0.0-dev", default-features = false, path = "./midds" }
+
 pallet-validator-set = { package = "substrate-validator-set", version = "1.1.0", default-features = false, git = "https://github.com/Allfeat/substrate-validator-set.git", branch = "master" }
 
 # polkadot-sdk

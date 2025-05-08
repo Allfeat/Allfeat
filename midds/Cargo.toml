@@ -1,7 +1,7 @@
 [package]
-name = "midds-musical-work"
+name = "midds"
 version = "1.0.0-dev"
-description = "MIDDS representating a Musical Work entity"
+description = "Substrate compatible MIDDS main crate."
 authors.workspace = true
 edition.workspace = true
 homepage.workspace = true
@@ -18,19 +18,15 @@ frame-support = { workspace = true }
 parity-scale-codec = { workspace = true }
 scale-info = { workspace = true }
 
-allfeat-support = { workspace = true }
-
 [features]
 default = ["std"]
 std = [
+	"frame-support/std",
 	"parity-scale-codec/std",
 	"scale-info/std",
 	"log/std",
-	"allfeat-support/std",
-	"frame-support/std",
 ]
 runtime-benchmarks = [
 	"frame-support/runtime-benchmarks",
-	"allfeat-support/runtime-benchmarks",
 ]
 try-runtime = ["frame-support/try-runtime"]

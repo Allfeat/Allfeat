@@ -16,22 +16,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use frame_support::pallet_prelude::Member;
-use frame_support::sp_runtime::RuntimeDebug;
-use frame_support::Parameter;
-use frame_support::{pallet_prelude::Zero, traits::DefensiveSaturating};
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
-use scale_info::TypeInfo;
+pub mod genre;
+pub mod utils;
 
-pub use allfeat_support::types::CertifStatus;
-
-#[derive(Encode, Default, Decode, Clone, PartialEq, Eq, RuntimeDebug, MaxEncodedLen, TypeInfo)]
-pub struct CertifState<Balance: Parameter + Member + Zero + DefensiveSaturating> {
-	pub(crate) status: CertifStatus<Balance>,
-}
-
-impl<Balance: Parameter + Member + DefensiveSaturating + Zero + Clone> CertifState<Balance> {
-	pub(crate) fn new() -> Self {
-		CertifState { status: Default::default() }
-	}
-}
+pub mod musical_work;
+pub mod party_identifier;
+pub mod release;
+pub mod track;

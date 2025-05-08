@@ -19,6 +19,7 @@
 //! The Melodie runtime.
 
 #![cfg_attr(not(feature = "std"), no_std)]
+#![recursion_limit = "256"]
 
 // Make the WASM binary available.
 #[cfg(feature = "std")]
@@ -195,14 +196,21 @@ mod runtime {
 
 	// Allfeat related
 	#[runtime::pallet_index(101)]
-	pub type Stakeholders = pallet_midds<Instance1>;
+	pub type PartyIdentifiers = pallet_midds<Instance1>;
 
 	#[runtime::pallet_index(102)]
 	pub type MusicalWorks = pallet_midds<Instance2>;
+
+	#[runtime::pallet_index(103)]
+	pub type Tracks = pallet_midds<Instance3>;
+
+	#[runtime::pallet_index(104)]
+	pub type Releases = pallet_midds<Instance4>;
 }
 
 #[cfg(feature = "runtime-benchmarks")]
 use alloc::string::String;
+
 use frame_support::pallet_prelude::*;
 use sp_version::{runtime_version, RuntimeVersion};
 

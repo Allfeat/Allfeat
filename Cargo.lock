@@ -163,16 +163,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "allfeat-support"
-version = "1.0.0-dev"
-dependencies = [
- "frame-support",
- "genres-registry",
- "parity-scale-codec",
- "scale-info",
-]
-
-[[package]]
 name = "allocator-api2"
 version = "0.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2279,25 +2269,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "feeef44e73baff3a26d371801df019877a9866a8c493d315ab00177843314f35"
 
 [[package]]
-name = "e2e-tests-pom"
-version = "1.0.0"
-dependencies = [
- "allfeat-primitives",
- "allfeat-support",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "pallet-balances",
- "pallet-collective",
- "pallet-timestamp",
- "parity-scale-codec",
- "scale-info",
- "sp-io",
- "sp-tracing",
-]
-
-[[package]]
 name = "ecdsa"
 version = "0.16.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3227,15 +3198,6 @@ dependencies = [
  "typenum",
  "version_check",
  "zeroize",
-]
-
-[[package]]
-name = "genres-registry"
-version = "1.0.0-dev"
-dependencies = [
- "frame-support",
- "parity-scale-codec",
- "scale-info",
 ]
 
 [[package]]
@@ -5438,8 +5400,7 @@ dependencies = [
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
  "log",
- "midds-musical-work",
- "midds-stakeholder",
+ "midds",
  "pallet-authority-discovery",
  "pallet-authorship",
  "pallet-babe",
@@ -5561,21 +5522,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "midds-musical-work"
+name = "midds"
 version = "1.0.0-dev"
 dependencies = [
- "allfeat-support",
- "frame-support",
- "log",
- "parity-scale-codec",
- "scale-info",
-]
-
-[[package]]
-name = "midds-stakeholder"
-version = "1.0.0-dev"
-dependencies = [
- "allfeat-support",
  "frame-support",
  "log",
  "parity-scale-codec",
@@ -6255,24 +6204,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-collective"
-version = "39.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6270210e07e3f8d741a9852756a22aeeed60574cb0ebd9093596a6e4b5fce6d"
-dependencies = [
- "docify",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "parity-scale-codec",
- "scale-info",
- "sp-core",
- "sp-io",
- "sp-runtime",
-]
-
-[[package]]
 name = "pallet-grandpa"
 version = "39.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6337,11 +6268,11 @@ name = "pallet-midds"
 version = "1.0.0"
 dependencies = [
  "allfeat-primitives",
- "allfeat-support",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",
+ "midds",
  "pallet-balances",
  "pallet-timestamp",
  "parity-scale-codec",
@@ -6378,25 +6309,6 @@ dependencies = [
  "parity-scale-codec",
  "polkadot-sdk-frame",
  "scale-info",
-]
-
-[[package]]
-name = "pallet-pom-certification"
-version = "1.0.0"
-dependencies = [
- "allfeat-primitives",
- "allfeat-support",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "pallet-balances",
- "pallet-collective",
- "pallet-timestamp",
- "parity-scale-codec",
- "scale-info",
- "sp-io",
- "sp-tracing",
 ]
 
 [[package]]

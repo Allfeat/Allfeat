@@ -21,6 +21,7 @@
 mod mock;
 mod types;
 mod weights;
+use midds::{Midds, MiddsId};
 pub use weights::WeightInfo;
 
 #[cfg(test)]
@@ -31,7 +32,6 @@ mod benchmarking;
 extern crate alloc;
 
 use crate::types::MiddsWrapper;
-use allfeat_support::traits::{Certifier, Midds};
 use alloc::boxed::Box;
 use frame_support::{pallet_prelude::*, sp_runtime::Saturating, traits::fungible::MutateHold};
 use frame_system::pallet_prelude::*;
@@ -41,7 +41,6 @@ pub use pallet::*;
 pub mod pallet {
 	use super::*;
 	use allfeat_primitives::Moment;
-	use allfeat_support::traits::{Certifier, Midds};
 	#[cfg(feature = "runtime-benchmarks")]
 	use frame_support::traits::fungible::Mutate;
 	use frame_support::{
@@ -52,12 +51,12 @@ pub mod pallet {
 		},
 		PalletId,
 	};
+	use midds::{Midds, MiddsId};
 
 	pub type MomentOf<T, I> = <<T as Config<I>>::Timestamp as Time>::Moment;
 	pub type BalanceOf<T, I = ()> =
 		<<T as Config<I>>::Currency as Inspect<<T as frame_system::Config>::AccountId>>::Balance;
 
-	pub type MiddsHashIdOf<T> = <T as frame_system::Config>::Hash;
 	pub type MiddsWrapperOf<T, I> = MiddsWrapper<
 		<T as frame_system::Config>::AccountId,
 		MomentOf<T, I>,
@@ -127,13 +126,7 @@ pub mod pallet {
 
 		#[pallet::no_default]
 		/// The MIDDS actor that this pallet instance manage.
-		type MIDDS: Midds<Hash = <Self as frame_system::Config>::Hashing>
-			+ Parameter
-			+ Member
-			+ MaxEncodedLen;
-
-		#[pallet::no_default]
-		type Certification: Certifier<MiddsHashIdOf<Self>>;
+		type MIDDS: Midds;
 
 		#[pallet::no_default]
 		/// The origin which may provide new MIDDS to register on-chain for this instance.
@@ -170,20 +163,30 @@ pub mod pallet {
 	#[pallet::storage_version(STORAGE_VERSION)]
 	pub struct Pallet<T, I = ()>(PhantomData<(T, I)>);
 
+	/// Storage of the next identifier to help identifying new MIDDS.
+	#[pallet::storage]
+	pub(super) type NextId<T: Config<I>, I: 'static = ()> = StorageValue<_, u64, ValueQuery>;
+
 	#[pallet::storage]
 	pub(super) type MiddsDb<T: Config<I>, I: 'static = ()> =
-		StorageMap<_, Blake2_128Concat, MiddsHashIdOf<T>, MiddsWrapperOf<T, I>>;
+		StorageMap<_, Blake2_128Concat, MiddsId, MiddsWrapperOf<T, I>>;
+
+	/// Storage mapping Hashed MIDDS to the existing ID of that MIDDS for integrity and
+	/// duplication check
+	#[pallet::storage]
+	pub(super) type HashIndex<T: Config<I>, I: 'static = ()> =
+		StorageMap<_, Blake2_128Concat, [u8; 32], MiddsId>;
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config<I>, I: 'static = ()> {
 		MIDDSRegistered {
 			provider: T::AccountId,
-			hash_id: MiddsHashIdOf<T>,
+			midds_id: MiddsId,
 			data_colateral: BalanceOf<T, I>,
 		},
 		MIDDSUnregistered {
-			hash_id: MiddsHashIdOf<T>,
+			midds_id: MiddsId,
 		},
 	}
 
@@ -193,7 +196,6 @@ pub mod pallet {
 		MiddsDataAlreadyExist,
 		/// The specified MIDDS ID is not related to any pending MIDDS.
 		MiddsNotFound,
-		/// Some data in the MIDDS aren't valid.
 		UnvalidMiddsData,
 		/// The lock-unregister period is still going.
 		UnregisterLocked,
@@ -215,21 +217,15 @@ pub mod pallet {
 		pub fn register(origin: OriginFor<T>, midds: Box<T::MIDDS>) -> DispatchResult {
 			let provider = T::ProviderOrigin::ensure_origin(origin)?;
 			let midds = *midds;
-			ensure!(midds.is_valid(), Error::<T, I>::UnvalidMiddsData);
+
 			let midds = MiddsWrapper::new(provider, T::Timestamp::now(), midds);
 
 			Self::inner_register(midds)
 		}
 
 		#[pallet::call_index(2)]
-		pub fn unregister(origin: OriginFor<T>, midds_id: MiddsHashIdOf<T>) -> DispatchResult {
+		pub fn unregister(origin: OriginFor<T>, midds_id: MiddsId) -> DispatchResult {
 			let caller = T::ProviderOrigin::ensure_origin(origin)?;
-
-			// Ensure the MIDDS is in a valid state to be removed
-			ensure!(
-				<T::Certification as Certifier<MiddsHashIdOf<T>>>::is_voting_period(midds_id),
-				Error::<T, I>::UnregisterLockedNoVoting
-			);
 
 			if let Some(midds) = MiddsDb::<T, I>::get(midds_id) {
 				ensure!(midds.provider() == caller, Error::<T, I>::NotProvider);
@@ -256,8 +252,9 @@ pub mod pallet {
 				.map_err(|_| Error::<T, I>::CantReleaseFunds)?;
 
 				MiddsDb::<T, I>::remove(midds_id);
+				HashIndex::<T, I>::remove(midds.midds.hash());
 
-				Self::deposit_event(Event::<T, I>::MIDDSUnregistered { hash_id: midds_id });
+				Self::deposit_event(Event::<T, I>::MIDDSUnregistered { midds_id });
 
 				Ok(())
 			} else {
@@ -269,38 +266,44 @@ pub mod pallet {
 
 impl<T: Config<I>, I: 'static> Pallet<T, I> {
 	fn inner_register(midds: MiddsWrapperOf<T, I>) -> DispatchResult {
-		let midds_hash = midds.midds.hash();
+		let midds_id = Self::get_next_id();
 
-		// Verify that the same MIDDS hash isn't registered already.
-		ensure!(!MiddsDb::<T, I>::contains_key(midds_hash), Error::<T, I>::MiddsDataAlreadyExist);
+		// Verify that the same MIDDS isn't registered already by checking hash integrity.
+		ensure!(
+			!HashIndex::<T, I>::contains_key(midds.midds.hash()),
+			Error::<T, I>::MiddsDataAlreadyExist
+		);
 
 		// data colateral lock
 		let data_lock = Self::calculate_midds_colateral(&midds);
 		ensure!(data_lock <= T::MaxDepositCost::get(), Error::<T, I>::OverflowedAuthorizedDataCost);
 
 		T::Currency::hold(&HoldReason::MiddsRegistration.into(), &midds.provider(), data_lock)?;
-		MiddsDb::<T, I>::insert(midds_hash, midds.clone());
+		MiddsDb::<T, I>::insert(midds_id, midds.clone());
+		HashIndex::<T, I>::insert(midds.midds.hash(), midds_id);
 
-		// We add it to the certif process on registration
-		Self::on_certif_ready(midds_hash)?;
+		Self::increment_next_id();
 
 		Self::deposit_event(Event::<T, I>::MIDDSRegistered {
 			provider: midds.provider(),
-			hash_id: midds_hash,
+			midds_id,
 			data_colateral: data_lock,
 		});
 
 		Ok(())
 	}
 
-	fn calculate_midds_colateral(midds: &MiddsWrapperOf<T, I>) -> BalanceOf<T, I> {
-		let bytes = midds.midds.total_bytes();
-		T::ByteDepositCost::get().saturating_mul(BalanceOf::<T, I>::from(bytes))
+	fn get_next_id() -> MiddsId {
+		NextId::<T, I>::get()
 	}
 
-	/// Wrapper function that trigger the addition of the MIDDS to the certification process after
-	/// the MIDDS being sucessfuly sealed.
-	fn on_certif_ready(midds_id: MiddsHashIdOf<T>) -> DispatchResult {
-		<T::Certification as Certifier<MiddsHashIdOf<T>>>::add_to_certif_process(midds_id)
+	fn increment_next_id() {
+		let current = Self::get_next_id();
+		NextId::<T, I>::set(current.saturating_add(1))
+	}
+
+	fn calculate_midds_colateral(midds: &MiddsWrapperOf<T, I>) -> BalanceOf<T, I> {
+		let bytes = midds.midds.encoded_size() as u32;
+		T::ByteDepositCost::get().saturating_mul(BalanceOf::<T, I>::from(bytes))
 	}
 }

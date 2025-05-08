@@ -29,8 +29,7 @@ allfeat-primitives = { workspace = true }
 pallet-midds = { workspace = true }
 
 # Allfeat MIDDS
-midds-stakeholder = { workspace = true }
-midds-musical-work = { workspace = true }
+midds = { workspace = true }
 
 sp-core = { workspace = true }
 sp-application-crypto = { workspace = true }
@@ -136,8 +135,7 @@ std = [
 	"frame-system-benchmarking?/std",
 	"substrate-wasm-builder",
 	# MIDDS
-	"midds-stakeholder/std",
-	"midds-musical-work/std",
+	"midds/std",
 ]
 runtime-benchmarks = [
 	"frame-benchmarking/runtime-benchmarks",
@@ -147,8 +145,6 @@ runtime-benchmarks = [
 	# Waiting FIX https://github.com/Allfeat/substrate-validator-set/issues/1
 	#	"pallet-validator-set/runtime-benchmarks",
 	"pallet-midds/runtime-benchmarks",
-	"midds-stakeholder/runtime-benchmarks",
-	"midds-musical-work/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-utility/runtime-benchmarks",
 	"pallet-babe/runtime-benchmarks",

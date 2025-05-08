@@ -16,9 +16,34 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![cfg_attr(not(feature = "std"), no_std)]
+#[macro_use]
+mod macros {
+	macro_rules! declare_subtype {
+    ($enum_name:ident { $($variant:ident),* $(,)? }) => {
+        #[derive(
+            Clone, Copy, PartialEq, Eq, PartialOrd, Ord,
+            RuntimeDebug, Encode, Decode, TypeInfo, MaxEncodedLen
+        )]
+        pub enum $enum_name {
+            $($variant),*
+        }
+    }
+}
 
-mod macros;
+	macro_rules! declare_music_genre {
+    ($($genre:ident($subtype:ident { $($variant:ident),* $(,)? }),)*) => {
+        $(declare_subtype!($subtype { $($variant),* });)*
+
+        #[derive(
+            Clone, Copy, PartialEq, Eq, PartialOrd, Ord,
+            RuntimeDebug, Encode, Decode, TypeInfo, MaxEncodedLen
+        )]
+        pub enum MusicGenre {
+            $($genre(Option<$subtype>)),*
+        	}
+    	}
+	}
+}
 
 use frame_support::sp_runtime::RuntimeDebug;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
@@ -286,7 +311,7 @@ declare_music_genre! {
 		Forro,
 		Frevo,
 		Lambada,
-		MPB,
+		Mpb,
 		Pagode,
 		Samba,
 		Sertanejo,
@@ -369,10 +394,10 @@ declare_music_genre! {
 		TrapFutureBass,
 	}),
 	Folk(FolkSubtype {
-		AcousticFolk,
-		ContemporaryFolk,
-		IndieFolk,
-		PopFolk,
+		Acoustic,
+		Contemporary,
+		Indie,
+		Pop,
 	}),
 	HipHopRap(HipHopRapSubtype {
 		AfricanDrill,

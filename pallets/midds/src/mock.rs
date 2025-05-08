@@ -19,14 +19,14 @@
 #![cfg(test)]
 
 use crate::{self as pallet_midds};
-use allfeat_support::traits::Midds;
 use frame_support::{
 	self, derive_impl,
-	sp_runtime::{traits::Hash as HashT, BuildStorage, RuntimeDebug},
+	sp_runtime::{BuildStorage, RuntimeDebug},
 	testing_prelude::*,
 	PalletId,
 };
 use frame_system::EnsureSigned;
+use midds::Midds;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
@@ -37,30 +37,7 @@ pub struct MockMiddsStruct {
 	pub value: u64,
 }
 
-impl Midds for MockMiddsStruct {
-	type Hash = <Test as frame_system::Config>::Hashing;
-
-	fn is_valid(&self) -> bool {
-		true // TODO: write test for validity
-	}
-
-	fn hash(&self) -> <<Test as frame_system::Config>::Hashing as HashT>::Output {
-		let mut bytes = Vec::new();
-
-		bytes.extend_from_slice(&self.value.encode());
-
-		<<Test as frame_system::Config>::Hashing as HashT>::hash(&bytes)
-	}
-
-	fn total_bytes(&self) -> u32 {
-		self.encoded_size() as u32
-	}
-
-	#[cfg(feature = "runtime-benchmarks")]
-	fn create_midds() -> Self {
-		Self { value: 0 }
-	}
-}
+impl Midds for MockMiddsStruct {}
 
 #[frame_support::runtime]
 mod runtime {
@@ -115,7 +92,6 @@ impl pallet_midds::Config for Test {
 	type Timestamp = Time;
 	type Currency = Balances;
 	type MIDDS = MockMiddsStruct;
-	type Certification = ();
 	type ProviderOrigin = EnsureSigned<Self::AccountId>;
 }
 

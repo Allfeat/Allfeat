@@ -16,8 +16,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use allfeat_support::traits::Midds;
 use frame_support::{sp_runtime::traits::Member, Parameter};
+use midds::Midds;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
@@ -26,7 +26,7 @@ pub struct MiddsWrapper<AccountId, Moment, Inner>
 where
 	AccountId: Parameter + Member,
 	Moment: Parameter + Member,
-	Inner: Midds + Parameter + Member,
+	Inner: Midds,
 {
 	pub(crate) base: BaseInfos<AccountId, Moment>,
 	pub midds: Inner,
@@ -36,7 +36,7 @@ impl<AccountId, Moment, Inner> MiddsWrapper<AccountId, Moment, Inner>
 where
 	AccountId: Parameter + Member,
 	Moment: Parameter + Member,
-	Inner: Midds + Parameter + Member,
+	Inner: Midds,
 {
 	pub(crate) fn new(provider: AccountId, timestamp: Moment, inner_midds: Inner) -> Self {
 		Self { base: BaseInfos { provider, registered_at: timestamp }, midds: inner_midds }

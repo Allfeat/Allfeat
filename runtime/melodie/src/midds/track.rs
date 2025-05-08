@@ -20,7 +20,7 @@ use crate::*;
 
 extern crate midds as midds_crate;
 
-use super::MusicalWorks;
+use super::Tracks;
 use allfeat_primitives::Balance;
 use frame_support::{parameter_types, PalletId};
 use frame_system::EnsureSigned;
@@ -30,7 +30,7 @@ use shared_runtime::{
 };
 
 parameter_types! {
-	pub const StakeholderPalletId: PalletId = PalletId(*b"m/muwork");
+	pub const TrackPalletId: PalletId = PalletId(*b"m/tracks");
 	pub const ByteDepositCost: Balance = 10 * MILLIAFT;
 	pub const MaxDepositCost: Balance = 100 * AFT;
 }
@@ -45,13 +45,13 @@ parameter_types! {
 	pub const UnregisterPeriod: Option<Moment> = None;
 }
 
-impl pallet_midds::Config<MusicalWorks> for Runtime {
-	type PalletId = StakeholderPalletId;
+impl pallet_midds::Config<Tracks> for Runtime {
+	type PalletId = TrackPalletId;
 	type RuntimeEvent = RuntimeEvent;
 	type Timestamp = Timestamp;
 	type Currency = Balances;
 	type RuntimeHoldReason = RuntimeHoldReason;
-	type MIDDS = midds_crate::pallet_prelude::MusicalWork;
+	type MIDDS = midds_crate::pallet_prelude::Track;
 	type ProviderOrigin = EnsureSigned<Self::AccountId>;
 	type ByteDepositCost = ByteDepositCost;
 	type MaxDepositCost = MaxDepositCost;
