@@ -17,7 +17,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use frame_support::{sp_runtime::RuntimeDebug, traits::ConstU32, BoundedVec};
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
 use crate::MiddsId;
@@ -43,7 +43,17 @@ pub type Iswc = BoundedVec<u8, ConstU32<11>>;
 pub type DerivedWork = BoundedVec<MiddsId, ConstU32<512>>;
 
 /// Enumeration of the types of musical works.
-#[derive(Clone, PartialEq, Eq, Encode, Decode, MaxEncodedLen, RuntimeDebug, TypeInfo)]
+#[derive(
+	Clone,
+	PartialEq,
+	Eq,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	MaxEncodedLen,
+	RuntimeDebug,
+	TypeInfo,
+)]
 pub enum MusicalWorkType {
 	/// A standalone, original composition.
 	Original,
@@ -56,7 +66,17 @@ pub enum MusicalWorkType {
 }
 
 /// Detailed structure describing how a work has been adapted from other works.
-#[derive(Clone, PartialEq, Eq, Encode, Decode, MaxEncodedLen, RuntimeDebug, TypeInfo)]
+#[derive(
+	Clone,
+	PartialEq,
+	Eq,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	MaxEncodedLen,
+	RuntimeDebug,
+	TypeInfo,
+)]
 pub struct AdapationWork {
 	/// List of original works it adapts.
 	pub references: DerivedWork,
@@ -67,7 +87,17 @@ pub struct AdapationWork {
 }
 
 /// Describes a participant in the creation of the musical work.
-#[derive(Clone, PartialEq, Eq, Encode, Decode, MaxEncodedLen, RuntimeDebug, TypeInfo)]
+#[derive(
+	Clone,
+	PartialEq,
+	Eq,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	MaxEncodedLen,
+	RuntimeDebug,
+	TypeInfo,
+)]
 pub struct Participant {
 	/// MIDDS ID reference of the person or entity.
 	pub id: MiddsId,
@@ -76,7 +106,17 @@ pub struct Participant {
 }
 
 /// Enum representing the creative or editorial role a participant had in the musical work.
-#[derive(Clone, PartialEq, Eq, Encode, Decode, MaxEncodedLen, RuntimeDebug, TypeInfo)]
+#[derive(
+	Clone,
+	PartialEq,
+	Eq,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	MaxEncodedLen,
+	RuntimeDebug,
+	TypeInfo,
+)]
 pub enum PartipantRole {
 	/// Original author of the lyrics.
 	Author,

@@ -18,33 +18,33 @@
 
 use super::genesis;
 use alloc::vec;
-use sp_keyring::{AccountKeyring, Ed25519Keyring, Sr25519Keyring};
+use sp_keyring::{Ed25519Keyring, Sr25519Keyring};
 
 /// Return the development genesis config.
 pub fn local_config_genesis() -> serde_json::Value {
 	genesis(
 		vec![
 			(
-				AccountKeyring::Alice.to_account_id(),
+				Sr25519Keyring::Alice.to_account_id(),
 				Ed25519Keyring::Alice.public().into(), // Grandpa
 				Sr25519Keyring::Alice.public().into(), // Babe
 				Sr25519Keyring::Alice.public().into(), // ImOnline
 				Sr25519Keyring::Alice.public().into(), // AuthorityDiscovery
 			),
 			(
-				AccountKeyring::Bob.to_account_id(),
+				Sr25519Keyring::Bob.to_account_id(),
 				Ed25519Keyring::Bob.public().into(),
 				Sr25519Keyring::Bob.public().into(),
 				Sr25519Keyring::Bob.public().into(),
 				Sr25519Keyring::Bob.public().into(),
 			),
 		],
-		AccountKeyring::Alice.to_account_id(),
+		Sr25519Keyring::Alice.to_account_id(),
 		vec![
-			AccountKeyring::Alice.to_account_id(),
-			AccountKeyring::Bob.to_account_id(),
-			AccountKeyring::AliceStash.to_account_id(),
-			AccountKeyring::BobStash.to_account_id(),
+			Sr25519Keyring::Alice.to_account_id(),
+			Sr25519Keyring::Bob.to_account_id(),
+			Sr25519Keyring::AliceStash.to_account_id(),
+			Sr25519Keyring::BobStash.to_account_id(),
 		],
 	)
 }

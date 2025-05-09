@@ -22,7 +22,6 @@ use super::*;
 use crate::Pallet as MiddsPallet;
 
 use frame_benchmarking::v2::*;
-use frame_support::traits::Get;
 use frame_support::{sp_runtime::traits::Bounded, traits::fungible::Mutate};
 use frame_system::RawOrigin;
 
@@ -42,7 +41,6 @@ mod benchmarks {
 	) {
 		let provider = whitelisted_caller();
 		let midds = <T::MIDDS as super::Midds>::BenchmarkHelper::build_mock(x);
-		/// TODO: size
 		let _ = T::Currency::set_balance(&provider, init_bal::<T, I>());
 
 		#[extrinsic_call]

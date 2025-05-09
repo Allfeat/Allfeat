@@ -17,7 +17,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use frame_support::{sp_runtime::RuntimeDebug, traits::ConstU32, BoundedVec};
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
 use crate::MiddsId;
@@ -53,7 +53,18 @@ pub type ReleaseCoverContributors = BoundedVec<ReleaseCoverContributor, ConstU32
 
 /// The general type of release based on track count or intent.
 #[repr(u8)]
-#[derive(Clone, Copy, PartialEq, Eq, Encode, Decode, TypeInfo, MaxEncodedLen, RuntimeDebug)]
+#[derive(
+	Clone,
+	Copy,
+	PartialEq,
+	Eq,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	TypeInfo,
+	MaxEncodedLen,
+	RuntimeDebug,
+)]
 pub enum ReleaseType {
 	/// Long Play album (usually 8+ tracks).
 	Lp = 0,
@@ -69,7 +80,18 @@ pub enum ReleaseType {
 
 /// The format of the physical or digital medium used for distribution.
 #[repr(u8)]
-#[derive(Clone, Copy, PartialEq, Eq, Encode, Decode, TypeInfo, MaxEncodedLen, RuntimeDebug)]
+#[derive(
+	Clone,
+	Copy,
+	PartialEq,
+	Eq,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	TypeInfo,
+	MaxEncodedLen,
+	RuntimeDebug,
+)]
 pub enum ReleaseFormat {
 	/// Compact Disc.
 	Cd = 0,
@@ -87,7 +109,18 @@ pub enum ReleaseFormat {
 
 /// The packaging type used for the physical release.
 #[repr(u8)]
-#[derive(Clone, Copy, PartialEq, Eq, Encode, Decode, TypeInfo, MaxEncodedLen, RuntimeDebug)]
+#[derive(
+	Clone,
+	Copy,
+	PartialEq,
+	Eq,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	TypeInfo,
+	MaxEncodedLen,
+	RuntimeDebug,
+)]
 pub enum ReleasePackaging {
 	/// Fold-out cardboard packaging.
 	Digipack = 0,
@@ -99,7 +132,18 @@ pub enum ReleasePackaging {
 
 /// The official status of the release in its publication lifecycle.
 #[repr(u8)]
-#[derive(Clone, Copy, PartialEq, Eq, Encode, Decode, TypeInfo, MaxEncodedLen, RuntimeDebug)]
+#[derive(
+	Clone,
+	Copy,
+	PartialEq,
+	Eq,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	TypeInfo,
+	MaxEncodedLen,
+	RuntimeDebug,
+)]
 pub enum ReleaseStatus {
 	/// Properly released by the artist or label.
 	Official = 0,

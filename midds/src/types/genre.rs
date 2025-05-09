@@ -22,7 +22,7 @@ mod macros {
     ($enum_name:ident { $($variant:ident),* $(,)? }) => {
         #[derive(
             Clone, Copy, PartialEq, Eq, PartialOrd, Ord,
-            RuntimeDebug, Encode, Decode, TypeInfo, MaxEncodedLen
+            RuntimeDebug, Encode, Decode, DecodeWithMemTracking,TypeInfo, MaxEncodedLen
         )]
         pub enum $enum_name {
             $($variant),*
@@ -36,7 +36,7 @@ mod macros {
 
         #[derive(
             Clone, Copy, PartialEq, Eq, PartialOrd, Ord,
-            RuntimeDebug, Encode, Decode, TypeInfo, MaxEncodedLen
+            RuntimeDebug, Encode, Decode, DecodeWithMemTracking, TypeInfo, MaxEncodedLen
         )]
         pub enum MusicGenre {
             $($genre(Option<$subtype>)),*
@@ -46,7 +46,7 @@ mod macros {
 }
 
 use frame_support::sp_runtime::RuntimeDebug;
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
 declare_music_genre! {

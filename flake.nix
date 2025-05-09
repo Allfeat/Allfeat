@@ -21,6 +21,28 @@
         pkgs = import nixpkgs {
           inherit system overlays;
         };
+        psvm = pkgs.rustPlatform.buildRustPackage rec {
+          pname = "psvm";
+          version = "febe87df7e01ffb842853e1777b6519b933d0565";
+
+          buildInputs = with pkgs; [ openssl ];
+
+          nativeBuildInputs = with pkgs; [ pkg-config ];
+
+          useFetchCargoVendor = true;
+
+          # Tests rely on network.
+          doCheck = false;
+
+          src = pkgs.fetchFromGitHub {
+            owner = "paritytech";
+            repo = pname;
+            rev = version;
+            hash = "sha256-QKIr+2fqaysj+7EL/OBWhLCeD8HxgzpKaRAXfczEtM4=";
+          };
+
+          cargoHash = "sha256-fG9h//7YuRigbvNmI5+dxDvk//sz1peN9ppHcj9lMGc=";
+        };
       in
       {
         devShells.default = pkgs.mkShell {
@@ -33,6 +55,7 @@
               openssl
               pkg-config
               just
+              psvm
             ]
             ++ lib.optionals stdenv.hostPlatform.isLinux [ rust-jemalloc-sys-unprefixed ]
             ++ lib.optionals stdenv.hostPlatform.isDarwin [

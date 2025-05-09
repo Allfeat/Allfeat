@@ -265,7 +265,7 @@ where
 		Vec::default(),
 	));
 
-	let (network, system_rpc_tx, tx_handler_controller, network_starter, sync_service) =
+	let (network, system_rpc_tx, tx_handler_controller, sync_service) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &config,
 			net_config,
@@ -494,7 +494,6 @@ where
 		);
 	}
 
-	network_starter.start_network();
 	Ok(task_manager)
 }
 
@@ -507,11 +506,15 @@ where
 	RuntimeApi::RuntimeApi: RuntimeApiCollection,
 {
 	match config.network.network_backend {
-		sc_network::config::NetworkBackendType::Libp2p => new_full::<
-			RuntimeApi,
-			sc_network::NetworkWorker<Block, <Block as sp_runtime::traits::Block>::Hash>,
-		>(config),
-		sc_network::config::NetworkBackendType::Litep2p =>
-			new_full::<RuntimeApi, sc_network::Litep2pNetworkBackend>(config),
+		Some(backend) => match backend {
+			sc_network::config::NetworkBackendType::Libp2p => new_full::<
+				RuntimeApi,
+				sc_network::NetworkWorker<Block, <Block as sp_runtime::traits::Block>::Hash>,
+			>(config),
+			sc_network::config::NetworkBackendType::Litep2p => {
+				new_full::<RuntimeApi, sc_network::Litep2pNetworkBackend>(config)
+			},
+		},
+		None => new_full::<RuntimeApi, sc_network::Litep2pNetworkBackend>(config),
 	}
 }

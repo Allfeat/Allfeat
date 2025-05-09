@@ -27,12 +27,23 @@ use frame_support::{
 };
 use frame_system::EnsureSigned;
 use midds::Midds;
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
 type Block = frame_system::mocking::MockBlock<Test>;
 
-#[derive(Encode, Default, Decode, Clone, Eq, PartialEq, RuntimeDebug, TypeInfo, MaxEncodedLen)]
+#[derive(
+	Encode,
+	Default,
+	Decode,
+	DecodeWithMemTracking,
+	Clone,
+	Eq,
+	PartialEq,
+	RuntimeDebug,
+	TypeInfo,
+	MaxEncodedLen,
+)]
 pub struct MockMiddsStruct {
 	pub value: u64,
 }
@@ -100,6 +111,7 @@ pub(crate) fn new_test_ext() -> sp_io::TestExternalities {
 
 	pallet_balances::GenesisConfig::<Test> {
 		balances: vec![(1, 10000), (2, 20000), (3, 30000), (4, 40000)],
+		..Default::default()
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();

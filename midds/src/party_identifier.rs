@@ -18,7 +18,7 @@
 
 use crate::Midds;
 use frame_support::sp_runtime::RuntimeDebug;
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
 pub use super::types::party_identifier::{
@@ -30,7 +30,17 @@ use crate::benchmarking::party_identifier::BenchmarkHelper;
 
 /// Core struct used to uniquely identify a music industry party (either a person or an entity)
 /// as a MIDDS.
-#[derive(Clone, Eq, PartialEq, Encode, Decode, TypeInfo, MaxEncodedLen, RuntimeDebug)]
+#[derive(
+	Clone,
+	Eq,
+	PartialEq,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	TypeInfo,
+	MaxEncodedLen,
+	RuntimeDebug,
+)]
 pub struct PartyIdentifier {
 	/// ISNI identifier (max 16 characters).
 	pub isni: Isni,
@@ -49,14 +59,34 @@ impl Midds for PartyIdentifier {
 /// Enum representing whether a party is a person or an entity.
 ///
 /// Used to branch logic and data structure based on the nature of the party.
-#[derive(RuntimeDebug, Clone, PartialEq, Eq, Encode, Decode, TypeInfo, MaxEncodedLen)]
+#[derive(
+	RuntimeDebug,
+	Clone,
+	PartialEq,
+	Eq,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	MaxEncodedLen,
+	TypeInfo,
+)]
 pub enum PartyType {
 	Person(Person),
 	Entity(Entity),
 }
 
 /// Data structure representing an individual involved in, as example, music production or rights.
-#[derive(Clone, PartialEq, Eq, Encode, Decode, TypeInfo, MaxEncodedLen, RuntimeDebug)]
+#[derive(
+	Clone,
+	PartialEq,
+	Eq,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	MaxEncodedLen,
+	RuntimeDebug,
+	TypeInfo,
+)]
 pub struct Person {
 	/// Legal name of the person.
 	pub full_name: PersonFullName,
@@ -69,7 +99,17 @@ pub struct Person {
 }
 
 /// Data structure representing an organization or company involved in music industry.
-#[derive(Clone, PartialEq, Eq, Encode, Decode, TypeInfo, MaxEncodedLen, RuntimeDebug)]
+#[derive(
+	Clone,
+	PartialEq,
+	Eq,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	MaxEncodedLen,
+	RuntimeDebug,
+	TypeInfo,
+)]
 pub struct Entity {
 	/// Entity Name.
 	pub name: EntityName,

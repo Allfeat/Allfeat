@@ -17,7 +17,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use frame_support::sp_runtime::RuntimeDebug;
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
 #[cfg(feature = "runtime-benchmarks")]
@@ -39,7 +39,17 @@ use crate::{
 /// A Track represents a specific recorded performance or production
 /// of a musical work. It links metadata such as contributors,
 /// recording details, and identification codes.
-#[derive(Clone, Eq, PartialEq, Encode, Decode, TypeInfo, MaxEncodedLen, RuntimeDebug)]
+#[derive(
+	Clone,
+	Eq,
+	PartialEq,
+	Encode,
+	Decode,
+	TypeInfo,
+	DecodeWithMemTracking,
+	MaxEncodedLen,
+	RuntimeDebug,
+)]
 pub struct Track {
 	/// ISRC (International Standard Recording Code) that uniquely identifies this recording.
 	pub isrc: Isrc,

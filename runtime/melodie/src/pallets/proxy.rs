@@ -18,11 +18,11 @@
 
 use crate::*;
 use frame_support::{
-	pallet_prelude::{Decode, Encode, MaxEncodedLen, RuntimeDebug},
+	pallet_prelude::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen, RuntimeDebug},
 	parameter_types,
 	traits::InstanceFilter,
 };
-use shared_runtime::{currency::deposit, weights};
+use shared_runtime::currency::deposit;
 
 parameter_types! {
 	// One storage item; key size 32, value size 8; .
@@ -45,6 +45,7 @@ parameter_types! {
 	PartialOrd,
 	Encode,
 	Decode,
+	DecodeWithMemTracking,
 	RuntimeDebug,
 	MaxEncodedLen,
 	scale_info::TypeInfo,
@@ -83,9 +84,12 @@ impl pallet_proxy::Config for Runtime {
 	type ProxyDepositBase = ProxyDepositBase;
 	type ProxyDepositFactor = ProxyDepositFactor;
 	type MaxProxies = MaxProxies;
-	type WeightInfo = weights::proxy::AllfeatWeight<Runtime>;
+	// type WeightInfo = weights::proxy::AllfeatWeight<Runtime>;
+	// TODO: compute new weights
+	type WeightInfo = ();
 	type MaxPending = MaxPending;
 	type CallHasher = frame_support::sp_runtime::traits::BlakeTwo256;
 	type AnnouncementDepositBase = AnnouncementDepositBase;
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
+	type BlockNumberProvider = frame_system::Pallet<Runtime>;
 }

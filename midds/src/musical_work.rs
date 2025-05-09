@@ -17,7 +17,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use frame_support::sp_runtime::RuntimeDebug;
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
 use crate::{
@@ -38,7 +38,17 @@ use crate::benchmarking::musical_work::BenchmarkHelper;
 ///
 /// A musical work encapsulates metadata about an original or derived
 /// musical creation, including its participants, structure, and identity.
-#[derive(Clone, Eq, PartialEq, Encode, Decode, TypeInfo, MaxEncodedLen, RuntimeDebug)]
+#[derive(
+	Clone,
+	Eq,
+	PartialEq,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	TypeInfo,
+	MaxEncodedLen,
+	RuntimeDebug,
+)]
 pub struct MusicalWork {
 	/// The ISWC (International Standard Musical Work Code) uniquely identifying the work.
 	pub iswc: Iswc,

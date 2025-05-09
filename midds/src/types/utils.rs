@@ -17,14 +17,24 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use frame_support::sp_runtime::RuntimeDebug;
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
 /// Representation of a date for use in MIDDS fields.
 ///
 /// This struct contains the year, month, and day in numerical format.
 /// It is meant for simple, unambiguous date representation without timezone or time information.
-#[derive(Clone, RuntimeDebug, PartialEq, Eq, Encode, Decode, MaxEncodedLen, TypeInfo)]
+#[derive(
+	Clone,
+	RuntimeDebug,
+	PartialEq,
+	Eq,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	MaxEncodedLen,
+	TypeInfo,
+)]
 pub struct Date {
 	pub year: u16,
 	pub month: u8,
@@ -36,7 +46,17 @@ pub struct Date {
 /// This is used to identify the language context of the metadata fields.
 /// Defaults to English.
 #[repr(u8)]
-#[derive(Clone, RuntimeDebug, PartialEq, Eq, Encode, Decode, MaxEncodedLen, TypeInfo)]
+#[derive(
+	Clone,
+	RuntimeDebug,
+	PartialEq,
+	Eq,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	MaxEncodedLen,
+	TypeInfo,
+)]
 pub enum Language {
 	English = 0,
 	French = 1,
@@ -66,7 +86,18 @@ pub enum Language {
 ///
 /// This enum includes all officially recognized countries and territories.
 /// Each variant corresponds to a two-letter country code.
-#[derive(RuntimeDebug, Clone, Copy, PartialEq, Eq, Encode, Decode, TypeInfo, MaxEncodedLen)]
+#[derive(
+	RuntimeDebug,
+	Clone,
+	Copy,
+	PartialEq,
+	Eq,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	TypeInfo,
+	MaxEncodedLen,
+)]
 #[repr(u16)]
 pub enum Country {
 	/// Andorra
@@ -574,7 +605,18 @@ pub enum Country {
 /// This is used to specify the musical key of a track or composition.
 /// It covers both natural and sharp/flat equivalents.
 #[repr(u8)]
-#[derive(RuntimeDebug, Clone, Copy, PartialEq, Eq, Encode, Decode, MaxEncodedLen, TypeInfo)]
+#[derive(
+	RuntimeDebug,
+	Clone,
+	Copy,
+	PartialEq,
+	Eq,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	MaxEncodedLen,
+	TypeInfo,
+)]
 pub enum Key {
 	C = 0,
 	Cs = 1, // C♯ / D♭
@@ -594,7 +636,18 @@ pub enum Key {
 ///
 /// Defines the tonal quality of a piece, ranging from major and minor to the full set of church modes.
 #[repr(u8)]
-#[derive(RuntimeDebug, Clone, Copy, PartialEq, Eq, Encode, Decode, MaxEncodedLen, TypeInfo)]
+#[derive(
+	RuntimeDebug,
+	Clone,
+	Copy,
+	PartialEq,
+	Eq,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	MaxEncodedLen,
+	TypeInfo,
+)]
 pub enum Mode {
 	Major = 0,
 	Minor = 1,

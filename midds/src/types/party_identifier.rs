@@ -17,7 +17,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use frame_support::{sp_runtime::RuntimeDebug, traits::ConstU32, BoundedVec};
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
 /// Full legal name of a person.
@@ -47,7 +47,17 @@ pub type Ipi = u64;
 /// Identifies whether a person is a solo artist or a group.
 /// - `Solo`: a single individual.
 /// - `Group`: a group of people (band, duo, etc.).
-#[derive(Clone, PartialEq, Eq, Encode, Decode, TypeInfo, MaxEncodedLen, RuntimeDebug)]
+#[derive(
+	Clone,
+	PartialEq,
+	Eq,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	MaxEncodedLen,
+	RuntimeDebug,
+	TypeInfo,
+)]
 pub enum PersonType {
 	Solo,
 	Group,
@@ -57,7 +67,17 @@ pub enum PersonType {
 /// - `Publisher`: responsible for rights and licensing.
 /// - `Producer`: oversees the creation of musical works.
 /// - `DistribAggr`: distributes or aggregates content to platforms.
-#[derive(Clone, PartialEq, Eq, Encode, Decode, TypeInfo, MaxEncodedLen, RuntimeDebug)]
+#[derive(
+	Clone,
+	PartialEq,
+	Eq,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	MaxEncodedLen,
+	RuntimeDebug,
+	TypeInfo,
+)]
 pub enum EntityType {
 	Publisher,
 	Producer,
@@ -68,7 +88,17 @@ pub enum EntityType {
 /// - `Male`: male.
 /// - `Female`: female.
 /// - `Neither`: unspecified, non-binary, or not disclosed.
-#[derive(Clone, PartialEq, Eq, Encode, Decode, TypeInfo, MaxEncodedLen, RuntimeDebug)]
+#[derive(
+	Clone,
+	PartialEq,
+	Eq,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	TypeInfo,
+	MaxEncodedLen,
+	RuntimeDebug,
+)]
 pub enum PersonGender {
 	Male,
 	Female,

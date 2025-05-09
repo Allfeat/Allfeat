@@ -17,7 +17,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use frame_support::{sp_runtime::RuntimeDebug, traits::ConstU32, BoundedVec};
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
 use crate::MiddsId;
@@ -69,7 +69,18 @@ pub type TrackMasteringPlace = BoundedVec<u8, ConstU32<256>>;
 /// Enumeration of common versions or variants of a track.
 /// Helps categorize the nature or use of a specific recording.
 #[repr(u8)]
-#[derive(Clone, Copy, PartialEq, Eq, Encode, Decode, TypeInfo, MaxEncodedLen, RuntimeDebug)]
+#[derive(
+	Clone,
+	Copy,
+	PartialEq,
+	Eq,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	TypeInfo,
+	MaxEncodedLen,
+	RuntimeDebug,
+)]
 pub enum TrackVersion {
 	/// Original recording version.
 	Original = 0,
