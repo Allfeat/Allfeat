@@ -7,6 +7,10 @@ members = [
 	"pallets/midds",
 	"pallets/validator-set",
 	"midds",
+	"midds/benchmarker"
+]
+default-members = [
+    "node"
 ]
 
 [workspace.package]
@@ -184,6 +188,7 @@ shared-runtime = { version = "1.0.0-dev", path = "./runtime/shared", default-fea
 melodie-runtime = { version = "1.0.0-dev", path = "./runtime/melodie" }
 
 # Other (client)
+env_logger = "0.11"
 clap = { version = "4.5.13", features = ["derive"] }
 jsonrpsee = { version = "0.24.3", features = ["server", "macros"] }
 serde = { version = "1", default-features = false, features = ["derive"] }

@@ -26,6 +26,10 @@ use frame_support::{
 	PalletId,
 };
 use frame_system::EnsureSigned;
+
+#[cfg(feature = "runtime-benchmarks")]
+use midds::pallet_prelude::BenchmarkHelperT;
+
 use midds::Midds;
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
@@ -48,7 +52,27 @@ pub struct MockMiddsStruct {
 	pub value: u64,
 }
 
-impl Midds for MockMiddsStruct {}
+#[cfg(feature = "runtime-benchmarks")]
+pub struct BenchmarkHelperMock;
+#[cfg(feature = "runtime-benchmarks")]
+impl BenchmarkHelperT<MockMiddsStruct> for BenchmarkHelperMock {
+	const FIELD_MAX_SIZE: u32 = 0;
+
+	fn build_mock() -> MockMiddsStruct {
+		MockMiddsStruct { value: 0 }
+	}
+
+	fn build_sized_mock(_size: u32) -> MockMiddsStruct {
+		MockMiddsStruct { value: 0 }
+	}
+}
+
+impl Midds for MockMiddsStruct {
+	const NAME: &'static str = "MOCK";
+
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = BenchmarkHelperMock;
+}
 
 #[frame_support::runtime]
 mod runtime {

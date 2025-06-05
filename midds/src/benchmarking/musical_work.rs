@@ -16,13 +16,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+extern crate alloc;
 use crate::{
 	musical_work::MusicalWork,
 	types::{
 		musical_work::{MusicalWorkType, Participant, PartipantRole},
-		utils::{Key, Language, Mode},
+		utils::{Key, Language},
 	},
 };
+use alloc::vec;
 
 use super::{fill_boundedvec, BenchmarkHelperT};
 
@@ -31,7 +33,7 @@ pub struct BenchmarkHelper;
 impl BenchmarkHelperT<MusicalWork> for BenchmarkHelper {
 	const FIELD_MAX_SIZE: u32 = 256;
 
-	fn build_mock(size: u32) -> MusicalWork {
+	fn build_sized_mock(size: u32) -> MusicalWork {
 		let iswc = b"T1234567890".to_vec().try_into().expect("ISWC mock is valid");
 		let title = fill_boundedvec(b'M', size);
 
@@ -49,9 +51,28 @@ impl BenchmarkHelperT<MusicalWork> for BenchmarkHelper {
 			language: Some(Language::French),
 			bpm: Some(120),
 			key: Some(Key::C),
-			mode: Some(Mode::Major),
 			work_type,
 			participants,
+		}
+	}
+	fn build_mock() -> MusicalWork {
+		MusicalWork {
+			iswc: b"T0702330071".to_vec().try_into().expect("Mock value"),
+			title: b"Billie Jean".to_vec().try_into().expect("Mock value"),
+			creation_year: 1983,
+			instrumental: false,
+			language: Some(Language::English),
+			bpm: Some(117),
+			key: Some(Key::B),
+			work_type: MusicalWorkType::Original,
+			participants: vec![
+				Participant { id: 1, role: PartipantRole::Composer },
+				Participant { id: 2, role: PartipantRole::Editor },
+				Participant { id: 3, role: PartipantRole::Editor },
+				Participant { id: 4, role: PartipantRole::Editor },
+			]
+			.try_into()
+			.expect("Mock value"),
 		}
 	}
 }

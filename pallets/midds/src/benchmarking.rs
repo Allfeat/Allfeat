@@ -40,7 +40,7 @@ mod benchmarks {
 		x: Linear<0, <<T::MIDDS as super::Midds>::BenchmarkHelper as BenchmarkHelperT<T::MIDDS>>::FIELD_MAX_SIZE>,
 	) {
 		let provider = whitelisted_caller();
-		let midds = <T::MIDDS as super::Midds>::BenchmarkHelper::build_mock(x);
+		let midds = <T::MIDDS as super::Midds>::BenchmarkHelper::build_sized_mock(x);
 		let _ = T::Currency::set_balance(&provider, init_bal::<T, I>());
 
 		#[extrinsic_call]
@@ -54,7 +54,7 @@ mod benchmarks {
 		x: Linear<0, <<T::MIDDS as super::Midds>::BenchmarkHelper as BenchmarkHelperT<T::MIDDS>>::FIELD_MAX_SIZE>,
 	) -> Result<(), BenchmarkError> {
 		let provider = whitelisted_caller();
-		let midds = <T::MIDDS as super::Midds>::BenchmarkHelper::build_mock(x);
+		let midds = <T::MIDDS as super::Midds>::BenchmarkHelper::build_sized_mock(x);
 
 		let _ = T::Currency::set_balance(&provider, init_bal::<T, I>());
 

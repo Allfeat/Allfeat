@@ -24,7 +24,6 @@ use frame_support::sp_runtime::traits::Convert;
 use frame_support::sp_runtime::Permill;
 use frame_system::pallet_prelude::*;
 pub use pallet::*;
-use sp_staking::offence::{Offence, OffenceError, ReportOffence};
 pub use weights::*;
 
 use alloc::vec::Vec;
@@ -289,27 +288,4 @@ impl<T: Config> ValidatorSet<T::ValidatorId> for Pallet<T> {
 impl<T: Config> ValidatorSetWithIdentification<T::ValidatorId> for Pallet<T> {
 	type Identification = T::ValidatorId;
 	type IdentificationOf = ValidatorOf<T>;
-}
-
-// Offence reporting and unresponsiveness management.
-// This is for the ImOnline pallet integration.
-impl<T: Config, O: Offence<(T::ValidatorId, T::ValidatorId)>>
-	ReportOffence<T::AccountId, (T::ValidatorId, T::ValidatorId), O> for Pallet<T>
-{
-	fn report_offence(_reporters: Vec<T::AccountId>, offence: O) -> Result<(), OffenceError> {
-		let offenders = offence.offenders();
-
-		for (v, _) in offenders.into_iter() {
-			Self::mark_for_removal(v);
-		}
-
-		Ok(())
-	}
-
-	fn is_known_offence(
-		_offenders: &[(T::ValidatorId, T::ValidatorId)],
-		_time_slot: &O::TimeSlot,
-	) -> bool {
-		false
-	}
 }

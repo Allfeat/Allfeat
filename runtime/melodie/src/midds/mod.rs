@@ -16,10 +16,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod musical_works;
-mod party_identifier;
-mod release;
-mod track;
+pub mod musical_works;
+pub mod party_identifier;
+pub mod release;
+pub mod track;
 
 pub type PartyIdentifiers = pallet_midds::Instance1;
 pub type MusicalWorks = pallet_midds::Instance2;

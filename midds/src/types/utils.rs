@@ -631,30 +631,3 @@ pub enum Key {
 	As = 10, // A♯ / B♭
 	B = 11,
 }
-
-/// Enum representing the musical mode of a composition.
-///
-/// Defines the tonal quality of a piece, ranging from major and minor to the full set of church modes.
-#[repr(u8)]
-#[derive(
-	RuntimeDebug,
-	Clone,
-	Copy,
-	PartialEq,
-	Eq,
-	Encode,
-	Decode,
-	DecodeWithMemTracking,
-	MaxEncodedLen,
-	TypeInfo,
-)]
-pub enum Mode {
-	Major = 0,
-	Minor = 1,
-	Dorian = 2,
-	Phrygian = 3,
-	Lydian = 4,
-	Mixolydian = 5,
-	Aeolian = 6,
-	Locrian = 7,
-}

@@ -31,7 +31,7 @@ use crate::{
 			TrackProducers, TrackRecordYear, TrackRecordingPlace, TrackTitle, TrackTitleAliases,
 			TrackVersion,
 		},
-		utils::{Key, Mode},
+		utils::Key,
 	},
 	Midds, MiddsId,
 };
@@ -96,9 +96,6 @@ pub struct Track {
 	/// Musical key (e.g., C, G#, etc.) the track is in.
 	pub key: Key,
 
-	/// Optional musical mode (e.g., Major, Minor).
-	pub mode: Option<Mode>,
-
 	/// Free-text field indicating where the recording took place.
 	pub recording_place: TrackRecordingPlace,
 
@@ -111,6 +108,8 @@ pub struct Track {
 
 // Implements the `Midds` trait, marking this struct as a MIDDS object.
 impl Midds for Track {
+	const NAME: &'static str = "Track";
+
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = BenchmarkHelper;
 }

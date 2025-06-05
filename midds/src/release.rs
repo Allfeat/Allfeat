@@ -98,6 +98,8 @@ pub struct Release {
 }
 
 impl Midds for Release {
+	const NAME: &'static str = "Release";
+
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = BenchmarkHelper;
 }

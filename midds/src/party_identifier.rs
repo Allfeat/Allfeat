@@ -52,6 +52,8 @@ pub struct PartyIdentifier {
 
 // Implements the `Midds` trait to integrate this type into the MIDDS protocol.
 impl Midds for PartyIdentifier {
+	const NAME: &'static str = "Party Identifier";
+
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = BenchmarkHelper;
 }

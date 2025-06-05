@@ -34,7 +34,7 @@ pub type EntityName = BoundedVec<u8, ConstU32<128>>;
 
 /// List of aliases for a person.
 /// Maximum of 10 aliases, each stored as a `PersonAlias`.
-pub type PersonAliases = BoundedVec<PersonAlias, ConstU32<10>>;
+pub type PersonAliases = BoundedVec<PersonAlias, ConstU32<12>>;
 
 /// ISNI (International Standard Name Identifier) code.
 /// Fixed length of 16 ASCII characters stored as bytes.

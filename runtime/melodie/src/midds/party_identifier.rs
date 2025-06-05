@@ -22,15 +22,11 @@ use super::PartyIdentifiers;
 use crate::*;
 use frame_support::{parameter_types, PalletId};
 use frame_system::EnsureSigned;
-use shared_runtime::{
-	currency::{AFT, MILLIAFT},
-	weights,
-};
+use shared_runtime::{currency::MILLIAFT, weights};
 
 parameter_types! {
 	pub const PartyIdentifierPalletId: PalletId = PalletId(*b"m/partid");
-	pub const ByteDepositCost: Balance = 10 * MILLIAFT;
-	pub const MaxDepositCost: Balance = 100 * AFT;
+	pub const ByteDepositCost: Balance = MILLIAFT;
 }
 
 #[cfg(not(feature = "runtime-benchmarks"))]
@@ -52,7 +48,6 @@ impl pallet_midds::Config<PartyIdentifiers> for Runtime {
 	type MIDDS = midds_crate::pallet_prelude::PartyIdentifier;
 	type ProviderOrigin = EnsureSigned<Self::AccountId>;
 	type ByteDepositCost = ByteDepositCost;
-	type MaxDepositCost = MaxDepositCost;
 	type UnregisterPeriod = UnregisterPeriod;
 	type WeightInfo = weights::midds_stakeholders::AllfeatWeight<Runtime>;
 }

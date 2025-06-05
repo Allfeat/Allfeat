@@ -29,7 +29,8 @@ use crate::Midds;
 pub trait BenchmarkHelperT<T: Midds> {
 	const FIELD_MAX_SIZE: u32;
 
-	fn build_mock(size: u32) -> T;
+	fn build_mock() -> T;
+	fn build_sized_mock(size: u32) -> T;
 }
 
 /// Benchmark helper function to generate a boundedvec type based on a specified size.

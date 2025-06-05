@@ -25,7 +25,8 @@ mod musical_work;
 mod party_identifier;
 mod release;
 mod track;
-mod types;
+
+pub mod types;
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
@@ -35,6 +36,8 @@ pub type MiddsId = u64;
 
 /// Substrate-compatible MIDDS (Music Industry Decantralized Data Structure) interface definition.
 pub trait Midds: Parameter + Member + MaxEncodedLen {
+	const NAME: &'static str;
+
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper: benchmarking::BenchmarkHelperT<Self>;
 
@@ -46,7 +49,9 @@ pub trait Midds: Parameter + Member + MaxEncodedLen {
 
 pub mod pallet_prelude {
 	pub use super::{
-		musical_work::MusicalWork, party_identifier::PartyIdentifier, release::Release,
+		musical_work::MusicalWork,
+		party_identifier::{Entity, PartyIdentifier, PartyType, Person},
+		release::Release,
 		track::Track,
 	};
 

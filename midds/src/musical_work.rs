@@ -26,7 +26,7 @@ use crate::{
 			Iswc, MusicalWorkBpm, MusicalWorkCreationYear, MusicalWorkParticipants,
 			MusicalWorkTitle, MusicalWorkType,
 		},
-		utils::{Key, Language, Mode},
+		utils::{Key, Language},
 	},
 	Midds,
 };
@@ -71,9 +71,6 @@ pub struct MusicalWork {
 	/// Optional musical key of the work (e.g., C, G#, etc.).
 	pub key: Option<Key>,
 
-	/// Optional musical mode (e.g., major or minor).
-	pub mode: Option<Mode>,
-
 	/// Type of the musical work (original, medley, mashup, or adaptation).
 	pub work_type: MusicalWorkType,
 
@@ -84,6 +81,8 @@ pub struct MusicalWork {
 /// Trait implementation allowing the musical work to be used
 /// as a MIDDS (Music Industry Decentralized Data Structure).
 impl Midds for MusicalWork {
+	const NAME: &'static str = "Musical Work";
+
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = BenchmarkHelper;
 }

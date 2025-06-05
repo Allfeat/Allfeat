@@ -16,14 +16,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+extern crate alloc;
+
 use crate::{
 	pallet_prelude::Track,
-	types::{
-		genre::MusicGenre,
-		track::TrackVersion,
-		utils::{Key, Mode},
-	},
+	types::{genre::MusicGenre, track::TrackVersion, utils::Key},
+	MiddsId,
 };
+
+use alloc::vec;
 
 use super::{fill_boundedvec, BenchmarkHelperT};
 
@@ -32,7 +33,7 @@ pub struct BenchmarkHelper;
 impl BenchmarkHelperT<Track> for BenchmarkHelper {
 	const FIELD_MAX_SIZE: u32 = 256;
 
-	fn build_mock(size: u32) -> Track {
+	fn build_sized_mock(size: u32) -> Track {
 		let midds_id = 1; // simulate a fixed MIDDS ID
 
 		Track {
@@ -51,10 +52,42 @@ impl BenchmarkHelperT<Track> for BenchmarkHelper {
 			duration: 210,
 			bpm: 120,
 			key: Key::C,
-			mode: Some(Mode::Major),
 			recording_place: fill_boundedvec(b'R', size),
 			mixing_place: fill_boundedvec(b'M', size),
 			mastering_place: fill_boundedvec(b'P', size),
+		}
+	}
+
+	fn build_mock() -> Track {
+		let midds_id: MiddsId = 1;
+		let producer_id: MiddsId = 2;
+		let performer_id: MiddsId = 3;
+		let contributor_id: MiddsId = 4;
+
+		Track {
+			isrc: b"USUG11904269".to_vec().try_into().expect("valid ISRC"),
+			musical_work: midds_id,
+			artist: midds_id,
+			producers: vec![producer_id].try_into().unwrap(),
+			performers: vec![performer_id].try_into().unwrap(),
+			contributors: vec![contributor_id].try_into().unwrap(),
+			title: b"Blinding Lights".to_vec().try_into().unwrap(),
+			title_aliases: vec![
+				"Feux Aveuglants".as_bytes().to_vec().try_into().unwrap(),
+				"盲目的灯光".as_bytes().to_vec().try_into().unwrap(),
+			]
+			.try_into()
+			.unwrap(),
+			recording_year: 2019,
+			genre: MusicGenre::Pop(None),
+			genre_extras: vec![MusicGenre::Electronic(None)].try_into().unwrap(),
+			version: TrackVersion::Original,
+			duration: 200,
+			bpm: 171,
+			key: Key::Fs,
+			recording_place: b"Los Angeles, CA".to_vec().try_into().unwrap(),
+			mixing_place: b"MixStar Studios, Virginia Beach".to_vec().try_into().unwrap(),
+			mastering_place: b"Sterling Sound, Edgewater".to_vec().try_into().unwrap(),
 		}
 	}
 }

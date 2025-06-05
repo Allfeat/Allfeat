@@ -51,6 +51,7 @@ mod pallets;
 pub use pallets::*;
 mod genesis;
 mod midds;
+pub use midds::*;
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarks;
