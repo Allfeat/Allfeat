@@ -18,47 +18,56 @@
 
 use melodie_runtime::Balance;
 use melodie_runtime::{musical_works, party_identifier, release, track};
-use midds::{pallet_prelude::*, Midds};
+use midds::{Midds, pallet_prelude::*};
 use shared_runtime::currency::AFT;
 
 fn main() {
-	benchmark::<PartyIdentifier>(Some(EconomicInfo {
-		unit: AFT,
-		byte_cost: party_identifier::ByteDepositCost::get(),
-	}));
-	benchmark::<MusicalWork>(Some(EconomicInfo {
-		unit: AFT,
-		byte_cost: musical_works::ByteDepositCost::get(),
-	}));
-	benchmark::<Track>(Some(EconomicInfo { unit: AFT, byte_cost: track::ByteDepositCost::get() }));
-	benchmark::<Release>(Some(EconomicInfo {
-		unit: AFT,
-		byte_cost: release::ByteDepositCost::get(),
-	}));
+    benchmark::<PartyIdentifier>(Some(EconomicInfo {
+        unit: AFT,
+        byte_cost: party_identifier::ByteDepositCost::get(),
+    }));
+    benchmark::<MusicalWork>(Some(EconomicInfo {
+        unit: AFT,
+        byte_cost: musical_works::ByteDepositCost::get(),
+    }));
+    benchmark::<Track>(Some(EconomicInfo {
+        unit: AFT,
+        byte_cost: track::ByteDepositCost::get(),
+    }));
+    benchmark::<Release>(Some(EconomicInfo {
+        unit: AFT,
+        byte_cost: release::ByteDepositCost::get(),
+    }));
 }
 
 fn benchmark<T: Midds>(economic_info: Option<EconomicInfo>) {
-	let max_size = T::max_encoded_len();
-	let mock_size = T::BenchmarkHelper::build_mock().encoded_size();
+    let max_size = T::max_encoded_len();
+    let mock_size = T::BenchmarkHelper::build_mock().encoded_size();
 
-	println!("========== {} ==========", T::NAME);
+    println!("========== {} ==========", T::NAME);
 
-	println!("⛓️ Size Informations:");
-	println!("Max size: {} bytes", max_size);
-	println!("Mock size: {} bytes\n", mock_size);
+    println!("⛓️ Size Informations:");
+    println!("Max size: {} bytes", max_size);
+    println!("Mock size: {} bytes\n", mock_size);
 
-	if let Some(x) = economic_info {
-		println!("💸 Economic Informations:");
-		println!("Max cost: {} AFT", (max_size as u128 * x.byte_cost) as f64 / x.unit as f64);
+    if let Some(x) = economic_info {
+        println!("💸 Economic Informations:");
+        println!(
+            "Max cost: {} AFT",
+            (max_size as u128 * x.byte_cost) as f64 / x.unit as f64
+        );
 
-		println!("Mock cost: {} AFT", (mock_size as u128 * x.byte_cost) as f64 / x.unit as f64);
-		println!();
-	} else {
-		println!()
-	}
+        println!(
+            "Mock cost: {} AFT",
+            (mock_size as u128 * x.byte_cost) as f64 / x.unit as f64
+        );
+        println!();
+    } else {
+        println!()
+    }
 }
 
 struct EconomicInfo {
-	pub unit: Balance,
-	pub byte_cost: Balance,
+    pub unit: Balance,
+    pub byte_cost: Balance,
 }

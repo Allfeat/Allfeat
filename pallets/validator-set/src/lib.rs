@@ -20,8 +20,8 @@ mod mock;
 mod tests;
 pub mod weights;
 
-use frame_support::sp_runtime::traits::Convert;
 use frame_support::sp_runtime::Permill;
+use frame_support::sp_runtime::traits::Convert;
 use frame_system::pallet_prelude::*;
 pub use pallet::*;
 pub use weights::*;
@@ -29,231 +29,237 @@ pub use weights::*;
 use alloc::vec::Vec;
 use frame_support::pallet_prelude::*;
 use frame_support::traits::{
-	EstimateNextSessionRotation, ValidatorSet, ValidatorSetWithIdentification,
+    EstimateNextSessionRotation, ValidatorSet, ValidatorSetWithIdentification,
 };
 
 pub const LOG_TARGET: &str = "runtime::validator-set";
 
 #[frame_support::pallet]
 pub mod pallet {
-	use super::*;
-	use frame_support::{
-		traits::{BuildGenesisConfig, EnsureOrigin, Hooks, IsType},
-		DefaultNoBound,
-	};
+    use super::*;
+    use frame_support::{
+        DefaultNoBound,
+        traits::{BuildGenesisConfig, EnsureOrigin, Hooks, IsType},
+    };
 
-	/// Configure the pallet by specifying the parameters and types on which it
-	/// depends.
-	#[pallet::config]
-	pub trait Config: frame_system::Config + pallet_session::Config {
-		/// The Event type.
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
+    /// Configure the pallet by specifying the parameters and types on which it
+    /// depends.
+    #[pallet::config]
+    pub trait Config: frame_system::Config + pallet_session::Config {
+        /// The Event type.
+        type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
-		/// Origin for adding or removing a validator.
-		type AddRemoveOrigin: EnsureOrigin<Self::RuntimeOrigin>;
+        /// Origin for adding or removing a validator.
+        type AddRemoveOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
-		/// Minimum number of validators to leave in the validator set during
-		/// auto removal.
-		/// Initial validator count could be less than this.
-		type MinAuthorities: Get<u32>;
+        /// Minimum number of validators to leave in the validator set during
+        /// auto removal.
+        /// Initial validator count could be less than this.
+        type MinAuthorities: Get<u32>;
 
-		/// Information on runtime weights.
-		type WeightInfo: WeightInfo;
-	}
+        /// Information on runtime weights.
+        type WeightInfo: WeightInfo;
+    }
 
-	#[pallet::pallet]
-	#[pallet::without_storage_info]
-	pub struct Pallet<T>(_);
+    #[pallet::pallet]
+    #[pallet::without_storage_info]
+    pub struct Pallet<T>(_);
 
-	#[pallet::storage]
-	#[pallet::getter(fn validators)]
-	pub type Validators<T: Config> = StorageValue<_, Vec<T::ValidatorId>, ValueQuery>;
+    #[pallet::storage]
+    #[pallet::getter(fn validators)]
+    pub type Validators<T: Config> = StorageValue<_, Vec<T::ValidatorId>, ValueQuery>;
 
-	#[pallet::storage]
-	#[pallet::getter(fn offline_validators)]
-	pub type OfflineValidators<T: Config> = StorageValue<_, Vec<T::ValidatorId>, ValueQuery>;
+    #[pallet::storage]
+    #[pallet::getter(fn offline_validators)]
+    pub type OfflineValidators<T: Config> = StorageValue<_, Vec<T::ValidatorId>, ValueQuery>;
 
-	#[pallet::event]
-	#[pallet::generate_deposit(pub(super) fn deposit_event)]
-	pub enum Event<T: Config> {
-		/// New validator addition initiated. Effective in ~2 sessions.
-		ValidatorAdditionInitiated(T::ValidatorId),
+    #[pallet::event]
+    #[pallet::generate_deposit(pub(super) fn deposit_event)]
+    pub enum Event<T: Config> {
+        /// New validator addition initiated. Effective in ~2 sessions.
+        ValidatorAdditionInitiated(T::ValidatorId),
 
-		/// Validator removal initiated. Effective in ~2 sessions.
-		ValidatorRemovalInitiated(T::ValidatorId),
-	}
+        /// Validator removal initiated. Effective in ~2 sessions.
+        ValidatorRemovalInitiated(T::ValidatorId),
+    }
 
-	// Errors inform users that something went wrong.
-	#[pallet::error]
-	pub enum Error<T> {
-		/// Target (post-removal) validator count is below the minimum.
-		TooLowValidatorCount,
-		/// Validator is already in the validator set.
-		Duplicate,
-	}
+    // Errors inform users that something went wrong.
+    #[pallet::error]
+    pub enum Error<T> {
+        /// Target (post-removal) validator count is below the minimum.
+        TooLowValidatorCount,
+        /// Validator is already in the validator set.
+        Duplicate,
+    }
 
-	#[pallet::hooks]
-	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
+    #[pallet::hooks]
+    impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
 
-	#[pallet::genesis_config]
-	#[derive(DefaultNoBound)]
-	pub struct GenesisConfig<T: Config> {
-		pub initial_validators: Vec<T::ValidatorId>,
-	}
+    #[pallet::genesis_config]
+    #[derive(DefaultNoBound)]
+    pub struct GenesisConfig<T: Config> {
+        pub initial_validators: Vec<T::ValidatorId>,
+    }
 
-	#[pallet::genesis_build]
-	impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
-		fn build(&self) {
-			assert!(<Validators<T>>::get().is_empty(), "Validators are already initialized!");
-			<Validators<T>>::put(&self.initial_validators);
-		}
-	}
+    #[pallet::genesis_build]
+    impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
+        fn build(&self) {
+            assert!(
+                <Validators<T>>::get().is_empty(),
+                "Validators are already initialized!"
+            );
+            <Validators<T>>::put(&self.initial_validators);
+        }
+    }
 
-	#[pallet::call]
-	impl<T: Config> Pallet<T> {
-		/// Add a new validator.
-		///
-		/// New validator's session keys should be set in Session pallet before
-		/// calling this.
-		///
-		/// The origin can be configured using the `AddRemoveOrigin` type in the
-		/// host runtime. Can also be set to sudo/root.
-		#[pallet::call_index(0)]
-		#[pallet::weight(<T as pallet::Config>::WeightInfo::add_validator())]
-		pub fn add_validator(origin: OriginFor<T>, validator_id: T::ValidatorId) -> DispatchResult {
-			T::AddRemoveOrigin::ensure_origin(origin)?;
+    #[pallet::call]
+    impl<T: Config> Pallet<T> {
+        /// Add a new validator.
+        ///
+        /// New validator's session keys should be set in Session pallet before
+        /// calling this.
+        ///
+        /// The origin can be configured using the `AddRemoveOrigin` type in the
+        /// host runtime. Can also be set to sudo/root.
+        #[pallet::call_index(0)]
+        #[pallet::weight(<T as pallet::Config>::WeightInfo::add_validator())]
+        pub fn add_validator(origin: OriginFor<T>, validator_id: T::ValidatorId) -> DispatchResult {
+            T::AddRemoveOrigin::ensure_origin(origin)?;
 
-			Self::do_add_validator(validator_id.clone())?;
+            Self::do_add_validator(validator_id.clone())?;
 
-			Ok(())
-		}
+            Ok(())
+        }
 
-		/// Remove a validator.
-		///
-		/// The origin can be configured using the `AddRemoveOrigin` type in the
-		/// host runtime. Can also be set to sudo/root.
-		#[pallet::call_index(1)]
-		#[pallet::weight(<T as pallet::Config>::WeightInfo::remove_validator())]
-		pub fn remove_validator(
-			origin: OriginFor<T>,
-			validator_id: T::ValidatorId,
-		) -> DispatchResult {
-			T::AddRemoveOrigin::ensure_origin(origin)?;
+        /// Remove a validator.
+        ///
+        /// The origin can be configured using the `AddRemoveOrigin` type in the
+        /// host runtime. Can also be set to sudo/root.
+        #[pallet::call_index(1)]
+        #[pallet::weight(<T as pallet::Config>::WeightInfo::remove_validator())]
+        pub fn remove_validator(
+            origin: OriginFor<T>,
+            validator_id: T::ValidatorId,
+        ) -> DispatchResult {
+            T::AddRemoveOrigin::ensure_origin(origin)?;
 
-			Self::do_remove_validator(validator_id.clone())?;
+            Self::do_remove_validator(validator_id.clone())?;
 
-			Ok(())
-		}
-	}
+            Ok(())
+        }
+    }
 }
 
 impl<T: Config> Pallet<T> {
-	fn do_add_validator(validator_id: T::ValidatorId) -> DispatchResult {
-		ensure!(!<Validators<T>>::get().contains(&validator_id), Error::<T>::Duplicate);
-		<Validators<T>>::mutate(|v| v.push(validator_id.clone()));
+    fn do_add_validator(validator_id: T::ValidatorId) -> DispatchResult {
+        ensure!(
+            !<Validators<T>>::get().contains(&validator_id),
+            Error::<T>::Duplicate
+        );
+        <Validators<T>>::mutate(|v| v.push(validator_id.clone()));
 
-		Self::deposit_event(Event::ValidatorAdditionInitiated(validator_id.clone()));
-		log::debug!(target: LOG_TARGET, "Validator addition initiated.");
+        Self::deposit_event(Event::ValidatorAdditionInitiated(validator_id.clone()));
+        log::debug!(target: LOG_TARGET, "Validator addition initiated.");
 
-		Ok(())
-	}
+        Ok(())
+    }
 
-	fn do_remove_validator(validator_id: T::ValidatorId) -> DispatchResult {
-		let mut validators = <Validators<T>>::get();
+    fn do_remove_validator(validator_id: T::ValidatorId) -> DispatchResult {
+        let mut validators = <Validators<T>>::get();
 
-		// Ensuring that the post removal, target validator count doesn't go
-		// below the minimum.
-		ensure!(
-			validators.len().saturating_sub(1) as u32 >= T::MinAuthorities::get(),
-			Error::<T>::TooLowValidatorCount
-		);
+        // Ensuring that the post removal, target validator count doesn't go
+        // below the minimum.
+        ensure!(
+            validators.len().saturating_sub(1) as u32 >= T::MinAuthorities::get(),
+            Error::<T>::TooLowValidatorCount
+        );
 
-		validators.retain(|v| *v != validator_id);
+        validators.retain(|v| *v != validator_id);
 
-		<Validators<T>>::put(validators);
+        <Validators<T>>::put(validators);
 
-		Self::deposit_event(Event::ValidatorRemovalInitiated(validator_id.clone()));
-		log::debug!(target: LOG_TARGET, "Validator removal initiated.");
+        Self::deposit_event(Event::ValidatorRemovalInitiated(validator_id.clone()));
+        log::debug!(target: LOG_TARGET, "Validator removal initiated.");
 
-		Ok(())
-	}
+        Ok(())
+    }
 
-	// Removes offline validators from the validator set and clears the offline
-	// cache. It is called in the session change hook and removes the validators
-	// who were reported offline during the session that is ending. We do not
-	// check for `MinAuthorities` here, because the offline validators will not
-	// produce blocks and will have the same overall effect on the runtime.
-	fn remove_offline_validators() {
-		let validators_to_remove = <OfflineValidators<T>>::get();
+    // Removes offline validators from the validator set and clears the offline
+    // cache. It is called in the session change hook and removes the validators
+    // who were reported offline during the session that is ending. We do not
+    // check for `MinAuthorities` here, because the offline validators will not
+    // produce blocks and will have the same overall effect on the runtime.
+    fn remove_offline_validators() {
+        let validators_to_remove = <OfflineValidators<T>>::get();
 
-		// Delete from active validator set.
-		<Validators<T>>::mutate(|vs| vs.retain(|v| !validators_to_remove.contains(v)));
-		log::debug!(
-			target: LOG_TARGET,
-			"Initiated removal of {:?} offline validators.",
-			validators_to_remove.len()
-		);
+        // Delete from active validator set.
+        <Validators<T>>::mutate(|vs| vs.retain(|v| !validators_to_remove.contains(v)));
+        log::debug!(
+            target: LOG_TARGET,
+            "Initiated removal of {:?} offline validators.",
+            validators_to_remove.len()
+        );
 
-		// Clear the offline validator list to avoid repeated deletion.
-		<OfflineValidators<T>>::put(Vec::<T::ValidatorId>::new());
-	}
+        // Clear the offline validator list to avoid repeated deletion.
+        <OfflineValidators<T>>::put(Vec::<T::ValidatorId>::new());
+    }
 }
 
 // Provides the new set of validators to the session module when session is
 // being rotated.
 impl<T: Config> pallet_session::SessionManager<T::ValidatorId> for Pallet<T> {
-	// Plan a new session and provide new validator set.
-	fn new_session(_new_index: u32) -> Option<Vec<T::ValidatorId>> {
-		// Remove any offline validators. This will only work when the runtime
-		// also has the im-online pallet.
-		Self::remove_offline_validators();
+    // Plan a new session and provide new validator set.
+    fn new_session(_new_index: u32) -> Option<Vec<T::ValidatorId>> {
+        // Remove any offline validators. This will only work when the runtime
+        // also has the im-online pallet.
+        Self::remove_offline_validators();
 
-		log::debug!(target: LOG_TARGET, "New session called; updated validator set provided.");
+        log::debug!(target: LOG_TARGET, "New session called; updated validator set provided.");
 
-		Some(Self::validators())
-	}
+        Some(Self::validators())
+    }
 
-	fn end_session(_end_index: u32) {}
+    fn end_session(_end_index: u32) {}
 
-	fn start_session(_start_index: u32) {}
+    fn start_session(_start_index: u32) {}
 }
 
 impl<T: Config> pallet_session::historical::SessionManager<T::ValidatorId, T::ValidatorId>
-	for Pallet<T>
+    for Pallet<T>
 {
-	fn new_session(new_index: u32) -> Option<Vec<(T::ValidatorId, T::ValidatorId)>> {
-		<Self as pallet_session::SessionManager<_>>::new_session(new_index)
-			.map(|validators| validators.into_iter().map(|v| (v.clone(), v)).collect())
-	}
+    fn new_session(new_index: u32) -> Option<Vec<(T::ValidatorId, T::ValidatorId)>> {
+        <Self as pallet_session::SessionManager<_>>::new_session(new_index)
+            .map(|validators| validators.into_iter().map(|v| (v.clone(), v)).collect())
+    }
 
-	fn new_session_genesis(new_index: u32) -> Option<Vec<(T::ValidatorId, T::ValidatorId)>> {
-		<Self as pallet_session::SessionManager<_>>::new_session(new_index)
-			.map(|validators| validators.into_iter().map(|v| (v.clone(), v)).collect())
-	}
+    fn new_session_genesis(new_index: u32) -> Option<Vec<(T::ValidatorId, T::ValidatorId)>> {
+        <Self as pallet_session::SessionManager<_>>::new_session(new_index)
+            .map(|validators| validators.into_iter().map(|v| (v.clone(), v)).collect())
+    }
 
-	fn end_session(end_index: u32) {
-		<Self as pallet_session::SessionManager<_>>::end_session(end_index)
-	}
+    fn end_session(end_index: u32) {
+        <Self as pallet_session::SessionManager<_>>::end_session(end_index)
+    }
 
-	fn start_session(start_index: u32) {
-		<Self as pallet_session::SessionManager<_>>::start_session(start_index)
-	}
+    fn start_session(start_index: u32) {
+        <Self as pallet_session::SessionManager<_>>::start_session(start_index)
+    }
 }
 
 impl<T: Config> EstimateNextSessionRotation<BlockNumberFor<T>> for Pallet<T> {
-	fn average_session_length() -> BlockNumberFor<T> {
-		Zero::zero()
-	}
+    fn average_session_length() -> BlockNumberFor<T> {
+        Zero::zero()
+    }
 
-	fn estimate_current_session_progress(_now: BlockNumberFor<T>) -> (Option<Permill>, Weight) {
-		(None, Zero::zero())
-	}
+    fn estimate_current_session_progress(_now: BlockNumberFor<T>) -> (Option<Permill>, Weight) {
+        (None, Zero::zero())
+    }
 
-	fn estimate_next_session_rotation(
-		_now: BlockNumberFor<T>,
-	) -> (Option<BlockNumberFor<T>>, Weight) {
-		(None, Zero::zero())
-	}
+    fn estimate_next_session_rotation(
+        _now: BlockNumberFor<T>,
+    ) -> (Option<BlockNumberFor<T>>, Weight) {
+        (None, Zero::zero())
+    }
 }
 
 // Implementation of Convert trait to satisfy trait bounds in session pallet.
@@ -261,25 +267,25 @@ impl<T: Config> EstimateNextSessionRotation<BlockNumberFor<T>> for Pallet<T> {
 pub struct ValidatorOf<T>(core::marker::PhantomData<T>);
 
 impl<T: Config> Convert<T::ValidatorId, Option<T::ValidatorId>> for ValidatorOf<T> {
-	fn convert(account: T::ValidatorId) -> Option<T::ValidatorId> {
-		Some(account)
-	}
+    fn convert(account: T::ValidatorId) -> Option<T::ValidatorId> {
+        Some(account)
+    }
 }
 
 impl<T: Config> ValidatorSet<T::ValidatorId> for Pallet<T> {
-	type ValidatorId = T::ValidatorId;
-	type ValidatorIdOf = ValidatorOf<T>;
+    type ValidatorId = T::ValidatorId;
+    type ValidatorIdOf = ValidatorOf<T>;
 
-	fn session_index() -> sp_staking::SessionIndex {
-		pallet_session::Pallet::<T>::current_index()
-	}
+    fn session_index() -> sp_staking::SessionIndex {
+        pallet_session::Pallet::<T>::current_index()
+    }
 
-	fn validators() -> Vec<T::ValidatorId> {
-		pallet_session::Pallet::<T>::validators()
-	}
+    fn validators() -> Vec<T::ValidatorId> {
+        pallet_session::Pallet::<T>::validators()
+    }
 }
 
 impl<T: Config> ValidatorSetWithIdentification<T::ValidatorId> for Pallet<T> {
-	type Identification = T::ValidatorId;
-	type IdentificationOf = ValidatorOf<T>;
+    type Identification = T::ValidatorId;
+    type IdentificationOf = ValidatorOf<T>;
 }

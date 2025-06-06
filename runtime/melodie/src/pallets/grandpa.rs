@@ -20,24 +20,24 @@ use crate::*;
 use frame_support::parameter_types;
 
 parameter_types! {
-	pub const MaxNominatorRewardedPerValidator: u32 = 0;
+    pub const MaxNominatorRewardedPerValidator: u32 = 0;
 }
 
 parameter_types! {
-	pub MaxSetIdSessionEntries: u32 = 0;
+    pub MaxSetIdSessionEntries: u32 = 0;
 }
 
 impl pallet_grandpa::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
+    type RuntimeEvent = RuntimeEvent;
 
-	type KeyOwnerProof = <Historical as frame_support::traits::KeyOwnerProofSystem<(
-		frame_support::sp_runtime::KeyTypeId,
-		sp_consensus_grandpa::AuthorityId,
-	)>>::Proof;
+    type KeyOwnerProof = <Historical as frame_support::traits::KeyOwnerProofSystem<(
+        frame_support::sp_runtime::KeyTypeId,
+        sp_consensus_grandpa::AuthorityId,
+    )>>::Proof;
 
-	type EquivocationReportSystem = ();
-	type MaxNominators = MaxNominatorRewardedPerValidator;
-	type WeightInfo = ();
-	type MaxAuthorities = MaxAuthorities;
-	type MaxSetIdSessionEntries = MaxSetIdSessionEntries;
+    type EquivocationReportSystem = ();
+    type MaxNominators = MaxNominatorRewardedPerValidator;
+    type WeightInfo = ();
+    type MaxAuthorities = MaxAuthorities;
+    type MaxSetIdSessionEntries = MaxSetIdSessionEntries;
 }

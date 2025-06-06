@@ -18,48 +18,48 @@
 
 use crate::*;
 use frame_support::{
-	dispatch::DispatchClass,
-	parameter_types,
-	sp_runtime::Perbill,
-	traits::{
-		fungible::{Balanced, Credit},
-		Imbalance, OnUnbalanced,
-	},
-	weights::{
-		ConstantMultiplier, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
-	},
+    dispatch::DispatchClass,
+    parameter_types,
+    sp_runtime::Perbill,
+    traits::{
+        Imbalance, OnUnbalanced,
+        fungible::{Balanced, Credit},
+    },
+    weights::{
+        ConstantMultiplier, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
+    },
 };
 use shared_runtime::{
-	currency::{MICROAFT, MILLIAFT},
-	SlowAdjustingFeeUpdate,
+    SlowAdjustingFeeUpdate,
+    currency::{MICROAFT, MILLIAFT},
 };
 
 pub struct DealWithFees;
 impl OnUnbalanced<Credit<AccountId, Balances>> for DealWithFees {
-	fn on_unbalanceds(mut fees_then_tips: impl Iterator<Item = Credit<AccountId, Balances>>) {
-		if let Some(mut amount) = fees_then_tips.next() {
-			// for fees, 100% to author
-			if let Some(tips) = fees_then_tips.next() {
-				// for tips, if any, 100% to author
-				tips.merge_into(&mut amount);
-			}
+    fn on_unbalanceds(mut fees_then_tips: impl Iterator<Item = Credit<AccountId, Balances>>) {
+        if let Some(mut amount) = fees_then_tips.next() {
+            // for fees, 100% to author
+            if let Some(tips) = fees_then_tips.next() {
+                // for tips, if any, 100% to author
+                tips.merge_into(&mut amount);
+            }
 
-			if let Some(author) = Authorship::author() {
-				match Balances::resolve(&author, amount) {
-					Ok(_) => (),
-					Err(_amount) => {
-						todo!()
-					},
-				}
-			}
-		}
-	}
+            if let Some(author) = Authorship::author() {
+                match Balances::resolve(&author, amount) {
+                    Ok(_) => (),
+                    Err(_amount) => {
+                        todo!()
+                    }
+                }
+            }
+        }
+    }
 }
 
 parameter_types! {
-	pub const TransactionByteFee: Balance = 10 * MICROAFT;
-	pub const OperationalFeeMultiplier: u8 = 5;
-	pub const WeightFeeFactor: Balance = 10 * MILLIAFT;
+    pub const TransactionByteFee: Balance = 10 * MICROAFT;
+    pub const OperationalFeeMultiplier: u8 = 5;
+    pub const WeightFeeFactor: Balance = 10 * MILLIAFT;
 }
 
 /// Handles converting a weight scalar to a fee value, based on the scale and granularity of the
@@ -74,28 +74,31 @@ parameter_types! {
 ///   - Setting it to `1` will cause the literal `#[weight = x]` values to be charged.
 pub struct WeightToFee;
 impl WeightToFeePolynomial for WeightToFee {
-	type Balance = Balance;
-	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-		let p = WeightFeeFactor::get();
-		let q = Balance::from(
-			RuntimeBlockWeights::get().get(DispatchClass::Normal).base_extrinsic.ref_time(),
-		);
-		let coefficient = WeightToFeeCoefficient {
-			degree: 1,
-			negative: false,
-			coeff_frac: Perbill::from_rational(p % q, q),
-			coeff_integer: p / q,
-		};
-		smallvec::smallvec![coefficient]
-	}
+    type Balance = Balance;
+    fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
+        let p = WeightFeeFactor::get();
+        let q = Balance::from(
+            RuntimeBlockWeights::get()
+                .get(DispatchClass::Normal)
+                .base_extrinsic
+                .ref_time(),
+        );
+        let coefficient = WeightToFeeCoefficient {
+            degree: 1,
+            negative: false,
+            coeff_frac: Perbill::from_rational(p % q, q),
+            coeff_integer: p / q,
+        };
+        smallvec::smallvec![coefficient]
+    }
 }
 
 impl pallet_transaction_payment::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type OnChargeTransaction = pallet_transaction_payment::FungibleAdapter<Balances, DealWithFees>;
-	type OperationalFeeMultiplier = OperationalFeeMultiplier;
-	type WeightToFee = WeightToFee;
-	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
-	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
-	type WeightInfo = pallet_transaction_payment::weights::SubstrateWeight<Runtime>;
+    type RuntimeEvent = RuntimeEvent;
+    type OnChargeTransaction = pallet_transaction_payment::FungibleAdapter<Balances, DealWithFees>;
+    type OperationalFeeMultiplier = OperationalFeeMultiplier;
+    type WeightToFee = WeightToFee;
+    type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
+    type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
+    type WeightInfo = pallet_transaction_payment::weights::SubstrateWeight<Runtime>;
 }

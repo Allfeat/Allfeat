@@ -21,9 +21,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::sp_runtime::{
-	generic,
-	traits::{BlakeTwo256, IdentifyAccount, Verify},
-	MultiAddress, MultiSignature, OpaqueExtrinsic,
+    MultiAddress, MultiSignature, OpaqueExtrinsic, generic,
+    traits::{BlakeTwo256, IdentifyAccount, Verify},
 };
 use sp_core::H256;
 

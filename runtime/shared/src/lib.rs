@@ -22,8 +22,8 @@
 
 use allfeat_primitives::{Balance, BlockNumber};
 use frame_support::{
-	parameter_types,
-	sp_runtime::{traits::Bounded, FixedPointNumber, Perbill, Perquintill},
+    parameter_types,
+    sp_runtime::{FixedPointNumber, Perbill, Perquintill, traits::Bounded},
 };
 use frame_system::limits::BlockLength;
 use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
@@ -37,32 +37,32 @@ pub mod currency;
 pub mod weights;
 
 parameter_types! {
-	pub const BlockHashCount: BlockNumber = 4096;
-	/// The portion of the `NORMAL_DISPATCH_RATIO` that we adjust the fees with. Blocks filled less
-	/// than this will decrease the weight and more will increase.
-	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
-	/// The adjustment variable of the runtime. Higher values will cause `TargetBlockFullness` to
-	/// change the fees more rapidly.
-	pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(75, 1_000_000);
-	/// Minimum amount of the multiplier. This value cannot be too low. A test case should ensure
-	/// that combined with `AdjustmentVariable`, we can recover from the minimum.
-	/// See `multiplier_can_grow_from_zero`.
-	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 10u128);
-	/// The maximum amount of the multiplier.
-	pub MaximumMultiplier: Multiplier = Bounded::max_value();
-	/// Maximum length of block. Up to 5MB.
-	pub RuntimeBlockLength: BlockLength =
-		BlockLength::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
+    pub const BlockHashCount: BlockNumber = 4096;
+    /// The portion of the `NORMAL_DISPATCH_RATIO` that we adjust the fees with. Blocks filled less
+    /// than this will decrease the weight and more will increase.
+    pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
+    /// The adjustment variable of the runtime. Higher values will cause `TargetBlockFullness` to
+    /// change the fees more rapidly.
+    pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(75, 1_000_000);
+    /// Minimum amount of the multiplier. This value cannot be too low. A test case should ensure
+    /// that combined with `AdjustmentVariable`, we can recover from the minimum.
+    /// See `multiplier_can_grow_from_zero`.
+    pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 10u128);
+    /// The maximum amount of the multiplier.
+    pub MaximumMultiplier: Multiplier = Bounded::max_value();
+    /// Maximum length of block. Up to 5MB.
+    pub RuntimeBlockLength: BlockLength =
+        BlockLength::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
 }
 
 /// Parameterized slow adjusting fee updated based on
 /// <https://research.web3.foundation/Polkadot/overview/token-economics#2-slow-adjusting-mechanism>
 pub type SlowAdjustingFeeUpdate<R> = TargetedFeeAdjustment<
-	R,
-	TargetBlockFullness,
-	AdjustmentVariable,
-	MinimumMultiplier,
-	MaximumMultiplier,
+    R,
+    TargetBlockFullness,
+    AdjustmentVariable,
+    MinimumMultiplier,
+    MaximumMultiplier,
 >;
 
 /// We assume that an on-initialize consumes 1% of the weight on average, hence a single extrinsic
@@ -75,18 +75,18 @@ pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 /// Convert a balance to an unsigned 256-bit number, use in nomination pools.
 pub struct BalanceToU256;
 impl frame_support::sp_runtime::traits::Convert<Balance, U256> for BalanceToU256 {
-	fn convert(n: Balance) -> U256 {
-		n.into()
-	}
+    fn convert(n: Balance) -> U256 {
+        n.into()
+    }
 }
 
 /// Convert an unsigned 256-bit number to balance, use in nomination pools.
 pub struct U256ToBalance;
 impl frame_support::sp_runtime::traits::Convert<U256, Balance> for U256ToBalance {
-	fn convert(n: U256) -> Balance {
-		use frame_support::traits::Defensive;
-		n.try_into().defensive_unwrap_or(Balance::MAX)
-	}
+    fn convert(n: U256) -> Balance {
+        use frame_support::traits::Defensive;
+        n.try_into().defensive_unwrap_or(Balance::MAX)
+    }
 }
 
 /// Macro to set a value (e.g. when using the `parameter_types` macro) to either a production value
@@ -106,18 +106,21 @@ impl frame_support::sp_runtime::traits::Convert<U256, Balance> for U256ToBalance
 /// ```
 #[macro_export]
 macro_rules! prod_or_fast {
-	($prod:expr, $test:expr) => {
-		if cfg!(feature = "fast-runtime") {
-			$test
-		} else {
-			$prod
-		}
-	};
-	($prod:expr, $test:expr, $env:expr) => {
-		if cfg!(feature = "fast-runtime") {
-			core::option_env!($env).map(|s| s.parse().ok()).flatten().unwrap_or($test)
-		} else {
-			$prod
-		}
-	};
+    ($prod:expr, $test:expr) => {
+        if cfg!(feature = "fast-runtime") {
+            $test
+        } else {
+            $prod
+        }
+    };
+    ($prod:expr, $test:expr, $env:expr) => {
+        if cfg!(feature = "fast-runtime") {
+            core::option_env!($env)
+                .map(|s| s.parse().ok())
+                .flatten()
+                .unwrap_or($test)
+        } else {
+            $prod
+        }
+    };
 }

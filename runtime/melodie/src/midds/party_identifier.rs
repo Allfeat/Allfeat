@@ -20,34 +20,34 @@ extern crate midds as midds_crate;
 
 use super::PartyIdentifiers;
 use crate::*;
-use frame_support::{parameter_types, PalletId};
+use frame_support::{PalletId, parameter_types};
 use frame_system::EnsureSigned;
 use shared_runtime::{currency::MILLIAFT, weights};
 
 parameter_types! {
-	pub const PartyIdentifierPalletId: PalletId = PalletId(*b"m/partid");
-	pub const ByteDepositCost: Balance = MILLIAFT;
+    pub const PartyIdentifierPalletId: PalletId = PalletId(*b"m/partid");
+    pub const ByteDepositCost: Balance = MILLIAFT;
 }
 
 #[cfg(not(feature = "runtime-benchmarks"))]
 parameter_types! {
-	pub const UnregisterPeriod: Option<Moment> = Some(7 * DAYS as u64);
+    pub const UnregisterPeriod: Option<Moment> = Some(7 * DAYS as u64);
 }
 
 #[cfg(feature = "runtime-benchmarks")]
 parameter_types! {
-	pub const UnregisterPeriod: Option<Moment> = None;
+    pub const UnregisterPeriod: Option<Moment> = None;
 }
 
 impl pallet_midds::Config<PartyIdentifiers> for Runtime {
-	type PalletId = PartyIdentifierPalletId;
-	type RuntimeEvent = RuntimeEvent;
-	type Timestamp = Timestamp;
-	type Currency = Balances;
-	type RuntimeHoldReason = RuntimeHoldReason;
-	type MIDDS = midds_crate::pallet_prelude::PartyIdentifier;
-	type ProviderOrigin = EnsureSigned<Self::AccountId>;
-	type ByteDepositCost = ByteDepositCost;
-	type UnregisterPeriod = UnregisterPeriod;
-	type WeightInfo = weights::midds_stakeholders::AllfeatWeight<Runtime>;
+    type PalletId = PartyIdentifierPalletId;
+    type RuntimeEvent = RuntimeEvent;
+    type Timestamp = Timestamp;
+    type Currency = Balances;
+    type RuntimeHoldReason = RuntimeHoldReason;
+    type MIDDS = midds_crate::pallet_prelude::PartyIdentifier;
+    type ProviderOrigin = EnsureSigned<Self::AccountId>;
+    type ByteDepositCost = ByteDepositCost;
+    type UnregisterPeriod = UnregisterPeriod;
+    type WeightInfo = weights::midds_stakeholders::AllfeatWeight<Runtime>;
 }

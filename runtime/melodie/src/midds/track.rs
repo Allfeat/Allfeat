@@ -22,34 +22,34 @@ extern crate midds as midds_crate;
 
 use super::Tracks;
 use allfeat_primitives::Balance;
-use frame_support::{parameter_types, PalletId};
+use frame_support::{PalletId, parameter_types};
 use frame_system::EnsureSigned;
 use shared_runtime::{currency::MILLIAFT, weights};
 
 parameter_types! {
-	pub const TrackPalletId: PalletId = PalletId(*b"m/tracks");
-	pub const ByteDepositCost: Balance = MILLIAFT;
+    pub const TrackPalletId: PalletId = PalletId(*b"m/tracks");
+    pub const ByteDepositCost: Balance = MILLIAFT;
 }
 
 #[cfg(not(feature = "runtime-benchmarks"))]
 parameter_types! {
-	pub const UnregisterPeriod: Option<Moment> = Some(7 * DAYS as u64);
+    pub const UnregisterPeriod: Option<Moment> = Some(7 * DAYS as u64);
 }
 
 #[cfg(feature = "runtime-benchmarks")]
 parameter_types! {
-	pub const UnregisterPeriod: Option<Moment> = None;
+    pub const UnregisterPeriod: Option<Moment> = None;
 }
 
 impl pallet_midds::Config<Tracks> for Runtime {
-	type PalletId = TrackPalletId;
-	type RuntimeEvent = RuntimeEvent;
-	type Timestamp = Timestamp;
-	type Currency = Balances;
-	type RuntimeHoldReason = RuntimeHoldReason;
-	type MIDDS = midds_crate::pallet_prelude::Track;
-	type ProviderOrigin = EnsureSigned<Self::AccountId>;
-	type ByteDepositCost = ByteDepositCost;
-	type UnregisterPeriod = UnregisterPeriod;
-	type WeightInfo = weights::midds_musical_works::AllfeatWeight<Runtime>;
+    type PalletId = TrackPalletId;
+    type RuntimeEvent = RuntimeEvent;
+    type Timestamp = Timestamp;
+    type Currency = Balances;
+    type RuntimeHoldReason = RuntimeHoldReason;
+    type MIDDS = midds_crate::pallet_prelude::Track;
+    type ProviderOrigin = EnsureSigned<Self::AccountId>;
+    type ByteDepositCost = ByteDepositCost;
+    type UnregisterPeriod = UnregisterPeriod;
+    type WeightInfo = weights::midds_musical_works::AllfeatWeight<Runtime>;
 }

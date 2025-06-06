@@ -18,38 +18,38 @@
 
 use crate::*;
 use frame_support::{
-	derive_impl,
-	traits::{ConstU16, ConstU32},
-	weights::{
-		constants::{ParityDbWeight, WEIGHT_REF_TIME_PER_SECOND},
-		Weight,
-	},
+    derive_impl,
+    traits::{ConstU16, ConstU32},
+    weights::{
+        Weight,
+        constants::{ParityDbWeight, WEIGHT_REF_TIME_PER_SECOND},
+    },
 };
 use frame_system::limits::BlockWeights;
-use shared_runtime::{weights, RuntimeBlockLength, NORMAL_DISPATCH_RATIO};
+use shared_runtime::{NORMAL_DISPATCH_RATIO, RuntimeBlockLength, weights};
 
 frame_support::parameter_types! {
-	pub const Version: sp_version::RuntimeVersion = VERSION;
-	/// We allow for 4 seconds of compute with a 12 second average block time.
-	pub RuntimeBlockWeights: BlockWeights = BlockWeights::with_sensible_defaults(
-		Weight::from_parts(4u64 * WEIGHT_REF_TIME_PER_SECOND, u64::MAX),
-		NORMAL_DISPATCH_RATIO,
-	);
+    pub const Version: sp_version::RuntimeVersion = VERSION;
+    /// We allow for 4 seconds of compute with a 12 second average block time.
+    pub RuntimeBlockWeights: BlockWeights = BlockWeights::with_sensible_defaults(
+        Weight::from_parts(4u64 * WEIGHT_REF_TIME_PER_SECOND, u64::MAX),
+        NORMAL_DISPATCH_RATIO,
+    );
 }
 
 #[derive_impl(frame_system::config_preludes::SolochainDefaultConfig)]
 impl frame_system::Config for Runtime {
-	type BlockWeights = RuntimeBlockWeights;
-	type BlockLength = RuntimeBlockLength;
-	type Nonce = Nonce;
-	type Block = Block;
-	type Hash = allfeat_primitives::Hash;
-	type AccountId = AccountId;
-	type BlockHashCount = shared_runtime::BlockHashCount;
-	type DbWeight = ParityDbWeight;
-	type Version = Version;
-	type AccountData = pallet_balances::AccountData<Balance>;
-	type SystemWeightInfo = weights::system::AllfeatWeight<Runtime>;
-	type SS58Prefix = ConstU16<42>;
-	type MaxConsumers = ConstU32<16>;
+    type BlockWeights = RuntimeBlockWeights;
+    type BlockLength = RuntimeBlockLength;
+    type Nonce = Nonce;
+    type Block = Block;
+    type Hash = allfeat_primitives::Hash;
+    type AccountId = AccountId;
+    type BlockHashCount = shared_runtime::BlockHashCount;
+    type DbWeight = ParityDbWeight;
+    type Version = Version;
+    type AccountData = pallet_balances::AccountData<Balance>;
+    type SystemWeightInfo = weights::system::AllfeatWeight<Runtime>;
+    type SS58Prefix = ConstU16<42>;
+    type MaxConsumers = ConstU32<16>;
 }

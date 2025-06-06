@@ -19,39 +19,39 @@
 use crate::*;
 use alloc::vec::Vec;
 use frame_support::{
-	parameter_types,
-	sp_runtime::{impl_opaque_keys, traits::OpaqueKeys},
+    parameter_types,
+    sp_runtime::{impl_opaque_keys, traits::OpaqueKeys},
 };
 use pallet_session::PeriodicSessions;
 use shared_runtime::weights;
 
 impl_opaque_keys! {
-	pub struct SessionKeys {
-		pub grandpa: Grandpa,
-		pub aura: Aura,
-		pub im_online: ImOnline,
-	}
+    pub struct SessionKeys {
+        pub grandpa: Grandpa,
+        pub aura: Aura,
+        pub im_online: ImOnline,
+    }
 }
 
 parameter_types! {
-	pub const SessionPeriod: BlockNumber = 1800; // 6 hours for 12sec block
-	pub const SessionOffset: BlockNumber = 0;
+    pub const SessionPeriod: BlockNumber = 1800; // 6 hours for 12sec block
+    pub const SessionOffset: BlockNumber = 0;
 }
 
 impl pallet_session::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type ValidatorId = <Self as frame_system::Config>::AccountId;
-	type ValidatorIdOf = pallet_validator_set::ValidatorOf<Self>;
-	type ShouldEndSession = PeriodicSessions<SessionPeriod, SessionOffset>;
-	type NextSessionRotation = PeriodicSessions<SessionPeriod, SessionOffset>;
-	type SessionManager = pallet_session::historical::NoteHistoricalRoot<Self, ValidatorSet>;
-	type SessionHandler = <SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
-	type Keys = SessionKeys;
-	type DisablingStrategy = pallet_session::disabling::UpToLimitWithReEnablingDisablingStrategy;
-	type WeightInfo = weights::session::AllfeatWeight<Runtime>;
+    type RuntimeEvent = RuntimeEvent;
+    type ValidatorId = <Self as frame_system::Config>::AccountId;
+    type ValidatorIdOf = pallet_validator_set::ValidatorOf<Self>;
+    type ShouldEndSession = PeriodicSessions<SessionPeriod, SessionOffset>;
+    type NextSessionRotation = PeriodicSessions<SessionPeriod, SessionOffset>;
+    type SessionManager = pallet_session::historical::NoteHistoricalRoot<Self, ValidatorSet>;
+    type SessionHandler = <SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
+    type Keys = SessionKeys;
+    type DisablingStrategy = pallet_session::disabling::UpToLimitWithReEnablingDisablingStrategy;
+    type WeightInfo = weights::session::AllfeatWeight<Runtime>;
 }
 
 impl pallet_session::historical::Config for Runtime {
-	type FullIdentification = Self::ValidatorId;
-	type FullIdentificationOf = Self::ValidatorIdOf;
+    type FullIdentification = Self::ValidatorId;
+    type FullIdentificationOf = Self::ValidatorIdOf;
 }

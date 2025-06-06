@@ -28,51 +28,51 @@ use frame_system::RawOrigin;
 use midds::pallet_prelude::BenchmarkHelperT;
 
 fn assert_last_event<T: Config<I>, I: 'static>(generic_event: <T as Config<I>>::RuntimeEvent) {
-	frame_system::Pallet::<T>::assert_last_event(generic_event.into());
+    frame_system::Pallet::<T>::assert_last_event(generic_event.into());
 }
 
 #[instance_benchmarks]
 mod benchmarks {
-	use super::*;
+    use super::*;
 
-	#[benchmark]
-	fn register(
-		x: Linear<0, <<T::MIDDS as super::Midds>::BenchmarkHelper as BenchmarkHelperT<T::MIDDS>>::FIELD_MAX_SIZE>,
-	) {
-		let provider = whitelisted_caller();
-		let midds = <T::MIDDS as super::Midds>::BenchmarkHelper::build_sized_mock(x);
-		let _ = T::Currency::set_balance(&provider, init_bal::<T, I>());
+    #[benchmark]
+    fn register(
+        x: Linear<0, <<T::MIDDS as super::Midds>::BenchmarkHelper as BenchmarkHelperT<T::MIDDS>>::FIELD_MAX_SIZE>,
+    ) {
+        let provider = whitelisted_caller();
+        let midds = <T::MIDDS as super::Midds>::BenchmarkHelper::build_sized_mock(x);
+        let _ = T::Currency::set_balance(&provider, init_bal::<T, I>());
 
-		#[extrinsic_call]
-		_(RawOrigin::Signed(provider), Box::new(midds.clone()));
+        #[extrinsic_call]
+        _(RawOrigin::Signed(provider), Box::new(midds.clone()));
 
-		assert!(MiddsDb::<T, I>::get(0).is_some())
-	}
+        assert!(MiddsDb::<T, I>::get(0).is_some())
+    }
 
-	#[benchmark]
-	fn unregister(
-		x: Linear<0, <<T::MIDDS as super::Midds>::BenchmarkHelper as BenchmarkHelperT<T::MIDDS>>::FIELD_MAX_SIZE>,
-	) -> Result<(), BenchmarkError> {
-		let provider = whitelisted_caller();
-		let midds = <T::MIDDS as super::Midds>::BenchmarkHelper::build_sized_mock(x);
+    #[benchmark]
+    fn unregister(
+        x: Linear<0, <<T::MIDDS as super::Midds>::BenchmarkHelper as BenchmarkHelperT<T::MIDDS>>::FIELD_MAX_SIZE>,
+    ) -> Result<(), BenchmarkError> {
+        let provider = whitelisted_caller();
+        let midds = <T::MIDDS as super::Midds>::BenchmarkHelper::build_sized_mock(x);
 
-		let _ = T::Currency::set_balance(&provider, init_bal::<T, I>());
+        let _ = T::Currency::set_balance(&provider, init_bal::<T, I>());
 
-		MiddsPallet::<T, I>::register(
-			RawOrigin::Signed(provider.clone()).into(),
-			Box::new(midds.clone()),
-		)?;
+        MiddsPallet::<T, I>::register(
+            RawOrigin::Signed(provider.clone()).into(),
+            Box::new(midds.clone()),
+        )?;
 
-		#[extrinsic_call]
-		_(RawOrigin::Signed(provider), 0);
+        #[extrinsic_call]
+        _(RawOrigin::Signed(provider), 0);
 
-		assert_last_event::<T, I>(Event::MIDDSUnregistered { midds_id: 0 }.into());
-		Ok(())
-	}
+        assert_last_event::<T, I>(Event::MIDDSUnregistered { midds_id: 0 }.into());
+        Ok(())
+    }
 
-	fn init_bal<T: Config<I>, I: 'static>() -> BalanceOf<T, I> {
-		BalanceOf::<T, I>::max_value() / 10u32.into()
-	}
+    fn init_bal<T: Config<I>, I: 'static>() -> BalanceOf<T, I> {
+        BalanceOf::<T, I>::max_value() / 10u32.into()
+    }
 
-	impl_benchmark_test_suite!(MiddsPallet, crate::mock::new_test_ext(), crate::mock::Test);
+    impl_benchmark_test_suite!(MiddsPallet, crate::mock::new_test_ext(), crate::mock::Test);
 }

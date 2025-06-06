@@ -25,34 +25,34 @@ use crate::*;
 /// Calls that can bypass the safe-mode pallet.
 pub struct SafeModeWhitelistedCalls;
 impl Contains<RuntimeCall> for SafeModeWhitelistedCalls {
-	fn contains(call: &RuntimeCall) -> bool {
-		matches!(call, RuntimeCall::System(_) | RuntimeCall::SafeMode(_))
-	}
+    fn contains(call: &RuntimeCall) -> bool {
+        matches!(call, RuntimeCall::System(_) | RuntimeCall::SafeMode(_))
+    }
 }
 
 parameter_types! {
-	pub const EnterDuration: BlockNumber = 4 * HOURS;
-	pub const EnterDepositAmount: Option<Balance> = None;
-	pub const ExtendDuration: BlockNumber = 2 * HOURS;
-	pub const ExtendDepositAmount: Option<Balance> = None;
-	pub const ReleaseDelay: u32 = 2 * DAYS;
+    pub const EnterDuration: BlockNumber = 4 * HOURS;
+    pub const EnterDepositAmount: Option<Balance> = None;
+    pub const ExtendDuration: BlockNumber = 2 * HOURS;
+    pub const ExtendDepositAmount: Option<Balance> = None;
+    pub const ReleaseDelay: u32 = 2 * DAYS;
 }
 
 impl pallet_safe_mode::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Currency = Balances;
-	type RuntimeHoldReason = RuntimeHoldReason;
-	type WhitelistedCalls = SafeModeWhitelistedCalls;
-	type EnterDuration = EnterDuration;
-	type ExtendDuration = ExtendDuration;
-	type EnterDepositAmount = EnterDepositAmount;
-	type ExtendDepositAmount = ExtendDepositAmount;
-	type ForceEnterOrigin = EnsureRootWithSuccess<AccountId, ConstU32<9>>;
-	type ForceExtendOrigin = EnsureRootWithSuccess<AccountId, ConstU32<11>>;
-	type ForceExitOrigin = EnsureRoot<AccountId>;
-	type ForceDepositOrigin = EnsureRoot<AccountId>;
-	type Notify = ();
-	type ReleaseDelay = ReleaseDelay;
-	//type WeightInfo = polkadot_sdk::pallet_safe_mode::SubstrateWeight<Runtime>;
-	type WeightInfo = shared_runtime::weights::safe_mode::AllfeatWeight<Runtime>;
+    type RuntimeEvent = RuntimeEvent;
+    type Currency = Balances;
+    type RuntimeHoldReason = RuntimeHoldReason;
+    type WhitelistedCalls = SafeModeWhitelistedCalls;
+    type EnterDuration = EnterDuration;
+    type ExtendDuration = ExtendDuration;
+    type EnterDepositAmount = EnterDepositAmount;
+    type ExtendDepositAmount = ExtendDepositAmount;
+    type ForceEnterOrigin = EnsureRootWithSuccess<AccountId, ConstU32<9>>;
+    type ForceExtendOrigin = EnsureRootWithSuccess<AccountId, ConstU32<11>>;
+    type ForceExitOrigin = EnsureRoot<AccountId>;
+    type ForceDepositOrigin = EnsureRoot<AccountId>;
+    type Notify = ();
+    type ReleaseDelay = ReleaseDelay;
+    //type WeightInfo = polkadot_sdk::pallet_safe_mode::SubstrateWeight<Runtime>;
+    type WeightInfo = shared_runtime::weights::safe_mode::AllfeatWeight<Runtime>;
 }

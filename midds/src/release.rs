@@ -21,15 +21,15 @@ use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
 use crate::{
-	types::{
-		release::{
-			Ean, ReleaseCoverContributors, ReleaseDistributor, ReleaseFormat, ReleaseManufacturer,
-			ReleasePackaging, ReleaseProducers, ReleaseStatus, ReleaseTitle, ReleaseTitleAliases,
-			ReleaseTracks, ReleaseType,
-		},
-		utils::{Country, Date},
-	},
-	Midds, MiddsId,
+    Midds, MiddsId,
+    types::{
+        release::{
+            Ean, ReleaseCoverContributors, ReleaseDistributor, ReleaseFormat, ReleaseManufacturer,
+            ReleasePackaging, ReleaseProducers, ReleaseStatus, ReleaseTitle, ReleaseTitleAliases,
+            ReleaseTracks, ReleaseType,
+        },
+        utils::{Country, Date},
+    },
 };
 
 #[cfg(feature = "runtime-benchmarks")]
@@ -40,66 +40,66 @@ use crate::benchmarking::release::BenchmarkHelper;
 ///
 /// This structure is used to register and manage a complete music release on-chain.
 #[derive(
-	Clone,
-	Eq,
-	PartialEq,
-	Encode,
-	Decode,
-	DecodeWithMemTracking,
-	TypeInfo,
-	MaxEncodedLen,
-	RuntimeDebug,
+    Clone,
+    Eq,
+    PartialEq,
+    Encode,
+    Decode,
+    DecodeWithMemTracking,
+    TypeInfo,
+    MaxEncodedLen,
+    RuntimeDebug,
 )]
 pub struct Release {
-	/// EAN or UPC code identifying the release (physical or digital).
-	pub ean_upc: Ean,
+    /// EAN or UPC code identifying the release (physical or digital).
+    pub ean_upc: Ean,
 
-	/// The main artist MIDDS ID associated with this release.
-	pub artist: MiddsId,
+    /// The main artist MIDDS ID associated with this release.
+    pub artist: MiddsId,
 
-	/// List of producer MIDDS IDs who contributed to this release.
-	pub producers: ReleaseProducers,
+    /// List of producer MIDDS IDs who contributed to this release.
+    pub producers: ReleaseProducers,
 
-	/// List of track MIDDS IDs that are part of this release.
-	pub tracks: ReleaseTracks,
+    /// List of track MIDDS IDs that are part of this release.
+    pub tracks: ReleaseTracks,
 
-	/// Name of the distributor responsible for the release.
-	pub distributor_name: ReleaseDistributor,
+    /// Name of the distributor responsible for the release.
+    pub distributor_name: ReleaseDistributor,
 
-	/// Name of the manufacturer responsible for physical production.
-	pub manufacturer_name: ReleaseManufacturer,
+    /// Name of the manufacturer responsible for physical production.
+    pub manufacturer_name: ReleaseManufacturer,
 
-	/// Contributors to the release cover (designers, photographers, etc.).
-	pub cover_contributors: ReleaseCoverContributors,
+    /// Contributors to the release cover (designers, photographers, etc.).
+    pub cover_contributors: ReleaseCoverContributors,
 
-	/// Official title of the release.
-	pub title: ReleaseTitle,
+    /// Official title of the release.
+    pub title: ReleaseTitle,
 
-	/// Alternative titles (e.g. translations, acronyms, stylistic variations).
-	pub title_aliases: ReleaseTitleAliases,
+    /// Alternative titles (e.g. translations, acronyms, stylistic variations).
+    pub title_aliases: ReleaseTitleAliases,
 
-	/// Type of the release (e.g. LP, EP, Single, Mixtape).
-	pub release_type: ReleaseType,
+    /// Type of the release (e.g. LP, EP, Single, Mixtape).
+    pub release_type: ReleaseType,
 
-	/// Format of the release medium (e.g. CD, Vinyl, Cassette).
-	pub format: ReleaseFormat,
+    /// Format of the release medium (e.g. CD, Vinyl, Cassette).
+    pub format: ReleaseFormat,
 
-	/// Packaging used for the physical release (e.g. Digipack, Jewel Case).
-	pub packaging: ReleasePackaging,
+    /// Packaging used for the physical release (e.g. Digipack, Jewel Case).
+    pub packaging: ReleasePackaging,
 
-	/// Official status of the release (e.g. Official, Promotional, Remastered).
-	pub status: ReleaseStatus,
+    /// Official status of the release (e.g. Official, Promotional, Remastered).
+    pub status: ReleaseStatus,
 
-	/// Release date.
-	pub date: Date,
+    /// Release date.
+    pub date: Date,
 
-	/// Country where the release was published or made available.
-	pub country: Country,
+    /// Country where the release was published or made available.
+    pub country: Country,
 }
 
 impl Midds for Release {
-	const NAME: &'static str = "Release";
+    const NAME: &'static str = "Release";
 
-	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = BenchmarkHelper;
+    #[cfg(feature = "runtime-benchmarks")]
+    type BenchmarkHelper = BenchmarkHelper;
 }

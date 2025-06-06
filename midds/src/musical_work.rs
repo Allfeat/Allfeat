@@ -21,14 +21,14 @@ use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
 use crate::{
-	types::{
-		musical_work::{
-			Iswc, MusicalWorkBpm, MusicalWorkCreationYear, MusicalWorkParticipants,
-			MusicalWorkTitle, MusicalWorkType,
-		},
-		utils::{Key, Language},
-	},
-	Midds,
+    Midds,
+    types::{
+        musical_work::{
+            Iswc, MusicalWorkBpm, MusicalWorkCreationYear, MusicalWorkParticipants,
+            MusicalWorkTitle, MusicalWorkType,
+        },
+        utils::{Key, Language},
+    },
 };
 
 #[cfg(feature = "runtime-benchmarks")]
@@ -39,50 +39,50 @@ use crate::benchmarking::musical_work::BenchmarkHelper;
 /// A musical work encapsulates metadata about an original or derived
 /// musical creation, including its participants, structure, and identity.
 #[derive(
-	Clone,
-	Eq,
-	PartialEq,
-	Encode,
-	Decode,
-	DecodeWithMemTracking,
-	TypeInfo,
-	MaxEncodedLen,
-	RuntimeDebug,
+    Clone,
+    Eq,
+    PartialEq,
+    Encode,
+    Decode,
+    DecodeWithMemTracking,
+    TypeInfo,
+    MaxEncodedLen,
+    RuntimeDebug,
 )]
 pub struct MusicalWork {
-	/// The ISWC (International Standard Musical Work Code) uniquely identifying the work.
-	pub iswc: Iswc,
+    /// The ISWC (International Standard Musical Work Code) uniquely identifying the work.
+    pub iswc: Iswc,
 
-	/// The title of the musical work.
-	pub title: MusicalWorkTitle,
+    /// The title of the musical work.
+    pub title: MusicalWorkTitle,
 
-	/// The year the work was created (4-digit Gregorian year).
-	pub creation_year: MusicalWorkCreationYear,
+    /// The year the work was created (4-digit Gregorian year).
+    pub creation_year: MusicalWorkCreationYear,
 
-	/// Indicates whether the work is instrumental (i.e., without lyrics).
-	pub instrumental: bool,
+    /// Indicates whether the work is instrumental (i.e., without lyrics).
+    pub instrumental: bool,
 
-	/// The optional language of the lyrics (if any).
-	pub language: Option<Language>,
+    /// The optional language of the lyrics (if any).
+    pub language: Option<Language>,
 
-	/// Optional tempo in beats per minute (BPM).
-	pub bpm: Option<MusicalWorkBpm>,
+    /// Optional tempo in beats per minute (BPM).
+    pub bpm: Option<MusicalWorkBpm>,
 
-	/// Optional musical key of the work (e.g., C, G#, etc.).
-	pub key: Option<Key>,
+    /// Optional musical key of the work (e.g., C, G#, etc.).
+    pub key: Option<Key>,
 
-	/// Type of the musical work (original, medley, mashup, or adaptation).
-	pub work_type: MusicalWorkType,
+    /// Type of the musical work (original, medley, mashup, or adaptation).
+    pub work_type: MusicalWorkType,
 
-	/// List of contributors to the work, along with their roles.
-	pub participants: MusicalWorkParticipants,
+    /// List of contributors to the work, along with their roles.
+    pub participants: MusicalWorkParticipants,
 }
 
 /// Trait implementation allowing the musical work to be used
 /// as a MIDDS (Music Industry Decentralized Data Structure).
 impl Midds for MusicalWork {
-	const NAME: &'static str = "Musical Work";
+    const NAME: &'static str = "Musical Work";
 
-	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = BenchmarkHelper;
+    #[cfg(feature = "runtime-benchmarks")]
+    type BenchmarkHelper = BenchmarkHelper;
 }

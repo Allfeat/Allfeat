@@ -23,5 +23,5 @@ pub const MILLIAFT: Balance = 1_000_000_000;
 pub const AFT: Balance = 1_000_000_000_000;
 
 pub const fn deposit(items: u32, bytes: u32) -> Balance {
-	items as Balance * 10 * AFT + (bytes as Balance) * 100 * MICROAFT
+    items as Balance * 10 * AFT + (bytes as Balance) * 100 * MICROAFT
 }

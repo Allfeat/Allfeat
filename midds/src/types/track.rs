@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use frame_support::{sp_runtime::RuntimeDebug, traits::ConstU32, BoundedVec};
+use frame_support::{BoundedVec, sp_runtime::RuntimeDebug, traits::ConstU32};
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
@@ -70,58 +70,58 @@ pub type TrackMasteringPlace = BoundedVec<u8, ConstU32<256>>;
 /// Helps categorize the nature or use of a specific recording.
 #[repr(u8)]
 #[derive(
-	Clone,
-	Copy,
-	PartialEq,
-	Eq,
-	Encode,
-	Decode,
-	DecodeWithMemTracking,
-	TypeInfo,
-	MaxEncodedLen,
-	RuntimeDebug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Encode,
+    Decode,
+    DecodeWithMemTracking,
+    TypeInfo,
+    MaxEncodedLen,
+    RuntimeDebug,
 )]
 pub enum TrackVersion {
-	/// Original recording version.
-	Original = 0,
-	/// Shortened version for radio broadcasting.
-	RadioEdit = 1,
-	/// Extended version, typically with added sections.
-	Extended = 2,
-	/// Instrument-only version.
-	Instrumental = 3,
-	/// Vocals-only version.
-	Acapella = 4,
-	/// A modified or remixed version by another artist or producer.
-	Remix = 5,
-	/// A recording of a live performance.
-	Live = 6,
-	/// An acoustic version, usually unplugged.
-	Acoustic = 7,
-	/// Early or incomplete version of a track.
-	Demo = 8,
-	/// Newly recorded version of an existing track.
-	ReRecorded = 9,
-	/// Different take/version of the same session.
-	AlternateTake = 10,
-	/// Version recorded with an orchestral arrangement.
-	Orchestral = 11,
-	/// Karaoke version without lead vocals.
-	Karaoke = 12,
-	/// Version with explicit lyrics.
-	Clean = 13,
-	/// Censored or family-safe version.
-	Explicit = 14,
-	/// TV-friendly version used in broadcast.
-	TvTrack = 15,
-	/// Dub version, typically with reverb-heavy effects.
-	Dub = 16,
-	/// Generic edit, purpose-specific.
-	Edit = 17,
-	/// Mono audio version.
-	Mono = 18,
-	/// Stereo audio version.
-	Stereo = 19,
-	/// Rehearsal take, often raw or unpolished.
-	Rehearsal = 20,
+    /// Original recording version.
+    Original = 0,
+    /// Shortened version for radio broadcasting.
+    RadioEdit = 1,
+    /// Extended version, typically with added sections.
+    Extended = 2,
+    /// Instrument-only version.
+    Instrumental = 3,
+    /// Vocals-only version.
+    Acapella = 4,
+    /// A modified or remixed version by another artist or producer.
+    Remix = 5,
+    /// A recording of a live performance.
+    Live = 6,
+    /// An acoustic version, usually unplugged.
+    Acoustic = 7,
+    /// Early or incomplete version of a track.
+    Demo = 8,
+    /// Newly recorded version of an existing track.
+    ReRecorded = 9,
+    /// Different take/version of the same session.
+    AlternateTake = 10,
+    /// Version recorded with an orchestral arrangement.
+    Orchestral = 11,
+    /// Karaoke version without lead vocals.
+    Karaoke = 12,
+    /// Version with explicit lyrics.
+    Clean = 13,
+    /// Censored or family-safe version.
+    Explicit = 14,
+    /// TV-friendly version used in broadcast.
+    TvTrack = 15,
+    /// Dub version, typically with reverb-heavy effects.
+    Dub = 16,
+    /// Generic edit, purpose-specific.
+    Edit = 17,
+    /// Mono audio version.
+    Mono = 18,
+    /// Stereo audio version.
+    Stereo = 19,
+    /// Rehearsal take, often raw or unpolished.
+    Rehearsal = 20,
 }

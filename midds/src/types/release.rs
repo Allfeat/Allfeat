@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use frame_support::{sp_runtime::RuntimeDebug, traits::ConstU32, BoundedVec};
+use frame_support::{BoundedVec, sp_runtime::RuntimeDebug, traits::ConstU32};
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
@@ -54,115 +54,115 @@ pub type ReleaseCoverContributors = BoundedVec<ReleaseCoverContributor, ConstU32
 /// The general type of release based on track count or intent.
 #[repr(u8)]
 #[derive(
-	Clone,
-	Copy,
-	PartialEq,
-	Eq,
-	Encode,
-	Decode,
-	DecodeWithMemTracking,
-	TypeInfo,
-	MaxEncodedLen,
-	RuntimeDebug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Encode,
+    Decode,
+    DecodeWithMemTracking,
+    TypeInfo,
+    MaxEncodedLen,
+    RuntimeDebug,
 )]
 pub enum ReleaseType {
-	/// Long Play album (usually 8+ tracks).
-	Lp = 0,
-	/// Double album (2 discs or extensive track list).
-	DoubleLp = 1,
-	/// Extended Play (typically 4–6 tracks).
-	Ep = 2,
-	/// A standalone track or 2-track release.
-	Single = 3,
-	/// Informal or promotional compilation, often non-commercial.
-	Mixtape = 4,
+    /// Long Play album (usually 8+ tracks).
+    Lp = 0,
+    /// Double album (2 discs or extensive track list).
+    DoubleLp = 1,
+    /// Extended Play (typically 4–6 tracks).
+    Ep = 2,
+    /// A standalone track or 2-track release.
+    Single = 3,
+    /// Informal or promotional compilation, often non-commercial.
+    Mixtape = 4,
 }
 
 /// The format of the physical or digital medium used for distribution.
 #[repr(u8)]
 #[derive(
-	Clone,
-	Copy,
-	PartialEq,
-	Eq,
-	Encode,
-	Decode,
-	DecodeWithMemTracking,
-	TypeInfo,
-	MaxEncodedLen,
-	RuntimeDebug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Encode,
+    Decode,
+    DecodeWithMemTracking,
+    TypeInfo,
+    MaxEncodedLen,
+    RuntimeDebug,
 )]
 pub enum ReleaseFormat {
-	/// Compact Disc.
-	Cd = 0,
-	/// Double Compact Disc.
-	DoubleCd = 1,
-	/// 7-inch vinyl record.
-	Vynil7 = 2,
-	/// 10-inch vinyl record.
-	Vinyl10 = 3,
-	/// Audio cassette.
-	Cassette = 4,
-	/// Digital Versatile Disc containing audio.
-	AudioDvd = 5,
+    /// Compact Disc.
+    Cd = 0,
+    /// Double Compact Disc.
+    DoubleCd = 1,
+    /// 7-inch vinyl record.
+    Vynil7 = 2,
+    /// 10-inch vinyl record.
+    Vinyl10 = 3,
+    /// Audio cassette.
+    Cassette = 4,
+    /// Digital Versatile Disc containing audio.
+    AudioDvd = 5,
 }
 
 /// The packaging type used for the physical release.
 #[repr(u8)]
 #[derive(
-	Clone,
-	Copy,
-	PartialEq,
-	Eq,
-	Encode,
-	Decode,
-	DecodeWithMemTracking,
-	TypeInfo,
-	MaxEncodedLen,
-	RuntimeDebug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Encode,
+    Decode,
+    DecodeWithMemTracking,
+    TypeInfo,
+    MaxEncodedLen,
+    RuntimeDebug,
 )]
 pub enum ReleasePackaging {
-	/// Fold-out cardboard packaging.
-	Digipack = 0,
-	/// Standard plastic CD case.
-	JewelCase = 1,
-	/// Thin, plastic alternative packaging.
-	SnapCase = 2,
+    /// Fold-out cardboard packaging.
+    Digipack = 0,
+    /// Standard plastic CD case.
+    JewelCase = 1,
+    /// Thin, plastic alternative packaging.
+    SnapCase = 2,
 }
 
 /// The official status of the release in its publication lifecycle.
 #[repr(u8)]
 #[derive(
-	Clone,
-	Copy,
-	PartialEq,
-	Eq,
-	Encode,
-	Decode,
-	DecodeWithMemTracking,
-	TypeInfo,
-	MaxEncodedLen,
-	RuntimeDebug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Encode,
+    Decode,
+    DecodeWithMemTracking,
+    TypeInfo,
+    MaxEncodedLen,
+    RuntimeDebug,
 )]
 pub enum ReleaseStatus {
-	/// Properly released by the artist or label.
-	Official = 0,
-	/// Used for marketing or sent to press/radio.
-	Promotional = 1,
-	/// Reissued at a later date (possibly remastered).
-	ReRelease = 2,
-	/// Includes bonus content or packaging.
-	SpecialEdition = 3,
-	/// Improved audio version of an earlier release.
-	Remastered = 4,
-	/// Unofficial or unauthorized release.
-	Bootleg = 5,
-	/// Placeholder or unverified metadata.
-	PseudoRelease = 6,
-	/// Removed shortly after being released.
-	Withdrawn = 7,
-	/// Intentionally removed from catalog/history.
-	Expunged = 8,
-	/// Planned but never released.
-	Cancelled = 9,
+    /// Properly released by the artist or label.
+    Official = 0,
+    /// Used for marketing or sent to press/radio.
+    Promotional = 1,
+    /// Reissued at a later date (possibly remastered).
+    ReRelease = 2,
+    /// Includes bonus content or packaging.
+    SpecialEdition = 3,
+    /// Improved audio version of an earlier release.
+    Remastered = 4,
+    /// Unofficial or unauthorized release.
+    Bootleg = 5,
+    /// Placeholder or unverified metadata.
+    PseudoRelease = 6,
+    /// Removed shortly after being released.
+    Withdrawn = 7,
+    /// Intentionally removed from catalog/history.
+    Expunged = 8,
+    /// Planned but never released.
+    Cancelled = 9,
 }

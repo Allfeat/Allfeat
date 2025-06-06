@@ -19,10 +19,10 @@
 use crate::*;
 
 impl pallet_utility::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeCall = RuntimeCall;
-	type PalletsOrigin = OriginCaller;
-	// TODO: compute new weights
-	// type WeightInfo = weights::utility::AllfeatWeight<Runtime>;
-	type WeightInfo = ();
+    type RuntimeEvent = RuntimeEvent;
+    type RuntimeCall = RuntimeCall;
+    type PalletsOrigin = OriginCaller;
+    // TODO: compute new weights
+    // type WeightInfo = weights::utility::AllfeatWeight<Runtime>;
+    type WeightInfo = ();
 }

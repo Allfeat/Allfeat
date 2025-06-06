@@ -39,7 +39,7 @@ benchmark-pallet runtime="melodie" pallet="":
 
 [no-exit-message]
 format:
-  cargo +nightly fmt --all
+  cargo fmt --all
 
 # Check for compilation errors, default to debug mode
 [no-exit-message]

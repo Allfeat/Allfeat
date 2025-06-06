@@ -18,61 +18,79 @@
 
 extern crate alloc;
 use crate::{
-	musical_work::MusicalWork,
-	types::{
-		musical_work::{MusicalWorkType, Participant, ParticipantRole},
-		utils::{Key, Language},
-	},
+    musical_work::MusicalWork,
+    types::{
+        musical_work::{MusicalWorkType, Participant, ParticipantRole},
+        utils::{Key, Language},
+    },
 };
 use alloc::vec;
 
-use super::{fill_boundedvec, BenchmarkHelperT};
+use super::{BenchmarkHelperT, fill_boundedvec};
 
 pub struct BenchmarkHelper;
 
 impl BenchmarkHelperT<MusicalWork> for BenchmarkHelper {
-	const FIELD_MAX_SIZE: u32 = 256;
+    const FIELD_MAX_SIZE: u32 = 256;
 
-	fn build_sized_mock(size: u32) -> MusicalWork {
-		let iswc = b"T1234567890".to_vec().try_into().expect("ISWC mock is valid");
-		let title = fill_boundedvec(b'M', size);
+    fn build_sized_mock(size: u32) -> MusicalWork {
+        let iswc = b"T1234567890"
+            .to_vec()
+            .try_into()
+            .expect("ISWC mock is valid");
+        let title = fill_boundedvec(b'M', size);
 
-		let participant = Participant { id: 1, role: ParticipantRole::Composer };
+        let participant = Participant {
+            id: 1,
+            role: ParticipantRole::Composer,
+        };
 
-		let participants = fill_boundedvec(participant, size);
+        let participants = fill_boundedvec(participant, size);
 
-		let work_type = MusicalWorkType::Original;
+        let work_type = MusicalWorkType::Original;
 
-		MusicalWork {
-			iswc,
-			title,
-			creation_year: 2024,
-			instrumental: false,
-			language: Some(Language::French),
-			bpm: Some(120),
-			key: Some(Key::C),
-			work_type,
-			participants,
-		}
-	}
-	fn build_mock() -> MusicalWork {
-		MusicalWork {
-			iswc: b"T0702330071".to_vec().try_into().expect("Mock value"),
-			title: b"Billie Jean".to_vec().try_into().expect("Mock value"),
-			creation_year: 1983,
-			instrumental: false,
-			language: Some(Language::English),
-			bpm: Some(117),
-			key: Some(Key::B),
-			work_type: MusicalWorkType::Original,
-			participants: vec![
-				Participant { id: 1, role: ParticipantRole::Composer },
-				Participant { id: 2, role: ParticipantRole::Editor },
-				Participant { id: 3, role: ParticipantRole::Editor },
-				Participant { id: 4, role: ParticipantRole::Editor },
-			]
-			.try_into()
-			.expect("Mock value"),
-		}
-	}
+        MusicalWork {
+            iswc,
+            title,
+            creation_year: 2024,
+            instrumental: false,
+            language: Some(Language::French),
+            bpm: Some(120),
+            key: Some(Key::C),
+            work_type,
+            participants,
+        }
+    }
+    fn build_mock() -> MusicalWork {
+        MusicalWork {
+            iswc: b"T0702330071".to_vec().try_into().expect("Mock value"),
+            title: b"Billie Jean".to_vec().try_into().expect("Mock value"),
+            creation_year: 1983,
+            instrumental: false,
+            language: Some(Language::English),
+            bpm: Some(117),
+            key: Some(Key::B),
+            work_type: MusicalWorkType::Original,
+            participants: vec![
+                Participant {
+                    id: 1,
+                    role: ParticipantRole::Composer,
+                },
+                Participant {
+                    id: 2,
+                    role: ParticipantRole::Editor,
+                },
+                Participant {
+                    id: 3,
+                    role: ParticipantRole::Editor,
+                },
+                Participant {
+                    id: 4,
+                    role: ParticipantRole::Editor,
+                },
+            ]
+            .try_into()
+            .expect("Mock value"),
+        }
+    }
 }

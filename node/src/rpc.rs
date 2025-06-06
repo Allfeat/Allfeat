@@ -24,81 +24,85 @@ use jsonrpsee::RpcModule;
 
 /// Extra dependencies for GRANDPA
 pub struct GrandpaDeps<BE> {
-	/// Voting round info.
-	pub shared_voter_state: sc_consensus_grandpa::SharedVoterState,
-	/// Authority set info.
-	pub shared_authority_set:
-		sc_consensus_grandpa::SharedAuthoritySet<Hash, sp_runtime::traits::NumberFor<Block>>,
-	/// Receives notifications about justification events from Grandpa.
-	pub justification_stream: sc_consensus_grandpa::GrandpaJustificationStream<Block>,
-	/// Executor to drive the subscription manager in the Grandpa RPC handler.
-	pub subscription_executor: sc_rpc_spec_v2::SubscriptionTaskExecutor,
-	/// Finality proof provider.
-	pub finality_provider: Arc<sc_consensus_grandpa::FinalityProofProvider<BE, Block>>,
+    /// Voting round info.
+    pub shared_voter_state: sc_consensus_grandpa::SharedVoterState,
+    /// Authority set info.
+    pub shared_authority_set:
+        sc_consensus_grandpa::SharedAuthoritySet<Hash, sp_runtime::traits::NumberFor<Block>>,
+    /// Receives notifications about justification events from Grandpa.
+    pub justification_stream: sc_consensus_grandpa::GrandpaJustificationStream<Block>,
+    /// Executor to drive the subscription manager in the Grandpa RPC handler.
+    pub subscription_executor: sc_rpc_spec_v2::SubscriptionTaskExecutor,
+    /// Finality proof provider.
+    pub finality_provider: Arc<sc_consensus_grandpa::FinalityProofProvider<BE, Block>>,
 }
 
 /// Full client dependencies
 pub struct FullDeps<C, P, BE> {
-	/// The client instance to use.
-	pub client: Arc<C>,
-	/// Transaction pool instance.
-	pub pool: Arc<P>,
-	/// GRANDPA specific dependencies.
-	pub grandpa: GrandpaDeps<BE>,
+    /// The client instance to use.
+    pub client: Arc<C>,
+    /// Transaction pool instance.
+    pub pool: Arc<P>,
+    /// GRANDPA specific dependencies.
+    pub grandpa: GrandpaDeps<BE>,
 }
 
 /// Instantiate all RPC extensions.
 pub fn create_full<C, P, BE>(
-	deps: FullDeps<C, P, BE>,
+    deps: FullDeps<C, P, BE>,
 ) -> Result<RpcModule<()>, Box<dyn std::error::Error + Send + Sync>>
 where
-	BE: 'static + sc_client_api::backend::Backend<Block>,
-	BE::State: sc_client_api::backend::StateBackend<Hashing>,
-	C: 'static
-		+ Send
-		+ Sync
-		+ sc_client_api::AuxStore
-		+ sc_client_api::backend::StorageProvider<Block, BE>
-		+ sc_client_api::BlockchainEvents<Block>
-		+ sc_client_api::UsageProvider<Block>
-		+ sc_client_api::BlockBackend<Block>
-		+ sp_api::CallApiAt<Block>
-		+ sp_api::ProvideRuntimeApi<Block>
-		+ sp_blockchain::HeaderBackend<Block>
-		+ sp_blockchain::HeaderMetadata<Block, Error = sp_blockchain::Error>,
-	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
-		+ sp_block_builder::BlockBuilder<Block>
-		+ substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
-	P: 'static + Sync + Send + sc_transaction_pool_api::TransactionPool<Block = Block>,
+    BE: 'static + sc_client_api::backend::Backend<Block>,
+    BE::State: sc_client_api::backend::StateBackend<Hashing>,
+    C: 'static
+        + Send
+        + Sync
+        + sc_client_api::AuxStore
+        + sc_client_api::backend::StorageProvider<Block, BE>
+        + sc_client_api::BlockchainEvents<Block>
+        + sc_client_api::UsageProvider<Block>
+        + sc_client_api::BlockBackend<Block>
+        + sp_api::CallApiAt<Block>
+        + sp_api::ProvideRuntimeApi<Block>
+        + sp_blockchain::HeaderBackend<Block>
+        + sp_blockchain::HeaderMetadata<Block, Error = sp_blockchain::Error>,
+    C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
+        + sp_block_builder::BlockBuilder<Block>
+        + substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
+    P: 'static + Sync + Send + sc_transaction_pool_api::TransactionPool<Block = Block>,
 {
-	// polkadot-sdk
-	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
-	use sc_consensus_grandpa_rpc::{Grandpa, GrandpaApiServer};
-	use substrate_frame_rpc_system::{System, SystemApiServer};
+    // polkadot-sdk
+    use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
+    use sc_consensus_grandpa_rpc::{Grandpa, GrandpaApiServer};
+    use substrate_frame_rpc_system::{System, SystemApiServer};
 
-	let mut module = RpcModule::new(());
+    let mut module = RpcModule::new(());
 
-	let FullDeps { client, pool, grandpa } = deps;
-	let GrandpaDeps {
-		shared_voter_state,
-		shared_authority_set,
-		justification_stream,
-		subscription_executor,
-		finality_provider,
-	} = grandpa;
+    let FullDeps {
+        client,
+        pool,
+        grandpa,
+    } = deps;
+    let GrandpaDeps {
+        shared_voter_state,
+        shared_authority_set,
+        justification_stream,
+        subscription_executor,
+        finality_provider,
+    } = grandpa;
 
-	module.merge(System::new(client.clone(), pool.clone()).into_rpc())?;
-	module.merge(TransactionPayment::new(client.clone()).into_rpc())?;
-	module.merge(
-		Grandpa::new(
-			subscription_executor,
-			shared_authority_set.clone(),
-			shared_voter_state,
-			justification_stream,
-			finality_provider,
-		)
-		.into_rpc(),
-	)?;
+    module.merge(System::new(client.clone(), pool.clone()).into_rpc())?;
+    module.merge(TransactionPayment::new(client.clone()).into_rpc())?;
+    module.merge(
+        Grandpa::new(
+            subscription_executor,
+            shared_authority_set.clone(),
+            shared_voter_state,
+            justification_stream,
+            finality_provider,
+        )
+        .into_rpc(),
+    )?;
 
-	Ok(module)
+    Ok(module)
 }

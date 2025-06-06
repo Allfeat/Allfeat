@@ -22,23 +22,23 @@ use sp_keyring::{Ed25519Keyring, Sr25519Keyring};
 
 /// Return the development genesis config.
 pub fn development_config_genesis() -> serde_json::Value {
-	genesis(
-		vec![(
-			Sr25519Keyring::Alice.to_account_id(),
-			Ed25519Keyring::Alice.public().into(), // Grandpa
-			Sr25519Keyring::Alice.public().into(), // Aura
-			Sr25519Keyring::Alice.public().into(), // ImOnline
-		)],
-		Sr25519Keyring::Alice.to_account_id(),
-		vec![
-			Sr25519Keyring::Alice.to_account_id(),
-			Sr25519Keyring::Bob.to_account_id(),
-			Sr25519Keyring::Charlie.to_account_id(),
-			Sr25519Keyring::Dave.to_account_id(),
-			Sr25519Keyring::Eve.to_account_id(),
-			Sr25519Keyring::Ferdie.to_account_id(),
-			Sr25519Keyring::AliceStash.to_account_id(),
-			Sr25519Keyring::BobStash.to_account_id(),
-		],
-	)
+    genesis(
+        vec![(
+            Sr25519Keyring::Alice.to_account_id(),
+            Ed25519Keyring::Alice.public().into(), // Grandpa
+            Sr25519Keyring::Alice.public().into(), // Aura
+            Sr25519Keyring::Alice.public().into(), // ImOnline
+        )],
+        Sr25519Keyring::Alice.to_account_id(),
+        vec![
+            Sr25519Keyring::Alice.to_account_id(),
+            Sr25519Keyring::Bob.to_account_id(),
+            Sr25519Keyring::Charlie.to_account_id(),
+            Sr25519Keyring::Dave.to_account_id(),
+            Sr25519Keyring::Eve.to_account_id(),
+            Sr25519Keyring::Ferdie.to_account_id(),
+            Sr25519Keyring::AliceStash.to_account_id(),
+            Sr25519Keyring::BobStash.to_account_id(),
+        ],
+    )
 }

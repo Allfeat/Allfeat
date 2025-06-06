@@ -20,62 +20,62 @@ use std::{env, path::PathBuf};
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::{
-	chain_specs::{melodie_chain_spec, ChainSpec},
-	cli::{Cli, Subcommand},
-	service::{self, *},
+    chain_specs::{ChainSpec, melodie_chain_spec},
+    cli::{Cli, Subcommand},
+    service::{self, *},
 };
 use sc_cli::{ChainSpec as ChainSpecT, SubstrateCli};
 use sp_core::crypto::Ss58AddressFormatRegistry;
 
 impl SubstrateCli for Cli {
-	fn impl_name() -> String {
-		"Allfeat Node".into()
-	}
+    fn impl_name() -> String {
+        "Allfeat Node".into()
+    }
 
-	fn impl_version() -> String {
-		env!("SUBSTRATE_CLI_IMPL_VERSION").into()
-	}
+    fn impl_version() -> String {
+        env!("SUBSTRATE_CLI_IMPL_VERSION").into()
+    }
 
-	fn description() -> String {
-		env!("CARGO_PKG_DESCRIPTION").into()
-	}
+    fn description() -> String {
+        env!("CARGO_PKG_DESCRIPTION").into()
+    }
 
-	fn author() -> String {
-		env!("CARGO_PKG_AUTHORS").into()
-	}
+    fn author() -> String {
+        env!("CARGO_PKG_AUTHORS").into()
+    }
 
-	fn support_url() -> String {
-		"https://github.com/allfeat/allfeat/issues/new".into()
-	}
+    fn support_url() -> String {
+        "https://github.com/allfeat/allfeat/issues/new".into()
+    }
 
-	fn copyright_start_year() -> i32 {
-		2022
-	}
+    fn copyright_start_year() -> i32 {
+        2022
+    }
 
-	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn ChainSpecT>, String> {
-		load_spec(id)
-	}
+    fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn ChainSpecT>, String> {
+        load_spec(id)
+    }
 }
 
 /// Parse command line arguments into service configuration.
 /// Parse and run command line arguments
 pub fn run() -> sc_cli::Result<()> {
-	#[cfg(feature = "runtime-benchmarks")]
-	/// Creates partial components for the runtimes that are supported by the benchmarks.
-	macro_rules! construct_benchmark_partials {
-		($config:expr, $cli:ident, |$partials:ident| $code:expr) => {{
-			#[cfg(feature = "melodie-runtime")]
-			if $config.chain_spec.is_melodie() {
-				let $partials = service::new_partial::<MelodieRuntimeApi>(&$config)?;
+    #[cfg(feature = "runtime-benchmarks")]
+    /// Creates partial components for the runtimes that are supported by the benchmarks.
+    macro_rules! construct_benchmark_partials {
+        ($config:expr, $cli:ident, |$partials:ident| $code:expr) => {{
+            #[cfg(feature = "melodie-runtime")]
+            if $config.chain_spec.is_melodie() {
+                let $partials = service::new_partial::<MelodieRuntimeApi>(&$config)?;
 
-				return $code;
-			}
+                return $code;
+            }
 
-			panic!("No feature(melodie-runtime) is enabled!");
-		}};
-	}
+            panic!("No feature(melodie-runtime) is enabled!");
+        }};
+    }
 
-	macro_rules! construct_async_run {
+    macro_rules! construct_async_run {
 		(|$components:ident, $cli:ident, $cmd:ident, $config:ident| $( $code:tt )* ) => {{
 			let runner = $cli.create_runner($cmd)?;
 			let chain_spec = &runner.config().chain_spec;
@@ -98,9 +98,9 @@ pub fn run() -> sc_cli::Result<()> {
 		}}
 	}
 
-	let cli = Cli::from_args();
+    let cli = Cli::from_args();
 
-	match &cli.subcommand {
+    match &cli.subcommand {
 		Some(Subcommand::Key(cmd)) => cmd.run(&cli),
 		Some(Subcommand::BuildSpec(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
@@ -204,46 +204,47 @@ pub fn run() -> sc_cli::Result<()> {
 }
 
 fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpecT>, String> {
-	let id = if id.is_empty() {
-		let n = get_exec_name().unwrap_or_default();
-		["melodie"]
-			.iter()
-			.cloned()
-			.find(|&chain| n.starts_with(chain))
-			.unwrap_or("melodie")
-	} else {
-		id
-	};
-	let chain_spec = match id.to_lowercase().as_str() {
-		#[cfg(feature = "melodie-runtime")]
-		"" | "melodie" =>
-			Box::new(ChainSpec::from_json_bytes(&include_bytes!("../specs/melodie_raw.json")[..])?),
-		#[cfg(feature = "melodie-runtime")]
-		"melodie-staging" => Box::new(melodie_chain_spec::live_chain_spec().unwrap()),
-		#[cfg(feature = "melodie-runtime")]
-		"melodie-local" => Box::new(melodie_chain_spec::local_chain_spec().unwrap()),
-		#[cfg(feature = "melodie-runtime")]
-		"dev" | "melodie-dev" => Box::new(melodie_chain_spec::development_chain_spec().unwrap()),
-		_ => Box::new(ChainSpec::from_json_file(PathBuf::from(id))?),
-	};
+    let id = if id.is_empty() {
+        let n = get_exec_name().unwrap_or_default();
+        ["melodie"]
+            .iter()
+            .cloned()
+            .find(|&chain| n.starts_with(chain))
+            .unwrap_or("melodie")
+    } else {
+        id
+    };
+    let chain_spec = match id.to_lowercase().as_str() {
+        #[cfg(feature = "melodie-runtime")]
+        "" | "melodie" => Box::new(ChainSpec::from_json_bytes(
+            &include_bytes!("../specs/melodie_raw.json")[..],
+        )?),
+        #[cfg(feature = "melodie-runtime")]
+        "melodie-staging" => Box::new(melodie_chain_spec::live_chain_spec().unwrap()),
+        #[cfg(feature = "melodie-runtime")]
+        "melodie-local" => Box::new(melodie_chain_spec::local_chain_spec().unwrap()),
+        #[cfg(feature = "melodie-runtime")]
+        "dev" | "melodie-dev" => Box::new(melodie_chain_spec::development_chain_spec().unwrap()),
+        _ => Box::new(ChainSpec::from_json_file(PathBuf::from(id))?),
+    };
 
-	Ok(chain_spec)
+    Ok(chain_spec)
 }
 
 fn get_exec_name() -> Option<String> {
-	env::current_exe()
-		.ok()
-		.and_then(|pb| pb.file_name().map(|s| s.to_os_string()))
-		.and_then(|s| s.into_string().ok())
+    env::current_exe()
+        .ok()
+        .and_then(|pb| pb.file_name().map(|s| s.to_os_string()))
+        .and_then(|s| s.into_string().ok())
 }
 
 fn set_default_ss58_version(chain_spec: &dyn IdentifyVariant) {
-	let ss58_version = if chain_spec.is_melodie() {
-		Ss58AddressFormatRegistry::SubstrateAccount
-	} else {
-		Ss58AddressFormatRegistry::AllfeatNetworkAccount
-	}
-	.into();
+    let ss58_version = if chain_spec.is_melodie() {
+        Ss58AddressFormatRegistry::SubstrateAccount
+    } else {
+        Ss58AddressFormatRegistry::AllfeatNetworkAccount
+    }
+    .into();
 
-	sp_core::crypto::set_default_ss58_version(ss58_version);
+    sp_core::crypto::set_default_ss58_version(ss58_version);
 }

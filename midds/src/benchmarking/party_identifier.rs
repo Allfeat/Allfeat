@@ -19,46 +19,52 @@
 extern crate alloc;
 
 use crate::{
-	pallet_prelude::PartyIdentifier,
-	party_identifier::{PartyType, Person, PersonGender, PersonType},
+    pallet_prelude::PartyIdentifier,
+    party_identifier::{PartyType, Person, PersonGender, PersonType},
 };
 use alloc::vec;
 
-use super::{fill_boundedvec, BenchmarkHelperT};
+use super::{BenchmarkHelperT, fill_boundedvec};
 
 pub struct BenchmarkHelper;
 
 impl BenchmarkHelperT<PartyIdentifier> for BenchmarkHelper {
-	const FIELD_MAX_SIZE: u32 = 256;
+    const FIELD_MAX_SIZE: u32 = 256;
 
-	fn build_sized_mock(size: u32) -> PartyIdentifier {
-		let isni = b"0000000106751234".to_vec().try_into().expect("benchmark value valid");
-		let ipi = 987654321;
+    fn build_sized_mock(size: u32) -> PartyIdentifier {
+        let isni = b"0000000106751234"
+            .to_vec()
+            .try_into()
+            .expect("benchmark value valid");
+        let ipi = 987654321;
 
-		PartyIdentifier {
-			isni,
-			ipi,
-			party_type: PartyType::Person(Person {
-				full_name: fill_boundedvec(b'x', size),
-				aliases: fill_boundedvec(fill_boundedvec(b'x', size), size),
-				person_type: PersonType::Solo,
-				genre: PersonGender::Male,
-			}),
-		}
-	}
+        PartyIdentifier {
+            isni,
+            ipi,
+            party_type: PartyType::Person(Person {
+                full_name: fill_boundedvec(b'x', size),
+                aliases: fill_boundedvec(fill_boundedvec(b'x', size), size),
+                person_type: PersonType::Solo,
+                genre: PersonGender::Male,
+            }),
+        }
+    }
 
-	fn build_mock() -> PartyIdentifier {
-		PartyIdentifier {
-			isni: b"000000011023081X".to_vec().try_into().expect("Mock value"),
-			ipi: 2961801,
-			party_type: PartyType::Person(Person {
-				full_name: b"Michael Joseph Jackson".to_vec().try_into().expect("Mock value"),
-				aliases: vec![b"King of Pop".to_vec().try_into().expect("Mock value")]
-					.try_into()
-					.expect("Mock value"),
-				person_type: PersonType::Solo,
-				genre: PersonGender::Male,
-			}),
-		}
-	}
+    fn build_mock() -> PartyIdentifier {
+        PartyIdentifier {
+            isni: b"000000011023081X".to_vec().try_into().expect("Mock value"),
+            ipi: 2961801,
+            party_type: PartyType::Person(Person {
+                full_name: b"Michael Joseph Jackson"
+                    .to_vec()
+                    .try_into()
+                    .expect("Mock value"),
+                aliases: vec![b"King of Pop".to_vec().try_into().expect("Mock value")]
+                    .try_into()
+                    .expect("Mock value"),
+                person_type: PersonType::Solo,
+                genre: PersonGender::Male,
+            }),
+        }
+    }
 }

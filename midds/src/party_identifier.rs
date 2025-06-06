@@ -22,7 +22,7 @@ use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
 pub use super::types::party_identifier::{
-	EntityName, EntityType, Ipi, Isni, PersonAliases, PersonFullName, PersonGender, PersonType,
+    EntityName, EntityType, Ipi, Isni, PersonAliases, PersonFullName, PersonGender, PersonType,
 };
 
 #[cfg(feature = "runtime-benchmarks")]
@@ -31,90 +31,90 @@ use crate::benchmarking::party_identifier::BenchmarkHelper;
 /// Core struct used to uniquely identify a music industry party (either a person or an entity)
 /// as a MIDDS.
 #[derive(
-	Clone,
-	Eq,
-	PartialEq,
-	Encode,
-	Decode,
-	DecodeWithMemTracking,
-	TypeInfo,
-	MaxEncodedLen,
-	RuntimeDebug,
+    Clone,
+    Eq,
+    PartialEq,
+    Encode,
+    Decode,
+    DecodeWithMemTracking,
+    TypeInfo,
+    MaxEncodedLen,
+    RuntimeDebug,
 )]
 pub struct PartyIdentifier {
-	/// ISNI identifier (max 16 characters).
-	pub isni: Isni,
-	/// IPI identifier (11-digit u64).
-	pub ipi: Ipi,
-	/// Variant defining if the party is a `Person` or an `Entity` with data.
-	pub party_type: PartyType,
+    /// ISNI identifier (max 16 characters).
+    pub isni: Isni,
+    /// IPI identifier (11-digit u64).
+    pub ipi: Ipi,
+    /// Variant defining if the party is a `Person` or an `Entity` with data.
+    pub party_type: PartyType,
 }
 
 // Implements the `Midds` trait to integrate this type into the MIDDS protocol.
 impl Midds for PartyIdentifier {
-	const NAME: &'static str = "Party Identifier";
+    const NAME: &'static str = "Party Identifier";
 
-	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = BenchmarkHelper;
+    #[cfg(feature = "runtime-benchmarks")]
+    type BenchmarkHelper = BenchmarkHelper;
 }
 
 /// Enum representing whether a party is a person or an entity.
 ///
 /// Used to branch logic and data structure based on the nature of the party.
 #[derive(
-	RuntimeDebug,
-	Clone,
-	PartialEq,
-	Eq,
-	Encode,
-	Decode,
-	DecodeWithMemTracking,
-	MaxEncodedLen,
-	TypeInfo,
+    RuntimeDebug,
+    Clone,
+    PartialEq,
+    Eq,
+    Encode,
+    Decode,
+    DecodeWithMemTracking,
+    MaxEncodedLen,
+    TypeInfo,
 )]
 pub enum PartyType {
-	Person(Person),
-	Entity(Entity),
+    Person(Person),
+    Entity(Entity),
 }
 
 /// Data structure representing an individual involved in, as example, music production or rights.
 #[derive(
-	Clone,
-	PartialEq,
-	Eq,
-	Encode,
-	Decode,
-	DecodeWithMemTracking,
-	MaxEncodedLen,
-	RuntimeDebug,
-	TypeInfo,
+    Clone,
+    PartialEq,
+    Eq,
+    Encode,
+    Decode,
+    DecodeWithMemTracking,
+    MaxEncodedLen,
+    RuntimeDebug,
+    TypeInfo,
 )]
 pub struct Person {
-	/// Legal name of the person.
-	pub full_name: PersonFullName,
-	/// Alternative names/stage names.
-	pub aliases: PersonAliases,
-	/// Indicates if this is a solo artist or a group.
-	pub person_type: PersonType,
-	/// Declared gender identity.
-	pub genre: PersonGender,
+    /// Legal name of the person.
+    pub full_name: PersonFullName,
+    /// Alternative names/stage names.
+    pub aliases: PersonAliases,
+    /// Indicates if this is a solo artist or a group.
+    pub person_type: PersonType,
+    /// Declared gender identity.
+    pub genre: PersonGender,
 }
 
 /// Data structure representing an organization or company involved in music industry.
 #[derive(
-	Clone,
-	PartialEq,
-	Eq,
-	Encode,
-	Decode,
-	DecodeWithMemTracking,
-	MaxEncodedLen,
-	RuntimeDebug,
-	TypeInfo,
+    Clone,
+    PartialEq,
+    Eq,
+    Encode,
+    Decode,
+    DecodeWithMemTracking,
+    MaxEncodedLen,
+    RuntimeDebug,
+    TypeInfo,
 )]
 pub struct Entity {
-	/// Entity Name.
-	pub name: EntityName,
-	/// The role played by the organization (e.g., publisher, producer).
-	pub entity_type: EntityType,
+    /// Entity Name.
+    pub name: EntityName,
+    /// The role played by the organization (e.g., publisher, producer).
+    pub entity_type: EntityType,
 }

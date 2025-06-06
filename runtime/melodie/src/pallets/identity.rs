@@ -23,36 +23,36 @@ use pallet_identity::legacy::IdentityInfo;
 use shared_runtime::currency::deposit;
 
 parameter_types! {
-	// Minimum 4 MILLIAFT/byte
-	pub const ByteDeposit: Balance = deposit(0, 1);
-	pub const BasicDeposit: Balance = deposit(1, 258);
-	pub const SubAccountDeposit: Balance = deposit(1, 53);
-	pub const UsernameDeposit: Balance = deposit(0, 32);
-	pub const MaxSubAccounts: u32 = 100;
-	pub const MaxAdditionalFields: u32 = 100;
-	pub const MaxRegistrars: u32 = 20;
+    // Minimum 4 MILLIAFT/byte
+    pub const ByteDeposit: Balance = deposit(0, 1);
+    pub const BasicDeposit: Balance = deposit(1, 258);
+    pub const SubAccountDeposit: Balance = deposit(1, 53);
+    pub const UsernameDeposit: Balance = deposit(0, 32);
+    pub const MaxSubAccounts: u32 = 100;
+    pub const MaxAdditionalFields: u32 = 100;
+    pub const MaxRegistrars: u32 = 20;
 }
 
 impl pallet_identity::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Currency = Balances;
-	type BasicDeposit = BasicDeposit;
-	type ByteDeposit = ByteDeposit;
-	type SubAccountDeposit = SubAccountDeposit;
-	type UsernameDeposit = UsernameDeposit;
-	type UsernameGracePeriod = ConstU32<{ 30 * DAYS }>;
-	type MaxSubAccounts = MaxSubAccounts;
-	type MaxRegistrars = MaxRegistrars;
-	type IdentityInformation = IdentityInfo<MaxAdditionalFields>;
-	type Slashed = ();
-	type ForceOrigin = EnsureRoot<AccountId>;
-	type RegistrarOrigin = EnsureRoot<AccountId>;
-	type OffchainSignature = Signature;
-	type SigningPublicKey = <Signature as Verify>::Signer;
-	type UsernameAuthorityOrigin = EnsureRoot<Self::AccountId>;
-	type PendingUsernameExpiration = ConstU32<{ 7 * DAYS }>;
-	type MaxSuffixLength = ConstU32<7>;
-	type MaxUsernameLength = ConstU32<32>;
-	type WeightInfo = shared_runtime::weights::identity::AllfeatWeight<Runtime>;
-	//type WeightInfo = pallet_identity::weights::SubstrateWeight<Runtime>;
+    type RuntimeEvent = RuntimeEvent;
+    type Currency = Balances;
+    type BasicDeposit = BasicDeposit;
+    type ByteDeposit = ByteDeposit;
+    type SubAccountDeposit = SubAccountDeposit;
+    type UsernameDeposit = UsernameDeposit;
+    type UsernameGracePeriod = ConstU32<{ 30 * DAYS }>;
+    type MaxSubAccounts = MaxSubAccounts;
+    type MaxRegistrars = MaxRegistrars;
+    type IdentityInformation = IdentityInfo<MaxAdditionalFields>;
+    type Slashed = ();
+    type ForceOrigin = EnsureRoot<AccountId>;
+    type RegistrarOrigin = EnsureRoot<AccountId>;
+    type OffchainSignature = Signature;
+    type SigningPublicKey = <Signature as Verify>::Signer;
+    type UsernameAuthorityOrigin = EnsureRoot<Self::AccountId>;
+    type PendingUsernameExpiration = ConstU32<{ 7 * DAYS }>;
+    type MaxSuffixLength = ConstU32<7>;
+    type MaxUsernameLength = ConstU32<32>;
+    type WeightInfo = shared_runtime::weights::identity::AllfeatWeight<Runtime>;
+    //type WeightInfo = pallet_identity::weights::SubstrateWeight<Runtime>;
 }

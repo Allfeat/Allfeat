@@ -18,78 +18,78 @@
 
 use crate::*;
 use frame_support::{
-	pallet_prelude::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen, RuntimeDebug},
-	parameter_types,
-	traits::InstanceFilter,
+    pallet_prelude::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen, RuntimeDebug},
+    parameter_types,
+    traits::InstanceFilter,
 };
 use shared_runtime::currency::deposit;
 
 parameter_types! {
-	// One storage item; key size 32, value size 8; .
-	pub const ProxyDepositBase: Balance = deposit(1, 8);
-	// Additional storage item size of 33 bytes.
-	pub const ProxyDepositFactor: Balance = deposit(0, 33);
-	pub const AnnouncementDepositBase: Balance = deposit(1, 8);
-	pub const AnnouncementDepositFactor: Balance = deposit(0, 66);
-	pub const MaxProxies: u16 = 32;
-	pub const MaxPending: u16 = 32;
+    // One storage item; key size 32, value size 8; .
+    pub const ProxyDepositBase: Balance = deposit(1, 8);
+    // Additional storage item size of 33 bytes.
+    pub const ProxyDepositFactor: Balance = deposit(0, 33);
+    pub const AnnouncementDepositBase: Balance = deposit(1, 8);
+    pub const AnnouncementDepositFactor: Balance = deposit(0, 66);
+    pub const MaxProxies: u16 = 32;
+    pub const MaxPending: u16 = 32;
 }
 
 /// The type used to represent the kinds of proxying allowed.
 #[derive(
-	Copy,
-	Clone,
-	Eq,
-	PartialEq,
-	Ord,
-	PartialOrd,
-	Encode,
-	Decode,
-	DecodeWithMemTracking,
-	RuntimeDebug,
-	MaxEncodedLen,
-	scale_info::TypeInfo,
+    Copy,
+    Clone,
+    Eq,
+    PartialEq,
+    Ord,
+    PartialOrd,
+    Encode,
+    Decode,
+    DecodeWithMemTracking,
+    RuntimeDebug,
+    MaxEncodedLen,
+    scale_info::TypeInfo,
 )]
 pub enum ProxyType {
-	Any,
-	NonTransfer,
+    Any,
+    NonTransfer,
 }
 impl Default for ProxyType {
-	fn default() -> Self {
-		Self::Any
-	}
+    fn default() -> Self {
+        Self::Any
+    }
 }
 impl InstanceFilter<RuntimeCall> for ProxyType {
-	fn filter(&self, c: &RuntimeCall) -> bool {
-		match self {
-			ProxyType::Any => true,
-			ProxyType::NonTransfer => !matches!(c, RuntimeCall::Balances(..)),
-		}
-	}
-	fn is_superset(&self, o: &Self) -> bool {
-		match (self, o) {
-			(x, y) if x == y => true,
-			(ProxyType::Any, _) => true,
-			(_, ProxyType::Any) => false,
-			(ProxyType::NonTransfer, _) => true,
-		}
-	}
+    fn filter(&self, c: &RuntimeCall) -> bool {
+        match self {
+            ProxyType::Any => true,
+            ProxyType::NonTransfer => !matches!(c, RuntimeCall::Balances(..)),
+        }
+    }
+    fn is_superset(&self, o: &Self) -> bool {
+        match (self, o) {
+            (x, y) if x == y => true,
+            (ProxyType::Any, _) => true,
+            (_, ProxyType::Any) => false,
+            (ProxyType::NonTransfer, _) => true,
+        }
+    }
 }
 
 impl pallet_proxy::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeCall = RuntimeCall;
-	type Currency = Balances;
-	type ProxyType = ProxyType;
-	type ProxyDepositBase = ProxyDepositBase;
-	type ProxyDepositFactor = ProxyDepositFactor;
-	type MaxProxies = MaxProxies;
-	// type WeightInfo = weights::proxy::AllfeatWeight<Runtime>;
-	// TODO: compute new weights
-	type WeightInfo = ();
-	type MaxPending = MaxPending;
-	type CallHasher = frame_support::sp_runtime::traits::BlakeTwo256;
-	type AnnouncementDepositBase = AnnouncementDepositBase;
-	type AnnouncementDepositFactor = AnnouncementDepositFactor;
-	type BlockNumberProvider = frame_system::Pallet<Runtime>;
+    type RuntimeEvent = RuntimeEvent;
+    type RuntimeCall = RuntimeCall;
+    type Currency = Balances;
+    type ProxyType = ProxyType;
+    type ProxyDepositBase = ProxyDepositBase;
+    type ProxyDepositFactor = ProxyDepositFactor;
+    type MaxProxies = MaxProxies;
+    // type WeightInfo = weights::proxy::AllfeatWeight<Runtime>;
+    // TODO: compute new weights
+    type WeightInfo = ();
+    type MaxPending = MaxPending;
+    type CallHasher = frame_support::sp_runtime::traits::BlakeTwo256;
+    type AnnouncementDepositBase = AnnouncementDepositBase;
+    type AnnouncementDepositFactor = AnnouncementDepositFactor;
+    type BlockNumberProvider = frame_system::Pallet<Runtime>;
 }

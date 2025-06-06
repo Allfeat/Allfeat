@@ -18,27 +18,27 @@
 
 use crate::*;
 use frame_support::{
-	parameter_types,
-	traits::{ConstU32, EqualPrivilegeOnly},
+    parameter_types,
+    traits::{ConstU32, EqualPrivilegeOnly},
 };
 use frame_system::EnsureRoot;
 use shared_runtime::weights;
 
 parameter_types! {
-	pub MaximumSchedulerWeight: frame_support::weights::Weight = frame_support::sp_runtime::Perbill::from_percent(80) *
-		RuntimeBlockWeights::get().max_block;
+    pub MaximumSchedulerWeight: frame_support::weights::Weight = frame_support::sp_runtime::Perbill::from_percent(80) *
+        RuntimeBlockWeights::get().max_block;
 }
 
 impl pallet_scheduler::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeOrigin = RuntimeOrigin;
-	type PalletsOrigin = OriginCaller;
-	type RuntimeCall = RuntimeCall;
-	type MaximumWeight = MaximumSchedulerWeight;
-	type ScheduleOrigin = EnsureRoot<AccountId>;
-	type OriginPrivilegeCmp = EqualPrivilegeOnly;
-	type MaxScheduledPerBlock = ConstU32<50>;
-	type WeightInfo = weights::scheduler::AllfeatWeight<Runtime>;
-	type BlockNumberProvider = frame_system::Pallet<Runtime>;
-	type Preimages = Preimage;
+    type RuntimeEvent = RuntimeEvent;
+    type RuntimeOrigin = RuntimeOrigin;
+    type PalletsOrigin = OriginCaller;
+    type RuntimeCall = RuntimeCall;
+    type MaximumWeight = MaximumSchedulerWeight;
+    type ScheduleOrigin = EnsureRoot<AccountId>;
+    type OriginPrivilegeCmp = EqualPrivilegeOnly;
+    type MaxScheduledPerBlock = ConstU32<50>;
+    type WeightInfo = weights::scheduler::AllfeatWeight<Runtime>;
+    type BlockNumberProvider = frame_system::Pallet<Runtime>;
+    type Preimages = Preimage;
 }

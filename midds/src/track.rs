@@ -24,92 +24,92 @@ use scale_info::TypeInfo;
 use crate::benchmarking::track::BenchmarkHelper;
 
 use crate::{
-	types::{
-		track::{
-			Isrc, TrackBeatsPerMinute, TrackContributors, TrackDuration, TrackGenre,
-			TrackGenreExtras, TrackMasteringPlace, TrackMixingPlace, TrackPerformers,
-			TrackProducers, TrackRecordYear, TrackRecordingPlace, TrackTitle, TrackTitleAliases,
-			TrackVersion,
-		},
-		utils::Key,
-	},
-	Midds, MiddsId,
+    Midds, MiddsId,
+    types::{
+        track::{
+            Isrc, TrackBeatsPerMinute, TrackContributors, TrackDuration, TrackGenre,
+            TrackGenreExtras, TrackMasteringPlace, TrackMixingPlace, TrackPerformers,
+            TrackProducers, TrackRecordYear, TrackRecordingPlace, TrackTitle, TrackTitleAliases,
+            TrackVersion,
+        },
+        utils::Key,
+    },
 };
 
 /// A Track represents a specific recorded performance or production
 /// of a musical work. It links metadata such as contributors,
 /// recording details, and identification codes.
 #[derive(
-	Clone,
-	Eq,
-	PartialEq,
-	Encode,
-	Decode,
-	TypeInfo,
-	DecodeWithMemTracking,
-	MaxEncodedLen,
-	RuntimeDebug,
+    Clone,
+    Eq,
+    PartialEq,
+    Encode,
+    Decode,
+    TypeInfo,
+    DecodeWithMemTracking,
+    MaxEncodedLen,
+    RuntimeDebug,
 )]
 pub struct Track {
-	/// ISRC (International Standard Recording Code) that uniquely identifies this recording.
-	pub isrc: Isrc,
+    /// ISRC (International Standard Recording Code) that uniquely identifies this recording.
+    pub isrc: Isrc,
 
-	/// The linked musical work this track is based on (must refer to a registered MIDDS).
-	pub musical_work: MiddsId,
+    /// The linked musical work this track is based on (must refer to a registered MIDDS).
+    pub musical_work: MiddsId,
 
-	/// Main artist MIDDS identifier (typically the primary performer).
-	pub artist: MiddsId,
+    /// Main artist MIDDS identifier (typically the primary performer).
+    pub artist: MiddsId,
 
-	/// List of producer MIDDS identifiers who participated in the production.
-	pub producers: TrackProducers,
+    /// List of producer MIDDS identifiers who participated in the production.
+    pub producers: TrackProducers,
 
-	/// List of performer MIDDS identifiers who contributed to the performance.
-	pub performers: TrackPerformers,
+    /// List of performer MIDDS identifiers who contributed to the performance.
+    pub performers: TrackPerformers,
 
-	/// Additional contributors (e.g., sound engineers, featured artists).
-	pub contributors: TrackContributors,
+    /// Additional contributors (e.g., sound engineers, featured artists).
+    pub contributors: TrackContributors,
 
-	/// Main title of the track.
-	pub title: TrackTitle,
+    /// Main title of the track.
+    pub title: TrackTitle,
 
-	/// Optional list of alternative titles for the track.
-	pub title_aliases: TrackTitleAliases,
+    /// Optional list of alternative titles for the track.
+    pub title_aliases: TrackTitleAliases,
 
-	/// Year the track was recorded (4-digit Gregorian year).
-	pub recording_year: TrackRecordYear,
+    /// Year the track was recorded (4-digit Gregorian year).
+    pub recording_year: TrackRecordYear,
 
-	/// Primary musical genre associated with the track.
-	pub genre: TrackGenre,
+    /// Primary musical genre associated with the track.
+    pub genre: TrackGenre,
 
-	/// Optional additional genres for more precise classification.
-	pub genre_extras: TrackGenreExtras,
+    /// Optional additional genres for more precise classification.
+    pub genre_extras: TrackGenreExtras,
 
-	/// Version or type of the track (e.g., Remix, Acoustic, Live).
-	pub version: TrackVersion,
+    /// Version or type of the track (e.g., Remix, Acoustic, Live).
+    pub version: TrackVersion,
 
-	/// Duration of the track in seconds.
-	pub duration: TrackDuration,
+    /// Duration of the track in seconds.
+    pub duration: TrackDuration,
 
-	/// Beats per minute (BPM), representing the tempo of the track.
-	pub bpm: TrackBeatsPerMinute,
+    /// Beats per minute (BPM), representing the tempo of the track.
+    pub bpm: TrackBeatsPerMinute,
 
-	/// Musical key (e.g., C, G#, etc.) the track is in.
-	pub key: Key,
+    /// Musical key (e.g., C, G#, etc.) the track is in.
+    pub key: Key,
 
-	/// Free-text field indicating where the recording took place.
-	pub recording_place: TrackRecordingPlace,
+    /// Free-text field indicating where the recording took place.
+    pub recording_place: TrackRecordingPlace,
 
-	/// Free-text field indicating where the mixing of the track occurred.
-	pub mixing_place: TrackMixingPlace,
+    /// Free-text field indicating where the mixing of the track occurred.
+    pub mixing_place: TrackMixingPlace,
 
-	/// Free-text field indicating where the mastering of the track occurred.
-	pub mastering_place: TrackMasteringPlace,
+    /// Free-text field indicating where the mastering of the track occurred.
+    pub mastering_place: TrackMasteringPlace,
 }
 
 // Implements the `Midds` trait, marking this struct as a MIDDS object.
 impl Midds for Track {
-	const NAME: &'static str = "Track";
+    const NAME: &'static str = "Track";
 
-	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = BenchmarkHelper;
+    #[cfg(feature = "runtime-benchmarks")]
+    type BenchmarkHelper = BenchmarkHelper;
 }

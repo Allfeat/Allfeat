@@ -22,28 +22,28 @@ pub mod release;
 pub mod track;
 
 use core::fmt::Debug;
-use frame_support::{traits::Get, BoundedVec};
+use frame_support::{BoundedVec, traits::Get};
 
 use crate::Midds;
 
 pub trait BenchmarkHelperT<T: Midds> {
-	const FIELD_MAX_SIZE: u32;
+    const FIELD_MAX_SIZE: u32;
 
-	fn build_mock() -> T;
-	fn build_sized_mock(size: u32) -> T;
+    fn build_mock() -> T;
+    fn build_sized_mock(size: u32) -> T;
 }
 
 /// Benchmark helper function to generate a boundedvec type based on a specified size.
 pub fn fill_boundedvec<T: Clone + Debug, N: Get<u32>>(
-	value: T,
-	requested_size: u32,
+    value: T,
+    requested_size: u32,
 ) -> BoundedVec<T, N> {
-	let max_size = N::get();
-	let actual_size = requested_size.min(max_size);
+    let max_size = N::get();
+    let actual_size = requested_size.min(max_size);
 
-	let mut vec = BoundedVec::<T, N>::with_bounded_capacity(actual_size as usize);
-	for _ in 0..actual_size {
-		vec.try_push(value.clone()).expect("Within bounds");
-	}
-	vec
+    let mut vec = BoundedVec::<T, N>::with_bounded_capacity(actual_size as usize);
+    for _ in 0..actual_size {
+        vec.try_push(value.clone()).expect("Within bounds");
+    }
+    vec
 }

@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use frame_support::{sp_runtime::traits::Member, Parameter};
+use frame_support::{Parameter, sp_runtime::traits::Member};
 use midds::Midds;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
@@ -24,39 +24,45 @@ use scale_info::TypeInfo;
 #[derive(Encode, MaxEncodedLen, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct MiddsWrapper<AccountId, Moment, Inner>
 where
-	AccountId: Parameter + Member,
-	Moment: Parameter + Member,
-	Inner: Midds,
+    AccountId: Parameter + Member,
+    Moment: Parameter + Member,
+    Inner: Midds,
 {
-	pub(crate) base: BaseInfos<AccountId, Moment>,
-	pub midds: Inner,
+    pub(crate) base: BaseInfos<AccountId, Moment>,
+    pub midds: Inner,
 }
 
 impl<AccountId, Moment, Inner> MiddsWrapper<AccountId, Moment, Inner>
 where
-	AccountId: Parameter + Member,
-	Moment: Parameter + Member,
-	Inner: Midds,
+    AccountId: Parameter + Member,
+    Moment: Parameter + Member,
+    Inner: Midds,
 {
-	pub(crate) fn new(provider: AccountId, timestamp: Moment, inner_midds: Inner) -> Self {
-		Self { base: BaseInfos { provider, registered_at: timestamp }, midds: inner_midds }
-	}
+    pub(crate) fn new(provider: AccountId, timestamp: Moment, inner_midds: Inner) -> Self {
+        Self {
+            base: BaseInfos {
+                provider,
+                registered_at: timestamp,
+            },
+            midds: inner_midds,
+        }
+    }
 
-	pub fn provider(&self) -> AccountId {
-		self.base.provider.clone()
-	}
+    pub fn provider(&self) -> AccountId {
+        self.base.provider.clone()
+    }
 
-	pub fn registered_at(&self) -> Moment {
-		self.base.registered_at.clone()
-	}
+    pub fn registered_at(&self) -> Moment {
+        self.base.registered_at.clone()
+    }
 }
 
 #[derive(Encode, MaxEncodedLen, Decode, Clone, PartialEq, Eq, TypeInfo)]
 /// Basic informations on the MIDDS entity used to manage the MIDDS pallet database
 pub struct BaseInfos<AccountId, Moment>
 where
-	AccountId: Parameter + Member,
+    AccountId: Parameter + Member,
 {
-	provider: AccountId,
-	registered_at: Moment,
+    provider: AccountId,
+    registered_at: Moment,
 }

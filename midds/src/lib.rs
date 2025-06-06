@@ -18,7 +18,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{pallet_prelude::Member, Blake2_256, Parameter, StorageHasher};
+use frame_support::{Blake2_256, Parameter, StorageHasher, pallet_prelude::Member};
 use parity_scale_codec::MaxEncodedLen;
 
 mod musical_work;
@@ -36,25 +36,25 @@ pub type MiddsId = u64;
 
 /// Substrate-compatible MIDDS (Music Industry Decantralized Data Structure) interface definition.
 pub trait Midds: Parameter + Member + MaxEncodedLen {
-	const NAME: &'static str;
+    const NAME: &'static str;
 
-	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper: benchmarking::BenchmarkHelperT<Self>;
+    #[cfg(feature = "runtime-benchmarks")]
+    type BenchmarkHelper: benchmarking::BenchmarkHelperT<Self>;
 
-	/// Return the integrity hash (with Blake2) of the encoded MIDDS.
-	fn hash(&self) -> [u8; 32] {
-		Blake2_256::hash(&self.encode())
-	}
+    /// Return the integrity hash (with Blake2) of the encoded MIDDS.
+    fn hash(&self) -> [u8; 32] {
+        Blake2_256::hash(&self.encode())
+    }
 }
 
 pub mod pallet_prelude {
-	pub use super::{
-		musical_work::MusicalWork,
-		party_identifier::{Entity, PartyIdentifier, PartyType, Person},
-		release::Release,
-		track::Track,
-	};
+    pub use super::{
+        musical_work::MusicalWork,
+        party_identifier::{Entity, PartyIdentifier, PartyType, Person},
+        release::Release,
+        track::Track,
+    };
 
-	#[cfg(feature = "runtime-benchmarks")]
-	pub use super::benchmarking::BenchmarkHelperT;
+    #[cfg(feature = "runtime-benchmarks")]
+    pub use super::benchmarking::BenchmarkHelperT;
 }

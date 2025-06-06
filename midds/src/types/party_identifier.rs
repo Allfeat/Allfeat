@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use frame_support::{sp_runtime::RuntimeDebug, traits::ConstU32, BoundedVec};
+use frame_support::{BoundedVec, sp_runtime::RuntimeDebug, traits::ConstU32};
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
@@ -48,19 +48,19 @@ pub type Ipi = u64;
 /// - `Solo`: a single individual.
 /// - `Group`: a group of people (band, duo, etc.).
 #[derive(
-	Clone,
-	PartialEq,
-	Eq,
-	Encode,
-	Decode,
-	DecodeWithMemTracking,
-	MaxEncodedLen,
-	RuntimeDebug,
-	TypeInfo,
+    Clone,
+    PartialEq,
+    Eq,
+    Encode,
+    Decode,
+    DecodeWithMemTracking,
+    MaxEncodedLen,
+    RuntimeDebug,
+    TypeInfo,
 )]
 pub enum PersonType {
-	Solo,
-	Group,
+    Solo,
+    Group,
 }
 
 /// Identifies the the type of an organization.
@@ -68,20 +68,20 @@ pub enum PersonType {
 /// - `Producer`: oversees the creation of musical works.
 /// - `DistribAggr`: distributes or aggregates content to platforms.
 #[derive(
-	Clone,
-	PartialEq,
-	Eq,
-	Encode,
-	Decode,
-	DecodeWithMemTracking,
-	MaxEncodedLen,
-	RuntimeDebug,
-	TypeInfo,
+    Clone,
+    PartialEq,
+    Eq,
+    Encode,
+    Decode,
+    DecodeWithMemTracking,
+    MaxEncodedLen,
+    RuntimeDebug,
+    TypeInfo,
 )]
 pub enum EntityType {
-	Publisher,
-	Producer,
-	DistribAggr,
+    Publisher,
+    Producer,
+    DistribAggr,
 }
 
 /// Declared gender identity of a person.
@@ -89,18 +89,18 @@ pub enum EntityType {
 /// - `Female`: female.
 /// - `Neither`: unspecified, non-binary, or not disclosed.
 #[derive(
-	Clone,
-	PartialEq,
-	Eq,
-	Encode,
-	Decode,
-	DecodeWithMemTracking,
-	TypeInfo,
-	MaxEncodedLen,
-	RuntimeDebug,
+    Clone,
+    PartialEq,
+    Eq,
+    Encode,
+    Decode,
+    DecodeWithMemTracking,
+    TypeInfo,
+    MaxEncodedLen,
+    RuntimeDebug,
 )]
 pub enum PersonGender {
-	Male,
-	Female,
-	Neither,
+    Male,
+    Female,
+    Neither,
 }
