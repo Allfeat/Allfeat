@@ -102,7 +102,7 @@ pub struct Participant {
 	/// MIDDS ID reference of the person or entity.
 	pub id: MiddsId,
 	/// The specific role this participant played in the work.
-	pub role: PartipantRole,
+	pub role: ParticipantRole,
 }
 
 /// Enum representing the creative or editorial role a participant had in the musical work.
@@ -117,7 +117,7 @@ pub struct Participant {
 	RuntimeDebug,
 	TypeInfo,
 )]
-pub enum PartipantRole {
+pub enum ParticipantRole {
 	/// Original author of the lyrics.
 	Author,
 	/// Composer of the music.
