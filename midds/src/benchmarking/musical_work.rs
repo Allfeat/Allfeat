@@ -20,7 +20,7 @@ extern crate alloc;
 use crate::{
 	musical_work::MusicalWork,
 	types::{
-		musical_work::{MusicalWorkType, Participant, PartipantRole},
+		musical_work::{MusicalWorkType, Participant, ParticipantRole},
 		utils::{Key, Language},
 	},
 };
@@ -37,7 +37,7 @@ impl BenchmarkHelperT<MusicalWork> for BenchmarkHelper {
 		let iswc = b"T1234567890".to_vec().try_into().expect("ISWC mock is valid");
 		let title = fill_boundedvec(b'M', size);
 
-		let participant = Participant { id: 1, role: PartipantRole::Composer };
+		let participant = Participant { id: 1, role: ParticipantRole::Composer };
 
 		let participants = fill_boundedvec(participant, size);
 
@@ -66,10 +66,10 @@ impl BenchmarkHelperT<MusicalWork> for BenchmarkHelper {
 			key: Some(Key::B),
 			work_type: MusicalWorkType::Original,
 			participants: vec![
-				Participant { id: 1, role: PartipantRole::Composer },
-				Participant { id: 2, role: PartipantRole::Editor },
-				Participant { id: 3, role: PartipantRole::Editor },
-				Participant { id: 4, role: PartipantRole::Editor },
+				Participant { id: 1, role: ParticipantRole::Composer },
+				Participant { id: 2, role: ParticipantRole::Editor },
+				Participant { id: 3, role: ParticipantRole::Editor },
+				Participant { id: 4, role: ParticipantRole::Editor },
 			]
 			.try_into()
 			.expect("Mock value"),
