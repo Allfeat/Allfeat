@@ -178,12 +178,6 @@ impl<T: Config> Pallet<T> {
 		Ok(())
 	}
 
-	// Adds offline validators to a local cache for removal on new session.
-	fn mark_for_removal(validator_id: T::ValidatorId) {
-		<OfflineValidators<T>>::mutate(|v| v.push(validator_id));
-		log::debug!(target: LOG_TARGET, "Offline validator marked for auto removal.");
-	}
-
 	// Removes offline validators from the validator set and clears the offline
 	// cache. It is called in the session change hook and removes the validators
 	// who were reported offline during the session that is ending. We do not
