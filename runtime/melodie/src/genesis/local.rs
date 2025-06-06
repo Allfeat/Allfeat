@@ -27,14 +27,12 @@ pub fn local_config_genesis() -> serde_json::Value {
 			(
 				Sr25519Keyring::Alice.to_account_id(),
 				Ed25519Keyring::Alice.public().into(), // Grandpa
-				Sr25519Keyring::Alice.public().into(), // Babe
+				Sr25519Keyring::Alice.public().into(), // Aura
 				Sr25519Keyring::Alice.public().into(), // ImOnline
-				Sr25519Keyring::Alice.public().into(), // AuthorityDiscovery
 			),
 			(
 				Sr25519Keyring::Bob.to_account_id(),
 				Ed25519Keyring::Bob.public().into(),
-				Sr25519Keyring::Bob.public().into(),
 				Sr25519Keyring::Bob.public().into(),
 				Sr25519Keyring::Bob.public().into(),
 			),

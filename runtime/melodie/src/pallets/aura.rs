@@ -17,7 +17,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::*;
+use sp_consensus_aura::sr25519::AuthorityId as AuraId;
+use sp_core::ConstBool;
 
-impl pallet_authority_discovery::Config for Runtime {
-	type MaxAuthorities = MaxAuthorities;
+impl pallet_aura::Config for Runtime {
+	type AuthorityId = AuraId;
+	type DisabledValidators = ();
+	type MaxAuthorities = ConstU32<12>;
+	type AllowMultipleBlocksPerSlot = ConstBool<false>;
+	type SlotDuration = pallet_aura::MinimumPeriodTimesTwo<Runtime>;
 }

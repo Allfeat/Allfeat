@@ -46,12 +46,6 @@ pub fn staging_config_genesis() -> serde_json::Value {
 				)
 				.unwrap()
 				.unchecked_into(),
-				//5CQ85GydZ5SnxLUmVKPmMigxMSKszVhpnpvWKvdsJygp3Bku
-				<[u8; 32]>::dehexify(
-					"0ecf2f84d838c29a1ea9f79f1d68979e2e5548d48235c890449a68f0244d3d01",
-				)
-				.unwrap()
-				.unchecked_into(),
 			),
 			(
 				AccountId::from_ss58check("5GZALNe7abDksJTWbysRLcs4yg4b3ZeBhzK3N322DsVp3qa3")
@@ -70,12 +64,6 @@ pub fn staging_config_genesis() -> serde_json::Value {
 				//5E9hvtZe9c85dg9EPZGrEWuGuG9KY2robE4BQMHcwRHt4RsD
 				<[u8; 32]>::dehexify(
 					"5c48f05ce8fb089d088d7ff34a8bbde45950a71fa1968330ebf86ada14603e22",
-				)
-				.unwrap()
-				.unchecked_into(),
-				//5F44ZrMZZ2PTgCGkhBxNWQPjkY9QKBYowHQjpaQUQtW3iKFe
-				<[u8; 32]>::dehexify(
-					"84372bd3fe85bce586fa6990eb76b4300166200c83372c95b342548dc9322a15",
 				)
 				.unwrap()
 				.unchecked_into(),

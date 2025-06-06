@@ -31,8 +31,8 @@ use alloc::vec::Vec;
 // allfeat
 pub use allfeat_primitives::{AccountId, Address, Balance, BlockNumber, Moment, Nonce, Signature};
 
-use frame_support::sp_runtime::{generic, traits::NumberFor};
 use sp_api::impl_runtime_apis;
+use sp_runtime::{generic, traits::NumberFor};
 
 #[cfg(any(feature = "std", test))]
 pub use frame_system::Call as SystemCall;
@@ -139,7 +139,7 @@ mod runtime {
 	pub type Utility = pallet_utility;
 
 	#[runtime::pallet_index(2)]
-	pub type Babe = pallet_babe;
+	pub type Aura = pallet_aura;
 
 	#[runtime::pallet_index(3)]
 	pub type Timestamp = pallet_timestamp;
@@ -167,9 +167,6 @@ mod runtime {
 
 	#[runtime::pallet_index(11)]
 	pub type ImOnline = pallet_im_online;
-
-	#[runtime::pallet_index(12)]
-	pub type AuthorityDiscovery = pallet_authority_discovery;
 
 	#[runtime::pallet_index(13)]
 	pub type Historical = pallet_session::historical;
@@ -307,62 +304,6 @@ impl sp_consensus_grandpa::GrandpaApi<Block> for Runtime {
 			_authority_id: sp_consensus_grandpa::AuthorityId,
 		) -> Option<sp_consensus_grandpa::OpaqueKeyOwnershipProof> {
 			None
-		}
-	}
-
-	impl sp_consensus_babe::BabeApi<Block> for Runtime {
-		fn configuration() -> sp_consensus_babe::BabeConfiguration {
-			// The choice of `c` parameter (where `1 - c` represents the
-			// probability of a slot being empty), is done in accordance to the
-			// slot duration and expected target block time, for safely
-			// resisting network delays of maximum two seconds.
-			// <https://research.web3.foundation/en/latest/polkadot/BABE/Babe/#6-practical-results>
-			let epoch_config = Babe::epoch_config().unwrap_or(BABE_GENESIS_EPOCH_CONFIG);
-			sp_consensus_babe::BabeConfiguration {
-				slot_duration: Babe::slot_duration(),
-				epoch_length: EpochDuration::get(),
-				c: epoch_config.c,
-				authorities: Babe::authorities().to_vec(),
-				randomness: Babe::randomness(),
-				allowed_slots: epoch_config.allowed_slots,
-			}
-		}
-
-		fn current_epoch_start() -> sp_consensus_babe::Slot {
-			Babe::current_epoch_start()
-		}
-
-		fn current_epoch() -> sp_consensus_babe::Epoch {
-			Babe::current_epoch()
-		}
-
-		fn next_epoch() -> sp_consensus_babe::Epoch {
-			Babe::next_epoch()
-		}
-
-		fn generate_key_ownership_proof(
-			_slot: sp_consensus_babe::Slot,
-			_authority_id: sp_consensus_babe::AuthorityId,
-		) -> Option<sp_consensus_babe::OpaqueKeyOwnershipProof> {
-			None
-		}
-
-		fn submit_report_equivocation_unsigned_extrinsic(
-			equivocation_proof: sp_consensus_babe::EquivocationProof<<Block as frame_support::sp_runtime::traits::Block>::Header>,
-			key_owner_proof: sp_consensus_babe::OpaqueKeyOwnershipProof,
-		) -> Option<()> {
-			let key_owner_proof = key_owner_proof.decode()?;
-
-			Babe::submit_unsigned_equivocation_report(
-				equivocation_proof,
-				key_owner_proof,
-			)
-		}
-	}
-
-	impl sp_authority_discovery::AuthorityDiscoveryApi<Block> for Runtime {
-		fn authorities() -> Vec<sp_authority_discovery::AuthorityId> {
-			AuthorityDiscovery::authorities()
 		}
 	}
 

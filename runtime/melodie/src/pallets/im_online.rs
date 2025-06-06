@@ -22,6 +22,7 @@ use frame_support::sp_runtime::{
 	SaturatedConversion,
 };
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
+use pallet_session::PeriodicSessions;
 use parity_scale_codec::Encode;
 use shared_runtime::{weights, BlockHashCount};
 
@@ -38,9 +39,9 @@ frame_support::parameter_types! {
 impl pallet_im_online::Config for Runtime {
 	type AuthorityId = ImOnlineId;
 	type RuntimeEvent = RuntimeEvent;
-	type NextSessionRotation = Babe;
+	type NextSessionRotation = PeriodicSessions<SessionPeriod, SessionOffset>;
 	type ValidatorSet = ValidatorSet;
-	type ReportUnresponsiveness = ValidatorSet;
+	type ReportUnresponsiveness = ();
 	type UnsignedPriority = ImOnlineUnsignedPriority;
 	type MaxKeys = MaxKeys;
 	type MaxPeerInHeartbeats = MaxPeerInHeartbeats;

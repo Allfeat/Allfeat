@@ -26,9 +26,8 @@ pub fn development_config_genesis() -> serde_json::Value {
 		vec![(
 			Sr25519Keyring::Alice.to_account_id(),
 			Ed25519Keyring::Alice.public().into(), // Grandpa
-			Sr25519Keyring::Alice.public().into(), // Babe
+			Sr25519Keyring::Alice.public().into(), // Aura
 			Sr25519Keyring::Alice.public().into(), // ImOnline
-			Sr25519Keyring::Alice.public().into(), // AuthorityDiscovery
 		)],
 		Sr25519Keyring::Alice.to_account_id(),
 		vec![

@@ -20,9 +20,8 @@ mod multisig;
 mod proxy;
 mod scheduler;
 // System stuffs.
-mod authority_discovery;
+mod aura;
 mod authorship;
-mod babe;
 mod balances;
 mod grandpa;
 mod identity;
@@ -39,7 +38,6 @@ mod utility;
 mod validator_set;
 
 // External required imports
-pub use babe::*;
 pub use balances::*;
 pub use im_online::*;
 pub use session::*;

@@ -26,16 +26,12 @@ use frame_support::build_struct_json_patch;
 use local::local_config_genesis;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use shared_runtime::currency::AFT;
-use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
-use sp_consensus_babe::AuthorityId as BabeId;
+use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
 use sp_genesis_builder::PresetId;
 use staging::staging_config_genesis;
 
-use crate::{
-	BabeConfig, BalancesConfig, RuntimeGenesisConfig, SessionConfig, SessionKeys, SudoConfig,
-	ValidatorSetConfig, BABE_GENESIS_EPOCH_CONFIG,
-};
+use crate::{RuntimeGenesisConfig, SessionKeys};
 
 mod development;
 mod local;
@@ -48,9 +44,8 @@ pub fn genesis(
 		AccountId,
 		// Session Keys
 		GrandpaId,
-		BabeId,
+		AuraId,
 		ImOnlineId,
-		AuthorityDiscoveryId,
 	)>,
 	root_key: AccountId,
 	mut endowed_accounts: Vec<AccountId>,
@@ -65,13 +60,13 @@ pub fn genesis(
 	const ENDOWMENT: Balance = 300_000_000 * AFT;
 
 	build_struct_json_patch!(RuntimeGenesisConfig {
-		balances: BalancesConfig {
+		balances: pallet_balances::GenesisConfig {
 			balances: endowed_accounts.iter().cloned().map(|x| (x, ENDOWMENT)).collect::<Vec<_>>(),
 		},
-		validator_set: ValidatorSetConfig {
+		validator_set: pallet_validator_set::GenesisConfig {
 			initial_validators: initial_authorities.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
 		},
-		session: SessionConfig {
+		session: pallet_session::GenesisConfig {
 			keys: initial_authorities
 				.iter()
 				.map(|x| {
@@ -80,17 +75,18 @@ pub fn genesis(
 						x.0.clone(),
 						SessionKeys {
 							grandpa: x.1.clone(),
-							babe: x.2.clone(),
+							aura: x.2.clone(),
 							im_online: x.3.clone(),
-							authority_discovery: x.4.clone(),
 						},
 					)
 				})
 				.collect::<Vec<_>>(),
 			non_authority_keys: Default::default(),
 		},
-		babe: BabeConfig { epoch_config: BABE_GENESIS_EPOCH_CONFIG },
-		sudo: SudoConfig { key: Some(root_key) },
+		aura: pallet_aura::GenesisConfig {
+			authorities: initial_authorities.iter().map(|x| (x.2.clone())).collect::<Vec<_>>(),
+		},
+		sudo: pallet_sudo::GenesisConfig { key: Some(root_key) },
 	})
 }
 
