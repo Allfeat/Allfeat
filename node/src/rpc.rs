@@ -22,14 +22,6 @@ use std::sync::Arc;
 use allfeat_primitives::*;
 use jsonrpsee::RpcModule;
 
-/// Extra dependencies for BABE.
-pub struct BabeDeps {
-	/// A handle to the BABE worker for issuing requests.
-	pub babe_worker_handle: sc_consensus_babe::BabeWorkerHandle<Block>,
-	/// The keystore that manages the keys of the node.
-	pub keystore: sp_keystore::KeystorePtr,
-}
-
 /// Extra dependencies for GRANDPA
 pub struct GrandpaDeps<BE> {
 	/// Voting round info.
@@ -46,22 +38,18 @@ pub struct GrandpaDeps<BE> {
 }
 
 /// Full client dependencies
-pub struct FullDeps<C, P, SC, BE> {
+pub struct FullDeps<C, P, BE> {
 	/// The client instance to use.
 	pub client: Arc<C>,
 	/// Transaction pool instance.
 	pub pool: Arc<P>,
-	/// The SelectChain Strategy
-	pub select_chain: SC,
-	/// BABE specific dependencies.
-	pub babe: BabeDeps,
 	/// GRANDPA specific dependencies.
 	pub grandpa: GrandpaDeps<BE>,
 }
 
 /// Instantiate all RPC extensions.
-pub fn create_full<C, P, SC, BE>(
-	deps: FullDeps<C, P, SC, BE>,
+pub fn create_full<C, P, BE>(
+	deps: FullDeps<C, P, BE>,
 ) -> Result<RpcModule<()>, Box<dyn std::error::Error + Send + Sync>>
 where
 	BE: 'static + sc_client_api::backend::Backend<Block>,
@@ -80,21 +68,17 @@ where
 		+ sp_blockchain::HeaderMetadata<Block, Error = sp_blockchain::Error>,
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
 		+ sp_block_builder::BlockBuilder<Block>
-		+ sp_consensus_babe::BabeApi<Block>
 		+ substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
-	SC: sp_consensus::SelectChain<Block> + 'static,
 	P: 'static + Sync + Send + sc_transaction_pool_api::TransactionPool<Block = Block>,
 {
 	// polkadot-sdk
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
-	use sc_consensus_babe_rpc::{Babe, BabeApiServer};
 	use sc_consensus_grandpa_rpc::{Grandpa, GrandpaApiServer};
 	use substrate_frame_rpc_system::{System, SystemApiServer};
 
 	let mut module = RpcModule::new(());
 
-	let FullDeps { client, pool, babe, grandpa, select_chain } = deps;
-	let BabeDeps { keystore, babe_worker_handle } = babe;
+	let FullDeps { client, pool, grandpa } = deps;
 	let GrandpaDeps {
 		shared_voter_state,
 		shared_authority_set,
@@ -105,9 +89,6 @@ where
 
 	module.merge(System::new(client.clone(), pool.clone()).into_rpc())?;
 	module.merge(TransactionPayment::new(client.clone()).into_rpc())?;
-	module.merge(
-		Babe::new(client.clone(), babe_worker_handle.clone(), keystore, select_chain).into_rpc(),
-	)?;
 	module.merge(
 		Grandpa::new(
 			subscription_executor,

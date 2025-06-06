@@ -83,9 +83,6 @@ pub fn genesis(
 				.collect::<Vec<_>>(),
 			non_authority_keys: Default::default(),
 		},
-		aura: pallet_aura::GenesisConfig {
-			authorities: initial_authorities.iter().map(|x| (x.2.clone())).collect::<Vec<_>>(),
-		},
 		sudo: pallet_sudo::GenesisConfig { key: Some(root_key) },
 	})
 }

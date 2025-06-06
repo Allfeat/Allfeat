@@ -210,6 +210,7 @@ mod runtime {
 use alloc::string::String;
 
 use frame_support::pallet_prelude::*;
+use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_version::{runtime_version, RuntimeVersion};
 
 impl_runtime_apis! {
@@ -351,6 +352,16 @@ impl sp_consensus_grandpa::GrandpaApi<Block> for Runtime {
 		}
 		fn query_length_to_fee(length: u32) -> Balance {
 			TransactionPayment::length_to_fee(length)
+		}
+	}
+
+	impl sp_consensus_aura::AuraApi<Block, AuraId> for Runtime {
+		fn slot_duration() -> sp_consensus_aura::SlotDuration {
+			sp_consensus_aura::SlotDuration::from_millis(Aura::slot_duration())
+		}
+
+		fn authorities() -> Vec<AuraId> {
+			pallet_aura::Authorities::<Runtime>::get().into_inner()
 		}
 	}
 
