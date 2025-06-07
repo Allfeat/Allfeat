@@ -157,7 +157,7 @@ mod runtime {
     pub type TransactionPayment = pallet_transaction_payment;
 
     #[runtime::pallet_index(7)]
-    pub type ValidatorSet = pallet_validator_set;
+    pub type Validators = pallet_validators;
 
     #[runtime::pallet_index(8)]
     pub type Session = pallet_session;

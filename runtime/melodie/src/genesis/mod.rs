@@ -67,7 +67,7 @@ pub fn genesis(
                 .map(|x| (x, ENDOWMENT))
                 .collect::<Vec<_>>(),
         },
-        validator_set: pallet_validator_set::GenesisConfig {
+        validators: pallet_validators::GenesisConfig {
             initial_validators: initial_authorities
                 .iter()
                 .map(|x| x.0.clone())

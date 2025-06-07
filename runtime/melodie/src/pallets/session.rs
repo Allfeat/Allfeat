@@ -24,6 +24,7 @@ use frame_support::{
 };
 use pallet_session::PeriodicSessions;
 use shared_runtime::weights;
+use sp_runtime::traits::ConvertInto;
 
 impl_opaque_keys! {
     pub struct SessionKeys {
@@ -41,10 +42,10 @@ parameter_types! {
 impl pallet_session::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type ValidatorId = <Self as frame_system::Config>::AccountId;
-    type ValidatorIdOf = pallet_validator_set::ValidatorOf<Self>;
+    type ValidatorIdOf = ConvertInto;
     type ShouldEndSession = PeriodicSessions<SessionPeriod, SessionOffset>;
     type NextSessionRotation = PeriodicSessions<SessionPeriod, SessionOffset>;
-    type SessionManager = pallet_session::historical::NoteHistoricalRoot<Self, ValidatorSet>;
+    type SessionManager = pallet_session::historical::NoteHistoricalRoot<Self, Validators>;
     type SessionHandler = <SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
     type Keys = SessionKeys;
     type DisablingStrategy = pallet_session::disabling::UpToLimitWithReEnablingDisablingStrategy;

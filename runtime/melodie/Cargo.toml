@@ -72,7 +72,7 @@ pallet-transaction-payment-rpc-runtime-api = { workspace = true }
 pallet-identity = { workspace = true }
 pallet-safe-mode = { workspace = true }
 
-pallet-validator-set = { workspace = true }
+pallet-validators = { workspace = true }
 
 # Benchmarking
 frame-benchmarking = { optional = true, workspace = true }
@@ -88,7 +88,7 @@ std = [
 	"parity-scale-codec/std",
 	"scale-info/std",
 	"log/std",
-	"pallet-validator-set/std",
+	"pallet-validators/std",
 	"shared-runtime/std",
 	"serde_json/std",
 	"pallet-midds/std",
@@ -155,13 +155,14 @@ runtime-benchmarks = [
 	"pallet-transaction-payment/runtime-benchmarks",
 	"pallet-identity/runtime-benchmarks",
 	"pallet-safe-mode/runtime-benchmarks",
+	"pallet-validators/runtime-benchmarks"
 ]
 try-runtime = [
 	"frame-executive/try-runtime",
 	"frame-support/try-runtime",
 	"frame-system/try-runtime",
 	"frame-try-runtime/try-runtime",
-	"pallet-validator-set/try-runtime",
+	"pallet-validators/try-runtime",
 	"pallet-midds/try-runtime",
 	"pallet-timestamp/try-runtime",
 	"pallet-utility/try-runtime",

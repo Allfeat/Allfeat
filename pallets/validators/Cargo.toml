@@ -1,13 +1,12 @@
 [package]
-name = 'pallet-validator-set'
-version = '1.1.0'
+name = 'pallet-validators'
+version = '1.0.0'
 authors = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-
 serde = { workspace = true }
 log = { workspace = true }
 
@@ -17,9 +16,9 @@ frame-support = { workspace = true }
 frame-system = { workspace = true }
 frame-benchmarking = { workspace = true }
 pallet-session = { workspace = true, features = ['historical'] }
-sp-staking = { workspace = true }
 sp-io = { workspace = true }
-sp-state-machine = { workspace = true }
+sp-runtime = { workspace = true }
+sp-staking = { workspace = true }
 
 [features]
 default = ['std']
@@ -31,9 +30,9 @@ std = [
   'frame-support/std',
   'pallet-session/std',
   'frame-system/std',
-  'sp-staking/std',
   'sp-io/std',
-  'sp-state-machine/std',
+  'sp-runtime/std',
+  'sp-staking/std',
   'frame-benchmarking/std'
 ]
 runtime-benchmarks = ['frame-support/runtime-benchmarks', 'frame-benchmarking/runtime-benchmarks' ]

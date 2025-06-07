@@ -5,7 +5,7 @@ members = [
 	"runtime/*",
 	"primitives",
 	"pallets/midds",
-	"pallets/validator-set",
+	"pallets/validators",
 	"midds",
 	"midds/benchmarker"
 ]
@@ -84,7 +84,7 @@ pallet-midds = { version = "1.0.0-dev", default-features = false, path = "./pall
 
 midds = { version = "1.0.0-dev", default-features = false, path = "./midds" }
 
-pallet-validator-set = { version = "1.1.0", default-features = false, path = "./pallets/validator-set" }
+pallet-validators = { version = "1.0.0", default-features = false, path = "./pallets/validators" }
 
 # polkadot-sdk
 sp-core = { version = "36.1.0", default-features = false }

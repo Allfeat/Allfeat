@@ -37,5 +37,6 @@ frame_benchmarking::define_benchmarks!(
     [frame_system, SystemBench::<Runtime>]
     [pallet_timestamp, Timestamp]
     [pallet_utility, Utility]
+    [pallet_validators, Validators]
     [pallet_safe_mode, SafeMode]
 );

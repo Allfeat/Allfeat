@@ -16,30 +16,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod multisig;
-mod proxy;
-mod scheduler;
-// System stuffs.
-mod aura;
-mod authorship;
-mod balances;
-mod grandpa;
-mod identity;
-mod im_online;
-mod mmr;
-mod preimage;
-mod safe_mode;
-mod session;
-mod sudo;
-mod system;
-mod timestamp;
-mod transaction_payment;
-mod utility;
-mod validators;
+use crate::*;
+use frame_support::parameter_types;
 
-// External required imports
-pub use balances::*;
-pub use im_online::*;
-pub use session::*;
-pub use system::*;
-pub use transaction_payment::*;
+parameter_types! {
+    pub const MaxValidators: u32 = 5;
+}
+
+impl pallet_validators::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type MaxValidators = MaxValidators;
+}

@@ -40,7 +40,7 @@ impl pallet_im_online::Config for Runtime {
     type AuthorityId = ImOnlineId;
     type RuntimeEvent = RuntimeEvent;
     type NextSessionRotation = PeriodicSessions<SessionPeriod, SessionOffset>;
-    type ValidatorSet = ValidatorSet;
+    type ValidatorSet = Historical;
     type ReportUnresponsiveness = ();
     type UnsignedPriority = ImOnlineUnsignedPriority;
     type MaxKeys = MaxKeys;
