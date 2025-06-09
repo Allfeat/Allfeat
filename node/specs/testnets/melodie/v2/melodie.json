@@ -3,7 +3,9 @@
   "id": "melodie_2_staging",
   "chainType": "Live",
   "bootNodes": [
-    "/ip4/127.0.0.1/tcp/30333/p2p/12D3KooWC2VWFcmKRKc6hpuSNE9nm8DDVF9iyLhqFjHM5hYAimYw"
+    "/dns/melodie-bootnode-1.allfeat.io/tcp/30333/p2p/12D3KooWSw6hGsED8rcX14rMXgc7YVNhTpAgiRtdcPt5yeM8WZfG",
+    "/dns/melodie-bootnode-1.allfeat.io/tcp/30311/ws/p2p/12D3KooWSw6hGsED8rcX14rMXgc7YVNhTpAgiRtdcPt5yeM8WZfG",
+    "/dns/melodie-bootnode-1.allfeat.io/tcp/443/wss/p2p/12D3KooWSw6hGsED8rcX14rMXgc7YVNhTpAgiRtdcPt5yeM8WZfG"
   ],
   "telemetryEndpoints": null,
   "protocolId": "aft",
