@@ -1,6 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    polkadot.url = "github:andresilva/polkadot.nix";
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -10,6 +11,7 @@
   outputs =
     {
       nixpkgs,
+      polkadot,
       rust-overlay,
       flake-utils,
       ...
@@ -17,7 +19,10 @@
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        overlays = [ (import rust-overlay) ];
+        overlays = [
+          (import rust-overlay)
+          polkadot.overlays.default
+        ];
         pkgs = import nixpkgs {
           inherit system overlays;
         };
@@ -56,6 +61,7 @@
               pkg-config
               just
               psvm
+              subkey
             ]
             ++ lib.optionals stdenv.hostPlatform.isLinux [ rust-jemalloc-sys-unprefixed ]
             ++ lib.optionals stdenv.hostPlatform.isDarwin [
