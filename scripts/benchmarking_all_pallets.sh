@@ -24,7 +24,6 @@ RUNTIME_PATH="./target/production/wbuild/$RUNTIME-runtime/${RUNTIME}_runtime.com
 # Manually exclude some pallets.
 EXCLUDED_PALLETS=(
   # Pallets without automatic benchmarking
-  "pallet_babe"
   "pallet_grandpa"
   "pallet_mmr"
   # Only used for testing, does not need real weights.
@@ -76,4 +75,3 @@ else
   echo "[+] All benchmarks passed."
   exit 0
 fi
-

@@ -20,9 +20,8 @@ AUTHORITIES=""
 
 AUTHORITIES+="(\n"
 AUTHORITIES+="$(generate_address_and_account_id grandpa '--scheme ed25519')\n"
-AUTHORITIES+="$(generate_address_and_account_id babe '--scheme sr25519')\n"
+AUTHORITIES+="$(generate_address_and_account_id aura '--scheme sr25519')\n"
 AUTHORITIES+="$(generate_address_and_account_id im_online '--scheme sr25519')\n"
-AUTHORITIES+="$(generate_address_and_account_id authority_discovery '--scheme sr25519')\n"
-AUTHORITIES+="),\n"
+AUTHORITIES+=")\n"
 
 printf "$AUTHORITIES"

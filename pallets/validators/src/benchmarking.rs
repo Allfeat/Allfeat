@@ -29,7 +29,7 @@ mod benchmarks {
 
     #[benchmark]
     fn add_validator() {
-        /// Need to empty the mock initialized set
+        // Need to empty the mock initialized set
         Validators::<T>::kill();
 
         let new: T::ValidatorId = account("validator", 0, SEED);
