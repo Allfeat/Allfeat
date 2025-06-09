@@ -63,8 +63,8 @@ mod benchmarks;
 /// Runtime version.
 #[runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-    spec_name: alloc::borrow::Cow::Borrowed("allfeat-melodie"),
-    impl_name: alloc::borrow::Cow::Borrowed("allfeatlabs-melodie"),
+    spec_name: alloc::borrow::Cow::Borrowed("allfeat-melodie-2"),
+    impl_name: alloc::borrow::Cow::Borrowed("allfeatlabs-melodie-2"),
     authoring_version: 1,
     spec_version: 100,
     impl_version: 0,

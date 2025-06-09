@@ -26,8 +26,8 @@ pub fn development_chain_spec() -> Result<ChainSpec, String> {
         WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
         Default::default(),
     )
-    .with_name("Melodie Testnet Development")
-    .with_id("melodie_dev")
+    .with_name("Melodie Testnet V2 Development")
+    .with_id("melodie_2_dev")
     .with_chain_type(ChainType::Development)
     .with_protocol_id("aft")
     .with_properties(
@@ -48,8 +48,8 @@ pub fn local_chain_spec() -> Result<ChainSpec, String> {
         WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
         Default::default(),
     )
-    .with_name("Melodie Testnet Local")
-    .with_id("melodie_local")
+    .with_name("Melodie Testnet V2 Local")
+    .with_id("melodie_2_local")
     .with_chain_type(ChainType::Local)
     .with_protocol_id("aft")
     .with_properties(
@@ -70,8 +70,8 @@ pub fn live_chain_spec() -> Result<ChainSpec, String> {
         WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
         Default::default(),
     )
-    .with_name("Melodie Testnet Live")
-    .with_id("melodie_staging")
+    .with_name("Melodie Testnet V2 Live")
+    .with_id("melodie_2_staging")
     .with_chain_type(ChainType::Live)
     .with_protocol_id("aft")
     .with_properties(
