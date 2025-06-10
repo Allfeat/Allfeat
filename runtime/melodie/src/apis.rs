@@ -16,13 +16,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use frame_support::pallet_prelude::{TransactionSource, TransactionValidity};
 use sp_api::impl_runtime_apis;
-
-#[cfg(feature = "runtime-benchmarks")]
-use alloc::string::String;
+use sp_inherents::InherentData;
 
 use super::*;
-use frame_support::pallet_prelude::*;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 
 impl_runtime_apis! {

@@ -16,10 +16,10 @@ RUNTIME="$1"
 
 if [ "$skip_build" != true ]; then
   echo "[+] Compiling $RUNTIME runtime with benchmarks feature..."
-  cargo build --profile=production --package $RUNTIME-runtime --features runtime-benchmarks
+  cargo build --release --package $RUNTIME-runtime --features runtime-benchmarks
 fi
 
-RUNTIME_PATH="./target/production/wbuild/$RUNTIME-runtime/${RUNTIME}_runtime.compact.compressed.wasm"
+RUNTIME_PATH="./target/release/wbuild/$RUNTIME-runtime/${RUNTIME}_runtime.compact.compressed.wasm"
 
 # Manually exclude some pallets.
 EXCLUDED_PALLETS=(

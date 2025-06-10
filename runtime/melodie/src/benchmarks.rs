@@ -19,7 +19,6 @@
 #[cfg(feature = "runtime-benchmarks")]
 frame_benchmarking::define_benchmarks!(
     [frame_benchmarking, BaselineBench::<Runtime>]
-    [pallet_aura, Aura]
     [pallet_balances, Balances]
     [pallet_grandpa, Grandpa]
     [pallet_identity, Identity]

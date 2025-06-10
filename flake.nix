@@ -38,6 +38,9 @@
               openssl
               pkg-config
               just
+
+              # Polkadot SDK
+              frame-omni-bencher
               psvm
               subkey
             ]
