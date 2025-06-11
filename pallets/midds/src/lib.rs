@@ -21,7 +21,8 @@
 mod mock;
 mod types;
 mod weights;
-use midds::{Midds, MiddsId};
+use midds::MiddsId;
+use types::{BalanceOf, MiddsInfo};
 pub use weights::WeightInfo;
 
 #[cfg(test)]
@@ -31,13 +32,12 @@ mod benchmarking;
 
 extern crate alloc;
 
-use crate::types::MiddsWrapper;
 use alloc::boxed::Box;
 use frame_support::{pallet_prelude::*, sp_runtime::Saturating, traits::fungible::MutateHold};
 use frame_system::pallet_prelude::*;
 pub use pallet::*;
 
-#[frame_support::pallet]
+#[frame_support::pallet(dev_mode)]
 pub mod pallet {
     use super::*;
     use allfeat_primitives::Moment;
@@ -45,23 +45,10 @@ pub mod pallet {
     use frame_support::traits::fungible::Mutate;
     use frame_support::{
         PalletId,
-        traits::{
-            Time,
-            fungible::{Inspect, MutateHold},
-            tokens::Precision,
-        },
+        traits::{Time, fungible::MutateHold, tokens::Precision},
     };
     use midds::{Midds, MiddsId};
-
-    pub type MomentOf<T, I> = <<T as Config<I>>::Timestamp as Time>::Moment;
-    pub type BalanceOf<T, I = ()> =
-        <<T as Config<I>>::Currency as Inspect<<T as frame_system::Config>::AccountId>>::Balance;
-
-    pub type MiddsWrapperOf<T, I> = MiddsWrapper<
-        <T as frame_system::Config>::AccountId,
-        MomentOf<T, I>,
-        <T as Config<I>>::MIDDS,
-    >;
+    use types::{BalanceOf, MiddsInfo, MomentOf};
 
     /// The in-code storage version.
     const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
@@ -160,8 +147,12 @@ pub mod pallet {
     pub(super) type NextId<T: Config<I>, I: 'static = ()> = StorageValue<_, u64, ValueQuery>;
 
     #[pallet::storage]
-    pub(super) type MiddsDb<T: Config<I>, I: 'static = ()> =
-        StorageMap<_, Blake2_128Concat, MiddsId, MiddsWrapperOf<T, I>>;
+    pub(super) type MiddsOf<T: Config<I>, I: 'static = ()> =
+        StorageMap<_, Blake2_128Concat, MiddsId, T::MIDDS>;
+
+    #[pallet::storage]
+    pub(super) type MiddsInfoOf<T: Config<I>, I: 'static = ()> =
+        StorageMap<_, Blake2_128Concat, MiddsId, MiddsInfo<T, I>>;
 
     /// Storage mapping Hashed MIDDS to the existing ID of that MIDDS for integrity and
     /// duplication check
@@ -204,25 +195,34 @@ pub mod pallet {
     #[pallet::call(weight(<T as Config<I>>::WeightInfo))]
     impl<T: Config<I>, I: 'static> Pallet<T, I> {
         #[pallet::call_index(0)]
+        #[pallet::weight(T::WeightInfo::register(midds.encoded_size() as u32))]
         pub fn register(origin: OriginFor<T>, midds: Box<T::MIDDS>) -> DispatchResult {
             let provider = T::ProviderOrigin::ensure_origin(origin)?;
             let midds = *midds;
+            let size = midds.encoded_size() as u32;
+            let data_cost = Self::calculate_midds_colateral(size);
 
-            let midds = MiddsWrapper::new(provider, T::Timestamp::now(), midds);
+            let info: MiddsInfo<T, I> = MiddsInfo {
+                provider,
+                registered_at: T::Timestamp::now(),
+                hash: midds.hash(),
+                encoded_size: size,
+                data_cost,
+            };
 
-            Self::inner_register(midds)
+            Self::inner_register(midds, info)
         }
 
         #[pallet::call_index(2)]
         pub fn unregister(origin: OriginFor<T>, midds_id: MiddsId) -> DispatchResult {
             let caller = T::ProviderOrigin::ensure_origin(origin)?;
 
-            if let Some(midds) = MiddsDb::<T, I>::get(midds_id) {
-                ensure!(midds.provider() == caller, Error::<T, I>::NotProvider);
+            if let Some(info) = MiddsInfoOf::<T, I>::get(midds_id) {
+                ensure!(info.provider == caller, Error::<T, I>::NotProvider);
 
                 if T::UnregisterPeriod::get().is_some() {
                     let now = T::Timestamp::now();
-                    let spent = now - midds.registered_at();
+                    let spent = now - info.registered_at;
                     ensure!(
                         spent
                             > frame_support::sp_runtime::SaturatedConversion::saturated_into(
@@ -232,17 +232,17 @@ pub mod pallet {
                     );
                 }
 
-                let actual_cost = Self::calculate_midds_colateral(&midds);
                 T::Currency::release(
                     &HoldReason::MiddsRegistration.into(),
                     &caller,
-                    actual_cost,
+                    info.data_cost,
                     Precision::BestEffort,
                 )
                 .map_err(|_| Error::<T, I>::CantReleaseFunds)?;
 
-                MiddsDb::<T, I>::remove(midds_id);
-                HashIndex::<T, I>::remove(midds.midds.hash());
+                MiddsOf::<T, I>::remove(midds_id);
+                MiddsInfoOf::<T, I>::remove(midds_id);
+                HashIndex::<T, I>::remove(info.hash);
 
                 Self::deposit_event(Event::<T, I>::MIDDSUnregistered { midds_id });
 
@@ -255,31 +255,31 @@ pub mod pallet {
 }
 
 impl<T: Config<I>, I: 'static> Pallet<T, I> {
-    fn inner_register(midds: MiddsWrapperOf<T, I>) -> DispatchResult {
+    fn inner_register(midds: T::MIDDS, info: MiddsInfo<T, I>) -> DispatchResult {
         let midds_id = Self::get_next_id();
 
         // Verify that the same MIDDS isn't registered already by checking hash integrity.
         ensure!(
-            !HashIndex::<T, I>::contains_key(midds.midds.hash()),
+            !HashIndex::<T, I>::contains_key(info.hash),
             Error::<T, I>::MiddsDataAlreadyExist
         );
 
-        // data colateral lock
-        let data_lock = Self::calculate_midds_colateral(&midds);
         T::Currency::hold(
             &HoldReason::MiddsRegistration.into(),
-            &midds.provider(),
-            data_lock,
+            &info.provider,
+            info.data_cost,
         )?;
-        MiddsDb::<T, I>::insert(midds_id, midds.clone());
-        HashIndex::<T, I>::insert(midds.midds.hash(), midds_id);
+
+        MiddsOf::<T, I>::insert(midds_id, midds.clone());
+        MiddsInfoOf::<T, I>::insert(midds_id, &info);
+        HashIndex::<T, I>::insert(info.hash, midds_id);
 
         Self::increment_next_id();
 
         Self::deposit_event(Event::<T, I>::MIDDSRegistered {
-            provider: midds.provider(),
+            provider: info.provider,
             midds_id,
-            data_colateral: data_lock,
+            data_colateral: info.data_cost,
         });
 
         Ok(())
@@ -294,8 +294,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
         NextId::<T, I>::set(current.saturating_add(1))
     }
 
-    fn calculate_midds_colateral(midds: &MiddsWrapperOf<T, I>) -> BalanceOf<T, I> {
-        let bytes = midds.midds.encoded_size() as u32;
-        T::ByteDepositCost::get().saturating_mul(BalanceOf::<T, I>::from(bytes))
+    fn calculate_midds_colateral(size: u32) -> BalanceOf<T, I> {
+        T::ByteDepositCost::get().saturating_mul(BalanceOf::<T, I>::from(size))
     }
 }

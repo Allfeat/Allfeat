@@ -24,6 +24,7 @@ use crate::Pallet as MiddsPallet;
 use frame_benchmarking::v2::*;
 use frame_support::{sp_runtime::traits::Bounded, traits::fungible::Mutate};
 use frame_system::RawOrigin;
+use midds::Midds;
 
 use midds::pallet_prelude::BenchmarkHelperT;
 
@@ -49,7 +50,7 @@ mod benchmarks {
         #[extrinsic_call]
         _(RawOrigin::Signed(provider), Box::new(midds.clone()));
 
-        assert!(MiddsDb::<T, I>::get(0).is_some())
+        assert!(MiddsOf::<T, I>::get(0).is_some())
     }
 
     #[benchmark]

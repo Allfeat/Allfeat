@@ -19,7 +19,7 @@
 use frame_support::{pallet_prelude::TypedGet, sp_runtime::TokenError, testing_prelude::*};
 use parity_scale_codec::Encode;
 
-use crate::{MiddsDb, mock::*};
+use crate::{MiddsOf, mock::*};
 
 #[test]
 fn it_registers_midds_to_pending_successfully() {
@@ -37,7 +37,7 @@ fn it_registers_midds_to_pending_successfully() {
         ));
 
         assert_eq!(expected_lock_cost, Balances::reserved_balance(provider));
-        assert_eq!(MiddsDb::<Test>::get(0).expect("testing value").midds, midds)
+        assert_eq!(MiddsOf::<Test>::get(0).expect("testing value"), midds)
     })
 }
 

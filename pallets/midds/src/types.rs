@@ -16,53 +16,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use frame_support::{Parameter, sp_runtime::traits::Member};
-use midds::Midds;
+use frame_support::traits::{Time, fungible::Inspect};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
-use scale_info::TypeInfo;
 
-#[derive(Encode, MaxEncodedLen, Decode, Clone, PartialEq, Eq, TypeInfo)]
-pub struct MiddsWrapper<AccountId, Moment, Inner>
-where
-    AccountId: Parameter + Member,
-    Moment: Parameter + Member,
-    Inner: Midds,
-{
-    pub(crate) base: BaseInfos<AccountId, Moment>,
-    pub midds: Inner,
-}
+use crate::Config;
 
-impl<AccountId, Moment, Inner> MiddsWrapper<AccountId, Moment, Inner>
-where
-    AccountId: Parameter + Member,
-    Moment: Parameter + Member,
-    Inner: Midds,
-{
-    pub(crate) fn new(provider: AccountId, timestamp: Moment, inner_midds: Inner) -> Self {
-        Self {
-            base: BaseInfos {
-                provider,
-                registered_at: timestamp,
-            },
-            midds: inner_midds,
-        }
-    }
+pub type BalanceOf<T, I = ()> =
+    <<T as Config<I>>::Currency as Inspect<<T as frame_system::Config>::AccountId>>::Balance;
+pub type MomentOf<T, I> = <<T as Config<I>>::Timestamp as Time>::Moment;
+pub type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 
-    pub fn provider(&self) -> AccountId {
-        self.base.provider.clone()
-    }
-
-    pub fn registered_at(&self) -> Moment {
-        self.base.registered_at.clone()
-    }
-}
-
-#[derive(Encode, MaxEncodedLen, Decode, Clone, PartialEq, Eq, TypeInfo)]
-/// Basic informations on the MIDDS entity used to manage the MIDDS pallet database
-pub struct BaseInfos<AccountId, Moment>
-where
-    AccountId: Parameter + Member,
-{
-    provider: AccountId,
-    registered_at: Moment,
+/// Basic informations on the MIDDS entity.
+#[derive(Clone, Encode, Decode, scale_info::TypeInfo, MaxEncodedLen)]
+#[codec(mel_bound())]
+#[scale_info(skip_type_params(T, I))]
+pub struct MiddsInfo<T: Config<I>, I: 'static> {
+    pub(crate) provider: AccountIdOf<T>,
+    pub(crate) registered_at: MomentOf<T, I>,
+    pub(crate) hash: [u8; 32],
+    pub(crate) encoded_size: u32,
+    pub(crate) data_cost: BalanceOf<T, I>,
 }
