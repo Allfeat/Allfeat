@@ -54,14 +54,9 @@ mod benchmarks {
     }
 
     #[benchmark]
-    fn unregister(
-        x: Linear<
-            { <T::MIDDS as Midds>::BenchmarkHelper::build_base().encoded_size() as u32 },
-            { T::MIDDS::max_encoded_len() as u32 },
-        >,
-    ) -> Result<(), BenchmarkError> {
+    fn unregister() -> Result<(), BenchmarkError> {
         let provider = whitelisted_caller();
-        let midds = <T::MIDDS as super::Midds>::BenchmarkHelper::build_sized(x as usize);
+        let midds = <T::MIDDS as super::Midds>::BenchmarkHelper::build_base();
 
         let _ = T::Currency::set_balance(&provider, init_bal::<T, I>());
 
