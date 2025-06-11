@@ -64,8 +64,8 @@ impl<T: frame_system::Config> frame_benchmarking::WeightInfo for AllfeatWeight<T
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 200_000 picoseconds.
-		Weight::from_parts(289_249, 0)
+		// Minimum execution time: 240_000 picoseconds.
+		Weight::from_parts(285_967, 0)
 	}
 	/// The range of component `i` is `[0, 1000000]`.
 	fn subtraction(_i: u32, ) -> Weight {
@@ -73,7 +73,7 @@ impl<T: frame_system::Config> frame_benchmarking::WeightInfo for AllfeatWeight<T
 		//  Measured:  `0`
 		//  Estimated: `0`
 		// Minimum execution time: 240_000 picoseconds.
-		Weight::from_parts(302_887, 0)
+		Weight::from_parts(288_289, 0)
 	}
 	/// The range of component `i` is `[0, 1000000]`.
 	fn multiplication(_i: u32, ) -> Weight {
@@ -81,22 +81,22 @@ impl<T: frame_system::Config> frame_benchmarking::WeightInfo for AllfeatWeight<T
 		//  Measured:  `0`
 		//  Estimated: `0`
 		// Minimum execution time: 240_000 picoseconds.
-		Weight::from_parts(296_872, 0)
+		Weight::from_parts(290_277, 0)
 	}
 	/// The range of component `i` is `[0, 1000000]`.
 	fn division(_i: u32, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 240_000 picoseconds.
-		Weight::from_parts(296_116, 0)
+		// Minimum execution time: 200_000 picoseconds.
+		Weight::from_parts(288_018, 0)
 	}
 	fn hashing() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 43_110_747_000 picoseconds.
-		Weight::from_parts(43_312_109_000, 0)
+		// Minimum execution time: 42_907_972_000 picoseconds.
+		Weight::from_parts(43_004_413_000, 0)
 	}
 	/// The range of component `i` is `[0, 100]`.
 	fn sr25519_verification(i: u32, ) -> Weight {
@@ -104,8 +104,8 @@ impl<T: frame_system::Config> frame_benchmarking::WeightInfo for AllfeatWeight<T
 		//  Measured:  `0`
 		//  Estimated: `0`
 		// Minimum execution time: 280_000 picoseconds.
-		Weight::from_parts(24_643_997, 0)
-			// Standard Error: 39_799
-			.saturating_add(Weight::from_parts(162_090_579, 0).saturating_mul(i.into()))
+		Weight::from_parts(29_243_635, 0)
+			// Standard Error: 19_769
+			.saturating_add(Weight::from_parts(160_849_241, 0).saturating_mul(i.into()))
 	}
 }

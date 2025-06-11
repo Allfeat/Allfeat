@@ -61,8 +61,8 @@ impl<T: frame_system::Config> pallet_validators::WeightInfo for AllfeatWeight<T>
 		// Proof Size summary in bytes:
 		//  Measured:  `198`
 		//  Estimated: `1646`
-		// Minimum execution time: 18_160_000 picoseconds.
-		Weight::from_parts(19_160_000, 1646)
+		// Minimum execution time: 17_400_000 picoseconds.
+		Weight::from_parts(19_200_000, 1646)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -72,8 +72,8 @@ impl<T: frame_system::Config> pallet_validators::WeightInfo for AllfeatWeight<T>
 		// Proof Size summary in bytes:
 		//  Measured:  `101`
 		//  Estimated: `1646`
-		// Minimum execution time: 17_040_000 picoseconds.
-		Weight::from_parts(18_040_000, 1646)
+		// Minimum execution time: 17_081_000 picoseconds.
+		Weight::from_parts(18_680_000, 1646)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}

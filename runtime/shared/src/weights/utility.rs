@@ -65,57 +65,57 @@ impl<T: frame_system::Config> pallet_utility::WeightInfo for AllfeatWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 8_800_000 picoseconds.
-		Weight::from_parts(9_160_000, 0)
-			// Standard Error: 3_211
-			.saturating_add(Weight::from_parts(5_525_135, 0).saturating_mul(c.into()))
+		// Minimum execution time: 9_320_000 picoseconds.
+		Weight::from_parts(9_721_000, 0)
+			// Standard Error: 2_896
+			.saturating_add(Weight::from_parts(5_769_711, 0).saturating_mul(c.into()))
 	}
 	fn as_derivative() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 8_440_000 picoseconds.
-		Weight::from_parts(9_840_000, 0)
+		// Minimum execution time: 8_760_000 picoseconds.
+		Weight::from_parts(9_480_000, 0)
 	}
 	/// The range of component `c` is `[0, 1000]`.
 	fn batch_all(c: u32, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 8_920_000 picoseconds.
-		Weight::from_parts(10_924_400, 0)
-			// Standard Error: 7_615
-			.saturating_add(Weight::from_parts(5_927_800, 0).saturating_mul(c.into()))
+		// Minimum execution time: 9_200_000 picoseconds.
+		Weight::from_parts(9_520_000, 0)
+			// Standard Error: 4_853
+			.saturating_add(Weight::from_parts(6_292_239, 0).saturating_mul(c.into()))
 	}
 	fn dispatch_as() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 12_280_000 picoseconds.
-		Weight::from_parts(13_520_000, 0)
+		// Minimum execution time: 12_560_000 picoseconds.
+		Weight::from_parts(13_241_000, 0)
 	}
 	/// The range of component `c` is `[0, 1000]`.
 	fn force_batch(c: u32, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 8_921_000 picoseconds.
-		Weight::from_parts(8_790_584, 0)
-			// Standard Error: 5_758
-			.saturating_add(Weight::from_parts(5_549_104, 0).saturating_mul(c.into()))
+		// Minimum execution time: 9_440_000 picoseconds.
+		Weight::from_parts(9_880_000, 0)
+			// Standard Error: 4_516
+			.saturating_add(Weight::from_parts(5_862_030, 0).saturating_mul(c.into()))
 	}
 	fn dispatch_as_fallible() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 11_920_000 picoseconds.
-		Weight::from_parts(12_320_000, 0)
+		// Minimum execution time: 12_600_000 picoseconds.
+		Weight::from_parts(14_240_000, 0)
 	}
 	fn if_else() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 14_600_000 picoseconds.
-		Weight::from_parts(16_520_000, 0)
+		// Minimum execution time: 15_600_000 picoseconds.
+		Weight::from_parts(16_880_000, 0)
 	}
 }

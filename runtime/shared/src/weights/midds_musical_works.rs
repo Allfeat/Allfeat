@@ -49,7 +49,7 @@ use core::marker::PhantomData;
 /// Weight functions needed for pallet_midds_musical_works.
 pub trait WeightInfo {
 	fn register(x: u32, ) -> Weight;
-	fn unregister(x: u32, ) -> Weight;
+	fn unregister() -> Weight;
 }
 
 /// Weights for pallet_midds_musical_works using the Allfeat node and recommended hardware.
@@ -58,41 +58,42 @@ impl<T: frame_system::Config> pallet_midds::WeightInfo for AllfeatWeight<T> {
 	/// Storage: `Timestamp::Now` (r:1 w:0)
 	/// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
 	/// Storage: `MusicalWorks::NextId` (r:1 w:1)
-	/// Proof: `MusicalWorks::NextId` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+	/// Proof: `MusicalWorks::NextId` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	/// Storage: `MusicalWorks::HashIndex` (r:1 w:1)
-	/// Proof: `MusicalWorks::HashIndex` (`max_values`: None, `max_size`: Some(56), added: 2531, mode: `MaxEncodedLen`)
+	/// Proof: `MusicalWorks::HashIndex` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `Balances::Holds` (r:1 w:1)
 	/// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(229), added: 2704, mode: `MaxEncodedLen`)
-	/// Storage: `MusicalWorks::MiddsDb` (r:0 w:1)
-	/// Proof: `MusicalWorks::MiddsDb` (`max_values`: None, `max_size`: Some(9055), added: 11530, mode: `MaxEncodedLen`)
+	/// Storage: `MusicalWorks::MiddsOf` (r:0 w:1)
+	/// Proof: `MusicalWorks::MiddsOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `MusicalWorks::MiddsInfoOf` (r:0 w:1)
+	/// Proof: `MusicalWorks::MiddsInfoOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// The range of component `x` is `[10, 8991]`.
 	fn register(x: u32, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `79`
 		//  Estimated: `3694`
-		// Minimum execution time: 91_241_000 picoseconds.
-		Weight::from_parts(104_005_439, 3694)
-			// Standard Error: 92
-			.saturating_add(Weight::from_parts(2_193, 0).saturating_mul(x.into()))
+		// Minimum execution time: 90_441_000 picoseconds.
+		Weight::from_parts(99_751_125, 3694)
+			// Standard Error: 56
+			.saturating_add(Weight::from_parts(1_667, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(4_u64))
-			.saturating_add(T::DbWeight::get().writes(4_u64))
+			.saturating_add(T::DbWeight::get().writes(5_u64))
 	}
-	/// Storage: `MusicalWorks::MiddsDb` (r:1 w:1)
-	/// Proof: `MusicalWorks::MiddsDb` (`max_values`: None, `max_size`: Some(9055), added: 11530, mode: `MaxEncodedLen`)
+	/// Storage: `MusicalWorks::MiddsInfoOf` (r:1 w:1)
+	/// Proof: `MusicalWorks::MiddsInfoOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `Balances::Holds` (r:1 w:1)
 	/// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(229), added: 2704, mode: `MaxEncodedLen`)
 	/// Storage: `MusicalWorks::HashIndex` (r:0 w:1)
-	/// Proof: `MusicalWorks::HashIndex` (`max_values`: None, `max_size`: Some(56), added: 2531, mode: `MaxEncodedLen`)
-	/// The range of component `x` is `[10, 8991]`.
-	fn unregister(x: u32, ) -> Weight {
+	/// Proof: `MusicalWorks::HashIndex` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `MusicalWorks::MiddsOf` (r:0 w:1)
+	/// Proof: `MusicalWorks::MiddsOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	fn unregister() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `1582`
-		//  Estimated: `12520`
-		// Minimum execution time: 74_881_000 picoseconds.
-		Weight::from_parts(83_130_324, 12520)
-			// Standard Error: 58
-			.saturating_add(Weight::from_parts(1_597, 0).saturating_mul(x.into()))
+		//  Measured:  `348`
+		//  Estimated: `3813`
+		// Minimum execution time: 72_281_000 picoseconds.
+		Weight::from_parts(75_721_000, 3813)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
-			.saturating_add(T::DbWeight::get().writes(3_u64))
+			.saturating_add(T::DbWeight::get().writes(4_u64))
 	}
 }

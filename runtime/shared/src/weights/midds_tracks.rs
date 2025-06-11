@@ -49,7 +49,7 @@ use core::marker::PhantomData;
 /// Weight functions needed for pallet_midds_tracks.
 pub trait WeightInfo {
 	fn register(x: u32, ) -> Weight;
-	fn unregister(x: u32, ) -> Weight;
+	fn unregister() -> Weight;
 }
 
 /// Weights for pallet_midds_tracks using the Allfeat node and recommended hardware.
@@ -58,41 +58,42 @@ impl<T: frame_system::Config> pallet_midds::WeightInfo for AllfeatWeight<T> {
 	/// Storage: `Timestamp::Now` (r:1 w:0)
 	/// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
 	/// Storage: `Tracks::NextId` (r:1 w:1)
-	/// Proof: `Tracks::NextId` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+	/// Proof: `Tracks::NextId` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	/// Storage: `Tracks::HashIndex` (r:1 w:1)
-	/// Proof: `Tracks::HashIndex` (`max_values`: None, `max_size`: Some(56), added: 2531, mode: `MaxEncodedLen`)
+	/// Proof: `Tracks::HashIndex` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `Balances::Holds` (r:1 w:1)
 	/// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(229), added: 2704, mode: `MaxEncodedLen`)
-	/// Storage: `Tracks::MiddsDb` (r:0 w:1)
-	/// Proof: `Tracks::MiddsDb` (`max_values`: None, `max_size`: Some(9895), added: 12370, mode: `MaxEncodedLen`)
+	/// Storage: `Tracks::MiddsOf` (r:0 w:1)
+	/// Proof: `Tracks::MiddsOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `Tracks::MiddsInfoOf` (r:0 w:1)
+	/// Proof: `Tracks::MiddsInfoOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// The range of component `x` is `[37, 9831]`.
 	fn register(x: u32, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `118`
 		//  Estimated: `3694`
-		// Minimum execution time: 91_800_000 picoseconds.
-		Weight::from_parts(101_047_257, 3694)
-			// Standard Error: 104
-			.saturating_add(Weight::from_parts(4_341, 0).saturating_mul(x.into()))
+		// Minimum execution time: 94_241_000 picoseconds.
+		Weight::from_parts(100_664_012, 3694)
+			// Standard Error: 93
+			.saturating_add(Weight::from_parts(3_153, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(4_u64))
-			.saturating_add(T::DbWeight::get().writes(4_u64))
+			.saturating_add(T::DbWeight::get().writes(5_u64))
 	}
-	/// Storage: `Tracks::MiddsDb` (r:1 w:1)
-	/// Proof: `Tracks::MiddsDb` (`max_values`: None, `max_size`: Some(9895), added: 12370, mode: `MaxEncodedLen`)
+	/// Storage: `Tracks::MiddsInfoOf` (r:1 w:1)
+	/// Proof: `Tracks::MiddsInfoOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `Balances::Holds` (r:1 w:1)
 	/// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(229), added: 2704, mode: `MaxEncodedLen`)
 	/// Storage: `Tracks::HashIndex` (r:0 w:1)
-	/// Proof: `Tracks::HashIndex` (`max_values`: None, `max_size`: Some(56), added: 2531, mode: `MaxEncodedLen`)
-	/// The range of component `x` is `[37, 9831]`.
-	fn unregister(x: u32, ) -> Weight {
+	/// Proof: `Tracks::HashIndex` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `Tracks::MiddsOf` (r:0 w:1)
+	/// Proof: `Tracks::MiddsOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	fn unregister() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `1046`
-		//  Estimated: `13360`
-		// Minimum execution time: 75_641_000 picoseconds.
-		Weight::from_parts(82_064_645, 13360)
-			// Standard Error: 53
-			.saturating_add(Weight::from_parts(2_274, 0).saturating_mul(x.into()))
+		//  Measured:  `314`
+		//  Estimated: `3779`
+		// Minimum execution time: 74_000_000 picoseconds.
+		Weight::from_parts(76_921_000, 3779)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
-			.saturating_add(T::DbWeight::get().writes(3_u64))
+			.saturating_add(T::DbWeight::get().writes(4_u64))
 	}
 }

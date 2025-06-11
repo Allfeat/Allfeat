@@ -66,10 +66,10 @@ impl<T: frame_system::Config> pallet_multisig::WeightInfo for AllfeatWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 25_920_000 picoseconds.
-		Weight::from_parts(29_622_083, 0)
-			// Standard Error: 30
-			.saturating_add(Weight::from_parts(465, 0).saturating_mul(z.into()))
+		// Minimum execution time: 22_920_000 picoseconds.
+		Weight::from_parts(24_296_192, 0)
+			// Standard Error: 12
+			.saturating_add(Weight::from_parts(440, 0).saturating_mul(z.into()))
 	}
 	/// Storage: `Multisig::Multisigs` (r:1 w:1)
 	/// Proof: `Multisig::Multisigs` (`max_values`: None, `max_size`: Some(3346), added: 5821, mode: `MaxEncodedLen`)
@@ -79,12 +79,12 @@ impl<T: frame_system::Config> pallet_multisig::WeightInfo for AllfeatWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `192 + s * (2 ±0)`
 		//  Estimated: `6811`
-		// Minimum execution time: 73_801_000 picoseconds.
-		Weight::from_parts(61_138_355, 6811)
-			// Standard Error: 4_546
-			.saturating_add(Weight::from_parts(161_391, 0).saturating_mul(s.into()))
-			// Standard Error: 44
-			.saturating_add(Weight::from_parts(2_081, 0).saturating_mul(z.into()))
+		// Minimum execution time: 73_401_000 picoseconds.
+		Weight::from_parts(54_501_926, 6811)
+			// Standard Error: 6_623
+			.saturating_add(Weight::from_parts(297_150, 0).saturating_mul(s.into()))
+			// Standard Error: 64
+			.saturating_add(Weight::from_parts(2_031, 0).saturating_mul(z.into()))
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -96,12 +96,12 @@ impl<T: frame_system::Config> pallet_multisig::WeightInfo for AllfeatWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `211`
 		//  Estimated: `6811`
-		// Minimum execution time: 47_361_000 picoseconds.
-		Weight::from_parts(25_793_219, 6811)
-			// Standard Error: 4_471
-			.saturating_add(Weight::from_parts(236_256, 0).saturating_mul(s.into()))
-			// Standard Error: 43
-			.saturating_add(Weight::from_parts(2_473, 0).saturating_mul(z.into()))
+		// Minimum execution time: 48_041_000 picoseconds.
+		Weight::from_parts(31_818_633, 6811)
+			// Standard Error: 2_831
+			.saturating_add(Weight::from_parts(203_723, 0).saturating_mul(s.into()))
+			// Standard Error: 27
+			.saturating_add(Weight::from_parts(1_988, 0).saturating_mul(z.into()))
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -115,12 +115,12 @@ impl<T: frame_system::Config> pallet_multisig::WeightInfo for AllfeatWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `314 + s * (33 ±0)`
 		//  Estimated: `6811`
-		// Minimum execution time: 79_121_000 picoseconds.
-		Weight::from_parts(72_627_511, 6811)
-			// Standard Error: 6_556
-			.saturating_add(Weight::from_parts(235_187, 0).saturating_mul(s.into()))
-			// Standard Error: 64
-			.saturating_add(Weight::from_parts(1_741, 0).saturating_mul(z.into()))
+		// Minimum execution time: 77_640_000 picoseconds.
+		Weight::from_parts(60_079_698, 6811)
+			// Standard Error: 3_701
+			.saturating_add(Weight::from_parts(263_972, 0).saturating_mul(s.into()))
+			// Standard Error: 36
+			.saturating_add(Weight::from_parts(2_309, 0).saturating_mul(z.into()))
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
@@ -131,10 +131,10 @@ impl<T: frame_system::Config> pallet_multisig::WeightInfo for AllfeatWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `193 + s * (2 ±0)`
 		//  Estimated: `6811`
-		// Minimum execution time: 53_760_000 picoseconds.
-		Weight::from_parts(56_911_610, 6811)
-			// Standard Error: 4_117
-			.saturating_add(Weight::from_parts(218_189, 0).saturating_mul(s.into()))
+		// Minimum execution time: 52_801_000 picoseconds.
+		Weight::from_parts(56_847_735, 6811)
+			// Standard Error: 1_870
+			.saturating_add(Weight::from_parts(155_620, 0).saturating_mul(s.into()))
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -145,10 +145,10 @@ impl<T: frame_system::Config> pallet_multisig::WeightInfo for AllfeatWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `211`
 		//  Estimated: `6811`
-		// Minimum execution time: 28_080_000 picoseconds.
-		Weight::from_parts(32_119_262, 6811)
-			// Standard Error: 1_631
-			.saturating_add(Weight::from_parts(157_954, 0).saturating_mul(s.into()))
+		// Minimum execution time: 27_880_000 picoseconds.
+		Weight::from_parts(30_863_682, 6811)
+			// Standard Error: 1_760
+			.saturating_add(Weight::from_parts(144_384, 0).saturating_mul(s.into()))
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -159,10 +159,10 @@ impl<T: frame_system::Config> pallet_multisig::WeightInfo for AllfeatWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `383 + s * (1 ±0)`
 		//  Estimated: `6811`
-		// Minimum execution time: 53_640_000 picoseconds.
-		Weight::from_parts(57_218_730, 6811)
-			// Standard Error: 3_690
-			.saturating_add(Weight::from_parts(177_860, 0).saturating_mul(s.into()))
+		// Minimum execution time: 52_320_000 picoseconds.
+		Weight::from_parts(54_807_644, 6811)
+			// Standard Error: 4_930
+			.saturating_add(Weight::from_parts(181_378, 0).saturating_mul(s.into()))
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -173,10 +173,10 @@ impl<T: frame_system::Config> pallet_multisig::WeightInfo for AllfeatWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `383 + s * (1 ±0)`
 		//  Estimated: `6811`
-		// Minimum execution time: 50_320_000 picoseconds.
-		Weight::from_parts(52_207_763, 6811)
-			// Standard Error: 5_156
-			.saturating_add(Weight::from_parts(258_801, 0).saturating_mul(s.into()))
+		// Minimum execution time: 49_280_000 picoseconds.
+		Weight::from_parts(51_744_706, 6811)
+			// Standard Error: 2_977
+			.saturating_add(Weight::from_parts(178_141, 0).saturating_mul(s.into()))
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}

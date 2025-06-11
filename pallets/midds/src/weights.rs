@@ -50,7 +50,7 @@ use core::marker::PhantomData;
 /// Weight functions needed for pallet_midds_party_identifiers.
 pub trait WeightInfo {
 	fn register(x: u32, ) -> Weight;
-	fn unregister(x: u32, ) -> Weight;
+	fn unregister() -> Weight;
 }
 
 /// Weights for pallet_midds using the Allfeat node and recommended hardware.
@@ -58,41 +58,42 @@ impl WeightInfo for () {
 	/// Storage: `Timestamp::Now` (r:1 w:0)
 	/// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
 	/// Storage: `PartyIdentifiers::NextId` (r:1 w:1)
-	/// Proof: `PartyIdentifiers::NextId` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+	/// Proof: `PartyIdentifiers::NextId` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	/// Storage: `PartyIdentifiers::HashIndex` (r:1 w:1)
-	/// Proof: `PartyIdentifiers::HashIndex` (`max_values`: None, `max_size`: Some(56), added: 2531, mode: `MaxEncodedLen`)
+	/// Proof: `PartyIdentifiers::HashIndex` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `Balances::Holds` (r:1 w:1)
 	/// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(229), added: 2704, mode: `MaxEncodedLen`)
-	/// Storage: `PartyIdentifiers::MiddsDb` (r:0 w:1)
-	/// Proof: `PartyIdentifiers::MiddsDb` (`max_values`: None, `max_size`: Some(1911), added: 4386, mode: `MaxEncodedLen`)
+	/// Storage: `PartyIdentifiers::MiddsOf` (r:0 w:1)
+	/// Proof: `PartyIdentifiers::MiddsOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `PartyIdentifiers::MiddsInfoOf` (r:0 w:1)
+	/// Proof: `PartyIdentifiers::MiddsInfoOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// The range of component `x` is `[14, 1847]`.
 	fn register(x: u32, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `79`
 		//  Estimated: `3694`
-		// Minimum execution time: 87_601_000 picoseconds.
-		Weight::from_parts(97_123_977, 3694)
-			// Standard Error: 337
-			.saturating_add(Weight::from_parts(1_676, 0).saturating_mul(x.into()))
+		// Minimum execution time: 97_161_000 picoseconds.
+		Weight::from_parts(104_789_842, 3694)
+			// Standard Error: 417
+			.saturating_add(Weight::from_parts(5_511, 0).saturating_mul(x.into()))
 			.saturating_add(ParityDbWeight::get().reads(4_u64))
-			.saturating_add(ParityDbWeight::get().writes(4_u64))
+			.saturating_add(ParityDbWeight::get().writes(5_u64))
 	}
-	/// Storage: `PartyIdentifiers::MiddsDb` (r:1 w:1)
-	/// Proof: `PartyIdentifiers::MiddsDb` (`max_values`: None, `max_size`: Some(1911), added: 4386, mode: `MaxEncodedLen`)
+	/// Storage: `PartyIdentifiers::MiddsInfoOf` (r:1 w:1)
+	/// Proof: `PartyIdentifiers::MiddsInfoOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `Balances::Holds` (r:1 w:1)
 	/// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(229), added: 2704, mode: `MaxEncodedLen`)
 	/// Storage: `PartyIdentifiers::HashIndex` (r:0 w:1)
-	/// Proof: `PartyIdentifiers::HashIndex` (`max_values`: None, `max_size`: Some(56), added: 2531, mode: `MaxEncodedLen`)
-	/// The range of component `x` is `[14, 1847]`.
-	fn unregister(x: u32, ) -> Weight {
+	/// Proof: `PartyIdentifiers::HashIndex` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `PartyIdentifiers::MiddsOf` (r:0 w:1)
+	/// Proof: `PartyIdentifiers::MiddsOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	fn unregister() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `522`
-		//  Estimated: `5376`
-		// Minimum execution time: 71_120_000 picoseconds.
-		Weight::from_parts(76_718_358, 5376)
-			// Standard Error: 152
-			.saturating_add(Weight::from_parts(1_232, 0).saturating_mul(x.into()))
+		//  Measured:  `275`
+		//  Estimated: `3740`
+		// Minimum execution time: 77_160_000 picoseconds.
+		Weight::from_parts(80_000_000, 3740)
 			.saturating_add(ParityDbWeight::get().reads(2_u64))
-			.saturating_add(ParityDbWeight::get().writes(3_u64))
+			.saturating_add(ParityDbWeight::get().writes(4_u64))
 	}
 }

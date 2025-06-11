@@ -37,7 +37,7 @@ use frame_support::{pallet_prelude::*, sp_runtime::Saturating, traits::fungible:
 use frame_system::pallet_prelude::*;
 pub use pallet::*;
 
-#[frame_support::pallet(dev_mode)]
+#[frame_support::pallet()]
 pub mod pallet {
     use super::*;
     use allfeat_primitives::Moment;
@@ -214,6 +214,7 @@ pub mod pallet {
         }
 
         #[pallet::call_index(2)]
+        #[pallet::weight(T::WeightInfo::unregister())]
         pub fn unregister(origin: OriginFor<T>, midds_id: MiddsId) -> DispatchResult {
             let caller = T::ProviderOrigin::ensure_origin(origin)?;
 
