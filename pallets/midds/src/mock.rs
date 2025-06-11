@@ -53,15 +53,14 @@ pub struct MockMiddsStruct {
 
 #[cfg(feature = "runtime-benchmarks")]
 pub struct BenchmarkHelperMock;
+
 #[cfg(feature = "runtime-benchmarks")]
 impl BenchmarkHelperT<MockMiddsStruct> for BenchmarkHelperMock {
-    const FIELD_MAX_SIZE: u32 = 0;
-
-    fn build_mock() -> MockMiddsStruct {
+    fn build_base() -> MockMiddsStruct {
         MockMiddsStruct { value: 0 }
     }
 
-    fn build_sized_mock(_size: u32) -> MockMiddsStruct {
+    fn build_sized(_target_size: usize) -> MockMiddsStruct {
         MockMiddsStruct { value: 0 }
     }
 }

@@ -19,78 +19,101 @@
 extern crate alloc;
 
 use crate::{
-    MiddsId,
     pallet_prelude::Track,
-    types::{genre::MusicGenre, track::TrackVersion, utils::Key},
+    types::{
+        genre::{AlternativeSubtype, MusicGenre, PopSubtype},
+        track::{
+            Isrc, TrackContributors, TrackGenreExtras, TrackMasteringPlace, TrackMixingPlace,
+            TrackPerformers, TrackProducers, TrackRecordingPlace, TrackTitle, TrackTitleAliases,
+            TrackVersion,
+        },
+        utils::Key,
+    },
 };
 
-use alloc::vec;
-
-use super::{BenchmarkHelperT, fill_boundedvec};
+use super::{BenchmarkHelperT, fill_boundedvec_to_fit};
+use parity_scale_codec::Encode;
 
 pub struct BenchmarkHelper;
 
 impl BenchmarkHelperT<Track> for BenchmarkHelper {
-    const FIELD_MAX_SIZE: u32 = 256;
-
-    fn build_sized_mock(size: u32) -> Track {
-        let midds_id = 1; // simulate a fixed MIDDS ID
-
+    fn build_base() -> Track {
         Track {
-            isrc: b"USRC17607839".to_vec().try_into().expect("valid ISRC"),
-            musical_work: midds_id,
-            artist: midds_id,
-            producers: fill_boundedvec(midds_id, size),
-            performers: fill_boundedvec(midds_id, size),
-            contributors: fill_boundedvec(midds_id, size),
-            title: fill_boundedvec(b'T', size),
-            title_aliases: fill_boundedvec(fill_boundedvec(b'A', size), 2),
-            recording_year: 2023,
-            genre: MusicGenre::Pop(None),
-            genre_extras: fill_boundedvec(MusicGenre::Electronic(None), size),
-            version: TrackVersion::Original,
-            duration: 210,
-            bpm: 120,
-            key: Key::C,
-            recording_place: fill_boundedvec(b'R', size),
-            mixing_place: fill_boundedvec(b'M', size),
-            mastering_place: fill_boundedvec(b'P', size),
-        }
-    }
-
-    fn build_mock() -> Track {
-        let midds_id: MiddsId = 1;
-        let producer_id: MiddsId = 2;
-        let performer_id: MiddsId = 3;
-        let contributor_id: MiddsId = 4;
-
-        Track {
-            isrc: b"USUG11904269".to_vec().try_into().expect("valid ISRC"),
-            musical_work: midds_id,
-            artist: midds_id,
-            producers: vec![producer_id].try_into().unwrap(),
-            performers: vec![performer_id].try_into().unwrap(),
-            contributors: vec![contributor_id].try_into().unwrap(),
-            title: b"Blinding Lights".to_vec().try_into().unwrap(),
-            title_aliases: vec![
-                "Feux Aveuglants".as_bytes().to_vec().try_into().unwrap(),
-                "盲目的灯光".as_bytes().to_vec().try_into().unwrap(),
-            ]
-            .try_into()
-            .unwrap(),
+            isrc: Default::default(),
+            musical_work: 0,
+            artist: 1,
+            producers: Default::default(),
+            performers: Default::default(),
+            contributors: Default::default(),
+            title: Default::default(),
+            title_aliases: Default::default(),
             recording_year: 2019,
-            genre: MusicGenre::Pop(None),
-            genre_extras: vec![MusicGenre::Electronic(None)].try_into().unwrap(),
+            genre: MusicGenre::Pop(Some(PopSubtype::Rock)),
+            genre_extras: Default::default(),
             version: TrackVersion::Original,
             duration: 200,
             bpm: 171,
             key: Key::Fs,
-            recording_place: b"Los Angeles, CA".to_vec().try_into().unwrap(),
-            mixing_place: b"MixStar Studios, Virginia Beach"
-                .to_vec()
-                .try_into()
-                .unwrap(),
-            mastering_place: b"Sterling Sound, Edgewater".to_vec().try_into().unwrap(),
+            recording_place: Default::default(),
+            mixing_place: Default::default(),
+            mastering_place: Default::default(),
         }
+    }
+
+    fn build_sized(target_size: usize) -> Track {
+        let mut midds = Self::build_base_with_checked_target_size(target_size);
+
+        if midds.encoded_size() >= target_size {
+            return midds;
+        }
+
+        let current_size = midds.encoded_size();
+        midds.isrc = fill_boundedvec_to_fit(b'0', Isrc::bound(), current_size, target_size);
+        let current_size = midds.encoded_size();
+        midds.producers =
+            fill_boundedvec_to_fit(0, TrackProducers::bound(), current_size, target_size);
+        let current_size = midds.encoded_size();
+        midds.performers =
+            fill_boundedvec_to_fit(0, TrackPerformers::bound(), current_size, target_size);
+        let current_size = midds.encoded_size();
+        midds.contributors =
+            fill_boundedvec_to_fit(0, TrackContributors::bound(), current_size, target_size);
+        let current_size = midds.encoded_size();
+        midds.title = fill_boundedvec_to_fit(b'T', TrackTitle::bound(), current_size, target_size);
+
+        let mut alias_title = TrackTitle::new();
+        alias_title.try_push(b'T').unwrap();
+        let current_size = midds.encoded_size();
+        // TODO: Make it more precise by correctly filling the alias title possibilites length
+        midds.title_aliases = fill_boundedvec_to_fit(
+            alias_title,
+            TrackTitleAliases::bound(),
+            current_size,
+            target_size,
+        );
+
+        let genre = MusicGenre::Alternative(Some(AlternativeSubtype::Latin));
+        let current_size = midds.encoded_size();
+        midds.genre_extras =
+            fill_boundedvec_to_fit(genre, TrackGenreExtras::bound(), current_size, target_size);
+        let current_size = midds.encoded_size();
+        midds.recording_place = fill_boundedvec_to_fit(
+            b'P',
+            TrackRecordingPlace::bound(),
+            current_size,
+            target_size,
+        );
+        let current_size = midds.encoded_size();
+        midds.mixing_place =
+            fill_boundedvec_to_fit(b'P', TrackMixingPlace::bound(), current_size, target_size);
+        let current_size = midds.encoded_size();
+        midds.mastering_place = fill_boundedvec_to_fit(
+            b'P',
+            TrackMasteringPlace::bound(),
+            current_size,
+            target_size,
+        );
+
+        midds
     }
 }

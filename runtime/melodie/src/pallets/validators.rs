@@ -26,4 +26,5 @@ parameter_types! {
 impl pallet_validators::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type MaxValidators = MaxValidators;
+    type WeightInfo = ();
 }

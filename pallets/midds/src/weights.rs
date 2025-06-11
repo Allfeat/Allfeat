@@ -50,7 +50,6 @@ use core::marker::PhantomData;
 /// Weight functions needed for pallet_midds.
 pub trait WeightInfo {
 	fn register() -> Weight;
-	fn update_field() -> Weight;
 	fn unregister() -> Weight;
 }
 
@@ -73,15 +72,6 @@ impl WeightInfo for () {
 	/// Proof: `Stakeholders::PendingMidds` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `Balances::Holds` (r:1 w:1)
 	/// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(127), added: 2602, mode: `MaxEncodedLen`)
-	fn update_field() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `255`
-		//  Estimated: `3720`
-		// Minimum execution time: 42_000_000 picoseconds.
-		Weight::from_parts(42_000_000, 3720)
-			.saturating_add(RocksDbWeight::get().reads(2_u64))
-			.saturating_add(RocksDbWeight::get().writes(3_u64))
-	}
 	/// Storage: `Stakeholders::PendingMidds` (r:1 w:1)
 	/// Proof: `Stakeholders::PendingMidds` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `Balances::Holds` (r:1 w:1)

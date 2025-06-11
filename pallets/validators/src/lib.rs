@@ -49,9 +49,12 @@ mod tests;
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarking;
 
+pub mod weights;
+pub use weights::*;
+
 pub const LOG_TARGET: &str = "runtime::validators-set";
 
-#[frame_support::pallet(dev_mode)]
+#[frame_support::pallet]
 pub mod pallet {
     use super::*;
     use frame_support::{pallet_prelude::*, traits::BuildGenesisConfig};
@@ -64,6 +67,9 @@ pub mod pallet {
         /// Max number of validators in the set
         #[pallet::constant]
         type MaxValidators: Get<u32>;
+
+        /// A type representing the weights required by the dispatchables of this pallet.
+        type WeightInfo: WeightInfo;
     }
 
     #[pallet::pallet]
@@ -117,6 +123,7 @@ pub mod pallet {
     impl<T: Config> Pallet<T> {
         /// Add a new validator (Root or governance controlled)
         #[pallet::call_index(0)]
+        #[pallet::weight(<T as Config>::WeightInfo::add_validator())]
         pub fn add_validator(origin: OriginFor<T>, validator: T::ValidatorId) -> DispatchResult {
             ensure_root(origin)?;
 
@@ -136,6 +143,7 @@ pub mod pallet {
 
         /// Remove a validator
         #[pallet::call_index(1)]
+        #[pallet::weight(<T as Config>::WeightInfo::remove_validator())]
         pub fn remove_validator(origin: OriginFor<T>, validator: T::ValidatorId) -> DispatchResult {
             ensure_root(origin)?;
 

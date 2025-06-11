@@ -37,10 +37,13 @@ mod benchmarks {
 
     #[benchmark]
     fn register(
-        x: Linear<0, <<T::MIDDS as super::Midds>::BenchmarkHelper as BenchmarkHelperT<T::MIDDS>>::FIELD_MAX_SIZE>,
+        x: Linear<
+            { <T::MIDDS as Midds>::BenchmarkHelper::build_base().encoded_size() as u32 },
+            { T::MIDDS::max_encoded_len() as u32 },
+        >,
     ) {
         let provider = whitelisted_caller();
-        let midds = <T::MIDDS as super::Midds>::BenchmarkHelper::build_sized_mock(x);
+        let midds = <T::MIDDS as super::Midds>::BenchmarkHelper::build_sized(x as usize);
         let _ = T::Currency::set_balance(&provider, init_bal::<T, I>());
 
         #[extrinsic_call]
@@ -51,10 +54,13 @@ mod benchmarks {
 
     #[benchmark]
     fn unregister(
-        x: Linear<0, <<T::MIDDS as super::Midds>::BenchmarkHelper as BenchmarkHelperT<T::MIDDS>>::FIELD_MAX_SIZE>,
+        x: Linear<
+            { <T::MIDDS as Midds>::BenchmarkHelper::build_base().encoded_size() as u32 },
+            { T::MIDDS::max_encoded_len() as u32 },
+        >,
     ) -> Result<(), BenchmarkError> {
         let provider = whitelisted_caller();
-        let midds = <T::MIDDS as super::Midds>::BenchmarkHelper::build_sized_mock(x);
+        let midds = <T::MIDDS as super::Midds>::BenchmarkHelper::build_sized(x as usize);
 
         let _ = T::Currency::set_balance(&provider, init_bal::<T, I>());
 

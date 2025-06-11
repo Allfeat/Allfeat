@@ -9695,6 +9695,7 @@ dependencies = [
  "pallet-timestamp",
  "pallet-transaction-payment",
  "pallet-utility",
+ "pallet-validators",
  "parity-scale-codec",
  "scale-info",
  "sp-core",

@@ -85,6 +85,7 @@ impl pallet_session::historical::Config for Test {
 impl pallet_validators::Config for Test {
     type RuntimeEvent = RuntimeEvent;
     type MaxValidators = MaxValidators;
+    type WeightInfo = ();
 }
 
 pub fn new_test_ext() -> sp_io::TestExternalities {

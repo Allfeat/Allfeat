@@ -49,5 +49,5 @@ impl pallet_midds::Config<PartyIdentifiers> for Runtime {
     type ProviderOrigin = EnsureSigned<Self::AccountId>;
     type ByteDepositCost = ByteDepositCost;
     type UnregisterPeriod = UnregisterPeriod;
-    type WeightInfo = weights::midds_stakeholders::AllfeatWeight<Runtime>;
+    type WeightInfo = ();
 }

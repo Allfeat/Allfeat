@@ -21,66 +21,32 @@ extern crate alloc;
 use crate::{
     release::Release,
     types::{
-        release::{ReleaseFormat, ReleasePackaging, ReleaseStatus, ReleaseType},
+        release::{
+            Ean, ReleaseCoverContributor, ReleaseCoverContributors, ReleaseDistributor,
+            ReleaseFormat, ReleaseManufacturer, ReleasePackaging, ReleaseProducers, ReleaseStatus,
+            ReleaseTitle, ReleaseTitleAliases, ReleaseTracks, ReleaseType,
+        },
         utils::{Country, Date},
     },
 };
-use alloc::vec;
+use parity_scale_codec::Encode;
 
-use super::{BenchmarkHelperT, fill_boundedvec};
+use super::{BenchmarkHelperT, fill_boundedvec_to_fit};
 
 pub struct BenchmarkHelper;
 
 impl BenchmarkHelperT<Release> for BenchmarkHelper {
-    const FIELD_MAX_SIZE: u32 = 1024;
-
-    fn build_sized_mock(size: u32) -> Release {
-        let midds_id = 1;
-
+    fn build_base() -> Release {
         Release {
-            ean_upc: b"4006381333931".to_vec().try_into().expect("valid EAN"),
-            artist: midds_id,
-            producers: fill_boundedvec(midds_id, size),
-            tracks: fill_boundedvec(midds_id, size),
-            distributor_name: fill_boundedvec(b'x', size),
-            manufacturer_name: fill_boundedvec(b'x', size),
-            cover_contributors: fill_boundedvec(fill_boundedvec(b'x', size), size),
-            country: Country::FR,
-            title: fill_boundedvec(b'x', size),
-            title_aliases: fill_boundedvec(fill_boundedvec(b'x', size), size),
-            release_type: ReleaseType::Single,
-            format: ReleaseFormat::Cd,
-            packaging: ReleasePackaging::SnapCase,
-            status: ReleaseStatus::Official,
-            date: Date {
-                year: 2025,
-                month: 5,
-                day: 8,
-            },
-        }
-    }
-
-    fn build_mock() -> Release {
-        Release {
-            ean_upc: b"6024351234567".to_vec().try_into().expect("valid EAN"),
+            ean_upc: Default::default(),
             artist: 1,
-            producers: vec![1, 2].try_into().unwrap(),
-            tracks: vec![1, 2].try_into().unwrap(),
-            distributor_name: b"Universal Music Group".to_vec().try_into().unwrap(),
-            manufacturer_name: b"Optimal Media GmbH".to_vec().try_into().unwrap(),
-            cover_contributors: vec![
-                b"Daniel Caesar".to_vec().try_into().unwrap(),
-                b"Alexis Belhumeur".to_vec().try_into().unwrap(),
-            ]
-            .try_into()
-            .unwrap(),
-            title: b"After Hours".to_vec().try_into().unwrap(),
-            title_aliases: vec![
-                "Après Minuit".as_bytes().to_vec().try_into().unwrap(),
-                "夜深人静".as_bytes().to_vec().try_into().unwrap(),
-            ]
-            .try_into()
-            .unwrap(),
+            producers: Default::default(),
+            tracks: Default::default(),
+            distributor_name: Default::default(),
+            manufacturer_name: Default::default(),
+            cover_contributors: Default::default(),
+            title: Default::default(),
+            title_aliases: Default::default(),
             release_type: ReleaseType::Lp,
             format: ReleaseFormat::Vinyl10,
             packaging: ReleasePackaging::Digipack,
@@ -92,5 +58,59 @@ impl BenchmarkHelperT<Release> for BenchmarkHelper {
             },
             country: Country::US,
         }
+    }
+
+    fn build_sized(target_size: usize) -> Release {
+        let mut midds = Self::build_base_with_checked_target_size(target_size);
+
+        if midds.encoded_size() >= target_size {
+            return midds;
+        }
+
+        let current_size = midds.encoded_size();
+        midds.ean_upc = fill_boundedvec_to_fit(b'a', Ean::bound(), current_size, target_size);
+        let current_size = midds.encoded_size();
+        midds.producers =
+            fill_boundedvec_to_fit(0, ReleaseProducers::bound(), current_size, target_size);
+        let current_size = midds.encoded_size();
+        midds.tracks = fill_boundedvec_to_fit(0, ReleaseTracks::bound(), current_size, target_size);
+        let current_size = midds.encoded_size();
+        midds.distributor_name =
+            fill_boundedvec_to_fit(b'D', ReleaseDistributor::bound(), current_size, target_size);
+        let current_size = midds.encoded_size();
+        midds.manufacturer_name = fill_boundedvec_to_fit(
+            b'M',
+            ReleaseManufacturer::bound(),
+            current_size,
+            target_size,
+        );
+
+        let mut cover_contributor_name = ReleaseCoverContributor::new();
+        cover_contributor_name.try_push(b'C').unwrap();
+        let current_size = midds.encoded_size();
+        // TODO: Make it more precise by correctly filling the name possibilites length
+        midds.cover_contributors = fill_boundedvec_to_fit(
+            cover_contributor_name,
+            ReleaseCoverContributors::bound(),
+            current_size,
+            target_size,
+        );
+
+        let current_size = midds.encoded_size();
+        midds.title =
+            fill_boundedvec_to_fit(b'T', ReleaseTitle::bound(), current_size, target_size);
+
+        let mut alias_title = ReleaseTitle::new();
+        alias_title.try_push(b'T').unwrap();
+        let current_size = midds.encoded_size();
+        // TODO: Make it more precise by correctly filling the alias title possibilites length
+        midds.title_aliases = fill_boundedvec_to_fit(
+            alias_title,
+            ReleaseTitleAliases::bound(),
+            current_size,
+            target_size,
+        );
+
+        midds
     }
 }

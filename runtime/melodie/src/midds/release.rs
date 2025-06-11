@@ -51,5 +51,5 @@ impl pallet_midds::Config<Releases> for Runtime {
     type ProviderOrigin = EnsureSigned<Self::AccountId>;
     type ByteDepositCost = ByteDepositCost;
     type UnregisterPeriod = UnregisterPeriod;
-    type WeightInfo = weights::midds_musical_works::AllfeatWeight<Runtime>;
+    type WeightInfo = ();
 }

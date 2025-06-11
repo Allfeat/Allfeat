@@ -18,53 +18,60 @@
 
 extern crate alloc;
 
+use parity_scale_codec::Encode;
+
 use crate::{
     pallet_prelude::PartyIdentifier,
-    party_identifier::{PartyType, Person, PersonGender, PersonType},
+    party_identifier::{
+        Isni, PartyType, Person, PersonAliases, PersonFullName, PersonGender, PersonType,
+    },
+    types::party_identifier::PersonAlias,
 };
-use alloc::vec;
 
-use super::{BenchmarkHelperT, fill_boundedvec};
+use super::{BenchmarkHelperT, fill_boundedvec_to_fit};
 
 pub struct BenchmarkHelper;
 
 impl BenchmarkHelperT<PartyIdentifier> for BenchmarkHelper {
-    const FIELD_MAX_SIZE: u32 = 256;
-
-    fn build_sized_mock(size: u32) -> PartyIdentifier {
-        let isni = b"0000000106751234"
-            .to_vec()
-            .try_into()
-            .expect("benchmark value valid");
-        let ipi = 987654321;
-
+    fn build_base() -> PartyIdentifier {
         PartyIdentifier {
-            isni,
-            ipi,
+            isni: Default::default(),
+            ipi: 0,
             party_type: PartyType::Person(Person {
-                full_name: fill_boundedvec(b'x', size),
-                aliases: fill_boundedvec(fill_boundedvec(b'x', size), size),
+                full_name: Default::default(),
+                aliases: Default::default(),
                 person_type: PersonType::Solo,
                 genre: PersonGender::Male,
             }),
         }
     }
 
-    fn build_mock() -> PartyIdentifier {
-        PartyIdentifier {
-            isni: b"000000011023081X".to_vec().try_into().expect("Mock value"),
-            ipi: 2961801,
-            party_type: PartyType::Person(Person {
-                full_name: b"Michael Joseph Jackson"
-                    .to_vec()
-                    .try_into()
-                    .expect("Mock value"),
-                aliases: vec![b"King of Pop".to_vec().try_into().expect("Mock value")]
-                    .try_into()
-                    .expect("Mock value"),
-                person_type: PersonType::Solo,
-                genre: PersonGender::Male,
-            }),
+    fn build_sized(target_size: usize) -> PartyIdentifier {
+        let mut midds = Self::build_base_with_checked_target_size(target_size);
+
+        if midds.encoded_size() >= target_size {
+            return midds;
         }
+
+        let current_size = midds.encoded_size();
+        midds.isni = fill_boundedvec_to_fit(b'a', Isni::bound(), current_size, target_size);
+
+        let current_size = midds.encoded_size();
+        if let PartyType::Person(ref mut person) = midds.party_type {
+            person.full_name =
+                fill_boundedvec_to_fit(b'F', PersonFullName::bound(), current_size, target_size);
+        }
+
+        let current_size = midds.encoded_size();
+        if let PartyType::Person(ref mut person) = midds.party_type {
+            let mut alias = PersonAlias::new();
+            alias.try_push(b'F').unwrap();
+
+            // TODO: Make it more precise by correctly filling the alias possibilites length
+            person.aliases =
+                fill_boundedvec_to_fit(alias, PersonAliases::bound(), current_size, target_size);
+        }
+
+        midds
     }
 }

@@ -20,77 +20,71 @@ extern crate alloc;
 use crate::{
     musical_work::MusicalWork,
     types::{
-        musical_work::{MusicalWorkType, Participant, ParticipantRole},
+        musical_work::{
+            Iswc, MusicalWorkParticipants, MusicalWorkTitle, MusicalWorkType, Participant,
+            ParticipantRole,
+        },
         utils::{Key, Language},
     },
 };
-use alloc::vec;
+use parity_scale_codec::Encode;
 
-use super::{BenchmarkHelperT, fill_boundedvec};
+use super::{BenchmarkHelperT, fill_boundedvec_to_fit};
 
 pub struct BenchmarkHelper;
 
 impl BenchmarkHelperT<MusicalWork> for BenchmarkHelper {
-    const FIELD_MAX_SIZE: u32 = 256;
-
-    fn build_sized_mock(size: u32) -> MusicalWork {
-        let iswc = b"T1234567890"
-            .to_vec()
-            .try_into()
-            .expect("ISWC mock is valid");
-        let title = fill_boundedvec(b'M', size);
-
-        let participant = Participant {
-            id: 1,
-            role: ParticipantRole::Composer,
-        };
-
-        let participants = fill_boundedvec(participant, size);
-
-        let work_type = MusicalWorkType::Original;
-
+    fn build_base() -> MusicalWork {
         MusicalWork {
-            iswc,
-            title,
-            creation_year: 2024,
+            iswc: Default::default(),
+            title: Default::default(),
+            creation_year: 0,
             instrumental: false,
-            language: Some(Language::French),
-            bpm: Some(120),
-            key: Some(Key::C),
-            work_type,
-            participants,
+            language: None,
+            bpm: None,
+            key: None,
+            work_type: MusicalWorkType::Original,
+            participants: Default::default(),
         }
     }
-    fn build_mock() -> MusicalWork {
-        MusicalWork {
-            iswc: b"T0702330071".to_vec().try_into().expect("Mock value"),
-            title: b"Billie Jean".to_vec().try_into().expect("Mock value"),
-            creation_year: 1983,
-            instrumental: false,
-            language: Some(Language::English),
-            bpm: Some(117),
-            key: Some(Key::B),
-            work_type: MusicalWorkType::Original,
-            participants: vec![
-                Participant {
-                    id: 1,
-                    role: ParticipantRole::Composer,
-                },
-                Participant {
-                    id: 2,
-                    role: ParticipantRole::Editor,
-                },
-                Participant {
-                    id: 3,
-                    role: ParticipantRole::Editor,
-                },
-                Participant {
-                    id: 4,
-                    role: ParticipantRole::Editor,
-                },
-            ]
-            .try_into()
-            .expect("Mock value"),
+
+    fn build_sized(target_size: usize) -> MusicalWork {
+        let mut midds = Self::build_base_with_checked_target_size(target_size);
+
+        if midds.encoded_size() >= target_size {
+            return midds;
         }
+
+        midds.language = Some(Language::French);
+        if midds.encoded_size() >= target_size {
+            return midds;
+        }
+
+        midds.bpm = Some(128);
+        if midds.encoded_size() >= target_size {
+            return midds;
+        }
+
+        midds.key = Some(Key::C);
+        if midds.encoded_size() >= target_size {
+            return midds;
+        }
+
+        let current_size = midds.encoded_size();
+        midds.title =
+            fill_boundedvec_to_fit(b'a', MusicalWorkTitle::bound(), current_size, target_size);
+        midds.iswc = fill_boundedvec_to_fit(b'a', Iswc::bound(), current_size, target_size);
+        let base_participant = Participant {
+            id: 0,
+            role: ParticipantRole::Arranger,
+        };
+        midds.participants = fill_boundedvec_to_fit(
+            base_participant,
+            MusicalWorkParticipants::bound(),
+            current_size,
+            target_size,
+        );
+
+        midds
     }
 }

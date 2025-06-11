@@ -20,8 +20,7 @@
 pub mod balances;
 pub mod identity;
 pub mod im_online;
-pub mod midds_musical_works;
-pub mod midds_stakeholders;
+// pub mod midds_musical_works;
 // pub mod multisig;
 pub mod preimage;
 // TODO: pub mod proxy;
