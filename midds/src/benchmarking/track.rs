@@ -21,7 +21,6 @@ extern crate alloc;
 use crate::{
     pallet_prelude::Track,
     types::{
-        genre::{AlternativeSubtype, MusicGenre, PopSubtype},
         track::{
             Isrc, TrackContributors, TrackGenreExtras, TrackMasteringPlace, TrackMixingPlace,
             TrackPerformers, TrackProducers, TrackRecordingPlace, TrackTitle, TrackTitleAliases,
@@ -32,6 +31,7 @@ use crate::{
 };
 
 use super::{BenchmarkHelperT, fill_boundedvec_to_fit};
+use allfeat_music_genres::GenreId;
 use parity_scale_codec::Encode;
 
 pub struct BenchmarkHelper;
@@ -48,7 +48,7 @@ impl BenchmarkHelperT<Track> for BenchmarkHelper {
             title: Default::default(),
             title_aliases: Default::default(),
             recording_year: 2019,
-            genre: MusicGenre::Pop(Some(PopSubtype::Rock)),
+            genre: GenreId::Electronic,
             genre_extras: Default::default(),
             version: TrackVersion::Original,
             duration: 200,
@@ -92,7 +92,7 @@ impl BenchmarkHelperT<Track> for BenchmarkHelper {
             target_size,
         );
 
-        let genre = MusicGenre::Alternative(Some(AlternativeSubtype::Latin));
+        let genre = GenreId::Swing;
         let current_size = midds.encoded_size();
         midds.genre_extras =
             fill_boundedvec_to_fit(genre, TrackGenreExtras::bound(), current_size, target_size);

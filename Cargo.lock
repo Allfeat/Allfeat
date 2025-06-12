@@ -152,6 +152,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "allfeat-music-genres"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2ddb5fef19dbfd54e55c1f121c2097da35e1d85e30b5fe051cdf42211f983139"
+dependencies = [
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "serde_json",
+ "sp-runtime",
+]
+
+[[package]]
 name = "allfeat-primitives"
 version = "1.0.0"
 dependencies = [
@@ -5489,6 +5502,7 @@ dependencies = [
 name = "midds"
 version = "1.0.0-dev"
 dependencies = [
+ "allfeat-music-genres",
  "frame-support",
  "log",
  "parity-scale-codec",

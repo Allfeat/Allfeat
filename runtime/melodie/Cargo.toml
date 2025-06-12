@@ -82,7 +82,7 @@ frame-system-benchmarking = { optional = true, workspace = true }
 substrate-wasm-builder = { workspace = true, optional = true, default-features = true }
 
 [features]
-default = ["std", "metadata-hash"]
+default = ["std"]
 with-tracing = []
 std = [
 	"parity-scale-codec/std",
@@ -190,4 +190,4 @@ fast-runtime = []
 
 # A convenience feature for enabling things when doing a build
 # for an on-chain release.
-on-chain-release-build = ["metadata-hash"]
+on-chain-release-build = ["metadata-hash", "sp-api/disable-logging"]

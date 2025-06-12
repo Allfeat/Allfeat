@@ -16,13 +16,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use allfeat_music_genres::GenreId;
 use frame_support::{BoundedVec, sp_runtime::RuntimeDebug, traits::ConstU32};
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
 use crate::MiddsId;
-
-use super::genre::MusicGenre;
 
 /// The ISRC (International Standard Recording Code) for uniquely identifying a recording.
 pub type Isrc = BoundedVec<u8, ConstU32<12>>;
@@ -37,10 +36,10 @@ pub type TrackTitleAliases = BoundedVec<TrackTitle, ConstU32<16>>;
 pub type TrackRecordYear = u16;
 
 /// The primary genre associated with the track.
-pub type TrackGenre = MusicGenre;
+pub type TrackGenre = GenreId;
 
 /// Additional genres that describe the track.
-pub type TrackGenreExtras = BoundedVec<MusicGenre, ConstU32<5>>;
+pub type TrackGenreExtras = BoundedVec<GenreId, ConstU32<5>>;
 
 /// Total duration of the track in seconds.
 pub type TrackDuration = u16;
