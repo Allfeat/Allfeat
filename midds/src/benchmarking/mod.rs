@@ -105,3 +105,64 @@ where
 
     fill_boundedvec::<T, N>(value, best)
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        musical_work::MusicalWork, pallet_prelude::PartyIdentifier, release::Release, track::Track,
+    };
+
+    use super::*;
+    use frame_support::traits::ConstU32;
+
+    #[test]
+    fn fill_boundedvec_respects_bounds() {
+        type Bound = ConstU32<5>;
+
+        let vec = super::fill_boundedvec::<u8, Bound>(1u8, 3);
+        assert_eq!(vec.len(), 3);
+        let as_vec: Vec<u8> = vec.clone().into();
+        assert_eq!(as_vec, vec![1u8; 3]);
+
+        let vec = super::fill_boundedvec::<u8, Bound>(2u8, 10);
+        assert_eq!(vec.len(), 5);
+    }
+
+    #[test]
+    fn fill_boundedvec_to_fit_calculates_capacity() {
+        type Bound = ConstU32<10>;
+        let base_size = 10usize;
+
+        let result = super::fill_boundedvec_to_fit::<u8, Bound>(1u8, 10, base_size, 15);
+        assert_eq!(result.len(), 4);
+        assert!(base_size + result.encode().len() <= 15);
+    }
+
+    #[test]
+    fn fill_boundedvec_to_fit_handles_small_target() {
+        type Bound = ConstU32<10>;
+        let base_size = 10usize;
+
+        let result = super::fill_boundedvec_to_fit::<u8, Bound>(1u8, 10, base_size, base_size);
+        assert_eq!(result.len(), 0);
+    }
+
+    fn verify_full_range<T: Midds>() {
+        let min = <T as Midds>::BenchmarkHelper::build_base().encoded_size();
+        let max = T::max_encoded_len();
+
+        let at_min = <T as Midds>::BenchmarkHelper::build_sized(min);
+        assert_eq!(at_min.encoded_size(), min);
+
+        let at_max = <T as Midds>::BenchmarkHelper::build_sized(max);
+        assert!(at_max.encoded_size() <= max);
+    }
+
+    #[test]
+    fn benchmark_helpers_cover_full_size() {
+        verify_full_range::<Track>();
+        verify_full_range::<Release>();
+        verify_full_range::<MusicalWork>();
+        verify_full_range::<PartyIdentifier>();
+    }
+}

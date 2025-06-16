@@ -43,7 +43,7 @@ impl BenchmarkHelperT<MusicalWork> for BenchmarkHelper {
             language: None,
             bpm: None,
             key: None,
-            work_type: Some(MusicalWorkType::Original),
+            work_type: None,
             participants: Default::default(),
         }
     }
@@ -78,6 +78,8 @@ impl BenchmarkHelperT<MusicalWork> for BenchmarkHelper {
         let current_size = midds.encoded_size();
         midds.title =
             fill_boundedvec_to_fit(b'a', MusicalWorkTitle::bound(), current_size, target_size);
+
+        let current_size = midds.encoded_size();
         midds.iswc = fill_boundedvec_to_fit(b'a', Iswc::bound(), current_size, target_size);
         let base_participant = Participant {
             id: 0,
