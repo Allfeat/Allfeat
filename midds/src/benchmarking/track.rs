@@ -47,13 +47,13 @@ impl BenchmarkHelperT<Track> for BenchmarkHelper {
             contributors: Default::default(),
             title: Default::default(),
             title_aliases: Default::default(),
-            recording_year: 2019,
-            genre: GenreId::Electronic,
+            recording_year: None,
+            genre: None,
             genre_extras: Default::default(),
-            version: TrackVersion::Original,
-            duration: 200,
-            bpm: 171,
-            key: Key::Fs,
+            version: None,
+            duration: None,
+            bpm: None,
+            key: None,
             recording_place: Default::default(),
             mixing_place: Default::default(),
             mastering_place: Default::default(),
@@ -63,6 +63,33 @@ impl BenchmarkHelperT<Track> for BenchmarkHelper {
     fn build_sized(target_size: usize) -> Track {
         let mut midds = Self::build_base_with_checked_target_size(target_size);
 
+        if midds.encoded_size() >= target_size {
+            return midds;
+        }
+
+        midds.recording_year = Some(2019);
+        if midds.encoded_size() >= target_size {
+            return midds;
+        }
+        midds.genre = Some(GenreId::Electronic);
+        if midds.encoded_size() >= target_size {
+            return midds;
+        }
+        midds.duration = Some(200);
+        if midds.encoded_size() >= target_size {
+            return midds;
+        }
+        midds.bpm = Some(172);
+        if midds.encoded_size() >= target_size {
+            return midds;
+        }
+        midds.key = Some(Key::Fs);
+        if midds.encoded_size() >= target_size {
+            return midds;
+        }
+
+        // TODO: make the benchmark with the biggest possible type
+        midds.version = Some(TrackVersion::Original);
         if midds.encoded_size() >= target_size {
             return midds;
         }
@@ -97,22 +124,26 @@ impl BenchmarkHelperT<Track> for BenchmarkHelper {
         midds.genre_extras =
             fill_boundedvec_to_fit(genre, TrackGenreExtras::bound(), current_size, target_size);
         let current_size = midds.encoded_size();
-        midds.recording_place = fill_boundedvec_to_fit(
+        midds.recording_place = Some(fill_boundedvec_to_fit(
             b'P',
             TrackRecordingPlace::bound(),
             current_size,
             target_size,
-        );
+        ));
         let current_size = midds.encoded_size();
-        midds.mixing_place =
-            fill_boundedvec_to_fit(b'P', TrackMixingPlace::bound(), current_size, target_size);
+        midds.mixing_place = Some(fill_boundedvec_to_fit(
+            b'P',
+            TrackMixingPlace::bound(),
+            current_size,
+            target_size,
+        ));
         let current_size = midds.encoded_size();
-        midds.mastering_place = fill_boundedvec_to_fit(
+        midds.mastering_place = Some(fill_boundedvec_to_fit(
             b'P',
             TrackMasteringPlace::bound(),
             current_size,
             target_size,
-        );
+        ));
 
         midds
     }

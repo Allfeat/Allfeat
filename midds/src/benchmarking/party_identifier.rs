@@ -41,7 +41,7 @@ impl BenchmarkHelperT<PartyIdentifier> for BenchmarkHelper {
                 full_name: Default::default(),
                 aliases: Default::default(),
                 person_type: PersonType::Solo,
-                genre: PersonGender::Male,
+                genre: Some(PersonGender::Male),
             }),
         }
     }

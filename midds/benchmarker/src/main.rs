@@ -42,7 +42,7 @@ fn main() {
 
 fn benchmark<T: Midds>(economic_info: Option<EconomicInfo>) {
     let max_size = T::max_encoded_len();
-    let mock_size = T::BenchmarkHelper::build_mock().encoded_size();
+    let mock_size = T::BenchmarkHelper::build_sized(300).encoded_size();
 
     println!("========== {} ==========", T::NAME);
 

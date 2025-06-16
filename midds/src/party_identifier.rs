@@ -97,7 +97,7 @@ pub struct Person {
     /// Indicates if this is a solo artist or a group.
     pub person_type: PersonType,
     /// Declared gender identity.
-    pub genre: PersonGender,
+    pub genre: Option<PersonGender>,
 }
 
 /// Data structure representing an organization or company involved in music industry.

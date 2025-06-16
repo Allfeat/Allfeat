@@ -57,10 +57,10 @@ pub struct MusicalWork {
     pub title: MusicalWorkTitle,
 
     /// The year the work was created (4-digit Gregorian year).
-    pub creation_year: MusicalWorkCreationYear,
+    pub creation_year: Option<MusicalWorkCreationYear>,
 
     /// Indicates whether the work is instrumental (i.e., without lyrics).
-    pub instrumental: bool,
+    pub instrumental: Option<bool>,
 
     /// The optional language of the lyrics (if any).
     pub language: Option<Language>,
@@ -72,7 +72,7 @@ pub struct MusicalWork {
     pub key: Option<Key>,
 
     /// Type of the musical work (original, medley, mashup, or adaptation).
-    pub work_type: MusicalWorkType,
+    pub work_type: Option<MusicalWorkType>,
 
     /// List of contributors to the work, along with their roles.
     pub participants: MusicalWorkParticipants,

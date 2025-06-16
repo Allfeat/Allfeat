@@ -38,12 +38,12 @@ impl BenchmarkHelperT<MusicalWork> for BenchmarkHelper {
         MusicalWork {
             iswc: Default::default(),
             title: Default::default(),
-            creation_year: 0,
-            instrumental: false,
+            creation_year: Some(0),
+            instrumental: Some(false),
             language: None,
             bpm: None,
             key: None,
-            work_type: MusicalWorkType::Original,
+            work_type: Some(MusicalWorkType::Original),
             participants: Default::default(),
         }
     }
@@ -66,6 +66,11 @@ impl BenchmarkHelperT<MusicalWork> for BenchmarkHelper {
         }
 
         midds.key = Some(Key::C);
+        if midds.encoded_size() >= target_size {
+            return midds;
+        }
+
+        midds.work_type = Some(MusicalWorkType::Original);
         if midds.encoded_size() >= target_size {
             return midds;
         }

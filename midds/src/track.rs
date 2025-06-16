@@ -76,34 +76,34 @@ pub struct Track {
     pub title_aliases: TrackTitleAliases,
 
     /// Year the track was recorded (4-digit Gregorian year).
-    pub recording_year: TrackRecordYear,
+    pub recording_year: Option<TrackRecordYear>,
 
     /// Primary musical genre associated with the track.
-    pub genre: TrackGenre,
+    pub genre: Option<TrackGenre>,
 
     /// Optional additional genres for more precise classification.
     pub genre_extras: TrackGenreExtras,
 
     /// Version or type of the track (e.g., Remix, Acoustic, Live).
-    pub version: TrackVersion,
+    pub version: Option<TrackVersion>,
 
     /// Duration of the track in seconds.
-    pub duration: TrackDuration,
+    pub duration: Option<TrackDuration>,
 
     /// Beats per minute (BPM), representing the tempo of the track.
-    pub bpm: TrackBeatsPerMinute,
+    pub bpm: Option<TrackBeatsPerMinute>,
 
     /// Musical key (e.g., C, G#, etc.) the track is in.
-    pub key: Key,
+    pub key: Option<Key>,
 
     /// Free-text field indicating where the recording took place.
-    pub recording_place: TrackRecordingPlace,
+    pub recording_place: Option<TrackRecordingPlace>,
 
     /// Free-text field indicating where the mixing of the track occurred.
-    pub mixing_place: TrackMixingPlace,
+    pub mixing_place: Option<TrackMixingPlace>,
 
     /// Free-text field indicating where the mastering of the track occurred.
-    pub mastering_place: TrackMasteringPlace,
+    pub mastering_place: Option<TrackMasteringPlace>,
 }
 
 // Implements the `Midds` trait, marking this struct as a MIDDS object.
