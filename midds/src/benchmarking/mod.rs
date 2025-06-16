@@ -95,6 +95,9 @@ where
                 low = mid + 1;
             }
             core::cmp::Ordering::Greater => {
+                if mid == 0 {
+                    break;
+                }
                 high = mid - 1;
             }
         }
