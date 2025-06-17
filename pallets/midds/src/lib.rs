@@ -147,17 +147,17 @@ pub mod pallet {
     pub(super) type NextId<T: Config<I>, I: 'static = ()> = StorageValue<_, u64, ValueQuery>;
 
     #[pallet::storage]
-    pub(super) type MiddsOf<T: Config<I>, I: 'static = ()> =
+    pub type MiddsOf<T: Config<I>, I: 'static = ()> =
         StorageMap<_, Blake2_128Concat, MiddsId, T::MIDDS>;
 
     #[pallet::storage]
-    pub(super) type MiddsInfoOf<T: Config<I>, I: 'static = ()> =
+    pub type MiddsInfoOf<T: Config<I>, I: 'static = ()> =
         StorageMap<_, Blake2_128Concat, MiddsId, MiddsInfo<T, I>>;
 
     /// Storage mapping Hashed MIDDS to the existing ID of that MIDDS for integrity and
     /// duplication check
     #[pallet::storage]
-    pub(super) type HashIndex<T: Config<I>, I: 'static = ()> =
+    pub type HashIndex<T: Config<I>, I: 'static = ()> =
         StorageMap<_, Blake2_128Concat, [u8; 32], MiddsId>;
 
     #[pallet::event]
