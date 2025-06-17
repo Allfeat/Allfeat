@@ -17,12 +17,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::*;
+use shared_runtime::weights;
 
 impl pallet_utility::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type RuntimeCall = RuntimeCall;
     type PalletsOrigin = OriginCaller;
-    // TODO: compute new weights
-    // type WeightInfo = weights::utility::AllfeatWeight<Runtime>;
-    type WeightInfo = ();
+    type WeightInfo = weights::utility::AllfeatWeight<Runtime>;
 }

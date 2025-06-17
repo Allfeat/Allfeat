@@ -417,7 +417,6 @@ where
         };
 
         let grandpa_config = sc_consensus_grandpa::Config {
-            // FIXME #1578 make this available through chainspec
             gossip_duration: Duration::from_millis(333),
             justification_generation_period: GRANDPA_JUSTIFICATION_PERIOD,
             name: Some(name),
