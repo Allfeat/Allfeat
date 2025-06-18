@@ -35,8 +35,8 @@ pub struct BenchmarkHelper;
 impl BenchmarkHelperT<PartyIdentifier> for BenchmarkHelper {
     fn build_base() -> PartyIdentifier {
         PartyIdentifier {
-            isni: Default::default(),
-            ipi: 0,
+            isni: None,
+            ipi: Some(0),
             party_type: PartyType::Person(Person {
                 full_name: Default::default(),
                 aliases: Default::default(),
@@ -54,7 +54,12 @@ impl BenchmarkHelperT<PartyIdentifier> for BenchmarkHelper {
         }
 
         let current_size = midds.encoded_size();
-        midds.isni = fill_boundedvec_to_fit(b'a', Isni::bound(), current_size, target_size);
+        midds.isni = Some(fill_boundedvec_to_fit(
+            b'a',
+            Isni::bound(),
+            current_size,
+            target_size,
+        ));
 
         let current_size = midds.encoded_size();
         if let PartyType::Person(ref mut person) = midds.party_type {

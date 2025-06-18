@@ -18,7 +18,9 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{Blake2_256, Parameter, StorageHasher, pallet_prelude::Member};
+use frame_support::{
+    Blake2_256, Parameter, StorageHasher, dispatch::DispatchResult, pallet_prelude::Member,
+};
 use parity_scale_codec::MaxEncodedLen;
 
 mod musical_work;
@@ -44,6 +46,11 @@ pub trait Midds: Parameter + Member + MaxEncodedLen {
     /// Return the integrity hash (with Blake2) of the encoded MIDDS.
     fn hash(&self) -> [u8; 32] {
         Blake2_256::hash(&self.encode())
+    }
+
+    /// A function that a MIDDS can implement to enforce specific validation logic.
+    fn validate(&self) -> DispatchResult {
+        Ok(())
     }
 }
 

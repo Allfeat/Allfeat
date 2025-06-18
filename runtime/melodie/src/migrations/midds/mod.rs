@@ -17,7 +17,4 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod party_identifier;
-pub use party_identifier::v2::PartyIdentifierV1ToV2;
-
-mod musical_work;
-pub use musical_work::v2::MusicalWorkV1ToV2;
+pub use party_identifier::v3::PartyIdentifierV2ToV3;

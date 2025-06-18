@@ -19,17 +19,15 @@
 use frame_support::{
     LOG_TARGET, migrations::VersionedMigration, traits::UncheckedOnRuntimeUpgrade,
 };
-use midds::pallet_prelude::{PartyIdentifier, PartyType, Person};
+use midds::pallet_prelude::PartyIdentifier;
 use pallet_midds::MiddsOf;
 use sp_core::Get;
 use sp_runtime::Weight;
 
-mod v1 {
+mod v2 {
     use midds::{
-        pallet_prelude::Entity,
-        types::party_identifier::{
-            Ipi, Isni, PersonAliases, PersonFullName, PersonGender, PersonType,
-        },
+        pallet_prelude::PartyType,
+        types::party_identifier::{Ipi, Isni},
     };
     use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
     use scale_info::TypeInfo;
@@ -54,97 +52,39 @@ mod v1 {
         /// Variant defining if the party is a `Person` or an `Entity` with data.
         pub party_type: PartyType,
     }
-
-    #[derive(
-        Clone,
-        PartialEq,
-        Eq,
-        Encode,
-        Decode,
-        DecodeWithMemTracking,
-        MaxEncodedLen,
-        RuntimeDebug,
-        TypeInfo,
-    )]
-    pub struct Person {
-        /// Legal name of the person.
-        pub full_name: PersonFullName,
-        /// Alternative names/stage names.
-        pub aliases: PersonAliases,
-        /// Indicates if this is a solo artist or a group.
-        pub person_type: PersonType,
-        /// Declared gender identity.
-        pub genre: PersonGender,
-    }
-
-    #[derive(
-        RuntimeDebug,
-        Clone,
-        PartialEq,
-        Eq,
-        Encode,
-        Decode,
-        DecodeWithMemTracking,
-        MaxEncodedLen,
-        TypeInfo,
-    )]
-    pub enum PartyType {
-        Person(Person),
-        Entity(Entity),
-    }
 }
 
-impl From<v1::Person> for Person {
-    fn from(value: v1::Person) -> Self {
+impl From<v2::PartyIdentifier> for PartyIdentifier {
+    fn from(value: v2::PartyIdentifier) -> Self {
         Self {
-            full_name: value.full_name,
-            aliases: value.aliases,
-            person_type: value.person_type,
-            genre: Some(value.genre),
+            ipi: Some(value.ipi),
+            isni: Some(value.isni),
+            party_type: value.party_type,
         }
     }
 }
 
-impl From<v1::PartyType> for PartyType {
-    fn from(value: v1::PartyType) -> Self {
-        match value {
-            v1::PartyType::Person(x) => PartyType::Person(x.into()),
-            v1::PartyType::Entity(x) => PartyType::Entity(x),
-        }
-    }
-}
-
-impl From<v1::PartyIdentifier> for PartyIdentifier {
-    fn from(value: v1::PartyIdentifier) -> Self {
-        Self {
-            ipi: value.ipi,
-            isni: value.isni,
-            party_type: value.party_type.into(),
-        }
-    }
-}
-
-pub type PartyIdentifierV1ToV2<T> = VersionedMigration<
-    1,
+pub type PartyIdentifierV2ToV3<T> = VersionedMigration<
     2,
-    InnerPartyIdentifierMigrationV1ToV2<T>,
+    3,
+    InnerPartyIdentifierMigrationV2ToV3<T>,
     pallet_midds::Pallet<T, crate::midds::PartyIdentifiers>,
     <T as frame_system::Config>::DbWeight,
 >;
 
-pub struct InnerPartyIdentifierMigrationV1ToV2<
+pub struct InnerPartyIdentifierMigrationV2ToV3<
     T: pallet_midds::Config<crate::midds::PartyIdentifiers>,
 >(core::marker::PhantomData<T>);
 
 impl<T: pallet_midds::Config<crate::midds::PartyIdentifiers>> UncheckedOnRuntimeUpgrade
-    for InnerPartyIdentifierMigrationV1ToV2<T>
+    for InnerPartyIdentifierMigrationV2ToV3<T>
 where
-    <T as pallet_midds::Config<crate::midds::PartyIdentifiers>>::MIDDS: From<v1::PartyIdentifier>,
+    <T as pallet_midds::Config<crate::midds::PartyIdentifiers>>::MIDDS: From<v2::PartyIdentifier>,
 {
     fn on_runtime_upgrade() -> Weight {
         let mut count = 0;
 
-        MiddsOf::<T, crate::midds::PartyIdentifiers>::translate::<v1::PartyIdentifier, _>(
+        MiddsOf::<T, crate::midds::PartyIdentifiers>::translate::<v2::PartyIdentifier, _>(
             |_k, old| {
                 count += 1;
                 Some(old.into())
@@ -153,7 +93,7 @@ where
 
         log::info!(
             target: LOG_TARGET,
-            "Storage migration v2 for party_identifiers finished.",
+            "Storage migration v3 for party_identifiers finished.",
         );
 
         // calculate and return migration weights

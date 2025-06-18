@@ -15,6 +15,7 @@ log = { workspace = true }
 
 # Substrate
 frame-support = { workspace = true }
+sp-runtime = { workspace = true }
 parity-scale-codec = { workspace = true }
 scale-info = { workspace = true }
 
@@ -27,6 +28,7 @@ std = [
 	"frame-support/std",
 	"parity-scale-codec/std",
 	"scale-info/std",
+	"sp-runtime/std",
 	"log/std",
 	"allfeat-music-genres/std"
 ]

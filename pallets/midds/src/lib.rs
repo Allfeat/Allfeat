@@ -199,6 +199,9 @@ pub mod pallet {
         pub fn register(origin: OriginFor<T>, midds: Box<T::MIDDS>) -> DispatchResult {
             let provider = T::ProviderOrigin::ensure_origin(origin)?;
             let midds = *midds;
+
+            midds.validate()?;
+
             let size = midds.encoded_size() as u32;
             let data_cost = Self::calculate_midds_colateral(size);
 
