@@ -44,9 +44,13 @@ pub type Isni = BoundedVec<u8, ConstU32<16>>;
 /// Stored as a `u64`, since the IPI number is an 11-digit identifier.
 pub type Ipi = u64;
 
-/// Identifies whether a artist is a solo one or a group.
-/// - `Person`: a single individual.
-/// - `Group`: a group of people (band, duo, etc.).
+/// Identifies the type of artist, specifying whether the artist is a solo performer or a collective entity.
+///
+/// - `Person`: A single individual artist.
+/// - `Group`: A group of people, such as a band or duo.
+/// - `Orchestra`: A large instrumental ensemble, typically classical.
+/// - `Choir`: A group of singers performing together, typically choral music.
+/// - `Other`: Any other type of artist not covered by the above categories.
 #[derive(
     Clone,
     PartialEq,
@@ -61,6 +65,9 @@ pub type Ipi = u64;
 pub enum ArtistType {
     Person,
     Group,
+    Orchestra,
+    Choir,
+    Other,
 }
 
 /// Identifies the the type of an organization.
