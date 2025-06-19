@@ -600,10 +600,16 @@ pub enum Country {
     ZW,
 }
 
-/// Enum representing the twelve keys of the chromatic scale.
+/// Enum representing all major and minor keys, including sharps, flats,
+/// and their enharmonic equivalents.
 ///
-/// This is used to specify the musical key of a track or composition.
-/// It covers both natural and sharp/flat equivalents.
+/// This can be used to specify the musical key of a track or composition
+/// with precise notation.
+///
+/// Notes:
+/// - `m` suffix indicates minor.
+/// - `s` indicates sharp, `b` indicates flat.
+/// - Enharmonic equivalents are preserved for clarity and exact notation.
 #[repr(u8)]
 #[derive(
     RuntimeDebug,
@@ -618,16 +624,46 @@ pub enum Country {
     TypeInfo,
 )]
 pub enum Key {
-    C = 0,
-    Cs = 1, // C♯ / D♭
-    D = 2,
-    Ds = 3, // D♯ / E♭
-    E = 4,
-    F = 5,
-    Fs = 6, // F♯ / G♭
-    G = 7,
-    Gs = 8, // G♯ / A♭
-    A = 9,
-    As = 10, // A♯ / B♭
-    B = 11,
+    A = 0,
+    Am = 1,
+    As = 2,  // A#
+    Asm = 3, // A#m
+    Ab = 4,
+    Abm = 5,
+    B = 6,
+    Bm = 7,
+    Bs = 8,  // B#
+    Bsm = 9, // B#m
+    Bb = 10,
+    Bbm = 11,
+    C = 12,
+    Cm = 13,
+    Cs = 14,  // C#
+    Csm = 15, // C#m
+    Cb = 16,
+    Cbm = 17,
+    D = 18,
+    Dm = 19,
+    Ds = 20,  // D#
+    Dsm = 21, // D#m
+    Db = 22,
+    Dbm = 23,
+    E = 24,
+    Em = 25,
+    Es = 26,  // E#
+    Esm = 27, // E#m
+    Eb = 28,
+    Ebm = 29,
+    F = 30,
+    Fm = 31,
+    Fs = 32,  // F#
+    Fsm = 33, // F#m
+    Fb = 34,
+    Fbm = 35,
+    G = 36,
+    Gm = 37,
+    Gs = 38,  // G#
+    Gsm = 39, // G#m
+    Gb = 40,
+    Gbm = 41,
 }
