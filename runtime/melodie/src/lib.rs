@@ -32,7 +32,6 @@ use alloc::vec::Vec;
 pub use allfeat_primitives::{AccountId, Address, Balance, BlockNumber, Moment, Nonce, Signature};
 
 use apis::RUNTIME_API_VERSIONS;
-use migrations::midds::PartyIdentifierV2ToV3;
 use sp_runtime::{generic, traits::NumberFor};
 use sp_version::{RuntimeVersion, runtime_version};
 
@@ -123,7 +122,7 @@ pub type RuntimeExecutive = frame_executive::Executive<
 ///
 /// This can be a tuple of types, each implementing `OnRuntimeUpgrade`.
 #[allow(unused_parens)]
-type Migrations = (PartyIdentifierV2ToV3<Runtime>);
+type Migrations = ();
 
 #[frame_support::runtime]
 mod runtime {

@@ -21,11 +21,11 @@ extern crate alloc;
 use parity_scale_codec::Encode;
 
 use crate::{
-    pallet_prelude::PartyIdentifier,
-    party_identifier::{
-        Isni, PartyType, Person, PersonAliases, PersonFullName, PersonGender, PersonType,
+    pallet_prelude::{Artist, PartyIdentifier},
+    party_identifier::{Isni, PartyType},
+    types::party_identifier::{
+        ArtistAlias, ArtistAliases, ArtistFullName, ArtistGender, ArtistType,
     },
-    types::party_identifier::PersonAlias,
 };
 
 use super::{BenchmarkHelperT, fill_boundedvec_to_fit};
@@ -37,11 +37,11 @@ impl BenchmarkHelperT<PartyIdentifier> for BenchmarkHelper {
         PartyIdentifier {
             isni: None,
             ipi: Some(0),
-            party_type: PartyType::Person(Person {
+            party_type: PartyType::Artist(Artist {
                 full_name: Default::default(),
                 aliases: Default::default(),
-                person_type: PersonType::Solo,
-                genre: Some(PersonGender::Male),
+                artist_type: ArtistType::Solo,
+                genre: Some(ArtistGender::Neither),
             }),
         }
     }
@@ -62,19 +62,18 @@ impl BenchmarkHelperT<PartyIdentifier> for BenchmarkHelper {
         ));
 
         let current_size = midds.encoded_size();
-        if let PartyType::Person(ref mut person) = midds.party_type {
-            person.full_name =
-                fill_boundedvec_to_fit(b'F', PersonFullName::bound(), current_size, target_size);
+        if let PartyType::Artist(ref mut artist) = midds.party_type {
+            artist.full_name =
+                fill_boundedvec_to_fit(b'F', ArtistFullName::bound(), current_size, target_size);
         }
 
         let current_size = midds.encoded_size();
-        if let PartyType::Person(ref mut person) = midds.party_type {
-            let mut alias = PersonAlias::new();
+        if let PartyType::Artist(ref mut artist) = midds.party_type {
+            let mut alias = ArtistAlias::new();
             alias.try_push(b'F').unwrap();
 
-            // TODO: Make it more precise by correctly filling the alias possibilites length
-            person.aliases =
-                fill_boundedvec_to_fit(alias, PersonAliases::bound(), current_size, target_size);
+            artist.aliases =
+                fill_boundedvec_to_fit(alias, ArtistAliases::bound(), current_size, target_size);
         }
 
         midds

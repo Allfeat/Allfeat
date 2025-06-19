@@ -16,15 +16,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::Midds;
+use crate::{
+    Midds,
+    types::party_identifier::{ArtistAliases, ArtistFullName, ArtistGender, ArtistType},
+};
 use frame_support::{dispatch::DispatchResult, sp_runtime::RuntimeDebug};
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_runtime::DispatchError;
 
-pub use super::types::party_identifier::{
-    EntityName, EntityType, Ipi, Isni, PersonAliases, PersonFullName, PersonGender, PersonType,
-};
+pub use super::types::party_identifier::{EntityName, EntityType, Ipi, Isni};
 
 #[cfg(feature = "runtime-benchmarks")]
 use crate::benchmarking::party_identifier::BenchmarkHelper;
@@ -49,7 +50,7 @@ pub struct PartyIdentifier {
     /// IPI identifier (11-digit u64). Optional but either `isni` or `ipi` must
     /// be provided.
     pub ipi: Option<Ipi>,
-    /// Variant defining if the party is a `Person` or an `Entity` with data.
+    /// Variant defining if the party is a `Artist` or an `Entity` with data.
     pub party_type: PartyType,
 }
 
@@ -86,7 +87,7 @@ impl Midds for PartyIdentifier {
     TypeInfo,
 )]
 pub enum PartyType {
-    Person(Person),
+    Artist(Artist),
     Entity(Entity),
 }
 
@@ -102,15 +103,15 @@ pub enum PartyType {
     RuntimeDebug,
     TypeInfo,
 )]
-pub struct Person {
-    /// Legal name of the person.
-    pub full_name: PersonFullName,
+pub struct Artist {
+    /// Legal name of the artist.
+    pub full_name: ArtistFullName,
     /// Alternative names/stage names.
-    pub aliases: PersonAliases,
+    pub aliases: ArtistAliases,
     /// Indicates if this is a solo artist or a group.
-    pub person_type: PersonType,
+    pub artist_type: ArtistType,
     /// Declared gender identity.
-    pub genre: Option<PersonGender>,
+    pub genre: Option<ArtistGender>,
 }
 
 /// Data structure representing an organization or company involved in music industry.

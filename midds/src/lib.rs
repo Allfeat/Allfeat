@@ -57,7 +57,7 @@ pub trait Midds: Parameter + Member + MaxEncodedLen {
 pub mod pallet_prelude {
     pub use super::{
         musical_work::MusicalWork,
-        party_identifier::{Entity, PartyIdentifier, PartyType, Person},
+        party_identifier::{Artist, Entity, PartyIdentifier, PartyType},
         release::Release,
         track::Track,
     };
