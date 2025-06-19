@@ -40,7 +40,7 @@ impl BenchmarkHelperT<PartyIdentifier> for BenchmarkHelper {
             party_type: PartyType::Artist(Artist {
                 full_name: Default::default(),
                 aliases: Default::default(),
-                artist_type: ArtistType::Solo,
+                artist_type: ArtistType::Person,
                 genre: Some(ArtistGender::Neither),
             }),
         }

@@ -45,7 +45,7 @@ pub type Isni = BoundedVec<u8, ConstU32<16>>;
 pub type Ipi = u64;
 
 /// Identifies whether a artist is a solo one or a group.
-/// - `Solo`: a single individual.
+/// - `Person`: a single individual.
 /// - `Group`: a group of people (band, duo, etc.).
 #[derive(
     Clone,
@@ -59,7 +59,7 @@ pub type Ipi = u64;
     TypeInfo,
 )]
 pub enum ArtistType {
-    Solo,
+    Person,
     Group,
 }
 
