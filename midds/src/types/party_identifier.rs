@@ -88,7 +88,6 @@ pub enum ArtistType {
 pub enum EntityType {
     Publisher,
     Producer,
-    DistribAggr,
 }
 
 /// Declared gender identity of a artist.
