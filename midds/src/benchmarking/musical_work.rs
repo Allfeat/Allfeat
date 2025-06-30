@@ -21,8 +21,8 @@ use crate::{
     musical_work::MusicalWork,
     types::{
         musical_work::{
-            Iswc, MusicalWorkParticipants, MusicalWorkTitle, MusicalWorkType, Participant,
-            ParticipantRole,
+            CatalogNumber, ClassicalInfo, Iswc, MusicalWorkParticipants, MusicalWorkTitle,
+            MusicalWorkType, Opus, Participant, ParticipantRole,
         },
         utils::{Key, Language},
     },
@@ -45,6 +45,7 @@ impl BenchmarkHelperT<MusicalWork> for BenchmarkHelper {
             key: None,
             work_type: None,
             participants: Default::default(),
+            classical_info: None,
         }
     }
 
@@ -74,6 +75,34 @@ impl BenchmarkHelperT<MusicalWork> for BenchmarkHelper {
         if midds.encoded_size() >= target_size {
             return midds;
         }
+
+        let mut classical_info = ClassicalInfo {
+            opus: Default::default(),
+            catalog_number: Default::default(),
+            number_of_voices: Some(1),
+        };
+        midds.classical_info = Some(classical_info.clone());
+        if midds.encoded_size() >= target_size {
+            return midds;
+        }
+
+        let current_size = midds.encoded_size();
+        classical_info.catalog_number = Some(fill_boundedvec_to_fit(
+            b'a',
+            CatalogNumber::bound(),
+            current_size,
+            target_size,
+        ));
+        midds.classical_info = Some(classical_info.clone());
+
+        let current_size = midds.encoded_size();
+        classical_info.opus = Some(fill_boundedvec_to_fit(
+            b'a',
+            Opus::bound(),
+            current_size,
+            target_size,
+        ));
+        midds.classical_info = Some(classical_info);
 
         let current_size = midds.encoded_size();
         midds.title =

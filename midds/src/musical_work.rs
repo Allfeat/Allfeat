@@ -24,7 +24,7 @@ use crate::{
     Midds,
     types::{
         musical_work::{
-            Iswc, MusicalWorkBpm, MusicalWorkCreationYear, MusicalWorkParticipants,
+            ClassicalInfo, Iswc, MusicalWorkBpm, MusicalWorkCreationYear, MusicalWorkParticipants,
             MusicalWorkTitle, MusicalWorkType,
         },
         utils::{Key, Language},
@@ -76,6 +76,9 @@ pub struct MusicalWork {
 
     /// List of contributors to the work, along with their roles.
     pub participants: MusicalWorkParticipants,
+
+    /// Additional info if the work is a classical one.
+    pub classical_info: Option<ClassicalInfo>,
 }
 
 /// Trait implementation allowing the musical work to be used

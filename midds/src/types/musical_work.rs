@@ -42,6 +42,14 @@ pub type Iswc = BoundedVec<u8, ConstU32<11>>;
 /// Used in medleys, mashups, and adaptations.
 pub type DerivedWorks = BoundedVec<MiddsId, ConstU32<512>>;
 
+/// Opus number of a classical work.
+/// Example: "Op. 27 No. 2"
+pub type Opus = BoundedVec<u8, ConstU32<128>>;
+
+/// Catalog number referencing a thematic index (e.g., BWV, K., Hob.).
+/// Example: "BWV 1007", "K. 550"
+pub type CatalogNumber = BoundedVec<u8, ConstU32<128>>;
+
 /// Enumeration of the types of musical works.
 #[derive(
     Clone,
@@ -107,4 +115,23 @@ pub enum ParticipantRole {
     Adapter,
     /// Publisher who reviewed or modified the work in a non-creative capacity.
     Publisher,
+}
+
+/// Struct representing some additional informations if the work is a classical one.
+#[derive(
+    Clone,
+    Default,
+    PartialEq,
+    Eq,
+    Encode,
+    Decode,
+    DecodeWithMemTracking,
+    MaxEncodedLen,
+    RuntimeDebug,
+    TypeInfo,
+)]
+pub struct ClassicalInfo {
+    pub opus: Option<Opus>,
+    pub catalog_number: Option<CatalogNumber>,
+    pub number_of_voices: Option<u16>,
 }
