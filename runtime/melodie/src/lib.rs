@@ -32,6 +32,7 @@ use alloc::vec::Vec;
 pub use allfeat_primitives::{AccountId, Address, Balance, BlockNumber, Moment, Nonce, Signature};
 
 use apis::RUNTIME_API_VERSIONS;
+use migrations::midds::{musical_work::MusicalWorkV2ToV3, track::TrackV1ToV2};
 use sp_runtime::{generic, traits::NumberFor};
 use sp_version::{RuntimeVersion, runtime_version};
 
@@ -122,7 +123,7 @@ pub type RuntimeExecutive = frame_executive::Executive<
 ///
 /// This can be a tuple of types, each implementing `OnRuntimeUpgrade`.
 #[allow(unused_parens)]
-type Migrations = ();
+type Migrations = (MusicalWorkV2ToV3<Runtime>, TrackV1ToV2<Runtime>);
 
 #[frame_support::runtime]
 mod runtime {

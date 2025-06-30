@@ -16,4 +16,5 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod party_identifier;
+pub mod musical_work;
+pub mod track;

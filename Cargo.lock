@@ -5366,6 +5366,7 @@ dependencies = [
 name = "melodie-runtime"
 version = "1.0.0-dev"
 dependencies = [
+ "allfeat-music-genres",
  "allfeat-primitives",
  "array-bytes 9.2.1",
  "frame-benchmarking",
