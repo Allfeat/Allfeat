@@ -126,6 +126,6 @@ pub enum ParticipantRole {
     Arranger,
     /// Adapter of music or lyrics from original sources.
     Adapter,
-    /// Editor who reviewed or modified the work in a non-creative capacity.
-    Editor,
+    /// Publisher who reviewed or modified the work in a non-creative capacity.
+    Publisher,
 }
