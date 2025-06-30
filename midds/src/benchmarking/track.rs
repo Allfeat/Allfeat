@@ -22,7 +22,7 @@ use crate::{
     pallet_prelude::Track,
     types::{
         track::{
-            Isrc, TrackContributors, TrackGenreExtras, TrackMasteringPlace, TrackMixingPlace,
+            Isrc, TrackContributors, TrackGenres, TrackMasteringPlace, TrackMixingPlace,
             TrackPerformers, TrackProducers, TrackRecordingPlace, TrackTitle, TrackTitleAliases,
             TrackVersion,
         },
@@ -48,8 +48,7 @@ impl BenchmarkHelperT<Track> for BenchmarkHelper {
             title: Default::default(),
             title_aliases: Default::default(),
             recording_year: None,
-            genre: None,
-            genre_extras: Default::default(),
+            genres: Default::default(),
             version: None,
             duration: None,
             bpm: None,
@@ -68,10 +67,6 @@ impl BenchmarkHelperT<Track> for BenchmarkHelper {
         }
 
         midds.recording_year = Some(2019);
-        if midds.encoded_size() >= target_size {
-            return midds;
-        }
-        midds.genre = Some(GenreId::Electronic);
         if midds.encoded_size() >= target_size {
             return midds;
         }
@@ -121,8 +116,8 @@ impl BenchmarkHelperT<Track> for BenchmarkHelper {
 
         let genre = GenreId::Swing;
         let current_size = midds.encoded_size();
-        midds.genre_extras =
-            fill_boundedvec_to_fit(genre, TrackGenreExtras::bound(), current_size, target_size);
+        midds.genres =
+            fill_boundedvec_to_fit(genre, TrackGenres::bound(), current_size, target_size);
         let current_size = midds.encoded_size();
         midds.recording_place = Some(fill_boundedvec_to_fit(
             b'P',

@@ -27,10 +27,9 @@ use crate::{
     Midds, MiddsId,
     types::{
         track::{
-            Isrc, TrackBeatsPerMinute, TrackContributors, TrackDuration, TrackGenre,
-            TrackGenreExtras, TrackMasteringPlace, TrackMixingPlace, TrackPerformers,
-            TrackProducers, TrackRecordYear, TrackRecordingPlace, TrackTitle, TrackTitleAliases,
-            TrackVersion,
+            Isrc, TrackBeatsPerMinute, TrackContributors, TrackDuration, TrackGenres,
+            TrackMasteringPlace, TrackMixingPlace, TrackPerformers, TrackProducers,
+            TrackRecordYear, TrackRecordingPlace, TrackTitle, TrackTitleAliases, TrackVersion,
         },
         utils::Key,
     },
@@ -78,11 +77,8 @@ pub struct Track {
     /// Year the track was recorded (4-digit Gregorian year).
     pub recording_year: Option<TrackRecordYear>,
 
-    /// Primary musical genre associated with the track.
-    pub genre: Option<TrackGenre>,
-
-    /// Optional additional genres for more precise classification.
-    pub genre_extras: TrackGenreExtras,
+    /// Music genres attributed to this recording.
+    pub genres: TrackGenres,
 
     /// Version or type of the track (e.g., Remix, Acoustic, Live).
     pub version: Option<TrackVersion>,

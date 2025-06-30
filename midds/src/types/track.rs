@@ -35,11 +35,8 @@ pub type TrackTitleAliases = BoundedVec<TrackTitle, ConstU32<16>>;
 /// The year the track was recorded (4-digit Gregorian year).
 pub type TrackRecordYear = u16;
 
-/// The primary genre associated with the track.
-pub type TrackGenre = GenreId;
-
 /// Additional genres that describe the track.
-pub type TrackGenreExtras = BoundedVec<GenreId, ConstU32<5>>;
+pub type TrackGenres = BoundedVec<GenreId, ConstU32<5>>;
 
 /// Total duration of the track in seconds.
 pub type TrackDuration = u16;
