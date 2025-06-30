@@ -40,7 +40,7 @@ pub type Iswc = BoundedVec<u8, ConstU32<11>>;
 
 /// A collection of references to other musical works this work is derived from.
 /// Used in medleys, mashups, and adaptations.
-pub type DerivedWork = BoundedVec<MiddsId, ConstU32<512>>;
+pub type DerivedWorks = BoundedVec<MiddsId, ConstU32<512>>;
 
 /// Enumeration of the types of musical works.
 #[derive(
@@ -58,32 +58,11 @@ pub enum MusicalWorkType {
     /// A standalone, original composition.
     Original,
     /// A combination of multiple existing works (referenced via their IDs).
-    Medley(DerivedWork),
+    Medley(DerivedWorks),
     /// A mixed version using components of existing works.
-    Mashup(DerivedWork),
-    /// A modified version of existing work(s), with optional lyrics or melody changes.
-    Adaptation(AdapationWork),
-}
-
-/// Detailed structure describing how a work has been adapted from other works.
-#[derive(
-    Clone,
-    PartialEq,
-    Eq,
-    Encode,
-    Decode,
-    DecodeWithMemTracking,
-    MaxEncodedLen,
-    RuntimeDebug,
-    TypeInfo,
-)]
-pub struct AdapationWork {
-    /// List of original works it adapts.
-    pub references: DerivedWork,
-    /// Indicates if lyrics have been adapted.
-    pub lyrics_adaptation: bool,
-    /// Indicates if the music/melody has been adapted.
-    pub song_adaptation: bool,
+    Mashup(DerivedWorks),
+    /// A modified version of existing work(s), with a reference to the adapted work.
+    Adaptation(MiddsId),
 }
 
 /// Describes a participant in the creation of the musical work.
