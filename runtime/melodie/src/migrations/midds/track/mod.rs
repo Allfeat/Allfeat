@@ -21,7 +21,10 @@ use frame_support::{
 };
 use midds::{
     pallet_prelude::Track,
-    types::{track::TrackGenres, utils::Key},
+    types::{
+        track::{TrackGenres, TrackVersion},
+        utils::Key,
+    },
 };
 use pallet_midds::MiddsOf;
 use sp_core::Get;
@@ -34,7 +37,7 @@ mod legacy {
         types::track::{
             Isrc, TrackBeatsPerMinute, TrackContributors, TrackDuration, TrackMasteringPlace,
             TrackMixingPlace, TrackPerformers, TrackProducers, TrackRecordYear,
-            TrackRecordingPlace, TrackTitle, TrackTitleAliases, TrackVersion,
+            TrackRecordingPlace, TrackTitle, TrackTitleAliases,
         },
     };
     use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
@@ -75,6 +78,64 @@ mod legacy {
         A = 9,
         As = 10, // A♯ / B♭
         B = 11,
+    }
+
+    #[repr(u8)]
+    #[derive(
+        Clone,
+        Copy,
+        PartialEq,
+        Eq,
+        Encode,
+        Decode,
+        DecodeWithMemTracking,
+        TypeInfo,
+        MaxEncodedLen,
+        RuntimeDebug,
+    )]
+    pub enum TrackVersion {
+        /// Original recording version.
+        Original = 0,
+        /// Shortened version for radio broadcasting.
+        RadioEdit = 1,
+        /// Extended version, typically with added sections.
+        Extended = 2,
+        /// Instrument-only version.
+        Instrumental = 3,
+        /// Vocals-only version.
+        Acapella = 4,
+        /// A modified or remixed version by another artist or producer.
+        Remix = 5,
+        /// A recording of a live performance.
+        Live = 6,
+        /// An acoustic version, usually unplugged.
+        Acoustic = 7,
+        /// Early or incomplete version of a track.
+        Demo = 8,
+        /// Newly recorded version of an existing track.
+        ReRecorded = 9,
+        /// Different take/version of the same session.
+        AlternateTake = 10,
+        /// Version recorded with an orchestral arrangement.
+        Orchestral = 11,
+        /// Karaoke version without lead vocals.
+        Karaoke = 12,
+        /// Version with explicit lyrics.
+        Clean = 13,
+        /// Censored or family-safe version.
+        Explicit = 14,
+        /// TV-friendly version used in broadcast.
+        TvTrack = 15,
+        /// Dub version, typically with reverb-heavy effects.
+        Dub = 16,
+        /// Generic edit, purpose-specific.
+        Edit = 17,
+        /// Mono audio version.
+        Mono = 18,
+        /// Stereo audio version.
+        Stereo = 19,
+        /// Rehearsal take, often raw or unpolished.
+        Rehearsal = 20,
     }
 
     /// Legacy
@@ -165,6 +226,32 @@ impl From<legacy::Key> for Key {
     }
 }
 
+impl From<legacy::TrackVersion> for TrackVersion {
+    fn from(old: legacy::TrackVersion) -> Self {
+        match old {
+            legacy::TrackVersion::Original => TrackVersion::Original,
+            legacy::TrackVersion::RadioEdit => TrackVersion::RadioEdit,
+            legacy::TrackVersion::Extended => TrackVersion::Extended,
+            legacy::TrackVersion::Instrumental => TrackVersion::Instrumental,
+            legacy::TrackVersion::Acapella => TrackVersion::Acapella,
+            legacy::TrackVersion::Remix => TrackVersion::Remix,
+            legacy::TrackVersion::Live => TrackVersion::Live,
+            legacy::TrackVersion::Acoustic => TrackVersion::Acoustic,
+            legacy::TrackVersion::Demo => TrackVersion::Demo,
+            legacy::TrackVersion::ReRecorded => TrackVersion::ReRecorded,
+            legacy::TrackVersion::AlternateTake => TrackVersion::AlternateTake,
+            legacy::TrackVersion::Orchestral => TrackVersion::Orchestral,
+            legacy::TrackVersion::Karaoke => TrackVersion::Karaoke,
+            legacy::TrackVersion::Clean => TrackVersion::Clean,
+            legacy::TrackVersion::Explicit => TrackVersion::Original,
+            legacy::TrackVersion::TvTrack => TrackVersion::TvTrack,
+            legacy::TrackVersion::Dub => TrackVersion::Dub,
+            legacy::TrackVersion::Rehearsal => TrackVersion::Rehearsal,
+            _ => TrackVersion::Edit,
+        }
+    }
+}
+
 impl From<legacy::Track> for Track {
     fn from(value: legacy::Track) -> Self {
         let mut genres: TrackGenres = Default::default();
@@ -184,7 +271,7 @@ impl From<legacy::Track> for Track {
             title_aliases: value.title_aliases,
             recording_year: value.recording_year,
             genres,
-            version: value.version,
+            version: value.version.map(TrackVersion::from),
             duration: value.duration,
             bpm: value.bpm,
             key: value.key.map(Key::from),

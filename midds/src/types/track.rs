@@ -62,8 +62,6 @@ pub type TrackMixingPlace = BoundedVec<u8, ConstU32<256>>;
 /// Free-text field indicating where the mastering of the track was performed.
 pub type TrackMasteringPlace = BoundedVec<u8, ConstU32<256>>;
 
-/// Enumeration of common versions or variants of a track.
-/// Helps categorize the nature or use of a specific recording.
 #[repr(u8)]
 #[derive(
     Clone,
@@ -80,44 +78,44 @@ pub type TrackMasteringPlace = BoundedVec<u8, ConstU32<256>>;
 pub enum TrackVersion {
     /// Original recording version.
     Original = 0,
+    /// A recording of a live performance.
+    Live = 1,
     /// Shortened version for radio broadcasting.
-    RadioEdit = 1,
-    /// Extended version, typically with added sections.
-    Extended = 2,
-    /// Instrument-only version.
-    Instrumental = 3,
-    /// Vocals-only version.
-    Acapella = 4,
+    RadioEdit = 2,
+    /// TV-friendly version used in broadcast.
+    TvTrack = 3,
+    /// Single release version.
+    Single = 4,
     /// A modified or remixed version by another artist or producer.
     Remix = 5,
-    /// A recording of a live performance.
-    Live = 6,
+    /// A cover version performed by a different artist.
+    Cover = 6,
     /// An acoustic version, usually unplugged.
     Acoustic = 7,
-    /// Early or incomplete version of a track.
-    Demo = 8,
-    /// Newly recorded version of an existing track.
-    ReRecorded = 9,
-    /// Different take/version of the same session.
-    AlternateTake = 10,
+    /// Vocals-only version.
+    Acapella = 8,
+    /// Instrument-only version.
+    Instrumental = 9,
     /// Version recorded with an orchestral arrangement.
-    Orchestral = 11,
+    Orchestral = 10,
+    /// Extended version, typically with added sections.
+    Extended = 11,
+    /// Different take/version of the same session.
+    AlternateTake = 12,
+    /// Newly recorded version of an existing track.
+    ReRecorded = 13,
     /// Karaoke version without lead vocals.
-    Karaoke = 12,
-    /// Version with explicit lyrics.
-    Clean = 13,
-    /// Censored or family-safe version.
-    Explicit = 14,
-    /// TV-friendly version used in broadcast.
-    TvTrack = 15,
+    Karaoke = 14,
+    /// Dance version, often remixed for clubs.
+    Dance = 15,
     /// Dub version, typically with reverb-heavy effects.
     Dub = 16,
-    /// Generic edit, purpose-specific.
-    Edit = 17,
-    /// Mono audio version.
-    Mono = 18,
-    /// Stereo audio version.
-    Stereo = 19,
+    /// Version with explicit lyrics.
+    Clean = 17,
     /// Rehearsal take, often raw or unpolished.
-    Rehearsal = 20,
+    Rehearsal = 18,
+    /// Early or incomplete version of a track.
+    Demo = 19,
+    /// Generic edit, purpose-specific.
+    Edit = 20,
 }
