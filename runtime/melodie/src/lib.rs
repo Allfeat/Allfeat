@@ -32,7 +32,7 @@ use alloc::vec::Vec;
 pub use allfeat_primitives::{AccountId, Address, Balance, BlockNumber, Moment, Nonce, Signature};
 
 use apis::RUNTIME_API_VERSIONS;
-use migrations::midds::{musical_work::MusicalWorkV2ToV3, track::TrackV1ToV2};
+use migrations::midds::party_identifier::PartyIdentifierV3ToV4;
 use sp_runtime::{generic, traits::NumberFor};
 use sp_version::{RuntimeVersion, runtime_version};
 
@@ -68,7 +68,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
     spec_name: alloc::borrow::Cow::Borrowed("allfeat-melodie-2"),
     impl_name: alloc::borrow::Cow::Borrowed("allfeatlabs-melodie-2"),
     authoring_version: 1,
-    spec_version: 600,
+    spec_version: 610,
     impl_version: 0,
     apis: RUNTIME_API_VERSIONS,
     transaction_version: 2,
@@ -123,7 +123,7 @@ pub type RuntimeExecutive = frame_executive::Executive<
 ///
 /// This can be a tuple of types, each implementing `OnRuntimeUpgrade`.
 #[allow(unused_parens)]
-type Migrations = (MusicalWorkV2ToV3<Runtime>, TrackV1ToV2<Runtime>);
+type Migrations = (PartyIdentifierV3ToV4<Runtime>);
 
 #[frame_support::runtime]
 mod runtime {
