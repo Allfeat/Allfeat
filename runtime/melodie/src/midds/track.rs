@@ -18,8 +18,6 @@
 
 use crate::*;
 
-extern crate midds as midds_crate;
-
 use super::Tracks;
 use allfeat_primitives::Balance;
 use frame_support::{PalletId, parameter_types};
@@ -47,7 +45,7 @@ impl pallet_midds::Config<Tracks> for Runtime {
     type Timestamp = Timestamp;
     type Currency = Balances;
     type RuntimeHoldReason = RuntimeHoldReason;
-    type MIDDS = midds_crate::pallet_prelude::Track;
+    type MIDDS = allfeat_midds::track::Track;
     type ProviderOrigin = EnsureSigned<Self::AccountId>;
     type ByteDepositCost = ByteDepositCost;
     type UnregisterPeriod = UnregisterPeriod;

@@ -32,7 +32,6 @@ use alloc::vec::Vec;
 pub use allfeat_primitives::{AccountId, Address, Balance, BlockNumber, Moment, Nonce, Signature};
 
 use apis::RUNTIME_API_VERSIONS;
-use migrations::midds::party_identifier::PartyIdentifierV3ToV4;
 use sp_runtime::{generic, traits::NumberFor};
 use sp_version::{RuntimeVersion, runtime_version};
 
@@ -56,8 +55,6 @@ pub use pallets::*;
 mod genesis;
 mod midds;
 pub use midds::*;
-
-mod migrations;
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarks;
@@ -123,7 +120,7 @@ pub type RuntimeExecutive = frame_executive::Executive<
 ///
 /// This can be a tuple of types, each implementing `OnRuntimeUpgrade`.
 #[allow(unused_parens)]
-type Migrations = (PartyIdentifierV3ToV4<Runtime>);
+type Migrations = ();
 
 #[frame_support::runtime]
 mod runtime {

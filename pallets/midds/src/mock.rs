@@ -27,9 +27,9 @@ use frame_support::{
 use frame_system::EnsureSigned;
 
 #[cfg(feature = "runtime-benchmarks")]
-use midds::pallet_prelude::BenchmarkHelperT;
+use allfeat_midds::benchmarking::BenchmarkHelperT;
 
-use midds::Midds;
+use allfeat_midds::Midds;
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
@@ -56,11 +56,15 @@ pub struct BenchmarkHelperMock;
 
 #[cfg(feature = "runtime-benchmarks")]
 impl BenchmarkHelperT<MockMiddsStruct> for BenchmarkHelperMock {
-    fn build_base() -> MockMiddsStruct {
+    fn min_size() -> MockMiddsStruct {
         MockMiddsStruct { value: 0 }
     }
 
-    fn build_sized(_target_size: usize) -> MockMiddsStruct {
+    fn max_size() -> MockMiddsStruct {
+        MockMiddsStruct { value: 0 }
+    }
+
+    fn variable_size(_complexity: f32) -> MockMiddsStruct {
         MockMiddsStruct { value: 0 }
     }
 }

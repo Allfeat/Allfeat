@@ -21,12 +21,11 @@
 use super::*;
 use crate::Pallet as MiddsPallet;
 
+use allfeat_midds::Midds;
+use allfeat_midds::benchmarking::BenchmarkHelperT;
 use frame_benchmarking::v2::*;
 use frame_support::{sp_runtime::traits::Bounded, traits::fungible::Mutate};
 use frame_system::RawOrigin;
-use midds::Midds;
-
-use midds::pallet_prelude::BenchmarkHelperT;
 
 fn assert_last_event<T: Config<I>, I: 'static>(generic_event: <T as Config<I>>::RuntimeEvent) {
     frame_system::Pallet::<T>::assert_last_event(generic_event.into());
@@ -37,14 +36,9 @@ mod benchmarks {
     use super::*;
 
     #[benchmark]
-    fn register(
-        x: Linear<
-            { <T::MIDDS as Midds>::BenchmarkHelper::build_base().encoded_size() as u32 },
-            { T::MIDDS::max_encoded_len() as u32 },
-        >,
-    ) {
+    fn register(x: Linear<0, 100>) {
         let provider = whitelisted_caller();
-        let midds = <T::MIDDS as super::Midds>::BenchmarkHelper::build_sized(x as usize);
+        let midds = <T::MIDDS as super::Midds>::BenchmarkHelper::variable_size(x as f32 / 100.0);
         let _ = T::Currency::set_balance(&provider, init_bal::<T, I>());
 
         #[extrinsic_call]
@@ -56,7 +50,7 @@ mod benchmarks {
     #[benchmark]
     fn unregister() -> Result<(), BenchmarkError> {
         let provider = whitelisted_caller();
-        let midds = <T::MIDDS as super::Midds>::BenchmarkHelper::build_base();
+        let midds = <T::MIDDS as super::Midds>::BenchmarkHelper::typical_size();
 
         let _ = T::Currency::set_balance(&provider, init_bal::<T, I>());
 

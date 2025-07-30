@@ -21,7 +21,7 @@
 mod mock;
 mod types;
 mod weights;
-use midds::MiddsId;
+use allfeat_midds::MiddsId;
 use types::{BalanceOf, MiddsInfo};
 pub use weights::WeightInfo;
 
@@ -40,6 +40,7 @@ pub use pallet::*;
 #[frame_support::pallet()]
 pub mod pallet {
     use super::*;
+    use allfeat_midds::Midds;
     use allfeat_primitives::Moment;
     #[cfg(feature = "runtime-benchmarks")]
     use frame_support::traits::fungible::Mutate;
@@ -47,7 +48,6 @@ pub mod pallet {
         PalletId,
         traits::{Time, fungible::MutateHold, tokens::Precision},
     };
-    use midds::{Midds, MiddsId};
     use types::{BalanceOf, MiddsInfo, MomentOf};
 
     /// The in-code storage version.
