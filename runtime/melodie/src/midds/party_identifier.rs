@@ -16,8 +16,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate midds as midds_crate;
-
 use super::PartyIdentifiers;
 use crate::*;
 use frame_support::{PalletId, parameter_types};
@@ -45,7 +43,7 @@ impl pallet_midds::Config<PartyIdentifiers> for Runtime {
     type Timestamp = Timestamp;
     type Currency = Balances;
     type RuntimeHoldReason = RuntimeHoldReason;
-    type MIDDS = midds_crate::pallet_prelude::PartyIdentifier;
+    type MIDDS = allfeat_midds::party_identifier::PartyIdentifier;
     type ProviderOrigin = EnsureSigned<Self::AccountId>;
     type ByteDepositCost = ByteDepositCost;
     type UnregisterPeriod = UnregisterPeriod;

@@ -28,7 +28,7 @@ allfeat-primitives = { workspace = true }
 pallet-midds = { workspace = true }
 
 # Allfeat MIDDS
-midds = { workspace = true }
+allfeat-midds = { workspace = true }
 allfeat-music-genres = { workspace = true }
 
 sp-application-crypto = { workspace = true }
@@ -134,7 +134,7 @@ std = [
 	"frame-system-benchmarking?/std",
 	"substrate-wasm-builder",
 	# MIDDS
-	"midds/std",
+	"allfeat-midds/std",
 ]
 runtime-benchmarks = [
 	"frame-benchmarking/runtime-benchmarks",
@@ -156,7 +156,8 @@ runtime-benchmarks = [
 	"pallet-transaction-payment/runtime-benchmarks",
 	"pallet-identity/runtime-benchmarks",
 	"pallet-safe-mode/runtime-benchmarks",
-	"pallet-validators/runtime-benchmarks"
+	"pallet-validators/runtime-benchmarks",
+	"allfeat-midds/runtime-benchmarks",
 ]
 try-runtime = [
 	"frame-executive/try-runtime",

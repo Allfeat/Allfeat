@@ -152,10 +152,25 @@ dependencies = [
 ]
 
 [[package]]
-name = "allfeat-music-genres"
-version = "0.1.1"
+name = "allfeat-midds"
+version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2ddb5fef19dbfd54e55c1f121c2097da35e1d85e30b5fe051cdf42211f983139"
+checksum = "fb52ad006204b45f8e49038cb89f1645f3aecacdbf8ee434cc1bea79590e1282"
+dependencies = [
+ "allfeat-music-genres",
+ "frame-support",
+ "midds-types-codegen",
+ "parity-scale-codec",
+ "regex",
+ "scale-info",
+ "sp-runtime",
+]
+
+[[package]]
+name = "allfeat-music-genres"
+version = "0.2.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3e7c471f5382edac93f893e59f2e2f9b83c83cd7580ebcdb81f736031fd05e0c"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -2580,16 +2595,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "env_filter"
-version = "0.1.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "186e05a59d4c50738528153b83b0b0194d3a29507dfec16eccd4b342903397d0"
-dependencies = [
- "log",
- "regex",
-]
-
-[[package]]
 name = "env_logger"
 version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2600,19 +2605,6 @@ dependencies = [
  "log",
  "regex",
  "termcolor",
-]
-
-[[package]]
-name = "env_logger"
-version = "0.11.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "13c863f0904021b108aa8b2f55046443e6b1ebde8fd4a15c399893aae4fa069f"
-dependencies = [
- "anstream",
- "anstyle",
- "env_filter",
- "jiff",
- "log",
 ]
 
 [[package]]
@@ -2772,7 +2764,7 @@ version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "84f2e425d9790201ba4af4630191feac6dcc98765b118d4d18e91d23c2353866"
 dependencies = [
- "env_logger 0.10.2",
+ "env_logger",
  "log",
 ]
 
@@ -4307,30 +4299,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
 
 [[package]]
-name = "jiff"
-version = "0.2.13"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f02000660d30638906021176af16b17498bd0d12813dbfe7b276d8bc7f3c0806"
-dependencies = [
- "jiff-static",
- "log",
- "portable-atomic",
- "portable-atomic-util",
- "serde",
-]
-
-[[package]]
-name = "jiff-static"
-version = "0.2.13"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f3c30758ddd7188629c6713fc45d1188af4f44c90582311d0c8d8c9907f60c48"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.101",
-]
-
-[[package]]
 name = "jni"
 version = "0.21.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5366,6 +5334,7 @@ dependencies = [
 name = "melodie-runtime"
 version = "1.0.0-dev"
 dependencies = [
+ "allfeat-midds",
  "allfeat-music-genres",
  "allfeat-primitives",
  "array-bytes 9.2.1",
@@ -5378,7 +5347,6 @@ dependencies = [
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
  "log",
- "midds",
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
@@ -5500,28 +5468,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "midds"
-version = "1.0.0-dev"
+name = "midds-types-codegen"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77020c99e6ceec338a1cb28eadcc9662dc9eb02f574567e9e579c503854332a5"
 dependencies = [
- "allfeat-music-genres",
- "frame-support",
- "log",
- "parity-scale-codec",
- "scale-info",
- "sp-runtime",
-]
-
-[[package]]
-name = "midds-benchmarker"
-version = "1.0.0-dev"
-dependencies = [
- "env_logger 0.11.8",
- "log",
- "melodie-runtime",
- "midds",
- "parity-scale-codec",
- "scale-info",
- "shared-runtime",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -6206,12 +6160,12 @@ dependencies = [
 name = "pallet-midds"
 version = "1.0.0"
 dependencies = [
+ "allfeat-midds",
  "allfeat-primitives",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",
- "midds",
  "pallet-balances",
  "pallet-timestamp",
  "parity-scale-codec",
@@ -7122,15 +7076,6 @@ name = "portable-atomic"
 version = "1.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "350e9b48cbc6b0e028b0473b114454c6316e57336ee184ceab6e53f72c178b3e"
-
-[[package]]
-name = "portable-atomic-util"
-version = "0.2.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d8a2f0d8d040d7848a709caf78912debcc3f33ee4b3cac47d73d1e1069e83507"
-dependencies = [
- "portable-atomic",
-]
 
 [[package]]
 name = "potential_utf"
