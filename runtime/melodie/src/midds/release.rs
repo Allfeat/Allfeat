@@ -41,7 +41,6 @@ parameter_types! {
 
 impl pallet_midds::Config<Releases> for Runtime {
     type PalletId = ReleasePalletId;
-    type RuntimeEvent = RuntimeEvent;
     type Timestamp = Timestamp;
     type Currency = Balances;
     type RuntimeHoldReason = RuntimeHoldReason;

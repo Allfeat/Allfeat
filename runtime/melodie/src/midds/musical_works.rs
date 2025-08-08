@@ -41,7 +41,6 @@ parameter_types! {
 
 impl pallet_midds::Config<MusicalWorks> for Runtime {
     type PalletId = StakeholderPalletId;
-    type RuntimeEvent = RuntimeEvent;
     type Timestamp = Timestamp;
     type Currency = Balances;
     type RuntimeHoldReason = RuntimeHoldReason;

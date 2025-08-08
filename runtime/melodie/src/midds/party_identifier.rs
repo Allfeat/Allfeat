@@ -39,7 +39,6 @@ parameter_types! {
 
 impl pallet_midds::Config<PartyIdentifiers> for Runtime {
     type PalletId = PartyIdentifierPalletId;
-    type RuntimeEvent = RuntimeEvent;
     type Timestamp = Timestamp;
     type Currency = Balances;
     type RuntimeHoldReason = RuntimeHoldReason;

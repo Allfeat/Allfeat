@@ -70,8 +70,6 @@ pub mod pallet {
         #[frame_support::register_default_impl(TestDefaultConfig)]
         impl DefaultConfig for TestDefaultConfig {
             #[inject_runtime_type]
-            type RuntimeEvent = ();
-            #[inject_runtime_type]
             type RuntimeHoldReason = ();
             type ByteDepositCost = ConstU64<1>;
             type UnregisterPeriod = UnregisterPeriod;
@@ -85,11 +83,6 @@ pub mod pallet {
         #[pallet::no_default]
         #[pallet::constant]
         type PalletId: Get<PalletId>;
-
-        #[pallet::no_default_bounds]
-        /// The overarching event type.
-        type RuntimeEvent: From<Event<Self, I>>
-            + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
         #[pallet::no_default]
         #[cfg(not(feature = "runtime-benchmarks"))]
