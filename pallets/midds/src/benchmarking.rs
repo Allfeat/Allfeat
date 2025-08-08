@@ -27,8 +27,10 @@ use frame_benchmarking::v2::*;
 use frame_support::{sp_runtime::traits::Bounded, traits::fungible::Mutate};
 use frame_system::RawOrigin;
 
-fn assert_last_event<T: Config<I>, I: 'static>(generic_event: <T as Config<I>>::RuntimeEvent) {
-    frame_system::Pallet::<T>::assert_last_event(generic_event.into());
+fn assert_last_event<T: Config<I>, I: 'static>(
+    generic_event: <T as frame_system::Config>::RuntimeEvent,
+) {
+    frame_system::Pallet::<T>::assert_last_event(generic_event);
 }
 
 #[instance_benchmarks]
