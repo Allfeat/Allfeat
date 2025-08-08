@@ -18,7 +18,7 @@
 
 use super::ChainSpec;
 use melodie_runtime::WASM_BINARY;
-use sc_service::ChainType;
+use sc_service::{ChainType, Properties};
 
 /// Generate a chain spec for use with the development service.
 pub fn development_chain_spec() -> Result<ChainSpec, String> {
@@ -29,16 +29,7 @@ pub fn development_chain_spec() -> Result<ChainSpec, String> {
     .with_name("Melodie Testnet V2 Development")
     .with_id("melodie_2_dev")
     .with_chain_type(ChainType::Development)
-    .with_protocol_id("aft")
-    .with_properties(
-        serde_json::json!({
-            "tokenDecimals": 12,
-            "tokenSymbol": "MEL",
-        })
-        .as_object()
-        .expect("Map given; qed")
-        .clone(),
-    )
+    .with_properties(melodie_properties())
     .with_genesis_config_preset_name("development")
     .build())
 }
@@ -51,16 +42,7 @@ pub fn local_chain_spec() -> Result<ChainSpec, String> {
     .with_name("Melodie Testnet V2 Local")
     .with_id("melodie_2_local")
     .with_chain_type(ChainType::Local)
-    .with_protocol_id("aft")
-    .with_properties(
-        serde_json::json!({
-            "tokenDecimals": 12,
-            "tokenSymbol": "MEL",
-        })
-        .as_object()
-        .expect("Map given; qed")
-        .clone(),
-    )
+    .with_properties(melodie_properties())
     .with_genesis_config_preset_name("local_testnet")
     .build())
 }
@@ -73,16 +55,16 @@ pub fn live_chain_spec() -> Result<ChainSpec, String> {
     .with_name("Melodie Testnet V2 Live")
     .with_id("melodie_2_staging")
     .with_chain_type(ChainType::Live)
-    .with_protocol_id("aft")
-    .with_properties(
-        serde_json::json!({
-            "tokenDecimals": 12,
-            "tokenSymbol": "MEL",
-        })
-        .as_object()
-        .expect("Map given; qed")
-        .clone(),
-    )
+    .with_properties(melodie_properties())
     .with_genesis_config_preset_name("staging")
     .build())
+}
+
+fn melodie_properties() -> Properties {
+    serde_json::json!({
+        "tokenDecimals": 12,
+        "tokenSymbol": "MEL",
+    })
+    .as_object()
+    .expect("Map given; qed")
 }
