@@ -53,6 +53,7 @@ impl pallet_session::Config for Runtime {
 }
 
 impl pallet_session::historical::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
     type FullIdentification = Self::ValidatorId;
     type FullIdentificationOf = Self::ValidatorIdOf;
 }

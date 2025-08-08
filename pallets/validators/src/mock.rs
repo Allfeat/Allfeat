@@ -65,25 +65,25 @@ parameter_types! {
 }
 
 impl pallet_session::Config for Test {
+    type RuntimeEvent = RuntimeEvent;
     type ShouldEndSession = pallet_session::PeriodicSessions<Period, Offset>;
     type SessionManager = pallet_session::historical::NoteHistoricalRoot<Test, Validators>;
     type SessionHandler = TestSessionHandler;
     type ValidatorId = u64;
     type ValidatorIdOf = ConvertInto;
     type Keys = UintAuthorityId;
-    type RuntimeEvent = RuntimeEvent;
     type NextSessionRotation = pallet_session::PeriodicSessions<Period, Offset>;
     type DisablingStrategy = ();
     type WeightInfo = ();
 }
 
 impl pallet_session::historical::Config for Test {
+    type RuntimeEvent = RuntimeEvent;
     type FullIdentification = u64;
     type FullIdentificationOf = sp_runtime::traits::ConvertInto;
 }
 
 impl pallet_validators::Config for Test {
-    type RuntimeEvent = RuntimeEvent;
     type MaxValidators = MaxValidators;
     type WeightInfo = ();
 }

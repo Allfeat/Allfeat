@@ -62,8 +62,6 @@ pub mod pallet {
 
     #[pallet::config]
     pub trait Config: frame_system::Config + pallet_session::Config {
-        type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-
         /// Max number of validators in the set
         #[pallet::constant]
         type MaxValidators: Get<u32>;

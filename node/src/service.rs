@@ -467,15 +467,12 @@ where
     RuntimeApi::RuntimeApi: RuntimeApiCollection,
 {
     match config.network.network_backend {
-        Some(backend) => match backend {
-            sc_network::config::NetworkBackendType::Libp2p => new_full::<
-                RuntimeApi,
-                sc_network::NetworkWorker<Block, <Block as sp_runtime::traits::Block>::Hash>,
-            >(config),
-            sc_network::config::NetworkBackendType::Litep2p => {
-                new_full::<RuntimeApi, sc_network::Litep2pNetworkBackend>(config)
-            }
-        },
-        None => new_full::<RuntimeApi, sc_network::Litep2pNetworkBackend>(config),
+        sc_network::config::NetworkBackendType::Libp2p => new_full::<
+            RuntimeApi,
+            sc_network::NetworkWorker<Block, <Block as sp_runtime::traits::Block>::Hash>,
+        >(config),
+        sc_network::config::NetworkBackendType::Litep2p => {
+            new_full::<RuntimeApi, sc_network::Litep2pNetworkBackend>(config)
+        }
     }
 }

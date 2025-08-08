@@ -41,7 +41,6 @@ parameter_types! {
 
 impl pallet_midds::Config<Tracks> for Runtime {
     type PalletId = TrackPalletId;
-    type RuntimeEvent = RuntimeEvent;
     type Timestamp = Timestamp;
     type Currency = Balances;
     type RuntimeHoldReason = RuntimeHoldReason;
