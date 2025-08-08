@@ -55,4 +55,7 @@ impl pallet_identity::Config for Runtime {
     type MaxUsernameLength = ConstU32<32>;
     type WeightInfo = shared_runtime::weights::identity::AllfeatWeight<Runtime>;
     //type WeightInfo = pallet_identity::weights::SubstrateWeight<Runtime>;
+
+    #[cfg(feature = "runtime-benchmarks")]
+    type BenchmarkHelper = ();
 }

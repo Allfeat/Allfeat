@@ -67,4 +67,5 @@ fn melodie_properties() -> Properties {
     })
     .as_object()
     .expect("Map given; qed")
+    .clone()
 }
