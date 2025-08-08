@@ -59,6 +59,7 @@ impl SubstrateCli for Cli {
 
 /// Parse command line arguments into service configuration.
 /// Parse and run command line arguments
+#[allow(clippy::result_large_err)]
 pub fn run() -> sc_cli::Result<()> {
     #[cfg(feature = "runtime-benchmarks")]
     /// Creates partial components for the runtimes that are supported by the benchmarks.
@@ -66,7 +67,7 @@ pub fn run() -> sc_cli::Result<()> {
         ($config:expr, $cli:ident, |$partials:ident| $code:expr) => {{
             #[cfg(feature = "melodie-runtime")]
             if $config.chain_spec.is_melodie() {
-                let $partials = service::new_partial::<MelodieRuntimeApi>(&$config)?;
+                let $partials = service::new_partial::<MelodieRuntimeApi>(&$config).map_err(|e| sc_cli::Error::from(*e))?;
 
                 return $code;
             }
@@ -87,7 +88,7 @@ pub fn run() -> sc_cli::Result<()> {
 				return runner.async_run(|$config| {
 					let $components = service::new_partial::<MelodieRuntimeApi>(
 						&$config,
-					)?;
+					).map_err(|e| sc_cli::Error::from(*e))?;
 					let task_manager = $components.task_manager;
 
 					{ $( $code )* }.map(|v| (v, task_manager))
@@ -195,7 +196,7 @@ pub fn run() -> sc_cli::Result<()> {
 					return service::new_full_from_network_cfg::<MelodieRuntimeApi>(
 						config,
 					)
-					.map_err(Into::into);
+					.map_err(|e| sc_cli::Error::from(*e));
 				}
 
 				panic!("No feature(melodie-runtime) is enabled!");
