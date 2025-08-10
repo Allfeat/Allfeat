@@ -152,31 +152,40 @@ dependencies = [
 ]
 
 [[package]]
-name = "allfeat-midds"
-version = "0.1.9"
+name = "allfeat-midds-v2"
+version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed907e3c2d6e1244dc6563589d449854a91df4076bf31ce784a10f45bf6c1c20"
+checksum = "9874e562540233f9e263a3e2d43cd36687aca1035163ae00bfc68f22b6bfe7cd"
 dependencies = [
+ "allfeat-midds-v2-codegen",
  "allfeat-music-genres",
  "frame-support",
- "midds-types-codegen",
  "parity-scale-codec",
- "regex",
  "scale-info",
- "sp-runtime",
+]
+
+[[package]]
+name = "allfeat-midds-v2-codegen"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "32fd7e34a22dcd7ce967b3a227a2572b465e5c2ea3b3149ac4ba0eaefd07fe47"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.104",
 ]
 
 [[package]]
 name = "allfeat-music-genres"
-version = "0.2.8"
+version = "0.2.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d3ce80ff46b3443c67fed141cce7cece6cdc6f1800365fa11fc276a14f6d171a"
+checksum = "0d3498fecd436497fb216032e24645e7c7dd2c0c5c70aa9a3fe6bd16f16a0903"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
  "serde_json",
- "sp-runtime",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -5547,7 +5556,7 @@ dependencies = [
 name = "melodie-runtime"
 version = "1.0.0-dev"
 dependencies = [
- "allfeat-midds",
+ "allfeat-midds-v2",
  "allfeat-music-genres",
  "allfeat-primitives",
  "array-bytes 9.3.0",
@@ -5680,17 +5689,6 @@ dependencies = [
  "keccak",
  "rand_core 0.6.4",
  "zeroize",
-]
-
-[[package]]
-name = "midds-types-codegen"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77020c99e6ceec338a1cb28eadcc9662dc9eb02f574567e9e579c503854332a5"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.104",
 ]
 
 [[package]]
@@ -6495,7 +6493,7 @@ dependencies = [
 name = "pallet-midds"
 version = "1.0.0"
 dependencies = [
- "allfeat-midds",
+ "allfeat-midds-v2",
  "allfeat-primitives",
  "frame-benchmarking",
  "frame-support",

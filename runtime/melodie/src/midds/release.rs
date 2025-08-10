@@ -19,6 +19,7 @@
 use crate::*;
 
 use super::Releases;
+use allfeat_midds::release::Release;
 use allfeat_primitives::Balance;
 use frame_support::{PalletId, parameter_types};
 use frame_system::EnsureSigned;
@@ -44,9 +45,12 @@ impl pallet_midds::Config<Releases> for Runtime {
     type Timestamp = Timestamp;
     type Currency = Balances;
     type RuntimeHoldReason = RuntimeHoldReason;
-    type MIDDS = allfeat_midds::release::Release;
+    type MIDDS = Release;
     type ProviderOrigin = EnsureSigned<Self::AccountId>;
     type ByteDepositCost = ByteDepositCost;
     type UnregisterPeriod = UnregisterPeriod;
     type WeightInfo = weights::midds_releases::AllfeatWeight<Runtime>;
+
+    #[cfg(feature = "runtime-benchmarks")]
+    type BenchmarkHelper = Release;
 }

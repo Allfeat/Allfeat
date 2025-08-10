@@ -28,7 +28,7 @@ allfeat-primitives = { workspace = true }
 pallet-midds = { workspace = true }
 
 # Allfeat MIDDS
-allfeat-midds = { workspace = true }
+allfeat-midds = { workspace = true, features = ["runtime"] }
 allfeat-music-genres = { workspace = true }
 
 sp-application-crypto = { workspace = true }
