@@ -1,6 +1,5 @@
-########
-# BASE #
-########
+# Multi-stage Dockerfile for Allfeat Substrate Node
+# Optimized for production builds and CI/CD pipelines
 
 # base is the first stage where all the debian dependencies
 # needed to build the Allfeat binary are installed,
@@ -8,71 +7,67 @@
 
 FROM rust:1.85-slim AS base
 
-WORKDIR /app
+# Set working directory
+WORKDIR /allfeat
 
-# This installs all debian dependencies we need (besides Rust).
-RUN apt update -y && \
-    apt install -y build-essential git clang curl libssl-dev \
-    llvm libudev-dev make protobuf-compiler pkg-config
+# Copy toolchain configuration
+COPY rust-toolchain.toml .
+COPY rustfmt.toml .
 
 # Using cargo-chef to only pay the deps installation cost once,
 # it will be cached from the second build onwards
 RUN cargo install cargo-chef
 
-# FIXME: chef raises an error if those 2 deps are not pre-installed
-RUN rustup target add wasm32-unknown-unknown
-RUN rustup component add rust-src
+# Install cargo-chef for dependency caching
+RUN cargo install cargo-chef --locked
 
-###########
-# PLANNER #
-###########
+# ================================
+# Planner stage
+# ================================
+FROM base as planner
 
-# planner is where chef prepares its recipe using a local cache for the target
-
-FROM base AS planner
+# Copy manifests
 COPY . .
-RUN --mount=type=cache,mode=0755,target=/app/target cargo chef prepare --recipe-path recipe.json
 
-##########
-# CACHER #
-##########
+# Generate recipe.json with dependencies
+RUN cargo chef prepare --recipe-path recipe.json
 
-# cacher is where chef cooks all the deps from the recipe inside the local cache
-
+# ================================
+# Cacher stage
+# ================================
 FROM base as cacher
-COPY --from=planner /app/recipe.json recipe.json
 
-# Build dependencies - this is the caching Docker layer!
-RUN --mount=type=cache,mode=0755,target=/app/target cargo chef cook --release --recipe-path recipe.json
+# Copy the recipe.json from planner
+COPY --from=planner /allfeat/recipe.json recipe.json
 
-###########
-# BUILDER #
-###########
+# Build dependencies - this layer will be cached
+RUN cargo chef cook --release --recipe-path recipe.json
 
-# builder is where chef builds the binary using the deps of the cache
+# ================================
+# Builder stage
+# ================================
+FROM cacher as builder
 
-FROM cacher AS builder
+# Copy source code
 COPY . .
-RUN --mount=type=cache,mode=0755,target=/app/target cargo build --locked --release
-RUN --mount=type=cache,mode=0755,target=/app/target cp /app/target/release/allfeat /usr/local/bin
 
-###########
-# RUNTIME #
-###########
+# Build the node binary (dependencies are already cached)
+RUN cargo build --release --locked
 
 # runtime is where the Allfeat binary is finally copied from the builder
 # inside an autonomous slim and secured image.
 
-FROM debian:bookworm-slim AS runtime
+# Install minimal runtime dependencies
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+# Create allfeat user
+RUN groupadd -r allfeat && useradd -r -g allfeat allfeat
 
-LABEL io.allfeat.image.type="builder" \
-    io.allfeat.image.authors="tech@allfeat.com" \
-    io.allfeat.image.vendor="Allfeat labs" \
-    io.allfeat.image.description="Multistage Docker image for allfeat-blockchain" \
-    io.allfeat.image.source="https://github.com/allfeat/allfeat/blob/${VCS_REF}/Dockerfile" \
-    io.allfeat.image.documentation="https://github.com/allfeat/allfeat"
+# Create data directory
+RUN mkdir -p /data && chown allfeat:allfeat /data
 
 # Install minimal runtime dependencies including shell
 RUN apt-get update && apt-get install -y \
@@ -93,6 +88,11 @@ RUN useradd -m -u 1000 -U -s /bin/sh -d /app allfeat && \
     # check if executable works in this container
     /usr/local/bin/allfeat --version
 
+# Set proper ownership and permissions
+RUN chown allfeat:allfeat /usr/local/bin/allfeat && \
+    chmod +x /usr/local/bin/allfeat
+
+# Switch to allfeat user
 USER allfeat
 
 # Environment variable to control dev mode
@@ -100,6 +100,7 @@ ENV DEV_MODE=false
 
 EXPOSE 30333 9933 9944 9615
 
+# Set data directory as volume
 VOLUME ["/data"]
 
 

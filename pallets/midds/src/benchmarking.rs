@@ -21,8 +21,7 @@
 use super::*;
 use crate::Pallet as MiddsPallet;
 
-use allfeat_midds::Midds;
-use allfeat_midds::benchmarking::BenchmarkHelperT;
+use allfeat_midds::benchmarking::BenchmarkHelper;
 use frame_benchmarking::v2::*;
 use frame_support::{sp_runtime::traits::Bounded, traits::fungible::Mutate};
 use frame_system::RawOrigin;
@@ -38,9 +37,9 @@ mod benchmarks {
     use super::*;
 
     #[benchmark]
-    fn register(x: Linear<0, 100>) {
+    fn register(x: Linear<0, 100_000>) {
         let provider = whitelisted_caller();
-        let midds = <T::MIDDS as super::Midds>::BenchmarkHelper::variable_size(x as f32 / 100.0);
+        let midds = T::BenchmarkHelper::benchmark_instance(x);
         let _ = T::Currency::set_balance(&provider, init_bal::<T, I>());
 
         #[extrinsic_call]
@@ -52,7 +51,7 @@ mod benchmarks {
     #[benchmark]
     fn unregister() -> Result<(), BenchmarkError> {
         let provider = whitelisted_caller();
-        let midds = <T::MIDDS as super::Midds>::BenchmarkHelper::typical_size();
+        let midds = T::BenchmarkHelper::benchmark_instance(0);
 
         let _ = T::Currency::set_balance(&provider, init_bal::<T, I>());
 

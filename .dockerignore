@@ -1,6 +1,51 @@
-docs
-target
+# Git
+.git/
+.gitignore
 
+# Documentation
+README.md
+docs/
+*.md
+
+# Development files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build artifacts (exclude target but keep essential files)
+target/
+!target/production/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+benchmarking_errors.txt
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Development config
 .editorconfig
 LICENSE
-README.md
+
+# Nix files
+flake.nix
+flake.lock
+
+# Scripts not needed in container
+scripts/
+
+# Test files
+**/tests/
+test_*
+
+# Example files
+examples/

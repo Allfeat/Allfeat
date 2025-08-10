@@ -18,14 +18,18 @@
 
 use crate::*;
 
-use super::Tracks;
+use super::Releases;
+use allfeat_midds::release::Release;
 use allfeat_primitives::Balance;
 use frame_support::{PalletId, parameter_types};
 use frame_system::EnsureSigned;
 use shared_runtime::{currency::MILLIAFT, weights};
 
+#[cfg(feature = "runtime-benchmarks")]
+use allfeat_midds::benchmarking::ReleaseBenchmarkHelper;
+
 parameter_types! {
-    pub const TrackPalletId: PalletId = PalletId(*b"m/tracks");
+    pub const ReleasePalletId: PalletId = PalletId(*b"m/rlease");
     pub const ByteDepositCost: Balance = MILLIAFT;
 }
 
@@ -39,14 +43,17 @@ parameter_types! {
     pub const UnregisterPeriod: Option<Moment> = None;
 }
 
-impl pallet_midds::Config<Tracks> for Runtime {
-    type PalletId = TrackPalletId;
+impl pallet_midds::Config<Releases> for Runtime {
+    type PalletId = ReleasePalletId;
     type Timestamp = Timestamp;
     type Currency = Balances;
     type RuntimeHoldReason = RuntimeHoldReason;
-    type MIDDS = allfeat_midds::track::Track;
+    type MIDDS = Release;
     type ProviderOrigin = EnsureSigned<Self::AccountId>;
     type ByteDepositCost = ByteDepositCost;
     type UnregisterPeriod = UnregisterPeriod;
-    type WeightInfo = weights::midds_tracks::AllfeatWeight<Runtime>;
+    type WeightInfo = weights::midds_releases::AllfeatWeight<Runtime>;
+
+    #[cfg(feature = "runtime-benchmarks")]
+    type BenchmarkHelper = ReleaseBenchmarkHelper;
 }

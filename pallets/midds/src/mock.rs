@@ -27,9 +27,8 @@ use frame_support::{
 use frame_system::EnsureSigned;
 
 #[cfg(feature = "runtime-benchmarks")]
-use allfeat_midds::benchmarking::BenchmarkHelperT;
+use allfeat_midds::benchmarking::BenchmarkHelper;
 
-use allfeat_midds::Midds;
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
@@ -52,28 +51,10 @@ pub struct MockMiddsStruct {
 }
 
 #[cfg(feature = "runtime-benchmarks")]
-pub struct BenchmarkHelperMock;
-
-#[cfg(feature = "runtime-benchmarks")]
-impl BenchmarkHelperT<MockMiddsStruct> for BenchmarkHelperMock {
-    fn min_size() -> MockMiddsStruct {
+impl BenchmarkHelper<MockMiddsStruct> for MockMiddsStruct {
+    fn benchmark_instance(_i: u32) -> MockMiddsStruct {
         MockMiddsStruct { value: 0 }
     }
-
-    fn max_size() -> MockMiddsStruct {
-        MockMiddsStruct { value: 0 }
-    }
-
-    fn variable_size(_complexity: f32) -> MockMiddsStruct {
-        MockMiddsStruct { value: 0 }
-    }
-}
-
-impl Midds for MockMiddsStruct {
-    const NAME: &'static str = "MOCK";
-
-    #[cfg(feature = "runtime-benchmarks")]
-    type BenchmarkHelper = BenchmarkHelperMock;
 }
 
 #[frame_support::runtime]
@@ -130,6 +111,9 @@ impl pallet_midds::Config for Test {
     type Currency = Balances;
     type MIDDS = MockMiddsStruct;
     type ProviderOrigin = EnsureSigned<Self::AccountId>;
+
+    #[cfg(feature = "runtime-benchmarks")]
+    type BenchmarkHelper = MockMiddsStruct;
 }
 
 pub(crate) fn new_test_ext() -> sp_io::TestExternalities {

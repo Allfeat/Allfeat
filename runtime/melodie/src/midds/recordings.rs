@@ -16,14 +16,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::PartyIdentifiers;
 use crate::*;
+
+use super::Recordings;
+use allfeat_midds::recording::Recording;
+use allfeat_primitives::Balance;
 use frame_support::{PalletId, parameter_types};
 use frame_system::EnsureSigned;
 use shared_runtime::{currency::MILLIAFT, weights};
 
+#[cfg(feature = "runtime-benchmarks")]
+use allfeat_midds::benchmarking::RecordingBenchmarkHelper;
+
 parameter_types! {
-    pub const PartyIdentifierPalletId: PalletId = PalletId(*b"m/partid");
+    pub const RecordingPalletId: PalletId = PalletId(*b"m/rcordg");
     pub const ByteDepositCost: Balance = MILLIAFT;
 }
 
@@ -37,14 +43,17 @@ parameter_types! {
     pub const UnregisterPeriod: Option<Moment> = None;
 }
 
-impl pallet_midds::Config<PartyIdentifiers> for Runtime {
-    type PalletId = PartyIdentifierPalletId;
+impl pallet_midds::Config<Recordings> for Runtime {
+    type PalletId = RecordingPalletId;
     type Timestamp = Timestamp;
     type Currency = Balances;
     type RuntimeHoldReason = RuntimeHoldReason;
-    type MIDDS = allfeat_midds::party_identifier::PartyIdentifier;
+    type MIDDS = Recording;
     type ProviderOrigin = EnsureSigned<Self::AccountId>;
     type ByteDepositCost = ByteDepositCost;
     type UnregisterPeriod = UnregisterPeriod;
-    type WeightInfo = weights::midds_party_identifiers::AllfeatWeight<Runtime>;
+    type WeightInfo = weights::midds_tracks::AllfeatWeight<Runtime>;
+
+    #[cfg(feature = "runtime-benchmarks")]
+    type BenchmarkHelper = RecordingBenchmarkHelper;
 }

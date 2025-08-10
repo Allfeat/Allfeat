@@ -199,14 +199,15 @@ mod runtime {
     pub type Mmr = pallet_mmr;
 
     // Allfeat related
-    #[runtime::pallet_index(101)]
-    pub type PartyIdentifiers = pallet_midds<Instance1>;
+    //
+    // #[runtime::pallet_index(101)] DEPRECATED
+    // pub type PartyIdentifiers = pallet_midds<Instance1>;
 
     #[runtime::pallet_index(102)]
     pub type MusicalWorks = pallet_midds<Instance2>;
 
     #[runtime::pallet_index(103)]
-    pub type Tracks = pallet_midds<Instance3>;
+    pub type Recordings = pallet_midds<Instance3>;
 
     #[runtime::pallet_index(104)]
     pub type Releases = pallet_midds<Instance4>;

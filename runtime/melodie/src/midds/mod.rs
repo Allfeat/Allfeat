@@ -17,11 +17,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod musical_works;
-pub mod party_identifier;
-pub mod release;
-pub mod track;
+pub mod recordings;
+pub mod releases;
 
-pub type PartyIdentifiers = pallet_midds::Instance1;
 pub type MusicalWorks = pallet_midds::Instance2;
-pub type Tracks = pallet_midds::Instance3;
+pub type Recordings = pallet_midds::Instance3;
 pub type Releases = pallet_midds::Instance4;

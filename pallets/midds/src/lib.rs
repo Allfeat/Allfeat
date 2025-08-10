@@ -33,14 +33,19 @@ mod benchmarking;
 extern crate alloc;
 
 use alloc::boxed::Box;
-use frame_support::{pallet_prelude::*, sp_runtime::Saturating, traits::fungible::MutateHold};
+use frame_support::{
+    StorageHasher, pallet_prelude::*, sp_runtime::Saturating, traits::fungible::MutateHold,
+};
 use frame_system::pallet_prelude::*;
 pub use pallet::*;
 
 #[frame_support::pallet()]
 pub mod pallet {
     use super::*;
-    use allfeat_midds::Midds;
+
+    #[cfg(feature = "runtime-benchmarks")]
+    use allfeat_midds::benchmarking::BenchmarkHelper;
+
     use allfeat_primitives::Moment;
     #[cfg(feature = "runtime-benchmarks")]
     use frame_support::traits::fungible::Mutate;
@@ -105,7 +110,7 @@ pub mod pallet {
 
         #[pallet::no_default]
         /// The MIDDS actor that this pallet instance manage.
-        type MIDDS: Midds;
+        type MIDDS: Parameter + Member + MaxEncodedLen;
 
         #[pallet::no_default]
         /// The origin which may provide new MIDDS to register on-chain for this instance.
@@ -122,6 +127,10 @@ pub mod pallet {
         type UnregisterPeriod: Get<Option<MomentOf<Self, I>>>;
 
         type WeightInfo: WeightInfo;
+
+        #[cfg(feature = "runtime-benchmarks")]
+        #[pallet::no_default]
+        type BenchmarkHelper: BenchmarkHelper<Self::MIDDS>;
     }
 
     /// A reason for the pallet MIDDS placing a hold on funds.
@@ -193,15 +202,15 @@ pub mod pallet {
             let provider = T::ProviderOrigin::ensure_origin(origin)?;
             let midds = *midds;
 
-            midds.validate()?;
-
             let size = midds.encoded_size() as u32;
             let data_cost = Self::calculate_midds_colateral(size);
+
+            let hash = Blake2_256::hash(&midds.encode());
 
             let info: MiddsInfo<T, I> = MiddsInfo {
                 provider,
                 registered_at: T::Timestamp::now(),
-                hash: midds.hash(),
+                hash,
                 encoded_size: size,
                 data_cost,
             };
