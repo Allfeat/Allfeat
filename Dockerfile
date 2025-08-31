@@ -2,11 +2,11 @@
 # BASE #
 ########
 
-# base is the first stage where all the debian dependencies 
-# needed to build the Allfeat binary are installed, 
+# base is the first stage where all the debian dependencies
+# needed to build the Allfeat binary are installed,
 # plus cargo-check to optimize rust dependency management and then speedup any re-build
 
-FROM rustlang/rust:nightly-bookworm-slim as base
+FROM rust:1.85-slim AS base
 
 WORKDIR /app
 
@@ -17,7 +17,7 @@ RUN apt update -y && \
 
 # Using cargo-chef to only pay the deps installation cost once,
 # it will be cached from the second build onwards
-RUN cargo install cargo-chef 
+RUN cargo install cargo-chef
 
 # FIXME: chef raises an error if those 2 deps are not pre-installed
 RUN rustup target add wasm32-unknown-unknown
@@ -60,7 +60,7 @@ RUN --mount=type=cache,mode=0755,target=/app/target cp /app/target/release/allfe
 # RUNTIME #
 ###########
 
-# runtime is where the Allfeat binary is finally copied from the builder 
+# runtime is where the Allfeat binary is finally copied from the builder
 # inside an autonomous slim and secured image.
 
 FROM debian:bookworm-slim AS runtime
@@ -74,21 +74,33 @@ LABEL io.allfeat.image.type="builder" \
     io.allfeat.image.source="https://github.com/allfeat/allfeat/blob/${VCS_REF}/Dockerfile" \
     io.allfeat.image.documentation="https://github.com/allfeat/allfeat"
 
+# Install minimal runtime dependencies including shell
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=builder /usr/local/bin/allfeat /usr/local/bin
+
+# Copy and set permissions for entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 RUN useradd -m -u 1000 -U -s /bin/sh -d /app allfeat && \
     mkdir -p /data /app/.local/share && \
     chown -R allfeat:allfeat /data && \
     ln -s /data /app/.local/share/allfeat && \
-    # unclutter and minimize the attack surface
-    rm -rf /usr/bin /usr/sbin && \
     # check if executable works in this container
     /usr/local/bin/allfeat --version
 
 USER allfeat
 
+# Environment variable to control dev mode
+ENV DEV_MODE=false
+
 EXPOSE 30333 9933 9944 9615
 
 VOLUME ["/data"]
 
-ENTRYPOINT ["/usr/local/bin/allfeat"]
+
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
