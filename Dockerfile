@@ -1,73 +1,77 @@
-# Multi-stage Dockerfile for Allfeat Substrate Node
-# Optimized for production builds and CI/CD pipelines
+########
+# BASE #
+########
 
 # base is the first stage where all the debian dependencies
 # needed to build the Allfeat binary are installed,
 # plus cargo-check to optimize rust dependency management and then speedup any re-build
 
-FROM rust:1.85-slim AS base
+FROM rustlang/rust:nightly-bookworm-slim as base
 
-# Set working directory
-WORKDIR /allfeat
+WORKDIR /app
 
-# Copy toolchain configuration
-COPY rust-toolchain.toml .
-COPY rustfmt.toml .
+# This installs all debian dependencies we need (besides Rust).
+RUN apt update -y && \
+    apt install -y build-essential git clang curl libssl-dev \
+    llvm libudev-dev make protobuf-compiler pkg-config
 
 # Using cargo-chef to only pay the deps installation cost once,
 # it will be cached from the second build onwards
 RUN cargo install cargo-chef
 
-# Install cargo-chef for dependency caching
-RUN cargo install cargo-chef --locked
+RUN rustup target add wasm32-unknown-unknown
+RUN rustup component add rust-src
 
-# ================================
-# Planner stage
-# ================================
-FROM base as planner
+###########
+# PLANNER #
+###########
 
-# Copy manifests
+# planner is where chef prepares its recipe using a local cache for the target
+
+FROM base AS planner
 COPY . .
+RUN --mount=type=cache,mode=0755,target=/app/target cargo chef prepare --recipe-path recipe.json
 
-# Generate recipe.json with dependencies
-RUN cargo chef prepare --recipe-path recipe.json
+##########
+# CACHER #
+##########
 
-# ================================
-# Cacher stage
-# ================================
+# cacher is where chef cooks all the deps from the recipe inside the local cache
+
 FROM base as cacher
+COPY --from=planner /app/recipe.json recipe.json
 
-# Copy the recipe.json from planner
-COPY --from=planner /allfeat/recipe.json recipe.json
+# Build dependencies - this is the caching Docker layer!
+RUN --mount=type=cache,mode=0755,target=/app/target cargo chef cook --release --recipe-path recipe.json
 
-# Build dependencies - this layer will be cached
-RUN cargo chef cook --release --recipe-path recipe.json
+###########
+# BUILDER #
+###########
 
-# ================================
-# Builder stage
-# ================================
-FROM cacher as builder
+# builder is where chef builds the binary using the deps of the cache
 
-# Copy source code
+FROM cacher AS builder
 COPY . .
+RUN --mount=type=cache,mode=0755,target=/app/target cargo build --locked --release
+RUN --mount=type=cache,mode=0755,target=/app/target cp /app/target/release/allfeat /usr/local/bin
 
-# Build the node binary (dependencies are already cached)
-RUN cargo build --release --locked
+###########
+# RUNTIME #
+###########
 
 # runtime is where the Allfeat binary is finally copied from the builder
 # inside an autonomous slim and secured image.
 
-# Install minimal runtime dependencies
-RUN apt-get update && apt-get install -y \
-    ca-certificates \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+FROM debian:bookworm-slim AS runtime
 
-# Create allfeat user
-RUN groupadd -r allfeat && useradd -r -g allfeat allfeat
+WORKDIR /app
 
-# Create data directory
-RUN mkdir -p /data && chown allfeat:allfeat /data
+LABEL io.allfeat.image.type="builder" \
+    io.allfeat.image.authors="tech@allfeat.com" \
+    io.allfeat.image.vendor="Allfeat labs" \
+    io.allfeat.image.description="Multistage Docker image for allfeat-blockchain" \
+    io.allfeat.image.source="https://github.com/allfeat/allfeat/blob/${VCS_REF}/Dockerfile" \
+    io.allfeat.image.documentation="https://github.com/allfeat/allfeat"
 
 # Install minimal runtime dependencies including shell
 RUN apt-get update && apt-get install -y \
@@ -88,11 +92,6 @@ RUN useradd -m -u 1000 -U -s /bin/sh -d /app allfeat && \
     # check if executable works in this container
     /usr/local/bin/allfeat --version
 
-# Set proper ownership and permissions
-RUN chown allfeat:allfeat /usr/local/bin/allfeat && \
-    chmod +x /usr/local/bin/allfeat
-
-# Switch to allfeat user
 USER allfeat
 
 # Environment variable to control dev mode
@@ -100,7 +99,6 @@ ENV DEV_MODE=false
 
 EXPOSE 30333 9933 9944 9615
 
-# Set data directory as volume
 VOLUME ["/data"]
 
 
