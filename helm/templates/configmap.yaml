@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "allfeat-node.fullname" . }}-config
+  labels:
+    {{- include "allfeat-node.labels" . | nindent 4 }}
+data:
+  node-config.yaml: |
+    node:
+      devMode: {{ .Values.node.devMode }}
+      basePath: {{ .Values.node.basePath }}
+      chain: {{ .Values.node.chain }}
+      name: {{ .Values.node.name }}
+      network:
+        port: {{ .Values.node.network.port }}
+        {{- if .Values.node.network.publicAddr }}
+        publicAddr: {{ .Values.node.network.publicAddr }}
+        {{- end }}
+        {{- if .Values.node.network.reservedNodes }}
+        reservedNodes: {{ .Values.node.network.reservedNodes }}
+        {{- end }}
+        {{- if .Values.node.network.bootnodes }}
+        bootnodes: {{ .Values.node.network.bootnodes }}
+        {{- end }}
+    rpc:
+      external: {{ .Values.rpc.external }}
+      port: {{ .Values.rpc.port }}
+      cors: {{ .Values.rpc.cors }}
+      methods: {{ .Values.rpc.methods }}
+      maxConnections: {{ .Values.rpc.maxConnections }}
+    metrics:
+      enabled: {{ .Values.metrics.enabled }}
+      port: {{ .Values.metrics.port }}
+      external: {{ .Values.metrics.external }}
+    database:
+      type: {{ .Values.database.type }}
+      cacheSize: {{ .Values.database.cacheSize }}

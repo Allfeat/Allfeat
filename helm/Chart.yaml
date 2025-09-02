@@ -1,0 +1,17 @@
+apiVersion: v2
+name: allfeat-node
+description: A Helm chart for deploying Allfeat blockchain node
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - blockchain
+  - substrate
+  - allfeat
+  - node
+home: https://github.com/allfeat/allfeat
+sources:
+  - https://github.com/allfeat/allfeat
+maintainers:
+  - name: Allfeat Labs
+    email: hello@allfeat.com
