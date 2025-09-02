@@ -81,9 +81,6 @@ RUN apt-get update && apt-get install -y \
 
 COPY --from=builder /usr/local/bin/allfeat /usr/local/bin
 
-# Copy and set permissions for entrypoint script
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 RUN useradd -m -u 1000 -U -s /bin/sh -d /app allfeat && \
     mkdir -p /data /app/.local/share && \
@@ -102,4 +99,4 @@ EXPOSE 30333 9933 9944 9615
 VOLUME ["/data"]
 
 
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/allfeat"]
