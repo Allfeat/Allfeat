@@ -9,7 +9,10 @@ spec:
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   strategy:
-    type: Recreate
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
   selector:
     matchLabels:
       {{- include "allfeat-node.selectorLabels" . | nindent 6 }}
@@ -37,21 +40,14 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
-            - name: DEV_MODE
-              value: {{ .Values.node.devMode | quote }}
             - name: RUST_LOG
-              value: "info"
-          {{- if .Values.node.devMode }}
-          # En mode dev, le script docker-entrypoint.sh gère automatiquement --dev
-          {{- if .Values.node.customArgs }}
+              value: {{ .Values.logging.level | default "info" | quote }}
+            - name: RUST_BACKTRACE
+              value: {{ .Values.logging.backtrace | default "0" | quote }}
           args:
-            {{- range .Values.node.customArgs }}
-            - {{ . }}
-            {{- end }}
-          {{- end }}
-          {{- else }}
-          # Mode production : arguments complets
-          args:
+            {{- if .Values.node.devMode }}
+            - --dev
+            {{- else }}
             - --base-path
             - {{ .Values.node.basePath }}
             - --chain
@@ -60,6 +56,7 @@ spec:
             - {{ .Values.node.name }}
             - --port
             - {{ .Values.node.network.port | quote }}
+            {{- end }}
             {{- if .Values.rpc.external }}
             - --rpc-external
             {{- end }}
@@ -74,6 +71,7 @@ spec:
             - --prometheus-port
             - {{ .Values.metrics.port | quote }}
             {{- end }}
+            {{- if not .Values.node.devMode }}
             - --database
             - {{ .Values.database.type }}
             {{- if .Values.node.network.publicAddr }}
@@ -88,10 +86,10 @@ spec:
             - --bootnodes
             - {{ .Values.node.network.bootnodes }}
             {{- end }}
+            {{- end }}
             {{- range .Values.node.customArgs }}
             - {{ . }}
             {{- end }}
-          {{- end }}
           ports:
             - name: p2p
               containerPort: {{ .Values.node.network.port }}
@@ -106,10 +104,7 @@ spec:
             {{- end }}
           {{- if .Values.livenessProbe.enabled }}
           livenessProbe:
-            {{- if .Values.livenessProbe.tcpSocket }}
-            tcpSocket:
-              port: {{ .Values.livenessProbe.tcpSocket.port }}
-            {{- else }}
+            {{- if .Values.livenessProbe.httpGet }}
             httpGet:
               path: {{ .Values.livenessProbe.httpGet.path }}
               port: {{ .Values.livenessProbe.httpGet.port }}
@@ -120,6 +115,15 @@ spec:
                 value: {{ .value }}
               {{- end }}
               {{- end }}
+            {{- else if .Values.livenessProbe.exec }}
+            exec:
+              command:
+              {{- range .Values.livenessProbe.exec.command }}
+              - {{ . | quote }}
+              {{- end }}
+            {{- else }}
+            tcpSocket:
+              port: {{ .Values.livenessProbe.tcpSocket.port }}
             {{- end }}
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
@@ -128,10 +132,7 @@ spec:
           {{- end }}
           {{- if .Values.readinessProbe.enabled }}
           readinessProbe:
-            {{- if .Values.readinessProbe.tcpSocket }}
-            tcpSocket:
-              port: {{ .Values.readinessProbe.tcpSocket.port }}
-            {{- else }}
+            {{- if .Values.readinessProbe.httpGet }}
             httpGet:
               path: {{ .Values.readinessProbe.httpGet.path }}
               port: {{ .Values.readinessProbe.httpGet.port }}
@@ -142,6 +143,15 @@ spec:
                 value: {{ .value }}
               {{- end }}
               {{- end }}
+            {{- else if .Values.readinessProbe.exec }}
+            exec:
+              command:
+              {{- range .Values.readinessProbe.exec.command }}
+              - {{ . | quote }}
+              {{- end }}
+            {{- else }}
+            tcpSocket:
+              port: {{ .Values.readinessProbe.tcpSocket.port }}
             {{- end }}
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
@@ -150,10 +160,7 @@ spec:
           {{- end }}
           {{- if .Values.startupProbe.enabled }}
           startupProbe:
-            {{- if .Values.startupProbe.tcpSocket }}
-            tcpSocket:
-              port: {{ .Values.startupProbe.tcpSocket.port }}
-            {{- else }}
+            {{- if .Values.startupProbe.httpGet }}
             httpGet:
               path: {{ .Values.startupProbe.httpGet.path }}
               port: {{ .Values.startupProbe.httpGet.port }}
@@ -164,6 +171,15 @@ spec:
                 value: {{ .value }}
               {{- end }}
               {{- end }}
+            {{- else if .Values.startupProbe.exec }}
+            exec:
+              command:
+              {{- range .Values.startupProbe.exec.command }}
+              - {{ . | quote }}
+              {{- end }}
+            {{- else }}
+            tcpSocket:
+              port: {{ .Values.startupProbe.tcpSocket.port }}
             {{- end }}
             initialDelaySeconds: {{ .Values.startupProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.startupProbe.periodSeconds }}

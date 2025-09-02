@@ -4,6 +4,11 @@
 
 replicaCount: 1
 
+# Logging configuration
+logging:
+  level: "info"
+  backtrace: "0"
+
 image:
   repository: allfeatnetwork/allfeat
   pullPolicy: IfNotPresent
@@ -39,9 +44,9 @@ node:
 # RPC configuration
 rpc:
   # Enable external RPC
-  external: true
+  external: false
   # RPC listening port
-  port: 9933
+  port: 9944
   # CORS configuration
   cors: "all"
   # RPC methods (safe, unsafe)
@@ -75,10 +80,15 @@ persistence:
   # Access mode
   accessModes:
     - ReadWriteOnce
-  # Storage size
-  size: 100Gi
+  # Storage size (blockchain data grows quickly)
+  size: 500Gi
   # Annotations
   annotations: {}
+  # Backup configuration
+  backup:
+    enabled: false
+    schedule: "0 2 * * *"
+    retention: "7d"
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -110,9 +120,7 @@ service:
   # P2P port
   p2pPort: 30333
   # RPC port
-  rpcPort: 9933
-  # WebSocket port
-  wsPort: 9944
+  rpcPort: 9944
   # Metrics port
   metricsPort: 9615
   # Annotations
@@ -137,7 +145,7 @@ ingress:
       paths:
         - path: /
           pathType: Prefix
-          port: 9933
+          port: 9944
   tls: []
   #  - secretName: allfeat-node-tls
   #    hosts:
@@ -145,48 +153,45 @@ ingress:
 
 resources:
   limits:
+    cpu: 4000m
+    memory: 8Gi
+    ephemeral-storage: 20Gi
+  requests:
     cpu: 2000m
     memory: 4Gi
-  requests:
-    cpu: 1000m
-    memory: 2Gi
+    ephemeral-storage: 10Gi
 
 livenessProbe:
   enabled: true
-  httpGet:
-    path: /health
+  tcpSocket:
     port: rpc
-  initialDelaySeconds: 30
-  periodSeconds: 10
-  timeoutSeconds: 5
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  timeoutSeconds: 10
   failureThreshold: 3
 
 readinessProbe:
   enabled: true
-  httpGet:
-    path: /health
+  tcpSocket:
     port: rpc
-  initialDelaySeconds: 10
-  periodSeconds: 5
-  timeoutSeconds: 3
-  failureThreshold: 3
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 5
 
 startupProbe:
   enabled: true
-  httpGet:
-    path: /health
+  tcpSocket:
     port: rpc
-  initialDelaySeconds: 10
-  periodSeconds: 10
-  timeoutSeconds: 5
-  failureThreshold: 30
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 20
 
+# Autoscaling is disabled for blockchain nodes as they are stateful
+# and require persistent storage. Use manual scaling instead.
 autoscaling:
   enabled: false
-  minReplicas: 1
-  maxReplicas: 3
-  targetCPUUtilizationPercentage: 80
-  targetMemoryUtilizationPercentage: 80
 
 nodeSelector: {}
 
@@ -216,3 +221,13 @@ serviceMonitor:
   annotations: {}
   interval: 30s
   scrapeTimeout: 10s
+  # Metric relabeling rules
+  metricRelabelings: []
+  # Relabeling rules
+  relabelings: []
+  # Example blockchain-specific metrics relabeling:
+  # metricRelabelings:
+  #   - sourceLabels: [__name__]
+  #     regex: "substrate_.*"
+  #     targetLabel: "component"
+  #     replacement: "substrate"

@@ -15,10 +15,6 @@ spec:
       targetPort: rpc
       protocol: TCP
       name: rpc
-    - port: {{ .Values.service.wsPort }}
-      targetPort: ws
-      protocol: TCP
-      name: ws
     {{- if .Values.metrics.enabled }}
     - port: {{ .Values.service.metricsPort }}
       targetPort: metrics

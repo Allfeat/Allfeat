@@ -4,6 +4,7 @@ metadata:
   name: {{ include "allfeat-node.fullname" . }}-config
   labels:
     {{- include "allfeat-node.labels" . | nindent 4 }}
+
 data:
   node-config.yaml: |
     node:

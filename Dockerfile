@@ -91,9 +91,6 @@ RUN useradd -m -u 1000 -U -s /bin/sh -d /app allfeat && \
 
 USER allfeat
 
-# Environment variable to control dev mode
-ENV DEV_MODE=false
-
 EXPOSE 30333 9933 9944 9615
 
 VOLUME ["/data"]
