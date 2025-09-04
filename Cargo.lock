@@ -6692,6 +6692,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-token-allocation"
+version = "1.0.0"
+dependencies = [
+ "allfeat-primitives",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-io",
+ "sp-tracing",
+]
+
+[[package]]
 name = "pallet-transaction-payment"
 version = "41.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
