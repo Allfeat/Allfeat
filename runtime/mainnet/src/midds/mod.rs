@@ -16,19 +16,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Substrate chain configurations.
+pub mod musical_works;
+pub mod recordings;
+pub mod releases;
 
-#[cfg(feature = "allfeat-runtime")]
-pub mod mainnet;
-#[cfg(feature = "melodie-runtime")]
-pub mod melodie;
-#[cfg(feature = "allfeat-runtime")]
-pub use mainnet::{self as allfeat_chain_spec};
-#[cfg(feature = "melodie-runtime")]
-pub use melodie::{self as melodie_chain_spec};
-
-#[cfg(not(feature = "melodie-runtime"))]
-pub type MelodieChainSpec = DummyChainSpec;
-
-/// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
-pub type ChainSpec = sc_service::GenericChainSpec;
+pub type MusicalWorks = pallet_midds::Instance1;
+pub type Recordings = pallet_midds::Instance2;
+pub type Releases = pallet_midds::Instance3;

@@ -16,19 +16,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Substrate chain configurations.
+use crate::*;
+use sp_consensus_aura::sr25519::AuthorityId as AuraId;
+use sp_core::{ConstBool, ConstU32};
 
-#[cfg(feature = "allfeat-runtime")]
-pub mod mainnet;
-#[cfg(feature = "melodie-runtime")]
-pub mod melodie;
-#[cfg(feature = "allfeat-runtime")]
-pub use mainnet::{self as allfeat_chain_spec};
-#[cfg(feature = "melodie-runtime")]
-pub use melodie::{self as melodie_chain_spec};
-
-#[cfg(not(feature = "melodie-runtime"))]
-pub type MelodieChainSpec = DummyChainSpec;
-
-/// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
-pub type ChainSpec = sc_service::GenericChainSpec;
+impl pallet_aura::Config for Runtime {
+    type AuthorityId = AuraId;
+    type DisabledValidators = ();
+    type MaxAuthorities = ConstU32<12>;
+    type AllowMultipleBlocksPerSlot = ConstBool<false>;
+    type SlotDuration = pallet_aura::MinimumPeriodTimesTwo<Runtime>;
+}

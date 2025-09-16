@@ -18,6 +18,7 @@
 
 //! Service and service factory implementation. Specialized wrapper over substrate service.
 
+pub use allfeat_runtime::RuntimeApi as AllfeatRuntimeApi;
 pub use melodie_runtime::RuntimeApi as MelodieRuntimeApi;
 
 // std
@@ -79,6 +80,11 @@ pub trait IdentifyVariant {
     /// Returns if this is a configuration for the `Melodie` network.
     fn is_melodie(&self) -> bool {
         self.id().starts_with("melodie")
+    }
+
+    /// Returns if this is a configuration for the `Allfeat` network.
+    fn is_allfeat(&self) -> bool {
+        self.id().starts_with("allfeat")
     }
 }
 impl IdentifyVariant for Box<dyn sc_service::ChainSpec> {

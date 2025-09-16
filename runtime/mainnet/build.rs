@@ -16,19 +16,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Substrate chain configurations.
+fn main() {
+    #[cfg(all(feature = "std", not(feature = "metadata-hash")))]
+    {
+        substrate_wasm_builder::WasmBuilder::build_using_defaults();
+    }
 
-#[cfg(feature = "allfeat-runtime")]
-pub mod mainnet;
-#[cfg(feature = "melodie-runtime")]
-pub mod melodie;
-#[cfg(feature = "allfeat-runtime")]
-pub use mainnet::{self as allfeat_chain_spec};
-#[cfg(feature = "melodie-runtime")]
-pub use melodie::{self as melodie_chain_spec};
-
-#[cfg(not(feature = "melodie-runtime"))]
-pub type MelodieChainSpec = DummyChainSpec;
-
-/// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
-pub type ChainSpec = sc_service::GenericChainSpec;
+    #[cfg(all(feature = "std", feature = "metadata-hash"))]
+    {
+        substrate_wasm_builder::WasmBuilder::init_with_defaults()
+            .enable_metadata_hash("MEL", 12)
+            .build()
+    }
+}

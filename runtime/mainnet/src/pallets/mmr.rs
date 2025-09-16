@@ -16,19 +16,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Substrate chain configurations.
+use crate::*;
 
-#[cfg(feature = "allfeat-runtime")]
-pub mod mainnet;
-#[cfg(feature = "melodie-runtime")]
-pub mod melodie;
-#[cfg(feature = "allfeat-runtime")]
-pub use mainnet::{self as allfeat_chain_spec};
-#[cfg(feature = "melodie-runtime")]
-pub use melodie::{self as melodie_chain_spec};
-
-#[cfg(not(feature = "melodie-runtime"))]
-pub type MelodieChainSpec = DummyChainSpec;
-
-/// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
-pub type ChainSpec = sc_service::GenericChainSpec;
+impl pallet_mmr::Config for Runtime {
+    const INDEXING_PREFIX: &'static [u8] = b"mmr";
+    type Hashing = <Runtime as frame_system::Config>::Hashing;
+    type LeafData = pallet_mmr::ParentNumberAndHash<Self>;
+    type BlockHashProvider = pallet_mmr::DefaultBlockHashProvider<Runtime>;
+    type OnNewRoot = ();
+    type WeightInfo = ();
+    #[cfg(feature = "runtime-benchmarks")]
+    type BenchmarkHelper = ();
+}

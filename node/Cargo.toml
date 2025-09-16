@@ -72,14 +72,15 @@ frame-benchmarking-cli = { workspace = true, default-features = true }
 
 # Local Dependencies
 melodie-runtime = { workspace = true, optional = true }
+allfeat-runtime = { workspace = true, optional = true }
 
 [build-dependencies]
 substrate-build-script-utils = { workspace = true, default-features = true }
 
 [features]
 default = ["std", "all-runtime"]
-std = ["melodie-runtime?/std"]
-all-runtime = ["melodie-runtime"]
+std = ["melodie-runtime?/std", "allfeat-runtime?/std"]
+all-runtime = ["melodie-runtime", "allfeat-runtime"]
 
 runtime-benchmarks = [
 	"frame-benchmarking-cli/runtime-benchmarks",
@@ -87,10 +88,11 @@ runtime-benchmarks = [
 	"pallet-transaction-payment/runtime-benchmarks",
 	"sc-service/runtime-benchmarks",
 	"melodie-runtime?/runtime-benchmarks",
+	"allfeat-runtime?/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 ]
 
 fast-runtime = [
-	# allfeat
 	"melodie-runtime?/fast-runtime",
+	"allfeat-runtime?/fast-runtime",
 ]

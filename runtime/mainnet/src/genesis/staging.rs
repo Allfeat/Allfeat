@@ -16,19 +16,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Substrate chain configurations.
+use super::genesis;
+use allfeat_primitives::AccountId;
+use alloc::vec;
+use sp_application_crypto::Ss58Codec;
 
-#[cfg(feature = "allfeat-runtime")]
-pub mod mainnet;
-#[cfg(feature = "melodie-runtime")]
-pub mod melodie;
-#[cfg(feature = "allfeat-runtime")]
-pub use mainnet::{self as allfeat_chain_spec};
-#[cfg(feature = "melodie-runtime")]
-pub use melodie::{self as melodie_chain_spec};
-
-#[cfg(not(feature = "melodie-runtime"))]
-pub type MelodieChainSpec = DummyChainSpec;
-
-/// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
-pub type ChainSpec = sc_service::GenericChainSpec;
+pub fn staging_config_genesis() -> serde_json::Value {
+    genesis(
+        vec![],
+        AccountId::from_ss58check("5EARX89jfEp9DjBitYW55CtSQ2xW2gJRvB69nLNwbHNf9TY8").unwrap(),
+        vec![
+            // Sudo account
+            AccountId::from_ss58check("5EARX89jfEp9DjBitYW55CtSQ2xW2gJRvB69nLNwbHNf9TY8").unwrap(),
+        ],
+    )
+}

@@ -16,19 +16,29 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Substrate chain configurations.
+mod multisig;
+mod proxy;
+mod scheduler;
+// System stuffs.
+mod aura;
+mod authorship;
+mod balances;
+mod grandpa;
+mod identity;
+mod im_online;
+mod mmr;
+mod preimage;
+mod session;
+mod sudo;
+mod system;
+mod timestamp;
+mod transaction_payment;
+mod utility;
+mod validators;
 
-#[cfg(feature = "allfeat-runtime")]
-pub mod mainnet;
-#[cfg(feature = "melodie-runtime")]
-pub mod melodie;
-#[cfg(feature = "allfeat-runtime")]
-pub use mainnet::{self as allfeat_chain_spec};
-#[cfg(feature = "melodie-runtime")]
-pub use melodie::{self as melodie_chain_spec};
-
-#[cfg(not(feature = "melodie-runtime"))]
-pub type MelodieChainSpec = DummyChainSpec;
-
-/// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
-pub type ChainSpec = sc_service::GenericChainSpec;
+// External required imports
+pub use balances::*;
+pub use im_online::*;
+pub use session::*;
+pub use system::*;
+pub use transaction_payment::*;

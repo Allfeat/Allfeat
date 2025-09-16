@@ -16,19 +16,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Substrate chain configurations.
+/// Time.
+pub mod time {
+    use allfeat_primitives::{BlockNumber, Moment};
 
-#[cfg(feature = "allfeat-runtime")]
-pub mod mainnet;
-#[cfg(feature = "melodie-runtime")]
-pub mod melodie;
-#[cfg(feature = "allfeat-runtime")]
-pub use mainnet::{self as allfeat_chain_spec};
-#[cfg(feature = "melodie-runtime")]
-pub use melodie::{self as melodie_chain_spec};
+    pub const MILLISECS_PER_BLOCK: Moment = 12000;
+    pub const SECS_PER_BLOCK: Moment = MILLISECS_PER_BLOCK / 1000;
 
-#[cfg(not(feature = "melodie-runtime"))]
-pub type MelodieChainSpec = DummyChainSpec;
+    // NOTE: Currently it is not possible to change the slot duration after the chain has started.
+    //       Attempting to do so will brick block production.
+    pub const SLOT_DURATION: Moment = MILLISECS_PER_BLOCK;
 
-/// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
-pub type ChainSpec = sc_service::GenericChainSpec;
+    // These time units are defined in number of blocks.
+    pub const MINUTES: BlockNumber = 60 / (SECS_PER_BLOCK as BlockNumber);
+    pub const HOURS: BlockNumber = MINUTES * 60;
+    pub const DAYS: BlockNumber = HOURS * 24;
+    pub const WEEKS: BlockNumber = DAYS * 7;
+}

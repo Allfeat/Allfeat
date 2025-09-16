@@ -20,7 +20,7 @@ use std::{env, path::PathBuf};
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::{
-    chain_specs::{ChainSpec, melodie_chain_spec},
+    chain_specs::{ChainSpec, allfeat_chain_spec, melodie_chain_spec},
     cli::{Cli, Subcommand},
     service::{self, *},
 };
@@ -67,12 +67,21 @@ pub fn run() -> sc_cli::Result<()> {
         ($config:expr, $cli:ident, |$partials:ident| $code:expr) => {{
             #[cfg(feature = "melodie-runtime")]
             if $config.chain_spec.is_melodie() {
-                let $partials = service::new_partial::<MelodieRuntimeApi>(&$config).map_err(|e| sc_cli::Error::from(*e))?;
+                let $partials = service::new_partial::<MelodieRuntimeApi>(&$config)
+                    .map_err(|e| sc_cli::Error::from(*e))?;
 
                 return $code;
             }
 
-            panic!("No feature(melodie-runtime) is enabled!");
+            #[cfg(feature = "allfeat-runtime")]
+            if $config.chain_spec.is_allfeat() {
+                let $partials = service::new_partial::<AllfeatRuntimeApi>(&$config)
+                    .map_err(|e| sc_cli::Error::from(*e))?;
+
+                return $code;
+            }
+
+            panic!("No feature(melodie-runtime, allfeat-runtime) is enabled!");
         }};
     }
 
@@ -95,7 +104,19 @@ pub fn run() -> sc_cli::Result<()> {
 				});
 			}
 
-			panic!("No feature(melodie-runtime) is enabled!");
+			#[cfg(feature = "allfeat-runtime")]
+			if chain_spec.is_allfeat() {
+				return runner.async_run(|$config| {
+					let $components = service::new_partial::<AllfeatRuntimeApi>(
+						&$config,
+					).map_err(|e| sc_cli::Error::from(*e))?;
+					let task_manager = $components.task_manager;
+
+					{ $( $code )* }.map(|v| (v, task_manager))
+				});
+			}
+
+			panic!("No feature(melodie-runtime, allfeat-runtime) is enabled!");
 		}}
 	}
 
@@ -199,7 +220,15 @@ pub fn run() -> sc_cli::Result<()> {
 					.map_err(|e| sc_cli::Error::from(*e));
 				}
 
-				panic!("No feature(melodie-runtime) is enabled!");
+				#[cfg(feature = "allfeat-runtime")]
+				if chain_spec.is_allfeat() {
+					return service::new_full_from_network_cfg::<AllfeatRuntimeApi>(
+						config,
+					)
+					.map_err(|e| sc_cli::Error::from(*e));
+				}
+
+				panic!("No feature(melodie-runtime, allfeat-runtime) is enabled!");
 			})
 		},
 	}
@@ -208,7 +237,7 @@ pub fn run() -> sc_cli::Result<()> {
 fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpecT>, String> {
     let id = if id.is_empty() {
         let n = get_exec_name().unwrap_or_default();
-        ["melodie"]
+        ["melodie", "allfeat"]
             .iter()
             .cloned()
             .find(|&chain| n.starts_with(chain))
@@ -225,8 +254,16 @@ fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpecT>, String> {
         "melodie-staging" => Box::new(melodie_chain_spec::live_chain_spec().unwrap()),
         #[cfg(feature = "melodie-runtime")]
         "melodie-local" => Box::new(melodie_chain_spec::local_chain_spec().unwrap()),
+
+        #[cfg(feature = "allfeat-runtime")]
+        "allfeat-staging" => Box::new(allfeat_chain_spec::live_chain_spec().unwrap()),
+        #[cfg(feature = "allfeat-runtime")]
+        "allfeat-local" => Box::new(allfeat_chain_spec::local_chain_spec().unwrap()),
+
         #[cfg(feature = "melodie-runtime")]
         "dev" | "melodie-dev" => Box::new(melodie_chain_spec::development_chain_spec().unwrap()),
+        #[cfg(feature = "allfeat-runtime")]
+        "allfeat-dev" => Box::new(allfeat_chain_spec::development_chain_spec().unwrap()),
         _ => Box::new(ChainSpec::from_json_file(PathBuf::from(id))?),
     };
 

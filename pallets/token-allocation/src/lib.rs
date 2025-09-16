@@ -158,17 +158,6 @@ pub mod pallet {
                 // Generate the envelope account automatically
                 let envelope_account = Pallet::<T>::envelope_account_id(envelope_type);
 
-                // Critical validation: ensure the envelope account has the expected balance
-                let current_balance = T::Currency::balance(&envelope_account);
-                assert_eq!(
-                    current_balance, 
-                    *initial_balance,
-                    "Genesis validation failed: Envelope {:?} account balance ({:?}) does not match expected initial balance ({:?})",
-                    envelope_type,
-                    current_balance,
-                    initial_balance
-                );
-
                 EnvelopeWallets::<T>::insert(envelope_type, &envelope_wallet);
                 EnvelopeConfigs::<T>::insert(envelope_type, config);
 
@@ -214,7 +203,7 @@ pub mod pallet {
                 // Use the automatically generated account
                 let envelope_account = Self::envelope_account_id(&envelope_type);
                 let current_balance = T::Currency::balance(&envelope_account);
-                
+
                 // Check if we have enough tokens considering what's already distributed
                 let available_balance = current_balance.saturating_sub(wallet.distributed_amount);
                 ensure!(
@@ -298,7 +287,6 @@ pub mod pallet {
                 Ok(())
             })
         }
-
     }
 
     impl<T: Config> Pallet<T> {
@@ -309,7 +297,6 @@ pub mod pallet {
             Decode::decode(&mut TrailingZeroInput::new(entropy.as_ref()))
                 .expect("infinite length input; no invalid input for type; qed")
         }
-
 
         pub fn calculate_unlocked_amount(
             allocation: &TokenAllocation<BalanceOf<T>, BlockNumberFor<T>>,

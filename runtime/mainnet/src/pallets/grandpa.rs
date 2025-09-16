@@ -16,19 +16,28 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Substrate chain configurations.
+use crate::*;
+use frame_support::parameter_types;
 
-#[cfg(feature = "allfeat-runtime")]
-pub mod mainnet;
-#[cfg(feature = "melodie-runtime")]
-pub mod melodie;
-#[cfg(feature = "allfeat-runtime")]
-pub use mainnet::{self as allfeat_chain_spec};
-#[cfg(feature = "melodie-runtime")]
-pub use melodie::{self as melodie_chain_spec};
+parameter_types! {
+    pub const MaxNominatorRewardedPerValidator: u32 = 0;
+}
 
-#[cfg(not(feature = "melodie-runtime"))]
-pub type MelodieChainSpec = DummyChainSpec;
+parameter_types! {
+    pub MaxSetIdSessionEntries: u32 = 0;
+}
 
-/// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
-pub type ChainSpec = sc_service::GenericChainSpec;
+impl pallet_grandpa::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+
+    type KeyOwnerProof = <Historical as frame_support::traits::KeyOwnerProofSystem<(
+        frame_support::sp_runtime::KeyTypeId,
+        sp_consensus_grandpa::AuthorityId,
+    )>>::Proof;
+
+    type EquivocationReportSystem = ();
+    type MaxNominators = MaxNominatorRewardedPerValidator;
+    type WeightInfo = ();
+    type MaxAuthorities = MaxAuthorities;
+    type MaxSetIdSessionEntries = MaxSetIdSessionEntries;
+}
