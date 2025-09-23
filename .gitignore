@@ -25,3 +25,6 @@ bin
 
 # Weights benchmarks files
 benchmarking_errors.txt
+
+# LLM
+CRUSH.md

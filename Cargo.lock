@@ -154,9 +154,9 @@ dependencies = [
 
 [[package]]
 name = "allfeat-midds-v2"
-version = "1.0.1"
+version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4fa46b3a5da77bae59ae5225fe2323744bf108860df5d44f90f0dd61293559c2"
+checksum = "46fced7f77147e92c4c0cb5e86641d4333f8629f6c7b7ab6e99b2e769a613363"
 dependencies = [
  "frame-support",
  "frame-system",

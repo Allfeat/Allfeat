@@ -82,7 +82,7 @@ allfeat-primitives = { version = "1.0.0", default-features = false, path = "./pr
 pallet-midds = { version = "1.0.0-dev", default-features = false, path = "./pallets/midds" }
 allfeat-music-genres = { version = "0.2.4", default-features = false }
 
-allfeat-midds = { package = "allfeat-midds-v2", version = "1.0.1", default-features = false }
+allfeat-midds = { package = "allfeat-midds-v2", version = "1.0.2", default-features = false }
 
 pallet-validators = { version = "1.0.0", default-features = false, path = "./pallets/validators" }
 
