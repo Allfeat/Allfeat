@@ -287,6 +287,87 @@ pub mod pallet {
                 Ok(())
             })
         }
+
+        #[pallet::call_index(2)]
+        #[pallet::weight(T::WeightInfo::update_envelope_config())]
+        pub fn update_envelope_config(
+            origin: OriginFor<T>,
+            envelope_type: EnvelopeType,
+            new_config: EnvelopeConfig<BlockNumberFor<T>>,
+        ) -> DispatchResult {
+            T::AllocationOrigin::ensure_origin(origin)?;
+            ensure!(EnvelopeWallets::<T>::contains_key(&envelope_type), Error::<T>::EnvelopeNotFound);
+            EnvelopeConfigs::<T>::insert(&envelope_type, new_config);
+            Ok(())
+        }
+
+        #[pallet::call_index(3)]
+        #[pallet::weight(T::WeightInfo::update_allocation())]
+        pub fn update_allocation(
+            origin: OriginFor<T>,
+            beneficiary: AccountIdOf<T>,
+            allocation_id: u32,
+            new_total_allocation: BalanceOf<T>,
+            new_start_block: Option<BlockNumberFor<T>>,
+        ) -> DispatchResult {
+            T::AllocationOrigin::ensure_origin(origin)?;
+            Allocations::<T>::try_mutate(&beneficiary, allocation_id, |maybe_allocation| {
+                let allocation = maybe_allocation.as_mut().ok_or(Error::<T>::AllocationNotFound)?;
+                let envelope_type = allocation.envelope_type.clone();
+                let previously_reserved = allocation.total_allocation;
+                if new_total_allocation > previously_reserved {
+                    let delta = new_total_allocation.saturating_sub(previously_reserved);
+                    EnvelopeWallets::<T>::try_mutate(&envelope_type, |maybe_wallet| {
+                        let wallet = maybe_wallet.as_mut().ok_or(Error::<T>::EnvelopeNotFound)?;
+                        let envelope_account = Self::envelope_account_id(&envelope_type);
+                        let current_balance = T::Currency::balance(&envelope_account);
+                        let available = current_balance.saturating_sub(wallet.distributed_amount);
+                        ensure!(available >= delta, Error::<T>::InsufficientEnvelopeBalance);
+                        wallet.distributed_amount = wallet.distributed_amount.saturating_add(delta);
+                        Ok::<_, DispatchError>(())
+                    })?;
+                } else if previously_reserved > new_total_allocation {
+                    let delta = previously_reserved.saturating_sub(new_total_allocation);
+                    EnvelopeWallets::<T>::try_mutate(&envelope_type, |maybe_wallet| {
+                        let wallet = maybe_wallet.as_mut().ok_or(Error::<T>::EnvelopeNotFound)?;
+                        wallet.distributed_amount = wallet.distributed_amount.saturating_sub(delta);
+                        Ok::<_, DispatchError>(())
+                    })?;
+                }
+
+                allocation.total_allocation = new_total_allocation;
+                if let Some(sb) = new_start_block {
+                    let current_block = <frame_system::Pallet<T>>::block_number();
+                    allocation.status = if sb <= current_block { AllocationStatus::ActiveSinceGenesis } else { AllocationStatus::ActivatedAt(sb) };
+                }
+                Ok(())
+            })
+        }
+
+        #[pallet::call_index(4)]
+        #[pallet::weight(T::WeightInfo::revoke_allocation())]
+        pub fn revoke_allocation(
+            origin: OriginFor<T>,
+            beneficiary: AccountIdOf<T>,
+            allocation_id: u32,
+        ) -> DispatchResult {
+            T::AllocationOrigin::ensure_origin(origin)?;
+            Allocations::<T>::try_mutate(&beneficiary, allocation_id, |maybe_allocation| {
+                let allocation = maybe_allocation.as_mut().ok_or(Error::<T>::AllocationNotFound)?;
+                if matches!(allocation.status, AllocationStatus::Completed | AllocationStatus::Revoked) {
+                    return Ok(())
+                }
+                let reserved_remaining = allocation.total_allocation.saturating_sub(allocation.claimed_amount);
+                EnvelopeWallets::<T>::try_mutate(&allocation.envelope_type, |maybe_wallet| {
+                    let wallet = maybe_wallet.as_mut().ok_or(Error::<T>::EnvelopeNotFound)?;
+                    wallet.distributed_amount = wallet.distributed_amount.saturating_sub(reserved_remaining);
+                    Ok::<_, DispatchError>(())
+                })?;
+                allocation.status = AllocationStatus::Revoked;
+                allocation.total_allocation = allocation.claimed_amount;
+                Ok(())
+            })
+        }
     }
 
     impl<T: Config> Pallet<T> {

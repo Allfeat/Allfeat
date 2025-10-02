@@ -41,14 +41,16 @@ pub type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
     Deserialize,
 )]
 pub enum EnvelopeType {
-    Seed,
+    Founders,
+    KoL,
     Private1,
     Private2,
-    SeriesA,
-    Team,
-    Advisors,
-    Ecosystem,
-    PublicSale,
+    Ico1,
+    Seed,
+    Ico2,
+    SerieA,
+    Airdrop,
+    CommunityReward,
 }
 
 #[derive(
@@ -109,7 +111,7 @@ pub struct EnvelopeWallet<Balance> {
 }
 
 #[derive(
-    Debug, Encode, Decode, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen, Serialize, Deserialize,
+    Debug, Encode, Decode, DecodeWithMemTracking, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen, Serialize, Deserialize,
 )]
 pub struct EnvelopeConfig<BlockNumber> {
     pub immediate_unlock_percentage: Percent,

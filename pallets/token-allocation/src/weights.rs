@@ -21,6 +21,9 @@ use frame_support::weights::Weight;
 pub trait WeightInfo {
     fn allocate_from_envelope() -> Weight;
     fn claim_tokens() -> Weight;
+    fn update_envelope_config() -> Weight;
+    fn update_allocation() -> Weight;
+    fn revoke_allocation() -> Weight;
 }
 
 impl WeightInfo for () {
@@ -29,6 +32,18 @@ impl WeightInfo for () {
     }
 
     fn claim_tokens() -> Weight {
+        Weight::from_parts(10_000_000, 0)
+    }
+
+    fn update_envelope_config() -> Weight {
+        Weight::from_parts(5_000_000, 0)
+    }
+
+    fn update_allocation() -> Weight {
+        Weight::from_parts(15_000_000, 0)
+    }
+
+    fn revoke_allocation() -> Weight {
         Weight::from_parts(10_000_000, 0)
     }
 }

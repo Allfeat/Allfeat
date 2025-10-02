@@ -21,8 +21,9 @@ use crate::{
     types::{EnvelopeConfig, EnvelopeType, EnvelopeWallet},
 };
 use frame_support::{
-    assert_ok, sp_runtime::Percent, 
-    traits::fungible::{Mutate, Inspect},
+    assert_ok,
+    sp_runtime::Percent,
+    traits::fungible::{Inspect, Mutate},
 };
 
 #[test]
@@ -57,7 +58,7 @@ fn basic_envelope_setup_works() {
             crate::EnvelopeConfigs::<Test>::get(&EnvelopeType::Seed),
             Some(config)
         );
-        
+
         // Verify envelope account has the tokens
         assert_eq!(Balances::balance(&envelope_account), total_allocation);
     });
@@ -106,7 +107,7 @@ fn allocate_from_envelope_works() {
         // Verify wallet state updated
         let updated_wallet = crate::EnvelopeWallets::<Test>::get(&EnvelopeType::Seed).unwrap();
         assert_eq!(updated_wallet.distributed_amount, allocation_amount);
-        
+
         // Verify envelope account still has all tokens (no immediate transfer)
         let envelope_account = crate::Pallet::<Test>::envelope_account_id(&EnvelopeType::Seed);
         let remaining_balance = Balances::balance(&envelope_account);
@@ -193,13 +194,16 @@ fn prevent_over_allocation() {
         ));
 
         // Second allocation should fail (11 out of remaining 10)
-        assert!(crate::Pallet::<Test>::allocate_from_envelope(
-            RuntimeOrigin::root(),
-            EnvelopeType::Seed,
-            3,
-            second_allocation,
-            None,
-        ).is_err());
+        assert!(
+            crate::Pallet::<Test>::allocate_from_envelope(
+                RuntimeOrigin::root(),
+                EnvelopeType::Seed,
+                3,
+                second_allocation,
+                None,
+            )
+            .is_err()
+        );
 
         // Verify only first allocation was created
         assert!(crate::Allocations::<Test>::get(2, 0).is_some());
@@ -211,3 +215,162 @@ fn prevent_over_allocation() {
     });
 }
 
+#[test]
+fn update_envelope_config_affects_claim_schedule() {
+    new_test_ext().execute_with(|| {
+        let beneficiary = 2;
+        let total = 1_000;
+        let amount = 200;
+
+        let config_initial = EnvelopeConfig {
+            immediate_unlock_percentage: Percent::from_percent(0),
+            cliff_duration: 100,
+            vesting_duration: 200,
+        };
+
+        let envelope_account = crate::Pallet::<Test>::envelope_account_id(&EnvelopeType::Seed);
+        assert_ok!(Balances::mint_into(&envelope_account, total));
+        let wallet = EnvelopeWallet {
+            distributed_amount: 0,
+        };
+        crate::EnvelopeWallets::<Test>::insert(&EnvelopeType::Seed, &wallet);
+        crate::EnvelopeConfigs::<Test>::insert(&EnvelopeType::Seed, &config_initial);
+
+        assert_ok!(crate::Pallet::<Test>::allocate_from_envelope(
+            RuntimeOrigin::root(),
+            EnvelopeType::Seed,
+            beneficiary,
+            amount,
+            None,
+        ));
+
+        let allocation = crate::Allocations::<Test>::get(beneficiary, 0).unwrap();
+        assert_eq!(allocation.claimed_amount, 0);
+
+        let config_updated = EnvelopeConfig {
+            immediate_unlock_percentage: Percent::from_percent(50),
+            cliff_duration: 0,
+            vesting_duration: 100,
+        };
+        assert_ok!(crate::Pallet::<Test>::update_envelope_config(
+            RuntimeOrigin::root(),
+            EnvelopeType::Seed,
+            config_updated.clone(),
+        ));
+
+        assert_ok!(crate::Pallet::<Test>::claim_tokens(
+            RuntimeOrigin::signed(beneficiary),
+            0
+        ));
+        let allocation = crate::Allocations::<Test>::get(beneficiary, 0).unwrap();
+        assert_eq!(allocation.claimed_amount, 100);
+    });
+}
+
+#[test]
+fn update_allocation_adjusts_reservation_and_start() {
+    new_test_ext().execute_with(|| {
+        let beneficiary = 2;
+        let total = 200;
+        let config = EnvelopeConfig {
+            immediate_unlock_percentage: Percent::from_percent(0),
+            cliff_duration: 0,
+            vesting_duration: 100,
+        };
+        let envelope_account = crate::Pallet::<Test>::envelope_account_id(&EnvelopeType::Seed);
+        assert_ok!(Balances::mint_into(&envelope_account, total));
+        let wallet = EnvelopeWallet {
+            distributed_amount: 0,
+        };
+        crate::EnvelopeWallets::<Test>::insert(&EnvelopeType::Seed, &wallet);
+        crate::EnvelopeConfigs::<Test>::insert(&EnvelopeType::Seed, &config);
+
+        assert_ok!(crate::Pallet::<Test>::allocate_from_envelope(
+            RuntimeOrigin::root(),
+            EnvelopeType::Seed,
+            beneficiary,
+            100,
+            None
+        ));
+        let wallet = crate::EnvelopeWallets::<Test>::get(&EnvelopeType::Seed).unwrap();
+        assert_eq!(wallet.distributed_amount, 100);
+
+        assert_ok!(crate::Pallet::<Test>::update_allocation(
+            RuntimeOrigin::root(),
+            beneficiary,
+            0,
+            150,
+            None
+        ));
+        let wallet = crate::EnvelopeWallets::<Test>::get(&EnvelopeType::Seed).unwrap();
+        assert_eq!(wallet.distributed_amount, 150);
+
+        assert_ok!(crate::Pallet::<Test>::update_allocation(
+            RuntimeOrigin::root(),
+            beneficiary,
+            0,
+            120,
+            Some(1)
+        ));
+        let wallet = crate::EnvelopeWallets::<Test>::get(&EnvelopeType::Seed).unwrap();
+        assert_eq!(wallet.distributed_amount, 120);
+
+        let alloc = crate::Allocations::<Test>::get(beneficiary, 0).unwrap();
+        match alloc.status {
+            crate::types::AllocationStatus::ActiveSinceGenesis => (),
+            crate::types::AllocationStatus::ActivatedAt(b) if b <= 1 => (),
+            _ => panic!(),
+        }
+    });
+}
+
+#[test]
+fn revoke_allocation_releases_unclaimed() {
+    new_test_ext().execute_with(|| {
+        let beneficiary = 2;
+        let total = 300;
+        let config = EnvelopeConfig {
+            immediate_unlock_percentage: Percent::from_percent(50),
+            cliff_duration: 0,
+            vesting_duration: 100,
+        };
+        let envelope_account = crate::Pallet::<Test>::envelope_account_id(&EnvelopeType::Seed);
+        assert_ok!(Balances::mint_into(&envelope_account, total));
+        let wallet = EnvelopeWallet {
+            distributed_amount: 0,
+        };
+        crate::EnvelopeWallets::<Test>::insert(&EnvelopeType::Seed, &wallet);
+        crate::EnvelopeConfigs::<Test>::insert(&EnvelopeType::Seed, &config);
+
+        assert_ok!(crate::Pallet::<Test>::allocate_from_envelope(
+            RuntimeOrigin::root(),
+            EnvelopeType::Seed,
+            beneficiary,
+            200,
+            None
+        ));
+        let wallet = crate::EnvelopeWallets::<Test>::get(&EnvelopeType::Seed).unwrap();
+        assert_eq!(wallet.distributed_amount, 200);
+
+        assert_ok!(crate::Pallet::<Test>::claim_tokens(
+            RuntimeOrigin::signed(beneficiary),
+            0
+        ));
+        let alloc = crate::Allocations::<Test>::get(beneficiary, 0).unwrap();
+        assert_eq!(alloc.claimed_amount, 100);
+
+        assert_ok!(crate::Pallet::<Test>::revoke_allocation(
+            RuntimeOrigin::root(),
+            beneficiary,
+            0
+        ));
+        let wallet = crate::EnvelopeWallets::<Test>::get(&EnvelopeType::Seed).unwrap();
+        assert_eq!(wallet.distributed_amount, 100);
+        let alloc = crate::Allocations::<Test>::get(beneficiary, 0).unwrap();
+        match alloc.status {
+            crate::types::AllocationStatus::Revoked => (),
+            _ => panic!(),
+        }
+        assert_eq!(alloc.total_allocation, 100);
+    });
+}
