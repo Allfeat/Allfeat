@@ -1,58 +1,51 @@
 [package]
 name = "pallet-token-allocation"
-version = "1.0.0"
+version = "0.1.0"
 authors.workspace = true
 edition.workspace = true
 license = "GPL-3"
 homepage.workspace = true
 repository.workspace = true
-description = "FRAME pallet for token allocation and vesting management"
-readme = "README.md"
-
-[package.metadata.docs.rs]
-targets = ["x86_64-unknown-linux-gnu"]
+description = "FRAME pallet to manage launch supply token allocations with upfront, cliff and linear vesting per envelope"
 
 [dependencies]
-parity-scale-codec = { features = [
-	"derive",
-	"max-encoded-len",
-], workspace = true }
+parity-scale-codec = { workspace = true, features = ["derive", "max-encoded-len"] }
+scale-info = { workspace = true, features = ["derive"] }
+serde = { workspace = true, optional = true, features = ["derive"] }
 log = { workspace = true }
-scale-info = { features = ["derive"], workspace = true }
-serde = { features = ["derive"], workspace = true }
-allfeat-primitives = { workspace = true }
-frame-benchmarking = { workspace = true }
+
 frame-support = { workspace = true }
 frame-system = { workspace = true }
+pallet-balances = { workspace = true }
+sp-runtime = { workspace = true }
+sp-core = { workspace = true }
+sp-io = { workspace = true }
+
 
 [dev-dependencies]
 sp-tracing = { workspace = true }
-sp-io = { workspace = true }
-pallet-balances = { workspace = true }
+frame-benchmarking = { workspace = true }
 
 [features]
 default = ["std"]
 std = [
-	"frame-support/std",
-	"frame-system/std",
-	"parity-scale-codec/std",
-	"log/std",
-	"scale-info/std",
-	"serde/std",
-	"allfeat-primitives/std",
-	"pallet-balances/std",
-	"frame-benchmarking/std",
-	"sp-tracing/std",
-	"sp-io/std",
+  "parity-scale-codec/std",
+  "scale-info/std",
+  "serde/std",
+  "log/std",
+  "frame-support/std",
+  "frame-system/std",
+  "pallet-balances/std",
+  "sp-runtime/std",
+  "sp-io/std",
+  "frame-benchmarking/std",
 ]
 runtime-benchmarks = [
-	"frame-benchmarking/runtime-benchmarks",
-	"frame-support/runtime-benchmarks",
-	"frame-system/runtime-benchmarks",
-	"pallet-balances/runtime-benchmarks",
+  "frame-benchmarking/runtime-benchmarks",
+  "frame-support/runtime-benchmarks",
+  "frame-system/runtime-benchmarks",
 ]
 try-runtime = [
-	"frame-support/try-runtime",
-	"frame-system/try-runtime",
-	"pallet-balances/try-runtime",
+  "frame-support/try-runtime",
+  "frame-system/try-runtime",
 ]

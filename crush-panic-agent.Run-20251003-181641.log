@@ -1,0 +1,43 @@
+Panic in agent.Run: runtime error: invalid memory address or nil pointer dereference
+
+Time: 2025-10-03T18:16:41+02:00
+
+Stack Trace:
+goroutine 19555 [running]:
+runtime/debug.Stack()
+	runtime/debug/stack.go:26 +0x64
+github.com/charmbracelet/crush/internal/log.RecoverPanic({0x16edf89, 0x9}, 0x4000085f50)
+	github.com/charmbracelet/crush/internal/log/log.go:62 +0x1b8
+panic({0x1382ac0?, 0x2d88570?})
+	runtime/panic.go:783 +0x120
+internal/stringslite.HasPrefix(...)
+	internal/stringslite/strings.go:17
+internal/stringslite.TrimPrefix(...)
+	internal/stringslite/strings.go:130
+strings.TrimPrefix(...)
+	strings/strings.go:1130
+github.com/charmbracelet/crush/internal/llm/tools.createFileTree({0x4004097308, 0xcd, 0x0?}, {0x40000440f4, 0x1e})
+	github.com/charmbracelet/crush/internal/llm/tools/ls.go:215 +0x104
+github.com/charmbracelet/crush/internal/llm/tools.ListDirectoryTree({0x40000440f4, 0x1e}, {0x0, 0x0, 0x0})
+	github.com/charmbracelet/crush/internal/llm/tools/ls.go:200 +0xd0
+github.com/charmbracelet/crush/internal/llm/prompt.getEnvironmentInfo()
+	github.com/charmbracelet/crush/internal/llm/prompt/coder.go:59 +0x7c
+github.com/charmbracelet/crush/internal/llm/prompt.TaskPrompt()
+	github.com/charmbracelet/crush/internal/llm/prompt/task.go:14 +0x1c
+github.com/charmbracelet/crush/internal/llm/prompt.GetPrompt({0x16e0983?, 0x400059b3b0?}, {0x400059b9b0?, 0x400059b3ab?}, {0x2dafe60?, 0x13717?, 0x5a?})
+	github.com/charmbracelet/crush/internal/llm/prompt/prompt.go:33 +0x44
+github.com/charmbracelet/crush/internal/llm/agent.NewAgent({0x1dbbb98, 0x4000120e00}, {{0x16e0983, 0x4}, {0x16e0987, 0x4}, {0x1757e8d, 0x52}, 0x0, {0x16e29d5, ...}, ...}, ...)
+	github.com/charmbracelet/crush/internal/llm/agent/agent.go:137 +0x308
+github.com/charmbracelet/crush/internal/llm/agent.NewAgent.func1()
+	github.com/charmbracelet/crush/internal/llm/agent/agent.go:113 +0x10c
+github.com/charmbracelet/crush/internal/llm/agent.(*agent).getAllTools(0x4002ab02c0)
+	github.com/charmbracelet/crush/internal/llm/agent/agent.go:510 +0x110
+github.com/charmbracelet/crush/internal/llm/agent.(*agent).streamAndHandleEvents(0x4002ab02c0, {0x1dbb428, 0x400033a190}, {0x40017b5dd0, 0x24}, {0x4000d74008, 0x85, 0x111})
+	github.com/charmbracelet/crush/internal/llm/agent/agent.go:577 +0xb7c
+github.com/charmbracelet/crush/internal/llm/agent.(*agent).processGeneration(0x4002ab02c0, {0x1dbb428, 0x400033a190}, {0x40017b5dd0, 0x24}, {0x40015c67a8, _}, {_, _, _})
+	github.com/charmbracelet/crush/internal/llm/agent/agent.go:438 +0x534
+github.com/charmbracelet/crush/internal/llm/agent.(*agent).Run.func1()
+	github.com/charmbracelet/crush/internal/llm/agent/agent.go:373 +0x310
+created by github.com/charmbracelet/crush/internal/llm/agent.(*agent).Run in goroutine 1
+	github.com/charmbracelet/crush/internal/llm/agent/agent.go:364 +0x2b4
+

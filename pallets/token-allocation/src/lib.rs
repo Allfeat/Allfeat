@@ -1,147 +1,124 @@
-// This file is part of Allfeat.
-
-// Copyright (C) 2022-2025 Allfeat.
-// SPDX-License-Identifier: GPL-3.0-or-later
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 #![cfg_attr(not(feature = "std"), no_std)]
 
+pub use pallet::*; // Re-export the pallet for external access
+
+#[cfg(test)]
 mod mock;
-mod types;
-mod weights;
-
-use types::{
-    AccountIdOf, AllocationStatus, BalanceOf, EnvelopeConfig, EnvelopeType, EnvelopeWallet,
-    TokenAllocation,
-};
-pub use weights::WeightInfo;
-
 #[cfg(test)]
 mod tests;
 
-mod benchmarking;
+use frame_support::traits::ExistenceRequirement::AllowDeath;
+use frame_support::{pallet_prelude::*, traits::Currency};
+use frame_system::pallet_prelude::*;
+use sp_runtime::Percent;
+use sp_runtime::traits::{AccountIdConversion, Saturating, Zero};
 
-extern crate alloc;
+pub type BalanceOf<T> =
+    <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
-use frame_support::{
-    StorageHasher,
-    pallet_prelude::*,
-    sp_runtime::{
-        Saturating,
-        traits::{TrailingZeroInput, Zero},
-    },
-    traits::fungible::{Inspect, Mutate},
-};
-use frame_system::{pallet_prelude::BlockNumberFor, pallet_prelude::*};
-pub use pallet::*;
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
+#[derive(
+    Encode,
+    Decode,
+    DecodeWithMemTracking,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Debug,
+    TypeInfo,
+    MaxEncodedLen,
+)]
+pub enum EnvelopeId {
+    Founders,
+    KoL,
+    Private1,
+    Private2,
+    ICO1,
+    Seed,
+    ICO2,
+    SerieA,
+}
 
-#[frame_support::pallet]
+impl EnvelopeId {
+    pub fn account<T: pallet::Config>(&self) -> T::AccountId {
+        let pid = <T as pallet::Config>::PalletId::get();
+        pid.into_sub_account_truncating(*self as u8)
+    }
+}
+
+#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, TypeInfo, MaxEncodedLen)]
+// Per-envelope configuration describing budget and vesting policy
+pub struct EnvelopeConfig<Balance, Moment> {
+    pub total_cap: Balance,
+    pub upfront_rate: Percent,
+    pub cliff: Moment,
+    pub vesting_duration: Moment,
+}
+
+#[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, TypeInfo, MaxEncodedLen)]
+// Per-beneficiary allocation state
+pub struct Allocation<Balance> {
+    pub total: Balance,
+    pub upfront: Balance,
+    pub vested_total: Balance,
+    pub released: Balance,
+}
+
+#[frame_support::pallet(dev_mode)]
 pub mod pallet {
+    use frame_support::PalletId;
+    use frame_system::pallet_prelude::OriginFor;
+
     use super::*;
-    use frame_support::sp_runtime::Percent;
 
     #[pallet::config]
     pub trait Config: frame_system::Config {
-        type Currency: Inspect<Self::AccountId> + Mutate<Self::AccountId>;
+        type Currency: Currency<Self::AccountId>;
 
-        type AllocationOrigin: EnsureOrigin<Self::RuntimeOrigin>;
-
-        type WeightInfo: WeightInfo;
+        type AdminOrigin: EnsureOrigin<Self::RuntimeOrigin>;
+        #[pallet::constant]
+        type PalletId: Get<PalletId>;
     }
 
     #[pallet::pallet]
     pub struct Pallet<T>(_);
 
     #[pallet::storage]
-    pub type EnvelopeWallets<T: Config> =
-        StorageMap<_, Twox64Concat, EnvelopeType, EnvelopeWallet<BalanceOf<T>>, OptionQuery>;
+    pub type Envelopes<T: Config> = StorageMap<
+        _,
+        Blake2_128Concat,
+        EnvelopeId,
+        EnvelopeConfig<BalanceOf<T>, frame_system::pallet_prelude::BlockNumberFor<T>>,
+        OptionQuery,
+    >;
+
+    #[pallet::storage]
+    pub type EnvelopeDistributed<T: Config> =
+        StorageMap<_, Blake2_128Concat, EnvelopeId, BalanceOf<T>, ValueQuery>;
 
     #[pallet::storage]
     pub type Allocations<T: Config> = StorageDoubleMap<
         _,
         Blake2_128Concat,
-        AccountIdOf<T>,
-        Twox64Concat,
-        u32,
-        TokenAllocation<BalanceOf<T>, BlockNumberFor<T>>,
+        EnvelopeId,
+        Blake2_128Concat,
+        T::AccountId,
+        Allocation<BalanceOf<T>>,
         OptionQuery,
     >;
 
-    #[pallet::storage]
-    pub type NextAllocationId<T: Config> =
-        StorageMap<_, Blake2_128Concat, AccountIdOf<T>, u32, ValueQuery>;
-
-    #[pallet::storage]
-    pub type EnvelopeConfigs<T: Config> =
-        StorageMap<_, Twox64Concat, EnvelopeType, EnvelopeConfig<BlockNumberFor<T>>, OptionQuery>;
-
-    #[pallet::event]
-    #[pallet::generate_deposit(pub(super) fn deposit_event)]
-    pub enum Event<T: Config> {
-        AllocationCreated {
-            envelope_type: EnvelopeType,
-            beneficiary: AccountIdOf<T>,
-            allocation_id: u32,
-            amount: BalanceOf<T>,
-        },
-        TokensClaimed {
-            beneficiary: AccountIdOf<T>,
-            allocation_id: u32,
-            amount: BalanceOf<T>,
-        },
-        EnvelopeWalletCreated {
-            envelope_type: EnvelopeType,
-            wallet_account: AccountIdOf<T>,
-            total_allocation: BalanceOf<T>,
-        },
-    }
-
-    #[pallet::error]
-    pub enum Error<T> {
-        EnvelopeNotFound,
-        AllocationNotFound,
-        InsufficientEnvelopeBalance,
-        NothingToClaim,
-        UnauthorizedEnvelopeAccess,
-        InvalidParameters,
-    }
-
-    /// Type alias for envelope wallet genesis tuple (envelope_type, initial_balance, config)
-    pub type EnvelopeWalletGenesis<T> = (
-        EnvelopeType,
-        BalanceOf<T>,
-        EnvelopeConfig<BlockNumberFor<T>>,
-    );
-
-    /// Type alias for allocation genesis tuple
-    pub type AllocationGenesis<T> = (
-        AccountIdOf<T>,
-        TokenAllocation<BalanceOf<T>, BlockNumberFor<T>>,
-    );
-
     #[pallet::genesis_config]
     pub struct GenesisConfig<T: Config> {
-        pub envelope_wallets: Vec<EnvelopeWalletGenesis<T>>,
-        pub allocations: Vec<AllocationGenesis<T>>,
+        pub envelopes: Vec<(EnvelopeId, EnvelopeConfig<BalanceOf<T>, u64>)>,
     }
 
+    #[cfg(feature = "std")]
     impl<T: Config> Default for GenesisConfig<T> {
         fn default() -> Self {
             Self {
-                envelope_wallets: Default::default(),
-                allocations: Default::default(),
+                envelopes: Vec::new(),
             }
         }
     }
@@ -149,280 +126,153 @@ pub mod pallet {
     #[pallet::genesis_build]
     impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
         fn build(&self) {
-            // Initialize envelope wallets and configs
-            for (envelope_type, initial_balance, config) in &self.envelope_wallets {
-                let envelope_wallet = EnvelopeWallet {
-                    distributed_amount: Zero::zero(),
+            for (id, cfg_in) in &self.envelopes {
+                assert!(
+                    !Envelopes::<T>::contains_key(id),
+                    "duplicate envelope in genesis"
+                );
+                let cliff: frame_system::pallet_prelude::BlockNumberFor<T> = cfg_in
+                    .cliff
+                    .try_into()
+                    .ok()
+                    .expect("cliff fits into BlockNumber");
+                let vesting: frame_system::pallet_prelude::BlockNumberFor<T> = cfg_in
+                    .vesting_duration
+                    .try_into()
+                    .ok()
+                    .expect("vesting fits into BlockNumber");
+                let cfg = EnvelopeConfig::<
+                    BalanceOf<T>,
+                    frame_system::pallet_prelude::BlockNumberFor<T>,
+                > {
+                    total_cap: cfg_in.total_cap,
+                    upfront_rate: cfg_in.upfront_rate,
+                    cliff,
+                    vesting_duration: vesting,
                 };
-
-                // Generate the envelope account automatically
-                let envelope_account = Pallet::<T>::envelope_account_id(envelope_type);
-
-                EnvelopeWallets::<T>::insert(envelope_type, &envelope_wallet);
-                EnvelopeConfigs::<T>::insert(envelope_type, config);
-
-                Pallet::<T>::deposit_event(Event::EnvelopeWalletCreated {
-                    envelope_type: envelope_type.clone(),
-                    wallet_account: envelope_account,
-                    total_allocation: *initial_balance,
-                });
-            }
-
-            // Initialize pre-allocated tokens (for TGE investors)
-            for (beneficiary, allocation) in &self.allocations {
-                let allocation_id = NextAllocationId::<T>::get(beneficiary);
-                Allocations::<T>::insert(beneficiary, allocation_id, allocation);
-                NextAllocationId::<T>::mutate(beneficiary, |id| *id += 1);
-
-                Pallet::<T>::deposit_event(Event::AllocationCreated {
-                    envelope_type: allocation.envelope_type.clone(),
-                    beneficiary: beneficiary.clone(),
-                    allocation_id,
-                    amount: allocation.total_allocation,
-                });
+                Envelopes::<T>::insert(id, cfg);
+                EnvelopeDistributed::<T>::insert(id, BalanceOf::<T>::zero());
             }
         }
+    }
+
+    #[pallet::event]
+    #[pallet::generate_deposit(pub(super) fn deposit_event)]
+    pub enum Event<T: Config> {
+        AllocationAdded(EnvelopeId, T::AccountId, BalanceOf<T>),
+        UpfrontPaid(EnvelopeId, T::AccountId, BalanceOf<T>),
+        VestedReleased(EnvelopeId, T::AccountId, BalanceOf<T>),
+    }
+
+    #[pallet::error]
+    pub enum Error<T> {
+        EnvelopeUnknown,
+        AllocationExists,
+        EnvelopeCapExceeded,
+        NothingToClaim,
+        ArithmeticOverflow,
     }
 
     #[pallet::call]
     impl<T: Config> Pallet<T> {
         #[pallet::call_index(0)]
-        #[pallet::weight(T::WeightInfo::allocate_from_envelope())]
-        pub fn allocate_from_envelope(
+        pub fn add_allocation(
             origin: OriginFor<T>,
-            envelope_type: EnvelopeType,
-            beneficiary: AccountIdOf<T>,
-            amount: BalanceOf<T>,
-            start_block: Option<BlockNumberFor<T>>,
+            id: EnvelopeId,
+            who: T::AccountId,
+            total: BalanceOf<T>,
         ) -> DispatchResult {
-            T::AllocationOrigin::ensure_origin(origin)?;
+            T::AdminOrigin::ensure_origin(origin)?;
+            let cfg = Envelopes::<T>::get(id).ok_or(Error::<T>::EnvelopeUnknown)?;
+            ensure!(
+                !Allocations::<T>::contains_key(id, &who),
+                Error::<T>::AllocationExists
+            );
+            let distributed = EnvelopeDistributed::<T>::get(id);
+            let new_distributed = distributed.saturating_add(total);
+            ensure!(
+                new_distributed <= cfg.total_cap,
+                Error::<T>::EnvelopeCapExceeded
+            );
 
-            EnvelopeWallets::<T>::try_mutate(&envelope_type, |maybe_wallet| {
-                let wallet = maybe_wallet.as_mut().ok_or(Error::<T>::EnvelopeNotFound)?;
+            let source = id.account::<T>();
+            let source_free = <T as Config>::Currency::free_balance(&source);
+            // total liability introduced now is upfront + vested_total (to be paid over time)
+            let upfront = cfg.upfront_rate.mul_floor(total);
+            let vested_total = total.saturating_sub(upfront);
+            let required = upfront.saturating_add(vested_total);
+            ensure!(source_free >= required, Error::<T>::EnvelopeCapExceeded);
 
-                // Use the automatically generated account
-                let envelope_account = Self::envelope_account_id(&envelope_type);
-                let current_balance = T::Currency::balance(&envelope_account);
+            let alloc = Allocation {
+                total,
+                upfront,
+                vested_total,
+                released: Zero::zero(),
+            };
+            Allocations::<T>::insert(id, &who, alloc.clone());
+            EnvelopeDistributed::<T>::insert(id, new_distributed);
 
-                // Check if we have enough tokens considering what's already distributed
-                let available_balance = current_balance.saturating_sub(wallet.distributed_amount);
-                ensure!(
-                    available_balance >= amount,
-                    Error::<T>::InsufficientEnvelopeBalance
-                );
-
-                wallet.distributed_amount = wallet.distributed_amount.saturating_add(amount);
-
-                let allocation_id = NextAllocationId::<T>::get(&beneficiary);
-
-                let current_block = <frame_system::Pallet<T>>::block_number();
-                let activation_block = start_block.unwrap_or(BlockNumberFor::<T>::zero());
-
-                let status = if activation_block <= current_block {
-                    AllocationStatus::ActiveSinceGenesis
-                } else {
-                    AllocationStatus::ActivatedAt(activation_block)
-                };
-
-                let allocation = TokenAllocation {
-                    total_allocation: amount,
-                    envelope_type: envelope_type.clone(),
-                    status,
-                    claimed_amount: Zero::zero(),
-                };
-
-                // Don't transfer immediately - tokens stay in envelope for vesting/claiming
-
-                Allocations::<T>::insert(&beneficiary, allocation_id, &allocation);
-                NextAllocationId::<T>::mutate(&beneficiary, |id| *id += 1);
-
-                Self::deposit_event(Event::AllocationCreated {
-                    envelope_type: envelope_type.clone(),
-                    beneficiary,
-                    allocation_id,
-                    amount,
-                });
-
-                Ok(())
-            })
-        }
-
-        #[pallet::call_index(1)]
-        #[pallet::weight(T::WeightInfo::claim_tokens())]
-        pub fn claim_tokens(origin: OriginFor<T>, allocation_id: u32) -> DispatchResult {
-            let who = ensure_signed(origin)?;
-
-            Allocations::<T>::try_mutate(&who, allocation_id, |maybe_allocation| {
-                let allocation = maybe_allocation
-                    .as_mut()
-                    .ok_or(Error::<T>::AllocationNotFound)?;
-
-                let current_block = <frame_system::Pallet<T>>::block_number();
-                let unlocked_amount = Self::calculate_unlocked_amount(allocation, current_block);
-                let claimable_amount = unlocked_amount.saturating_sub(allocation.claimed_amount);
-
-                ensure!(!claimable_amount.is_zero(), Error::<T>::NothingToClaim);
-
-                // Transfer tokens from envelope to beneficiary
-                let envelope_account = Self::envelope_account_id(&allocation.envelope_type);
-                T::Currency::transfer(
-                    &envelope_account,
-                    &who,
-                    claimable_amount,
-                    frame_support::traits::tokens::Preservation::Preserve,
-                )?;
-
-                allocation.claimed_amount = unlocked_amount;
-
-                if allocation.claimed_amount >= allocation.total_allocation {
-                    allocation.status = AllocationStatus::Completed;
-                }
-
-                Self::deposit_event(Event::TokensClaimed {
-                    beneficiary: who.clone(),
-                    allocation_id,
-                    amount: claimable_amount,
-                });
-
-                Ok(())
-            })
-        }
-
-        #[pallet::call_index(2)]
-        #[pallet::weight(T::WeightInfo::update_envelope_config())]
-        pub fn update_envelope_config(
-            origin: OriginFor<T>,
-            envelope_type: EnvelopeType,
-            new_config: EnvelopeConfig<BlockNumberFor<T>>,
-        ) -> DispatchResult {
-            T::AllocationOrigin::ensure_origin(origin)?;
-            ensure!(EnvelopeWallets::<T>::contains_key(&envelope_type), Error::<T>::EnvelopeNotFound);
-            EnvelopeConfigs::<T>::insert(&envelope_type, new_config);
+            if !upfront.is_zero() {
+                <T as Config>::Currency::transfer(&source, &who, upfront, AllowDeath)?;
+                Self::deposit_event(Event::UpfrontPaid(id, who.clone(), upfront));
+            }
+            Self::deposit_event(Event::AllocationAdded(id, who, total));
             Ok(())
         }
 
-        #[pallet::call_index(3)]
-        #[pallet::weight(T::WeightInfo::update_allocation())]
-        pub fn update_allocation(
-            origin: OriginFor<T>,
-            beneficiary: AccountIdOf<T>,
-            allocation_id: u32,
-            new_total_allocation: BalanceOf<T>,
-            new_start_block: Option<BlockNumberFor<T>>,
-        ) -> DispatchResult {
-            T::AllocationOrigin::ensure_origin(origin)?;
-            Allocations::<T>::try_mutate(&beneficiary, allocation_id, |maybe_allocation| {
-                let allocation = maybe_allocation.as_mut().ok_or(Error::<T>::AllocationNotFound)?;
-                let envelope_type = allocation.envelope_type.clone();
-                let previously_reserved = allocation.total_allocation;
-                if new_total_allocation > previously_reserved {
-                    let delta = new_total_allocation.saturating_sub(previously_reserved);
-                    EnvelopeWallets::<T>::try_mutate(&envelope_type, |maybe_wallet| {
-                        let wallet = maybe_wallet.as_mut().ok_or(Error::<T>::EnvelopeNotFound)?;
-                        let envelope_account = Self::envelope_account_id(&envelope_type);
-                        let current_balance = T::Currency::balance(&envelope_account);
-                        let available = current_balance.saturating_sub(wallet.distributed_amount);
-                        ensure!(available >= delta, Error::<T>::InsufficientEnvelopeBalance);
-                        wallet.distributed_amount = wallet.distributed_amount.saturating_add(delta);
-                        Ok::<_, DispatchError>(())
-                    })?;
-                } else if previously_reserved > new_total_allocation {
-                    let delta = previously_reserved.saturating_sub(new_total_allocation);
-                    EnvelopeWallets::<T>::try_mutate(&envelope_type, |maybe_wallet| {
-                        let wallet = maybe_wallet.as_mut().ok_or(Error::<T>::EnvelopeNotFound)?;
-                        wallet.distributed_amount = wallet.distributed_amount.saturating_sub(delta);
-                        Ok::<_, DispatchError>(())
-                    })?;
-                }
+        #[pallet::call_index(1)]
+        pub fn claim(origin: OriginFor<T>, id: EnvelopeId) -> DispatchResult {
+            let who = ensure_signed(origin)?;
+            let cfg = Envelopes::<T>::get(id).ok_or(Error::<T>::EnvelopeUnknown)?;
+            let mut alloc = Allocations::<T>::get(id, &who).ok_or(Error::<T>::EnvelopeUnknown)?;
+            let now = <frame_system::Pallet<T>>::block_number();
 
-                allocation.total_allocation = new_total_allocation;
-                if let Some(sb) = new_start_block {
-                    let current_block = <frame_system::Pallet<T>>::block_number();
-                    allocation.status = if sb <= current_block { AllocationStatus::ActiveSinceGenesis } else { AllocationStatus::ActivatedAt(sb) };
-                }
-                Ok(())
-            })
-        }
+            let claimable =
+                Self::claimable_amount(&cfg, &alloc, now).ok_or(Error::<T>::ArithmeticOverflow)?;
+            ensure!(!claimable.is_zero(), Error::<T>::NothingToClaim);
 
-        #[pallet::call_index(4)]
-        #[pallet::weight(T::WeightInfo::revoke_allocation())]
-        pub fn revoke_allocation(
-            origin: OriginFor<T>,
-            beneficiary: AccountIdOf<T>,
-            allocation_id: u32,
-        ) -> DispatchResult {
-            T::AllocationOrigin::ensure_origin(origin)?;
-            Allocations::<T>::try_mutate(&beneficiary, allocation_id, |maybe_allocation| {
-                let allocation = maybe_allocation.as_mut().ok_or(Error::<T>::AllocationNotFound)?;
-                if matches!(allocation.status, AllocationStatus::Completed | AllocationStatus::Revoked) {
-                    return Ok(())
-                }
-                let reserved_remaining = allocation.total_allocation.saturating_sub(allocation.claimed_amount);
-                EnvelopeWallets::<T>::try_mutate(&allocation.envelope_type, |maybe_wallet| {
-                    let wallet = maybe_wallet.as_mut().ok_or(Error::<T>::EnvelopeNotFound)?;
-                    wallet.distributed_amount = wallet.distributed_amount.saturating_sub(reserved_remaining);
-                    Ok::<_, DispatchError>(())
-                })?;
-                allocation.status = AllocationStatus::Revoked;
-                allocation.total_allocation = allocation.claimed_amount;
-                Ok(())
-            })
+            alloc.released = alloc.released.saturating_add(claimable);
+            Allocations::<T>::insert(id, &who, &alloc);
+
+            let source = id.account::<T>();
+            <T as Config>::Currency::transfer(&source, &who, claimable, AllowDeath)?;
+            Self::deposit_event(Event::VestedReleased(id, who, claimable));
+            Ok(())
         }
     }
 
     impl<T: Config> Pallet<T> {
-        /// Generates the deterministic AccountId for an envelope type
-        pub fn envelope_account_id(envelope_type: &EnvelopeType) -> AccountIdOf<T> {
-            let entropy =
-                (b"allfeat/envelope", envelope_type).using_encoded(Blake2_128Concat::hash);
-            Decode::decode(&mut TrailingZeroInput::new(entropy.as_ref()))
-                .expect("infinite length input; no invalid input for type; qed")
+        pub fn claimable_amount(
+            cfg: &EnvelopeConfig<BalanceOf<T>, frame_system::pallet_prelude::BlockNumberFor<T>>,
+            alloc: &Allocation<BalanceOf<T>>,
+            now: frame_system::pallet_prelude::BlockNumberFor<T>,
+        ) -> Option<BalanceOf<T>> {
+            if now <= cfg.cliff {
+                return Some(Zero::zero());
+            }
+            let elapsed = now.saturating_sub(cfg.cliff);
+            if elapsed >= cfg.vesting_duration {
+                return alloc.vested_total.saturating_sub(alloc.released).into();
+            }
+            let vested = Self::mul_div(alloc.vested_total, elapsed, cfg.vesting_duration)?;
+            let available = vested.saturating_sub(alloc.released);
+            Some(available)
         }
 
-        pub fn calculate_unlocked_amount(
-            allocation: &TokenAllocation<BalanceOf<T>, BlockNumberFor<T>>,
-            current_block: BlockNumberFor<T>,
-        ) -> BalanceOf<T> {
-            let activation_block = match allocation.status {
-                AllocationStatus::ActiveSinceGenesis => BlockNumberFor::<T>::zero(),
-                AllocationStatus::ActivatedAt(block) => block,
-                AllocationStatus::Completed | AllocationStatus::Revoked => {
-                    return Zero::zero();
-                }
-            };
-
-            let envelope_config = match EnvelopeConfigs::<T>::get(&allocation.envelope_type) {
-                Some(config) => config,
-                None => return Zero::zero(),
-            };
-
-            let immediate_amount = envelope_config
-                .immediate_unlock_percentage
-                .mul_floor(allocation.total_allocation);
-
-            let cliff_end = activation_block.saturating_add(envelope_config.cliff_duration);
-            if current_block < cliff_end {
-                return immediate_amount;
+        pub fn mul_div(
+            a: BalanceOf<T>,
+            b: frame_system::pallet_prelude::BlockNumberFor<T>,
+            c: frame_system::pallet_prelude::BlockNumberFor<T>,
+        ) -> Option<BalanceOf<T>> {
+            // naive: (a * b) / c with saturating casts via u128
+            let a128: u128 = a.try_into().ok()?;
+            let b128: u128 = b.try_into().ok()?;
+            let c128: u128 = c.try_into().ok()?;
+            if c128 == 0 {
+                return None;
             }
-
-            let vesting_end = activation_block.saturating_add(envelope_config.vesting_duration);
-            let vesting_amount = allocation.total_allocation.saturating_sub(immediate_amount);
-
-            if current_block >= vesting_end {
-                allocation.total_allocation
-            } else {
-                let vesting_elapsed = current_block.saturating_sub(cliff_end);
-                let vesting_remaining = vesting_end.saturating_sub(cliff_end);
-
-                let vested_amount = if !vesting_remaining.is_zero() {
-                    let progress = Percent::from_rational(vesting_elapsed, vesting_remaining);
-                    progress.mul_floor(vesting_amount)
-                } else {
-                    vesting_amount
-                };
-
-                immediate_amount.saturating_add(vested_amount)
-            }
+            let res = a128.saturating_mul(b128).checked_div(c128)?;
+            res.try_into().ok()
         }
     }
 }

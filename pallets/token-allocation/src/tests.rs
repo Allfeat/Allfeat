@@ -1,376 +1,327 @@
-// This file is part of Allfeat.
+use super::*;
+use crate::pallet::{Allocations, EnvelopeDistributed, Envelopes, Event as PalletEvent};
+use frame_support::{assert_noop, assert_ok, traits::Currency};
+use sp_runtime::Percent;
 
-// Copyright (C) 2022-2025 Allfeat.
-// SPDX-License-Identifier: GPL-3.0-or-later
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-use crate::{
-    mock::*,
-    types::{EnvelopeConfig, EnvelopeType, EnvelopeWallet},
-};
-use frame_support::{
-    assert_ok,
-    sp_runtime::Percent,
-    traits::fungible::{Inspect, Mutate},
+use crate::mock::{
+    Balances, RuntimeEvent as TestEvent, System, Test, TokenAllocation, new_test_ext,
 };
 
+fn set_block(n: u64) {
+    System::set_block_number(n);
+}
+
 #[test]
-fn basic_envelope_setup_works() {
+fn add_allocation_pays_upfront_and_stores_allocation() {
     new_test_ext().execute_with(|| {
-        let total_allocation = 1000;
+        let id = EnvelopeId::Founders;
+        let total_cap: u64 = 1_000_000;
+        let upfront_rate: Percent = Percent::from_percent(10);
+        let cliff: u64 = 10;
+        let duration: u64 = 100;
 
-        let config = EnvelopeConfig {
-            immediate_unlock_percentage: Percent::from_percent(10),
-            cliff_duration: 100,
-            vesting_duration: 1000,
-        };
+        // fund envelope source account sufficiently: upfront + vested_total == total
+        let source = id.account::<Test>();
+        // give source large balance
+        Balances::make_free_balance_be(&source, 500_000);
 
-        // Generate the account automatically and mint tokens to it
-        let envelope_account = crate::Pallet::<Test>::envelope_account_id(&EnvelopeType::Seed);
-        assert_ok!(Balances::mint_into(&envelope_account, total_allocation));
-
-        // Setup envelope wallet
-        let envelope_wallet = EnvelopeWallet {
-            distributed_amount: 0,
-        };
-
-        crate::EnvelopeWallets::<Test>::insert(&EnvelopeType::Seed, &envelope_wallet);
-        crate::EnvelopeConfigs::<Test>::insert(&EnvelopeType::Seed, &config);
-
-        // Verify storage
-        assert_eq!(
-            crate::EnvelopeWallets::<Test>::get(&EnvelopeType::Seed),
-            Some(envelope_wallet)
+        // Insert envelope config in storage (as done by genesis build normally)
+        Envelopes::<Test>::insert(
+            id,
+            EnvelopeConfig::<u64, u64> {
+                total_cap,
+                upfront_rate,
+                cliff,
+                vesting_duration: duration,
+            },
         );
-        assert_eq!(
-            crate::EnvelopeConfigs::<Test>::get(&EnvelopeType::Seed),
-            Some(config)
+        EnvelopeDistributed::<Test>::insert(id, 0u64);
+
+        let who = 1u128;
+        let total: u64 = 100_000;
+
+        let before_who = Balances::free_balance(who);
+
+        assert_ok!(TokenAllocation::add_allocation(
+            mock::RuntimeOrigin::root(),
+            id,
+            who,
+            total
+        ));
+
+        // upfront should be 10_000 (10%)
+        let upfront = 10_000u64;
+        assert_eq!(Balances::free_balance(who), before_who + upfront);
+
+        // allocation stored
+        let alloc = Allocations::<Test>::get(id, who).expect("allocation exists");
+        assert_eq!(alloc.total, total);
+        assert_eq!(alloc.upfront, upfront);
+        assert_eq!(alloc.vested_total, total - upfront);
+        assert_eq!(alloc.released, 0);
+
+        // events include UpfrontPaid then AllocationAdded
+        let events: Vec<TestEvent> = System::events().into_iter().map(|r| r.event).collect();
+        assert!(events.iter().any(|e| matches!(e,
+            TestEvent::TokenAllocation(PalletEvent::UpfrontPaid(eid, account, amount)) if eid == &id && account == &who && amount == &upfront
+        )));
+        assert!(events.iter().any(|e| matches!(e,
+            TestEvent::TokenAllocation(PalletEvent::AllocationAdded(eid, account, amount)) if eid == &id && account == &who && amount == &total
+        )));
+    });
+}
+
+#[test]
+fn cannot_over_cap_envelope() {
+    new_test_ext().execute_with(|| {
+        let id = EnvelopeId::KoL;
+        let total_cap: u64 = 150;
+        let upfront_rate: Percent = Percent::from_percent(0);
+        let cliff: u64 = 0;
+        let duration: u64 = 0;
+
+        let source = id.account::<Test>();
+        Balances::make_free_balance_be(&source, 1_000_000);
+
+        Envelopes::<Test>::insert(
+            id,
+            EnvelopeConfig::<u64, u64> {
+                total_cap,
+                upfront_rate,
+                cliff,
+                vesting_duration: duration,
+            },
+        );
+        EnvelopeDistributed::<Test>::insert(id, 0u64);
+
+        // First allocation within cap
+        assert_ok!(TokenAllocation::add_allocation(
+            mock::RuntimeOrigin::root(),
+            id,
+            1u128,
+            100u64
+        ));
+        // Second would exceed cap
+        assert_noop!(
+            TokenAllocation::add_allocation(mock::RuntimeOrigin::root(), id, 2u128, 60u64),
+            Error::<Test>::EnvelopeCapExceeded
+        );
+    });
+}
+
+#[test]
+fn cannot_add_duplicate_allocation() {
+    new_test_ext().execute_with(|| {
+        let id = EnvelopeId::Private1;
+        Envelopes::<Test>::insert(
+            id,
+            EnvelopeConfig::<u64, u64> {
+                total_cap: 1_000,
+                upfront_rate: Percent::from_percent(0),
+                cliff: 0,
+                vesting_duration: 0,
+            },
+        );
+        EnvelopeDistributed::<Test>::insert(id, 0u64);
+        let source = id.account::<Test>();
+        Balances::make_free_balance_be(&source, 1_000_000);
+
+        assert_ok!(TokenAllocation::add_allocation(
+            mock::RuntimeOrigin::root(),
+            id,
+            1u128,
+            100u64
+        ));
+        assert_noop!(
+            TokenAllocation::add_allocation(mock::RuntimeOrigin::root(), id, 1u128, 50u64),
+            Error::<Test>::AllocationExists
+        );
+    });
+}
+
+#[test]
+fn add_allocation_fails_if_source_insufficient() {
+    new_test_ext().execute_with(|| {
+        let id = EnvelopeId::Private2;
+        Envelopes::<Test>::insert(
+            id,
+            EnvelopeConfig::<u64, u64> {
+                total_cap: 1_000_000,
+                upfront_rate: Percent::from_percent(50),
+                cliff: 0,
+                vesting_duration: 100,
+            },
+        );
+        EnvelopeDistributed::<Test>::insert(id, 0u64);
+        let source = id.account::<Test>();
+        // Provide less than required (required == total), set only 99
+        Balances::make_free_balance_be(&source, 99);
+
+        assert_noop!(
+            TokenAllocation::add_allocation(mock::RuntimeOrigin::root(), id, 1u128, 100u64),
+            Error::<Test>::EnvelopeCapExceeded
+        );
+    });
+}
+
+#[test]
+fn claim_before_cliff_is_zero() {
+    new_test_ext().execute_with(|| {
+        let id = EnvelopeId::ICO1;
+        let total_cap = 1_000_000u64;
+        let upfront_rate: Percent = Percent::from_percent(0);
+        let cliff = 100u64;
+        let duration = 1_000u64;
+        let who = 1u128;
+        let total = 1_000u64;
+        let source = id.account::<Test>();
+        Balances::make_free_balance_be(&source, total_cap);
+
+        Envelopes::<Test>::insert(
+            id,
+            EnvelopeConfig {
+                total_cap,
+                upfront_rate,
+                cliff,
+                vesting_duration: duration,
+            },
+        );
+        EnvelopeDistributed::<Test>::insert(id, 0u64);
+        assert_ok!(TokenAllocation::add_allocation(
+            mock::RuntimeOrigin::root(),
+            id,
+            who,
+            total
+        ));
+
+        set_block(50);
+        assert_noop!(
+            TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id),
+            Error::<Test>::NothingToClaim
+        );
+    });
+}
+
+#[test]
+fn linear_vesting_claims_over_time() {
+    new_test_ext().execute_with(|| {
+        let id = EnvelopeId::Seed;
+        let total_cap = 1_000_000u64;
+        let upfront_rate: Percent = Percent::from_percent(0);
+        let cliff = 10u64;
+        let duration = 100u64;
+        let who = 1u128;
+        let total = 1_000u64;
+        let source = id.account::<Test>();
+        Balances::make_free_balance_be(&source, total_cap);
+
+        Envelopes::<Test>::insert(id, EnvelopeConfig { total_cap, upfront_rate, cliff, vesting_duration: duration });
+        EnvelopeDistributed::<Test>::insert(id, 0u64);
+        assert_ok!(TokenAllocation::add_allocation(mock::RuntimeOrigin::root(), id, who, total));
+
+        // At cliff exactly, claimable == 0 because now <= cliff returns 0
+        set_block(cliff);
+        assert_noop!(TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id), Error::<Test>::NothingToClaim);
+
+        // After some time: 50% of duration
+        set_block(cliff + duration / 2);
+        let before = Balances::free_balance(who);
+        assert_ok!(TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id));
+        let after = Balances::free_balance(who);
+        // vested_total == total (no upfront). 50% of 1000 = 500
+        assert_eq!(after - before, 500);
+
+        // After end, remaining all can be claimed
+        set_block(cliff + duration + 1);
+        let before2 = Balances::free_balance(who);
+        assert_ok!(TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id));
+        let after2 = Balances::free_balance(who);
+        // remaining 500
+        assert_eq!(after2 - before2, 500);
+
+        // No more to claim
+        assert_noop!(TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id), Error::<Test>::NothingToClaim);
+
+        // Event emitted on claims
+        let events: Vec<TestEvent> = System::events().into_iter().map(|r| r.event).collect();
+        assert!(events.iter().any(|e| matches!(e,
+            TestEvent::TokenAllocation(PalletEvent::VestedReleased(eid, account, amount)) if eid == &id && account == &who && amount == &500u64
+        )));
+    });
+}
+
+#[test]
+fn upfront_zero_skips_transfer_and_event() {
+    new_test_ext().execute_with(|| {
+        let id = EnvelopeId::ICO2;
+        let total_cap = 1_000_000u64;
+        let upfront_rate: Percent = Percent::from_percent(0); // 0%
+        let cliff = 0u64;
+        let duration = 100u64;
+        let who = 2u128;
+        let total = 1_000u64;
+        let source = id.account::<Test>();
+        Balances::make_free_balance_be(&source, total_cap);
+
+        Envelopes::<Test>::insert(
+            id,
+            EnvelopeConfig {
+                total_cap,
+                upfront_rate,
+                cliff,
+                vesting_duration: duration,
+            },
+        );
+        EnvelopeDistributed::<Test>::insert(id, 0u64);
+
+        let before_events = System::events().len();
+        let before_balance = Balances::free_balance(who);
+        assert_ok!(TokenAllocation::add_allocation(
+            mock::RuntimeOrigin::root(),
+            id,
+            who,
+            total
+        ));
+        let after_balance = Balances::free_balance(who);
+
+        assert_eq!(after_balance, before_balance); // no upfront received
+        let events = &System::events()[before_events..];
+        // Only AllocationAdded should be present for this call (no UpfrontPaid)
+        assert!(events.iter().any(|rec| matches!(
+            rec.event,
+            TestEvent::TokenAllocation(PalletEvent::AllocationAdded(..))
+        )));
+        assert!(!events.iter().any(|rec| matches!(
+            rec.event,
+            TestEvent::TokenAllocation(PalletEvent::UpfrontPaid(..))
+        )));
+    });
+}
+
+#[test]
+fn claim_fails_when_allocation_missing_or_envelope_unknown() {
+    new_test_ext().execute_with(|| {
+        let id = EnvelopeId::SerieA;
+        // Missing envelope config
+        assert_noop!(
+            TokenAllocation::claim(mock::RuntimeOrigin::signed(1u128), id),
+            Error::<Test>::EnvelopeUnknown
         );
 
-        // Verify envelope account has the tokens
-        assert_eq!(Balances::balance(&envelope_account), total_allocation);
-    });
-}
-
-#[test]
-fn allocate_from_envelope_works() {
-    new_test_ext().execute_with(|| {
-        let beneficiary = 2;
-        let total_allocation = 1000;
-        let allocation_amount = 100;
-
-        let config = EnvelopeConfig {
-            immediate_unlock_percentage: Percent::from_percent(10),
-            cliff_duration: 100,
-            vesting_duration: 1000,
-        };
-
-        // Setup
-        let envelope_account = crate::Pallet::<Test>::envelope_account_id(&EnvelopeType::Seed);
-        assert_ok!(Balances::mint_into(&envelope_account, total_allocation));
-
-        let envelope_wallet = EnvelopeWallet {
-            distributed_amount: 0,
-        };
-
-        crate::EnvelopeWallets::<Test>::insert(&EnvelopeType::Seed, &envelope_wallet);
-        crate::EnvelopeConfigs::<Test>::insert(&EnvelopeType::Seed, &config);
-
-        // Allocate from envelope
-        assert_ok!(crate::Pallet::<Test>::allocate_from_envelope(
-            RuntimeOrigin::root(),
-            EnvelopeType::Seed,
-            beneficiary,
-            allocation_amount,
-            None, // start immediately
-        ));
-
-        // Verify allocation was created
-        let allocation = crate::Allocations::<Test>::get(beneficiary, 0);
-        assert!(allocation.is_some());
-        let allocation = allocation.unwrap();
-        assert_eq!(allocation.total_allocation, allocation_amount);
-        assert_eq!(allocation.envelope_type, EnvelopeType::Seed);
-
-        // Verify wallet state updated
-        let updated_wallet = crate::EnvelopeWallets::<Test>::get(&EnvelopeType::Seed).unwrap();
-        assert_eq!(updated_wallet.distributed_amount, allocation_amount);
-
-        // Verify envelope account still has all tokens (no immediate transfer)
-        let envelope_account = crate::Pallet::<Test>::envelope_account_id(&EnvelopeType::Seed);
-        let remaining_balance = Balances::balance(&envelope_account);
-        assert_eq!(remaining_balance, total_allocation); // Tokens stay for vesting
-    });
-}
-
-#[test]
-fn claim_tokens_works() {
-    new_test_ext().execute_with(|| {
-        let beneficiary = 2;
-        let total_allocation = 1000;
-        let allocation_amount = 100;
-
-        let config = EnvelopeConfig {
-            immediate_unlock_percentage: Percent::from_percent(50), // 50% immediate
-            cliff_duration: 0,                                      // No cliff to simplify
-            vesting_duration: 100,
-        };
-
-        // Setup
-        let envelope_account = crate::Pallet::<Test>::envelope_account_id(&EnvelopeType::Seed);
-        assert_ok!(Balances::mint_into(&envelope_account, total_allocation));
-
-        let envelope_wallet = EnvelopeWallet {
-            distributed_amount: 0,
-        };
-
-        crate::EnvelopeWallets::<Test>::insert(&EnvelopeType::Seed, &envelope_wallet);
-        crate::EnvelopeConfigs::<Test>::insert(&EnvelopeType::Seed, &config);
-
-        // Allocate
-        assert_ok!(crate::Pallet::<Test>::allocate_from_envelope(
-            RuntimeOrigin::root(),
-            EnvelopeType::Seed,
-            beneficiary,
-            allocation_amount,
-            None,
-        ));
-
-        // Claim tokens
-        assert_ok!(crate::Pallet::<Test>::claim_tokens(
-            RuntimeOrigin::signed(beneficiary),
-            0, // allocation_id
-        ));
-
-        // Verify claimed amount updated
-        let allocation = crate::Allocations::<Test>::get(beneficiary, 0).unwrap();
-        assert_eq!(allocation.claimed_amount, 50); // 50% of 100
-    });
-}
-
-#[test]
-fn prevent_over_allocation() {
-    new_test_ext().execute_with(|| {
-        let total_allocation = 20; // Small envelope
-        let first_allocation = 10;
-        let second_allocation = 11; // This should fail
-
-        let config = EnvelopeConfig {
-            immediate_unlock_percentage: Percent::from_percent(10),
-            cliff_duration: 100,
-            vesting_duration: 1000,
-        };
-
-        // Setup envelope with only 20 tokens
-        let envelope_account = crate::Pallet::<Test>::envelope_account_id(&EnvelopeType::Seed);
-        assert_ok!(Balances::mint_into(&envelope_account, total_allocation));
-
-        let envelope_wallet = EnvelopeWallet {
-            distributed_amount: 0,
-        };
-
-        crate::EnvelopeWallets::<Test>::insert(&EnvelopeType::Seed, &envelope_wallet);
-        crate::EnvelopeConfigs::<Test>::insert(&EnvelopeType::Seed, &config);
-
-        // First allocation should work (10 out of 20)
-        assert_ok!(crate::Pallet::<Test>::allocate_from_envelope(
-            RuntimeOrigin::root(),
-            EnvelopeType::Seed,
-            2,
-            first_allocation,
-            None,
-        ));
-
-        // Second allocation should fail (11 out of remaining 10)
-        assert!(
-            crate::Pallet::<Test>::allocate_from_envelope(
-                RuntimeOrigin::root(),
-                EnvelopeType::Seed,
-                3,
-                second_allocation,
-                None,
-            )
-            .is_err()
+        // Add envelope but not allocation
+        Envelopes::<Test>::insert(
+            id,
+            EnvelopeConfig::<u64, u64> {
+                total_cap: 1000,
+                upfront_rate: Percent::from_percent(0),
+                cliff: 0,
+                vesting_duration: 0,
+            },
         );
-
-        // Verify only first allocation was created
-        assert!(crate::Allocations::<Test>::get(2, 0).is_some());
-        assert!(crate::Allocations::<Test>::get(3, 0).is_none());
-
-        // Verify distributed amount is only from first allocation
-        let wallet = crate::EnvelopeWallets::<Test>::get(&EnvelopeType::Seed).unwrap();
-        assert_eq!(wallet.distributed_amount, first_allocation);
-    });
-}
-
-#[test]
-fn update_envelope_config_affects_claim_schedule() {
-    new_test_ext().execute_with(|| {
-        let beneficiary = 2;
-        let total = 1_000;
-        let amount = 200;
-
-        let config_initial = EnvelopeConfig {
-            immediate_unlock_percentage: Percent::from_percent(0),
-            cliff_duration: 100,
-            vesting_duration: 200,
-        };
-
-        let envelope_account = crate::Pallet::<Test>::envelope_account_id(&EnvelopeType::Seed);
-        assert_ok!(Balances::mint_into(&envelope_account, total));
-        let wallet = EnvelopeWallet {
-            distributed_amount: 0,
-        };
-        crate::EnvelopeWallets::<Test>::insert(&EnvelopeType::Seed, &wallet);
-        crate::EnvelopeConfigs::<Test>::insert(&EnvelopeType::Seed, &config_initial);
-
-        assert_ok!(crate::Pallet::<Test>::allocate_from_envelope(
-            RuntimeOrigin::root(),
-            EnvelopeType::Seed,
-            beneficiary,
-            amount,
-            None,
-        ));
-
-        let allocation = crate::Allocations::<Test>::get(beneficiary, 0).unwrap();
-        assert_eq!(allocation.claimed_amount, 0);
-
-        let config_updated = EnvelopeConfig {
-            immediate_unlock_percentage: Percent::from_percent(50),
-            cliff_duration: 0,
-            vesting_duration: 100,
-        };
-        assert_ok!(crate::Pallet::<Test>::update_envelope_config(
-            RuntimeOrigin::root(),
-            EnvelopeType::Seed,
-            config_updated.clone(),
-        ));
-
-        assert_ok!(crate::Pallet::<Test>::claim_tokens(
-            RuntimeOrigin::signed(beneficiary),
-            0
-        ));
-        let allocation = crate::Allocations::<Test>::get(beneficiary, 0).unwrap();
-        assert_eq!(allocation.claimed_amount, 100);
-    });
-}
-
-#[test]
-fn update_allocation_adjusts_reservation_and_start() {
-    new_test_ext().execute_with(|| {
-        let beneficiary = 2;
-        let total = 200;
-        let config = EnvelopeConfig {
-            immediate_unlock_percentage: Percent::from_percent(0),
-            cliff_duration: 0,
-            vesting_duration: 100,
-        };
-        let envelope_account = crate::Pallet::<Test>::envelope_account_id(&EnvelopeType::Seed);
-        assert_ok!(Balances::mint_into(&envelope_account, total));
-        let wallet = EnvelopeWallet {
-            distributed_amount: 0,
-        };
-        crate::EnvelopeWallets::<Test>::insert(&EnvelopeType::Seed, &wallet);
-        crate::EnvelopeConfigs::<Test>::insert(&EnvelopeType::Seed, &config);
-
-        assert_ok!(crate::Pallet::<Test>::allocate_from_envelope(
-            RuntimeOrigin::root(),
-            EnvelopeType::Seed,
-            beneficiary,
-            100,
-            None
-        ));
-        let wallet = crate::EnvelopeWallets::<Test>::get(&EnvelopeType::Seed).unwrap();
-        assert_eq!(wallet.distributed_amount, 100);
-
-        assert_ok!(crate::Pallet::<Test>::update_allocation(
-            RuntimeOrigin::root(),
-            beneficiary,
-            0,
-            150,
-            None
-        ));
-        let wallet = crate::EnvelopeWallets::<Test>::get(&EnvelopeType::Seed).unwrap();
-        assert_eq!(wallet.distributed_amount, 150);
-
-        assert_ok!(crate::Pallet::<Test>::update_allocation(
-            RuntimeOrigin::root(),
-            beneficiary,
-            0,
-            120,
-            Some(1)
-        ));
-        let wallet = crate::EnvelopeWallets::<Test>::get(&EnvelopeType::Seed).unwrap();
-        assert_eq!(wallet.distributed_amount, 120);
-
-        let alloc = crate::Allocations::<Test>::get(beneficiary, 0).unwrap();
-        match alloc.status {
-            crate::types::AllocationStatus::ActiveSinceGenesis => (),
-            crate::types::AllocationStatus::ActivatedAt(b) if b <= 1 => (),
-            _ => panic!(),
-        }
-    });
-}
-
-#[test]
-fn revoke_allocation_releases_unclaimed() {
-    new_test_ext().execute_with(|| {
-        let beneficiary = 2;
-        let total = 300;
-        let config = EnvelopeConfig {
-            immediate_unlock_percentage: Percent::from_percent(50),
-            cliff_duration: 0,
-            vesting_duration: 100,
-        };
-        let envelope_account = crate::Pallet::<Test>::envelope_account_id(&EnvelopeType::Seed);
-        assert_ok!(Balances::mint_into(&envelope_account, total));
-        let wallet = EnvelopeWallet {
-            distributed_amount: 0,
-        };
-        crate::EnvelopeWallets::<Test>::insert(&EnvelopeType::Seed, &wallet);
-        crate::EnvelopeConfigs::<Test>::insert(&EnvelopeType::Seed, &config);
-
-        assert_ok!(crate::Pallet::<Test>::allocate_from_envelope(
-            RuntimeOrigin::root(),
-            EnvelopeType::Seed,
-            beneficiary,
-            200,
-            None
-        ));
-        let wallet = crate::EnvelopeWallets::<Test>::get(&EnvelopeType::Seed).unwrap();
-        assert_eq!(wallet.distributed_amount, 200);
-
-        assert_ok!(crate::Pallet::<Test>::claim_tokens(
-            RuntimeOrigin::signed(beneficiary),
-            0
-        ));
-        let alloc = crate::Allocations::<Test>::get(beneficiary, 0).unwrap();
-        assert_eq!(alloc.claimed_amount, 100);
-
-        assert_ok!(crate::Pallet::<Test>::revoke_allocation(
-            RuntimeOrigin::root(),
-            beneficiary,
-            0
-        ));
-        let wallet = crate::EnvelopeWallets::<Test>::get(&EnvelopeType::Seed).unwrap();
-        assert_eq!(wallet.distributed_amount, 100);
-        let alloc = crate::Allocations::<Test>::get(beneficiary, 0).unwrap();
-        match alloc.status {
-            crate::types::AllocationStatus::Revoked => (),
-            _ => panic!(),
-        }
-        assert_eq!(alloc.total_allocation, 100);
+        EnvelopeDistributed::<Test>::insert(id, 0u64);
+        assert_noop!(
+            TokenAllocation::claim(mock::RuntimeOrigin::signed(1u128), id),
+            Error::<Test>::EnvelopeUnknown
+        );
     });
 }

@@ -7,7 +7,7 @@ members = [
 	"pallets/ats",
 	"pallets/midds",
 	"pallets/validators",
-	"pallets/token-allocation"
+	"pallets/token-allocation",
 ]
 default-members = [
     "node"

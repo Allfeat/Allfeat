@@ -6880,9 +6880,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-token-allocation"
-version = "1.0.0"
+version = "0.1.0"
 dependencies = [
- "allfeat-primitives",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
@@ -6891,7 +6890,9 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
+ "sp-core",
  "sp-io",
+ "sp-runtime",
  "sp-tracing",
 ]
 
