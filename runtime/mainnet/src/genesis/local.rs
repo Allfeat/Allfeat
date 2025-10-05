@@ -38,11 +38,5 @@ pub fn local_config_genesis() -> serde_json::Value {
             ),
         ],
         Sr25519Keyring::Alice.to_account_id(),
-        vec![
-            Sr25519Keyring::Alice.to_account_id(),
-            Sr25519Keyring::Bob.to_account_id(),
-            Sr25519Keyring::AliceStash.to_account_id(),
-            Sr25519Keyring::BobStash.to_account_id(),
-        ],
     )
 }

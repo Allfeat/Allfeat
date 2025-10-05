@@ -206,6 +206,7 @@ dependencies = [
  "pallet-session",
  "pallet-sudo",
  "pallet-timestamp",
+ "pallet-token-allocation",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-utility",
@@ -6880,7 +6881,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-token-allocation"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",

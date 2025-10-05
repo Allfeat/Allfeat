@@ -1,6 +1,6 @@
 [package]
 name = "pallet-token-allocation"
-version = "0.1.0"
+version = "1.0.0"
 authors.workspace = true
 edition.workspace = true
 license = "GPL-3"
@@ -11,7 +11,7 @@ description = "FRAME pallet to manage launch supply token allocations with upfro
 [dependencies]
 parity-scale-codec = { workspace = true, features = ["derive", "max-encoded-len"] }
 scale-info = { workspace = true, features = ["derive"] }
-serde = { workspace = true, optional = true, features = ["derive"] }
+serde = { workspace = true, features = ["derive"] }
 log = { workspace = true }
 
 frame-support = { workspace = true }

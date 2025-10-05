@@ -10,13 +10,13 @@ mod tests;
 use frame_support::traits::ExistenceRequirement::AllowDeath;
 use frame_support::{pallet_prelude::*, traits::Currency};
 use frame_system::pallet_prelude::*;
+use serde::{Deserialize, Serialize};
 use sp_runtime::Percent;
 use sp_runtime::traits::{AccountIdConversion, Saturating, Zero};
 
 pub type BalanceOf<T> =
     <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
-#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 #[derive(
     Encode,
     Decode,
@@ -28,6 +28,8 @@ pub type BalanceOf<T> =
     Debug,
     TypeInfo,
     MaxEncodedLen,
+    Serialize,
+    Deserialize,
 )]
 pub enum EnvelopeId {
     Founders,
@@ -47,14 +49,24 @@ impl EnvelopeId {
     }
 }
 
-#[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, TypeInfo, MaxEncodedLen)]
+#[derive(
+    Encode,
+    Decode,
+    Clone,
+    PartialEq,
+    Eq,
+    RuntimeDebug,
+    TypeInfo,
+    MaxEncodedLen,
+    Serialize,
+    Deserialize,
+)]
 // Per-envelope configuration describing budget and vesting policy
-pub struct EnvelopeConfig<Balance, Moment> {
+pub struct EnvelopeConfig<Balance, BlockNumber> {
     pub total_cap: Balance,
     pub upfront_rate: Percent,
-    pub cliff: Moment,
-    pub vesting_duration: Moment,
+    pub cliff: BlockNumber,
+    pub vesting_duration: BlockNumber,
 }
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, TypeInfo, MaxEncodedLen)]
@@ -111,14 +123,14 @@ pub mod pallet {
 
     #[pallet::genesis_config]
     pub struct GenesisConfig<T: Config> {
-        pub envelopes: Vec<(EnvelopeId, EnvelopeConfig<BalanceOf<T>, u64>)>,
+        pub envelopes:
+            sp_runtime::Vec<(EnvelopeId, EnvelopeConfig<BalanceOf<T>, BlockNumberFor<T>>)>,
     }
 
-    #[cfg(feature = "std")]
     impl<T: Config> Default for GenesisConfig<T> {
         fn default() -> Self {
             Self {
-                envelopes: Vec::new(),
+                envelopes: sp_runtime::Vec::new(),
             }
         }
     }

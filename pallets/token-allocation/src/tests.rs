@@ -339,9 +339,22 @@ fn claim_all_at_exact_end_block() {
         let total = 1_000u64;
         let source = id.account::<Test>();
         Balances::make_free_balance_be(&source, total_cap);
-        Envelopes::<Test>::insert(id, EnvelopeConfig { total_cap, upfront_rate, cliff, vesting_duration: duration });
+        Envelopes::<Test>::insert(
+            id,
+            EnvelopeConfig {
+                total_cap,
+                upfront_rate,
+                cliff,
+                vesting_duration: duration,
+            },
+        );
         EnvelopeDistributed::<Test>::insert(id, 0u64);
-        assert_ok!(TokenAllocation::add_allocation(mock::RuntimeOrigin::root(), id, who, total));
+        assert_ok!(TokenAllocation::add_allocation(
+            mock::RuntimeOrigin::root(),
+            id,
+            who,
+            total
+        ));
 
         set_block(cliff + duration);
         let before = Balances::free_balance(who);
@@ -364,9 +377,22 @@ fn multiple_claims_track_released_correctly() {
         let total = 1_000u64;
         let source = id.account::<Test>();
         Balances::make_free_balance_be(&source, total_cap);
-        Envelopes::<Test>::insert(id, EnvelopeConfig { total_cap, upfront_rate, cliff, vesting_duration: duration });
+        Envelopes::<Test>::insert(
+            id,
+            EnvelopeConfig {
+                total_cap,
+                upfront_rate,
+                cliff,
+                vesting_duration: duration,
+            },
+        );
         EnvelopeDistributed::<Test>::insert(id, 0u64);
-        assert_ok!(TokenAllocation::add_allocation(mock::RuntimeOrigin::root(), id, who, total));
+        assert_ok!(TokenAllocation::add_allocation(
+            mock::RuntimeOrigin::root(),
+            id,
+            who,
+            total
+        ));
 
         set_block(cliff + duration / 4);
         let b0 = Balances::free_balance(who);
@@ -381,7 +407,10 @@ fn multiple_claims_track_released_correctly() {
         assert_eq!(c2, 750);
 
         // No more to claim
-        assert_noop!(TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id), Error::<Test>::NothingToClaim);
+        assert_noop!(
+            TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id),
+            Error::<Test>::NothingToClaim
+        );
     });
 }
 
@@ -398,13 +427,26 @@ fn upfront_rounds_down_and_linear_floor() {
         let total = 99u64; // upfront should floor to 0
         let source = id.account::<Test>();
         Balances::make_free_balance_be(&source, total_cap);
-        Envelopes::<Test>::insert(id, EnvelopeConfig { total_cap, upfront_rate, cliff, vesting_duration: duration });
+        Envelopes::<Test>::insert(
+            id,
+            EnvelopeConfig {
+                total_cap,
+                upfront_rate,
+                cliff,
+                vesting_duration: duration,
+            },
+        );
         EnvelopeDistributed::<Test>::insert(id, 0u64);
-        assert_ok!(TokenAllocation::add_allocation(mock::RuntimeOrigin::root(), id, who, total));
+        assert_ok!(TokenAllocation::add_allocation(
+            mock::RuntimeOrigin::root(),
+            id,
+            who,
+            total
+        ));
 
         // No upfront event expected
         let before = Balances::free_balance(who);
-        set_block(0 + duration / 2); // at half duration, vested = floor(99*5/10)=49
+        set_block(duration / 2); // at half duration, vested = floor(99*5/10)=49
         assert_ok!(TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id));
         let mid = Balances::free_balance(who);
         assert_eq!(mid - before, 49);
@@ -429,12 +471,28 @@ fn vesting_duration_zero_unlocks_after_cliff() {
         let total = 1_000u64;
         let source = id.account::<Test>();
         Balances::make_free_balance_be(&source, total_cap);
-        Envelopes::<Test>::insert(id, EnvelopeConfig { total_cap, upfront_rate, cliff, vesting_duration: duration });
+        Envelopes::<Test>::insert(
+            id,
+            EnvelopeConfig {
+                total_cap,
+                upfront_rate,
+                cliff,
+                vesting_duration: duration,
+            },
+        );
         EnvelopeDistributed::<Test>::insert(id, 0u64);
-        assert_ok!(TokenAllocation::add_allocation(mock::RuntimeOrigin::root(), id, who, total));
+        assert_ok!(TokenAllocation::add_allocation(
+            mock::RuntimeOrigin::root(),
+            id,
+            who,
+            total
+        ));
 
         set_block(cliff);
-        assert_noop!(TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id), Error::<Test>::NothingToClaim);
+        assert_noop!(
+            TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id),
+            Error::<Test>::NothingToClaim
+        );
 
         set_block(cliff + 1);
         let b0 = Balances::free_balance(who);
@@ -457,7 +515,15 @@ fn funding_must_cover_upfront_and_vested_total() {
         let total = 1_000u64; // upfront 300, vested 700
         let source = id.account::<Test>();
         Balances::make_free_balance_be(&source, 299); // less than required 1000
-        Envelopes::<Test>::insert(id, EnvelopeConfig { total_cap, upfront_rate, cliff, vesting_duration: duration });
+        Envelopes::<Test>::insert(
+            id,
+            EnvelopeConfig {
+                total_cap,
+                upfront_rate,
+                cliff,
+                vesting_duration: duration,
+            },
+        );
         EnvelopeDistributed::<Test>::insert(id, 0u64);
 
         assert_noop!(
@@ -478,11 +544,29 @@ fn exact_fill_of_cap_with_multiple_beneficiaries() {
         let duration = 10u64;
         let source = id.account::<Test>();
         Balances::make_free_balance_be(&source, 10_000);
-        Envelopes::<Test>::insert(id, EnvelopeConfig { total_cap, upfront_rate, cliff, vesting_duration: duration });
+        Envelopes::<Test>::insert(
+            id,
+            EnvelopeConfig {
+                total_cap,
+                upfront_rate,
+                cliff,
+                vesting_duration: duration,
+            },
+        );
         EnvelopeDistributed::<Test>::insert(id, 0u64);
 
-        assert_ok!(TokenAllocation::add_allocation(mock::RuntimeOrigin::root(), id, 10u128, 400u64));
-        assert_ok!(TokenAllocation::add_allocation(mock::RuntimeOrigin::root(), id, 11u128, 600u64));
+        assert_ok!(TokenAllocation::add_allocation(
+            mock::RuntimeOrigin::root(),
+            id,
+            10u128,
+            400u64
+        ));
+        assert_ok!(TokenAllocation::add_allocation(
+            mock::RuntimeOrigin::root(),
+            id,
+            11u128,
+            600u64
+        ));
         assert_noop!(
             TokenAllocation::add_allocation(mock::RuntimeOrigin::root(), id, 12u128, 1u64),
             Error::<Test>::EnvelopeCapExceeded
@@ -503,13 +587,29 @@ fn repeated_claim_when_nothing_new_vested_is_noop() {
         let total = 1_000u64;
         let source = id.account::<Test>();
         Balances::make_free_balance_be(&source, total_cap);
-        Envelopes::<Test>::insert(id, EnvelopeConfig { total_cap, upfront_rate, cliff, vesting_duration: duration });
+        Envelopes::<Test>::insert(
+            id,
+            EnvelopeConfig {
+                total_cap,
+                upfront_rate,
+                cliff,
+                vesting_duration: duration,
+            },
+        );
         EnvelopeDistributed::<Test>::insert(id, 0u64);
-        assert_ok!(TokenAllocation::add_allocation(mock::RuntimeOrigin::root(), id, who, total));
+        assert_ok!(TokenAllocation::add_allocation(
+            mock::RuntimeOrigin::root(),
+            id,
+            who,
+            total
+        ));
 
         set_block(duration / 2);
         assert_ok!(TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id));
-        assert_noop!(TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id), Error::<Test>::NothingToClaim);
+        assert_noop!(
+            TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id),
+            Error::<Test>::NothingToClaim
+        );
     });
 }
 
@@ -526,9 +626,22 @@ fn large_values_no_overflow_in_mul_div() {
         let total: u64 = (u64::MAX / 8) & !1; // even
         let source = id.account::<Test>();
         Balances::make_free_balance_be(&source, total_cap);
-        Envelopes::<Test>::insert(id, EnvelopeConfig { total_cap, upfront_rate, cliff, vesting_duration: duration });
+        Envelopes::<Test>::insert(
+            id,
+            EnvelopeConfig {
+                total_cap,
+                upfront_rate,
+                cliff,
+                vesting_duration: duration,
+            },
+        );
         EnvelopeDistributed::<Test>::insert(id, 0u64);
-        assert_ok!(TokenAllocation::add_allocation(mock::RuntimeOrigin::root(), id, who, total));
+        assert_ok!(TokenAllocation::add_allocation(
+            mock::RuntimeOrigin::root(),
+            id,
+            who,
+            total
+        ));
 
         set_block(duration / 2);
         let before = Balances::free_balance(who);
@@ -539,4 +652,3 @@ fn large_values_no_overflow_in_mul_div() {
         assert!(after - before <= total / 2);
     });
 }
-

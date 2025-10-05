@@ -26,6 +26,7 @@ allfeat-primitives = { workspace = true }
 
 # Allfeat pallets
 pallet-midds = { workspace = true }
+pallet-token-allocation = { workspace = true }
 
 # Allfeat MIDDS
 allfeat-midds = { workspace = true }
@@ -113,6 +114,7 @@ std = [
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-identity/std",
 	"pallet-safe-mode/std",
+	"pallet-token-allocation/std",
 	"sp-application-crypto/std",
 	"sp-version/std",
 	"sp-consensus-aura/std",
@@ -156,6 +158,7 @@ runtime-benchmarks = [
 	"pallet-identity/runtime-benchmarks",
 	"pallet-safe-mode/runtime-benchmarks",
 	"pallet-validators/runtime-benchmarks",
+	"pallet-token-allocation/runtime-benchmarks",
 	"allfeat-midds/runtime-benchmarks",
 ]
 try-runtime = [
@@ -182,6 +185,7 @@ try-runtime = [
 	"pallet-transaction-payment/try-runtime",
 	"pallet-identity/try-runtime",
 	"pallet-safe-mode/try-runtime",
+	"pallet-token-allocation/try-runtime"
 ]
 
 metadata-hash = ["substrate-wasm-builder/metadata-hash"]

@@ -192,6 +192,9 @@ mod runtime {
     #[runtime::pallet_index(18)]
     pub type Multisig = pallet_multisig;
 
+    #[runtime::pallet_index(19)]
+    pub type TokenAllocation = pallet_token_allocation;
+
     #[runtime::pallet_index(50)]
     pub type Mmr = pallet_mmr;
 
