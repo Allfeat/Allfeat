@@ -50,7 +50,7 @@ use core::marker::PhantomData;
 /// Weight functions needed for pallet_ats_party_identifiers.
 pub trait WeightInfo {
 	fn register(x: u32, ) -> Weight;
-	fn unregister() -> Weight;
+	fn claim() -> Weight;
 }
 
 /// Weights for pallet_ats using the Allfeat node and recommended hardware.
@@ -67,7 +67,7 @@ impl WeightInfo for () {
 			.saturating_add(ParityDbWeight::get().writes(5_u64))
 	}
 
-	fn unregister() -> Weight {
+	fn claim() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `275`
 		//  Estimated: `3740`

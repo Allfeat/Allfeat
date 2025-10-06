@@ -48,7 +48,7 @@ pub mod pallet {
     };
     use types::BalanceOf;
 
-    pub type AtsId = u64;
+    pub type Hash256 = U256;
 
     /// The in-code storage version.
     const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
@@ -128,31 +128,41 @@ pub mod pallet {
     pub struct Pallet<T>(PhantomData<T>);
 
     #[derive(
-        Encode, Decode, MaxEncodedLen, TypeInfo, Clone, PartialEq, Eq, Debug, DecodeWithMemTracking,
+        Encode, Decode, MaxEncodedLen, TypeInfo, Clone, PartialEq, Eq, DecodeWithMemTracking,
     )]
-    pub struct AtsData {
-        pub a: U256,
-        pub b: U256,
+    #[scale_info(skip_type_params(T))]
+    #[codec(mel_bound(T: Config))]
+    pub struct AtsData<T: Config> {
+        pub owner: T::AccountId,
+		pub hash_commitment: Hash256,
+        pub timestamp: Moment,
     }
 
-    /// Storage of the next identifier to help identifying new ATS.
-    #[pallet::storage]
-    pub(super) type NextId<T: Config> = StorageValue<_, u64, ValueQuery>;
+    impl<T: Config> core::fmt::Debug for AtsData<T>
+    where
+        T::AccountId: core::fmt::Debug,
+    {
+        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+            f.debug_struct("AtsData")
+                .field("owner", &self.owner)
+                .field("hash_commitment", &self.hash_commitment)
+                .field("timestamp", &self.timestamp)
+                .finish()
+        }
+    }
 
     #[pallet::storage]
-    pub type AtsOf<T: Config> = StorageMap<_, Blake2_128Concat, AtsId, AtsData>;
+    pub type AtsOf<T: Config> = StorageMap<_, Blake2_128Concat, Hash256, AtsData<T>>;
 
-    /// Storage mapping Hashed ATS to the existing ID of that ATS for integrity and
-    /// duplication check
     #[pallet::storage]
-    pub type HashIndex<T: Config> = StorageMap<_, Blake2_128Concat, [u8; 32], AtsId>;
+	pub type AtsByOwner<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, BoundedVec<Hash256, ConstU32<1000>>>;
 
     #[pallet::event]
     #[pallet::generate_deposit(pub(super) fn deposit_event)]
     pub enum Event<T: Config> {
         ATSRegistered {
             provider: T::AccountId,
-            ats_id: AtsId,
+            hash_commitment: Hash256,
             data_colateral: BalanceOf<T>,
         },
     }
@@ -171,18 +181,21 @@ pub mod pallet {
     }
 
     #[pallet::call(weight(<T as Config>::WeightInfo))]
-    impl<T: Config> Pallet<T> {
+    impl<T: Config> Pallet<T>
+    where
+        T::AccountId: core::fmt::Debug,
+    {
         #[pallet::call_index(0)]
-        #[pallet::weight(T::WeightInfo::register(ats_data.encoded_size() as u32))]
-        pub fn register(origin: OriginFor<T>, ats_data: Box<AtsData>) -> DispatchResult {
+        #[pallet::weight(T::WeightInfo::register(_hash_commitment.encoded_size() as u32))]
+        pub fn register(origin: OriginFor<T>, _hash_commitment: Hash256) -> DispatchResult {
             let _sender = T::ProviderOrigin::ensure_origin(origin)?;
 
             Ok(())
         }
 
         #[pallet::call_index(2)]
-        #[pallet::weight(T::WeightInfo::unregister())]
-        pub fn unregister(origin: OriginFor<T>, ats_id: AtsId) -> DispatchResult {
+        #[pallet::weight(T::WeightInfo::claim())]
+        pub fn claim(origin: OriginFor<T>, _hash_commitment: Hash256) -> DispatchResult {
             let _sender = T::ProviderOrigin::ensure_origin(origin)?;
 
             Ok(())
