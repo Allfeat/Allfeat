@@ -44,31 +44,6 @@ type Block = frame_system::mocking::MockBlock<Test>;
     TypeInfo,
     MaxEncodedLen,
 )]
-pub struct MockMiddsStruct {
-    pub value: u64,
-}
-
-#[cfg(feature = "runtime-benchmarks")]
-pub struct BenchmarkHelperMock;
-
-#[cfg(feature = "runtime-benchmarks")]
-impl BenchmarkHelperT<MockMiddsStruct> for BenchmarkHelperMock {
-    fn build_base() -> MockMiddsStruct {
-        MockMiddsStruct { value: 0 }
-    }
-
-    fn build_sized(_target_size: usize) -> MockMiddsStruct {
-        MockMiddsStruct { value: 0 }
-    }
-}
-
-impl Midds for MockMiddsStruct {
-    const NAME: &'static str = "MOCK";
-
-    #[cfg(feature = "runtime-benchmarks")]
-    type BenchmarkHelper = BenchmarkHelperMock;
-}
-
 #[frame_support::runtime]
 mod runtime {
 
@@ -95,7 +70,7 @@ mod runtime {
     pub type Balances = pallet_balances;
 
     #[runtime::pallet_index(3)]
-    pub type MockMidds = pallet_ats;
+    pub type MockAts = pallet_ats;
 }
 
 #[derive_impl(frame_system::config_preludes::TestDefaultConfig)]
@@ -110,7 +85,7 @@ impl pallet_balances::Config for Test {
 }
 
 parameter_types! {
-    pub MiddsPalletId: PalletId = PalletId(*b"mckmidds");
+    pub AtsPalletId: PalletId = PalletId(*b"mockats");
 }
 
 #[derive_impl(pallet_timestamp::config_preludes::TestDefaultConfig)]
@@ -118,10 +93,9 @@ impl pallet_timestamp::Config for Test {}
 
 #[derive_impl(pallet_ats::config_preludes::TestDefaultConfig)]
 impl pallet_ats::Config for Test {
-    type PalletId = MiddsPalletId;
+    type PalletId = AtsPalletId;
     type Timestamp = Time;
     type Currency = Balances;
-    type MIDDS = MockMiddsStruct;
     type ProviderOrigin = EnsureSigned<Self::AccountId>;
 }
 

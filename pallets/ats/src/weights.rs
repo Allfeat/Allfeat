@@ -47,27 +47,14 @@ use frame_support::weights::Weight;
 use frame_support::traits::Get;
 use core::marker::PhantomData;
 
-/// Weight functions needed for pallet_midds_party_identifiers.
+/// Weight functions needed for pallet_ats_party_identifiers.
 pub trait WeightInfo {
 	fn register(x: u32, ) -> Weight;
 	fn unregister() -> Weight;
 }
 
-/// Weights for pallet_midds using the Allfeat node and recommended hardware.
+/// Weights for pallet_ats using the Allfeat node and recommended hardware.
 impl WeightInfo for () {
-	/// Storage: `Timestamp::Now` (r:1 w:0)
-	/// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-	/// Storage: `PartyIdentifiers::NextId` (r:1 w:1)
-	/// Proof: `PartyIdentifiers::NextId` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `PartyIdentifiers::HashIndex` (r:1 w:1)
-	/// Proof: `PartyIdentifiers::HashIndex` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `Balances::Holds` (r:1 w:1)
-	/// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(229), added: 2704, mode: `MaxEncodedLen`)
-	/// Storage: `PartyIdentifiers::MiddsOf` (r:0 w:1)
-	/// Proof: `PartyIdentifiers::MiddsOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `PartyIdentifiers::MiddsInfoOf` (r:0 w:1)
-	/// Proof: `PartyIdentifiers::MiddsInfoOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// The range of component `x` is `[14, 1847]`.
 	fn register(x: u32, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `79`
@@ -79,14 +66,7 @@ impl WeightInfo for () {
 			.saturating_add(ParityDbWeight::get().reads(4_u64))
 			.saturating_add(ParityDbWeight::get().writes(5_u64))
 	}
-	/// Storage: `PartyIdentifiers::MiddsInfoOf` (r:1 w:1)
-	/// Proof: `PartyIdentifiers::MiddsInfoOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `Balances::Holds` (r:1 w:1)
-	/// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(229), added: 2704, mode: `MaxEncodedLen`)
-	/// Storage: `PartyIdentifiers::HashIndex` (r:0 w:1)
-	/// Proof: `PartyIdentifiers::HashIndex` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `PartyIdentifiers::MiddsOf` (r:0 w:1)
-	/// Proof: `PartyIdentifiers::MiddsOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
+
 	fn unregister() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `275`

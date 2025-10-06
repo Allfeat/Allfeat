@@ -30,25 +30,13 @@ parameter_types! {
     pub const ByteDepositCost: Balance = MILLIAFT;
 }
 
-#[cfg(not(feature = "runtime-benchmarks"))]
-parameter_types! {
-    pub const UnregisterPeriod: Option<Moment> = Some(7 * DAYS as u64);
-}
-
-#[cfg(feature = "runtime-benchmarks")]
-parameter_types! {
-    pub const UnregisterPeriod: Option<Moment> = None;
-}
-
 impl pallet_ats::Config for Runtime {
     type PalletId = StakeholderPalletId;
     type RuntimeEvent = RuntimeEvent;
     type Timestamp = Timestamp;
     type Currency = Balances;
     type RuntimeHoldReason = RuntimeHoldReason;
-    type MIDDS = midds_crate::pallet_prelude::MusicalWork;
     type ProviderOrigin = EnsureSigned<Self::AccountId>;
     type ByteDepositCost = ByteDepositCost;
-    type UnregisterPeriod = UnregisterPeriod;
     type WeightInfo = ();
 }

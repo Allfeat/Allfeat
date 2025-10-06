@@ -34,6 +34,7 @@ use alloc::boxed::Box;
 use frame_support::pallet_prelude::*;
 use frame_system::pallet_prelude::*;
 pub use pallet::*;
+use sp_core::U256;
 
 #[frame_support::pallet()]
 pub mod pallet {
@@ -45,8 +46,9 @@ pub mod pallet {
         PalletId,
         traits::{Time, fungible::MutateHold},
     };
-    use midds::{Midds, MiddsId};
-    use types::{BalanceOf, MomentOf};
+    use types::BalanceOf;
+
+    pub type AtsId = u64;
 
     /// The in-code storage version.
     const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
@@ -54,13 +56,9 @@ pub mod pallet {
     /// Default implementations of [`DefaultConfig`], which can be used to implement [`Config`].
     pub mod config_preludes {
         use super::*;
-        use frame_support::{derive_impl, parameter_types, traits::ConstU64};
+        use frame_support::{derive_impl, traits::ConstU64};
 
         pub struct TestDefaultConfig;
-
-        parameter_types! {
-            pub const UnregisterPeriod: Option<u64> = None;
-        }
 
         #[derive_impl(frame_system::config_preludes::TestDefaultConfig, no_aggregated_types)]
         impl frame_system::DefaultConfig for TestDefaultConfig {}
@@ -72,14 +70,13 @@ pub mod pallet {
             #[inject_runtime_type]
             type RuntimeHoldReason = ();
             type ByteDepositCost = ConstU64<1>;
-            type UnregisterPeriod = UnregisterPeriod;
             type WeightInfo = ();
         }
     }
 
     #[pallet::config(with_default)]
     pub trait Config: frame_system::Config {
-        /// The MIDDS pallet instance pallet id
+        /// The ATS pallet instance pallet id
         #[pallet::no_default]
         #[pallet::constant]
         type PalletId: Get<PalletId>;
@@ -90,7 +87,7 @@ pub mod pallet {
 
         #[pallet::no_default]
         #[cfg(not(feature = "runtime-benchmarks"))]
-        /// The currency trait used to manage MIDDS payments.
+        /// The currency trait used to manage ATS payments.
         type Currency: MutateHold<Self::AccountId, Reason = Self::RuntimeHoldReason>;
 
         #[pallet::no_default]
@@ -108,70 +105,67 @@ pub mod pallet {
         type RuntimeHoldReason: From<HoldReason>;
 
         #[pallet::no_default]
-        /// The MIDDS actor that this pallet instance manage.
-        type MIDDS: Midds;
-
-        #[pallet::no_default]
-        /// The origin which may provide new MIDDS to register on-chain for this instance.
+        /// The origin which may provide new ATS to register on-chain for this instance.
         type ProviderOrigin: EnsureOrigin<Self::RuntimeOrigin, Success = Self::AccountId>;
 
         #[pallet::constant]
         #[pallet::no_default_bounds]
-        /// The per-byte deposit cost when depositing MIDDS on-chain.
+        /// The per-byte deposit cost when depositing ATS on-chain.
         type ByteDepositCost: Get<BalanceOf<Self>>;
-
-        /// How many time the depositor have to wait to remove the MIDDS.
-        #[pallet::constant]
-        #[pallet::no_default_bounds]
-        type UnregisterPeriod: Get<Option<MomentOf<Self>>>;
 
         type WeightInfo: WeightInfo;
     }
 
-    /// A reason for the pallet MIDDS placing a hold on funds.
+    /// A reason for the pallet ATS placing a hold on funds.
     #[pallet::composite_enum]
     pub enum HoldReason {
-        /// A new MIDDS has been deposited and require colateral data value hold.
-        MiddsRegistration,
+        /// A new ATS has been deposited and require colateral data value hold.
+        AtsRegistration,
     }
 
     #[pallet::pallet]
     #[pallet::storage_version(STORAGE_VERSION)]
     pub struct Pallet<T>(PhantomData<T>);
 
-    /// Storage of the next identifier to help identifying new MIDDS.
+    #[derive(
+        Encode, Decode, MaxEncodedLen, TypeInfo, Clone, PartialEq, Eq, Debug, DecodeWithMemTracking,
+    )]
+    pub struct AtsData {
+        pub a: U256,
+        pub b: U256,
+    }
+
+    /// Storage of the next identifier to help identifying new ATS.
     #[pallet::storage]
     pub(super) type NextId<T: Config> = StorageValue<_, u64, ValueQuery>;
 
     #[pallet::storage]
-    pub type MiddsOf<T: Config> = StorageMap<_, Blake2_128Concat, MiddsId, T::MIDDS>;
+    pub type AtsOf<T: Config> = StorageMap<_, Blake2_128Concat, AtsId, AtsData>;
 
-    /// Storage mapping Hashed MIDDS to the existing ID of that MIDDS for integrity and
+    /// Storage mapping Hashed ATS to the existing ID of that ATS for integrity and
     /// duplication check
     #[pallet::storage]
-    pub type HashIndex<T: Config> = StorageMap<_, Blake2_128Concat, [u8; 32], MiddsId>;
+    pub type HashIndex<T: Config> = StorageMap<_, Blake2_128Concat, [u8; 32], AtsId>;
 
     #[pallet::event]
     #[pallet::generate_deposit(pub(super) fn deposit_event)]
     pub enum Event<T: Config> {
-        MIDDSUnregistered { midds_id: MiddsId },
+        ATSRegistered {
+            provider: T::AccountId,
+            ats_id: AtsId,
+            data_colateral: BalanceOf<T>,
+        },
     }
 
     #[pallet::error]
     pub enum Error<T> {
-        /// A MIDDS with the same hash ID (so the same data) is already registered.
-        MiddsDataAlreadyExist,
-        /// The specified MIDDS ID is not related to any pending MIDDS.
-        MiddsNotFound,
-        UnvalidMiddsData,
-        /// The lock-unregister period is still going.
-        UnregisterLocked,
-        /// The MIDDS can't be unregistered when pre-certifier/certified.
-        UnregisterLockedNoVoting,
-        /// The caller is not the provider of the MIDDS.
+        /// A ATS with the same hash ID (so the same data) is already registered.
+        AtsDataAlreadyExist,
+        /// The specified ATS ID is not related to any pending ATS.
+        AtsNotFound,
+        UnvalidAtsData,
+        /// The caller is not the provider of the ATS.
         NotProvider,
-        /// Funds can't be released at this moment.
-        CantReleaseFunds,
         /// Funds can't be held at this moment.
         CantHoldFunds,
     }
@@ -179,21 +173,17 @@ pub mod pallet {
     #[pallet::call(weight(<T as Config>::WeightInfo))]
     impl<T: Config> Pallet<T> {
         #[pallet::call_index(0)]
-        #[pallet::weight(T::WeightInfo::register(midds.encoded_size() as u32))]
-        pub fn register(origin: OriginFor<T>, midds: Box<T::MIDDS>) -> DispatchResult {
-            let _provider = T::ProviderOrigin::ensure_origin(origin)?;
-
-            let _ = midds; // Avoid unused variable warning
+        #[pallet::weight(T::WeightInfo::register(ats_data.encoded_size() as u32))]
+        pub fn register(origin: OriginFor<T>, ats_data: Box<AtsData>) -> DispatchResult {
+            let _sender = T::ProviderOrigin::ensure_origin(origin)?;
 
             Ok(())
         }
 
         #[pallet::call_index(2)]
         #[pallet::weight(T::WeightInfo::unregister())]
-        pub fn unregister(origin: OriginFor<T>, midds_id: MiddsId) -> DispatchResult {
-            let _caller = T::ProviderOrigin::ensure_origin(origin)?;
-
-            let _ = midds_id; // Avoid unused variable warning
+        pub fn unregister(origin: OriginFor<T>, ats_id: AtsId) -> DispatchResult {
+            let _sender = T::ProviderOrigin::ensure_origin(origin)?;
 
             Ok(())
         }
