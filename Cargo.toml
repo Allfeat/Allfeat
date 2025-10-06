@@ -4,6 +4,7 @@ members = [
 	"node",
 	"runtime/*",
 	"primitives",
+	"pallets/ats",
 	"pallets/midds",
 	"pallets/validators",
 	"midds",
@@ -80,6 +81,7 @@ zeroize = { opt-level = 3 }
 
 # Allfeat (wasm)
 allfeat-primitives = { version = "1.0.0", default-features = false, path = "./primitives" }
+pallet-ats = { version = "1.0.0-dev", default-features = false, path = "./pallets/ats" }
 pallet-midds = { version = "1.0.0-dev", default-features = false, path = "./pallets/midds" }
 allfeat-music-genres = { version = "0.1.1", default-features = false }
 

@@ -5379,6 +5379,7 @@ dependencies = [
  "frame-try-runtime",
  "log",
  "midds",
+ "pallet-ats",
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
@@ -6077,6 +6078,24 @@ name = "overload"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b15813163c1d831bf4a13c3610c05c0d03b39feb07f7e09fa234dac9b15aaf39"
+
+[[package]]
+name = "pallet-ats"
+version = "1.0.0"
+dependencies = [
+ "allfeat-primitives",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "midds",
+ "pallet-balances",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-io",
+ "sp-tracing",
+]
 
 [[package]]
 name = "pallet-aura"
@@ -9694,6 +9713,7 @@ dependencies = [
  "enumflags2",
  "frame-support",
  "frame-system",
+ "pallet-ats",
  "pallet-authority-discovery",
  "pallet-authorship",
  "pallet-balances",
