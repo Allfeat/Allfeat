@@ -16,11 +16,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use frame_support::traits::{Time, fungible::Inspect};
+use frame_support::traits::{fungible::Inspect};
 
 use crate::Config;
 
 pub type BalanceOf<T> =
     <<T as Config>::Currency as Inspect<<T as frame_system::Config>::AccountId>>::Balance;
-pub type MomentOf<T> = <<T as Config>::Timestamp as Time>::Moment;
-pub type AccountIdOf<T> = <T as frame_system::Config>::AccountId;

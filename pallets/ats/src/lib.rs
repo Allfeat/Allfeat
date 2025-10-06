@@ -21,6 +21,7 @@
 mod mock;
 mod types;
 mod weights;
+use types::BalanceOf;
 pub use weights::WeightInfo;
 
 #[cfg(test)]
@@ -30,8 +31,7 @@ mod benchmarking;
 
 extern crate alloc;
 
-use alloc::boxed::Box;
-use frame_support::pallet_prelude::*;
+use frame_support::{pallet_prelude::*, sp_runtime::Saturating};
 use frame_system::pallet_prelude::*;
 pub use pallet::*;
 use sp_core::U256;
@@ -46,7 +46,6 @@ pub mod pallet {
         PalletId,
         traits::{Time, fungible::MutateHold},
     };
-    use types::BalanceOf;
 
     pub type Hash256 = U256;
 
@@ -163,21 +162,25 @@ pub mod pallet {
         ATSRegistered {
             provider: T::AccountId,
             hash_commitment: Hash256,
-            data_colateral: BalanceOf<T>,
+            data_collateral: BalanceOf<T>,
         },
+		ATSClaimed {
+			old_owner: T::AccountId,
+			new_owner: T::AccountId,
+			hash_commitment: Hash256,
+		},
     }
 
     #[pallet::error]
     pub enum Error<T> {
-        /// A ATS with the same hash ID (so the same data) is already registered.
+        /// A ATS with the same hash commitment is already registered.
         AtsDataAlreadyExist,
-        /// The specified ATS ID is not related to any pending ATS.
+        /// The specified ATS hash commitment is not related to any pending ATS.
         AtsNotFound,
-        UnvalidAtsData,
-        /// The caller is not the provider of the ATS.
-        NotProvider,
         /// Funds can't be held at this moment.
         CantHoldFunds,
+        /// The owner has reached the maximum number of ATS entries.
+        MaxAtsPerOwnerReached,
     }
 
     #[pallet::call(weight(<T as Config>::WeightInfo))]
@@ -186,19 +189,97 @@ pub mod pallet {
         T::AccountId: core::fmt::Debug,
     {
         #[pallet::call_index(0)]
-        #[pallet::weight(T::WeightInfo::register(_hash_commitment.encoded_size() as u32))]
-        pub fn register(origin: OriginFor<T>, _hash_commitment: Hash256) -> DispatchResult {
-            let _sender = T::ProviderOrigin::ensure_origin(origin)?;
+        #[pallet::weight(T::WeightInfo::register(hash_commitment.encoded_size() as u32))]
+        pub fn register(origin: OriginFor<T>, hash_commitment: Hash256) -> DispatchResult {
+            let sender = T::ProviderOrigin::ensure_origin(origin)?;
+
+            // Check if ATS with this hash commitment already exists
+            ensure!(!AtsOf::<T>::contains_key(hash_commitment), Error::<T>::AtsDataAlreadyExist);
+
+            // Get current timestamp
+            let timestamp = T::Timestamp::now();
+
+            // Calculate storage deposit based on encoded size
+            let ats_data = AtsData::<T> {
+                owner: sender.clone(),
+                hash_commitment,
+                timestamp,
+            };
+            let size = ats_data.encoded_size() as u32;
+			let data_cost = Self::calculate_ats_colateral(size);
+
+            // Hold the deposit from the sender
+            T::Currency::hold(
+                &HoldReason::AtsRegistration.into(),
+                &sender,
+                data_cost,
+            ).map_err(|_| Error::<T>::CantHoldFunds)?;
+
+            // Store ATS data
+            AtsOf::<T>::insert(hash_commitment, ats_data);
+
+            // Add hash commitment to owner's list
+            AtsByOwner::<T>::try_mutate(&sender, |maybe_list| -> DispatchResult {
+                let list = maybe_list.get_or_insert_with(|| BoundedVec::default());
+                list.try_push(hash_commitment)
+                    .map_err(|_| Error::<T>::MaxAtsPerOwnerReached)?;
+                Ok(())
+            })?;
+
+            // Emit event
+            Self::deposit_event(Event::ATSRegistered {
+                provider: sender,
+                hash_commitment,
+                data_collateral: data_cost,
+            });
 
             Ok(())
         }
 
         #[pallet::call_index(2)]
         #[pallet::weight(T::WeightInfo::claim())]
-        pub fn claim(origin: OriginFor<T>, _hash_commitment: Hash256) -> DispatchResult {
-            let _sender = T::ProviderOrigin::ensure_origin(origin)?;
+        pub fn claim(origin: OriginFor<T>, hash_commitment: Hash256) -> DispatchResult {
+            let sender = T::ProviderOrigin::ensure_origin(origin)?;
+
+            // Get the ATS data
+            let mut ats_data = AtsOf::<T>::get(hash_commitment)
+                .ok_or(Error::<T>::AtsNotFound)?;
+
+            let old_owner = ats_data.owner.clone();
+
+            // Update the owner
+            ats_data.owner = sender.clone();
+            AtsOf::<T>::insert(hash_commitment, ats_data);
+
+            // Remove hash commitment from old owner's list
+            AtsByOwner::<T>::mutate(&old_owner, |maybe_list| {
+                if let Some(list) = maybe_list {
+                    list.retain(|h| h != &hash_commitment);
+                }
+            });
+
+            // Add hash commitment to new owner's list
+            AtsByOwner::<T>::try_mutate(&sender, |maybe_list| -> DispatchResult {
+                let list = maybe_list.get_or_insert_with(|| BoundedVec::default());
+                list.try_push(hash_commitment)
+                    .map_err(|_| Error::<T>::MaxAtsPerOwnerReached)?;
+                Ok(())
+            })?;
+
+			// Emit event
+			Self::deposit_event(Event::ATSClaimed {
+				old_owner,
+				new_owner: sender,
+				hash_commitment,
+			});
 
             Ok(())
         }
+    }
+}
+
+impl<T: Config> Pallet<T> {
+    fn calculate_ats_colateral(size: u32) -> types::BalanceOf<T> {
+        T::ByteDepositCost::get().saturating_mul(types::BalanceOf::<T>::from(size))
     }
 }
