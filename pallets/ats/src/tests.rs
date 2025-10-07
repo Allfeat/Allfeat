@@ -16,7 +16,418 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use frame_support::{pallet_prelude::TypedGet, sp_runtime::TokenError, testing_prelude::*};
+use crate::{mock::*, AtsOf, AtsByOwner, Error};
+use frame_support::{
+	pallet_prelude::TypedGet, testing_prelude::*,
+	traits::fungible::InspectHold,
+};
 use parity_scale_codec::Encode;
+use frame_system as system;
 
-use crate::mock::*;
+/// 32 bytes of 0xFF
+fn not_in_fr() -> [u8; 32] {
+	[0xFFu8; 32]
+}
+
+/// 32 bytes zero
+fn fr_zero() -> [u8; 32] {
+	[0u8; 32]
+}
+
+fn hex_to_vec(s: &str) -> Vec<u8> {
+	let s = s.strip_prefix("0x").unwrap_or(s);
+	hex::decode(s).expect("valid hex")
+}
+
+fn hex_to_pub(s: &str) -> [u8; 32] {
+	let v = hex_to_vec(s);
+	assert_eq!(v.len(), 32, "public input must be 32 bytes");
+	let mut out = [0u8; 32];
+	out.copy_from_slice(&v);
+	out
+}
+
+// ============================
+// ZKP Verification Tests
+// ============================
+
+#[test]
+fn verify_zkp_rejects_bad_vk_bytes_and_emits_no_event() {
+	new_test_ext().execute_with(|| {
+		let who = 1;
+
+		// VK malformed
+		let vk = Vec::<u8>::new();
+		let proof = vec![0u8; 1];
+		let pubs = vec![fr_zero(), fr_zero(), fr_zero(), fr_zero()];
+
+		let before_events = system::Pallet::<Test>::events().len();
+
+		let res = MockAts::register(RuntimeOrigin::signed(who), vk, pubs, proof);
+		assert_noop!(res, Error::<Test>::InvalidData);
+
+		// No event must be emitted
+		let after_events = system::Pallet::<Test>::events().len();
+		assert_eq!(before_events, after_events, "no event must be emitted");
+	});
+}
+
+#[test]
+fn verify_zkp_rejects_bad_proof_bytes_and_emits_no_event() {
+	new_test_ext().execute_with(|| {
+		let who = 1;
+
+		// Proof malformed
+		let vk = vec![0u8; 1];
+		let proof = Vec::<u8>::new();
+		let pubs = vec![fr_zero(), fr_zero(), fr_zero(), fr_zero()];
+
+		let before_events = system::Pallet::<Test>::events().len();
+
+		let res = MockAts::register(RuntimeOrigin::signed(who), vk, pubs, proof);
+		assert_noop!(res, Error::<Test>::InvalidData);
+
+		let after_events = system::Pallet::<Test>::events().len();
+		assert_eq!(before_events, after_events, "no event must be emitted");
+	});
+}
+
+#[test]
+fn verify_zkp_rejects_public_input_not_in_field() {
+	new_test_ext().execute_with(|| {
+		let who = 1;
+
+		// We give VK and proof with some content (still invalid), but the expected
+		// error here is for PUBLIC INPUT out of field (fr_from_be32 fails).
+		let vk = vec![0u8; 8];
+		let proof = vec![0u8; 8];
+
+		// One valid and one invalid; with the invalid one it must fail.
+		let pubs = vec![fr_zero(), not_in_fr(), fr_zero(), fr_zero()];
+
+		let res = MockAts::register(RuntimeOrigin::signed(who), vk, pubs, proof);
+		assert_noop!(res, Error::<Test>::InvalidData);
+	});
+}
+
+#[test]
+fn verify_zkp_rejects_missing_hash_commitment() {
+	new_test_ext().execute_with(|| {
+		let who = 1;
+
+		// Only 3 public inputs instead of at least 4
+		let vk = vec![0u8; 8];
+		let proof = vec![0u8; 8];
+		let pubs = vec![fr_zero(), fr_zero(), fr_zero()];
+
+		let res = MockAts::register(RuntimeOrigin::signed(who), vk, pubs, proof);
+		assert_noop!(res, Error::<Test>::InvalidData);
+	});
+}
+
+#[test]
+fn verify_zkp_valid_succeeds() {
+	new_test_ext().execute_with(|| {
+		const VK_HEX: &str = "0x0dad748a7ef4a81fc022070d1d92142ce7dfe8565c4852fcd25fbcaf7906759f9b724b742bb839ebb319eb346ed517faf82e7e66276219c37cfa8d9d0b5cef0a3494b9dfc76fe7406f71be3fe5c2a72f04d85d13d113f0d2926f9b44f7876a29cf9f3060f8e58114518eb3d3ae033419dca17765b66b106dac5647cabc47da13169bc4a3e626f2200ba189f9f17f548cb66d6ef1da7c3e9db81388ae2f834d895d789bb4d21c35d8257991b0a339bbbd488328a7ee70358265b35bb3181aef02899afeaf67b693aa04828aa929998d0152527f2e67f901fab54f8717709e9faa0700000000000000e9e1273293c1a32aa27705729bb1f2e0293e1cb744a087c70d369d25cddff2a4ef73d88aec5f058ac2de61635a380211e49276e772c7926edb5264069101b106c91a5c9405a7b26c9bc188cd29d1275b141fdda0d766fbf019c2563b73c6d8ae2f6652677d17fc5f2e9c49ede6df9b01fe3ed1992a50c0d7c645a1852ce68f197fb033f9073337dbdf7645ad8efe51b9cbacb4726984a41fa00fadf2f73a080bf528732cf871bcc682a10d6a5973464b35e8589fe33a37d08748f8e4adc4470c60d97cbb85e99ff481168bda0d45c68e10a7433cea5287523ec800292cf94c95";
+		const PROOF_HEX: &str = "0x2e2008dc99bbc214438279dc6c527abf5d3b544d6535e2e1a8240eff60e3528524009ffa9f7dd9582f4aea6d64ee999dcbc068d84293f15ab7ee8121d4b5e812970acdff96b8371b2b75a194f591a0cb5c104aef6ad3523376f11cf17e13f7af3ba5ca7ff69cd5262c34092becafc3e44df7be4a830388640d8fd1821687d3a4";
+		const PUBS_HEX: [&str; 6] = [
+			"0x26d273f7c73a635f6eaeb904e116ec4cd887fb5a87fc7427c95279e6053e5bf0",
+			"0x175eeef716d52cf8ee972c6fefd60e47df5084efde3c188c40a81a42e72dfb04",
+			"0x017ac5e7a52bec07ca8ee344a9979aa083b7713f1196af35310de21746985079",
+			"0x2a6dda925d7af47190183415517709278c73a94b40ab39f56d058c0bf0a84c68",
+			"0x0000000000000000000000000000000000000000000000000000000000002710",
+			"0x17c57750af41a2dc524ba01dd95bf7876d738eac80936fe96f374086ed91391d",
+		];
+
+		// 1) Decode hex into byte arrays
+		let vk = hex_to_vec(VK_HEX);
+		let proof = hex_to_vec(PROOF_HEX);
+		let pubs: Vec<[u8; 32]> = PUBS_HEX.iter().map(|h| hex_to_pub(h)).collect();
+
+		// 2) Call the extrinsic with a signed origin
+		let who = 1u64;
+		assert_ok!(MockAts::register(
+			RuntimeOrigin::signed(who),
+			vk,
+			pubs,
+			proof
+		));
+	});
+}
+
+#[test]
+fn verify_zkp_invalid_fails() {
+	new_test_ext().execute_with(|| {
+		const VK_HEX: &str = "0x0dad748a7ef4a81fc022070d1d92142ce7dfe8565c4852fcd25fbcaf7906759f9b724b742bb839ebb319eb346ed517faf82e7e66276219c37cfa8d9d0b5cef0a3494b9dfc76fe7406f71be3fe5c2a72f04d85d13d113f0d2926f9b44f7876a29cf9f3060f8e58114518eb3d3ae033419dca17765b66b106dac5647cabc47da13169bc4a3e626f2200ba189f9f17f548cb66d6ef1da7c3e9db81388ae2f834d895d789bb4d21c35d8257991b0a339bbbd488328a7ee70358265b35bb3181aef02899afeaf67b693aa04828aa929998d0152527f2e67f901fab54f8717709e9faa0700000000000000e9e1273293c1a32aa27705729bb1f2e0293e1cb744a087c70d369d25cddff2a4ef73d88aec5f058ac2de61635a380211e49276e772c7926edb5264069101b106c91a5c9405a7b26c9bc188cd29d1275b141fdda0d766fbf019c2563b73c6d8ae2f6652677d17fc5f2e9c49ede6df9b01fe3ed1992a50c0d7c645a1852ce68f197fb033f9073337dbdf7645ad8efe51b9cbacb4726984a41fa00fadf2f73a080bf528732cf871bcc682a10d6a5973464b35e8589fe33a37d08748f8e4adc4470c60d97cbb85e99ff481168bda0d45c68e10a7433cea5287523ec800292cf94c95";
+		const PROOF_HEX: &str = "0x2e2008dc99bbc214438279dc6c527abf5d3b544d6535e2e1a8240eff60e3528524009ffa9f7dd9582f4aea6d64ee999dcbc068d84293f15ab7ee8121d4b5e812970acdff96b8371b2b75a194f591a0cb5c104aef6ad3523376f11cf17e13f7af3ba5ca7ff69cd5262c34092becafc3e44df7be4a830388640d8fd1821687d3a0";
+		const PUBS_HEX: [&str; 6] = [
+			"0x26d273f7c73a635f6eaeb904e116ec4cd887fb5a87fc7427c95279e6053e5bf0",
+			"0x175eeef716d52cf8ee972c6fefd60e47df5084efde3c188c40a81a42e72dfb04",
+			"0x017ac5e7a52bec07ca8ee344a9979aa083b7713f1196af35310de21746985079",
+			"0x2a6dda925d7af47190183415517709278c73a94b40ab39f56d058c0bf0a84c68",
+			"0x0000000000000000000000000000000000000000000000000000000000002710",
+			"0x17c57750af41a2dc524ba01dd95bf7876d738eac80936fe96f374086ed91391d",
+		];
+
+		// 1) Decode hex into byte arrays
+		let vk = hex_to_vec(VK_HEX);
+		let proof = hex_to_vec(PROOF_HEX);
+		let pubs: Vec<[u8; 32]> = PUBS_HEX.iter().map(|h| hex_to_pub(h)).collect();
+
+		// 2) Call the extrinsic with a signed origin
+		let who = 1u64;
+		let res = MockAts::register(RuntimeOrigin::signed(who), vk, pubs, proof);
+		assert_noop!(res, Error::<Test>::VerificationFailed);
+	});
+}
+
+// ============================
+// Register Tests
+// ============================
+
+#[test]
+fn register_ats_successfully() {
+	sp_tracing::init_for_tests();
+
+	new_test_ext().execute_with(|| {
+		const VK_HEX: &str = "0x0dad748a7ef4a81fc022070d1d92142ce7dfe8565c4852fcd25fbcaf7906759f9b724b742bb839ebb319eb346ed517faf82e7e66276219c37cfa8d9d0b5cef0a3494b9dfc76fe7406f71be3fe5c2a72f04d85d13d113f0d2926f9b44f7876a29cf9f3060f8e58114518eb3d3ae033419dca17765b66b106dac5647cabc47da13169bc4a3e626f2200ba189f9f17f548cb66d6ef1da7c3e9db81388ae2f834d895d789bb4d21c35d8257991b0a339bbbd488328a7ee70358265b35bb3181aef02899afeaf67b693aa04828aa929998d0152527f2e67f901fab54f8717709e9faa0700000000000000e9e1273293c1a32aa27705729bb1f2e0293e1cb744a087c70d369d25cddff2a4ef73d88aec5f058ac2de61635a380211e49276e772c7926edb5264069101b106c91a5c9405a7b26c9bc188cd29d1275b141fdda0d766fbf019c2563b73c6d8ae2f6652677d17fc5f2e9c49ede6df9b01fe3ed1992a50c0d7c645a1852ce68f197fb033f9073337dbdf7645ad8efe51b9cbacb4726984a41fa00fadf2f73a080bf528732cf871bcc682a10d6a5973464b35e8589fe33a37d08748f8e4adc4470c60d97cbb85e99ff481168bda0d45c68e10a7433cea5287523ec800292cf94c95";
+		const PROOF_HEX: &str = "0x2e2008dc99bbc214438279dc6c527abf5d3b544d6535e2e1a8240eff60e3528524009ffa9f7dd9582f4aea6d64ee999dcbc068d84293f15ab7ee8121d4b5e812970acdff96b8371b2b75a194f591a0cb5c104aef6ad3523376f11cf17e13f7af3ba5ca7ff69cd5262c34092becafc3e44df7be4a830388640d8fd1821687d3a4";
+		const PUBS_HEX: [&str; 6] = [
+			"0x26d273f7c73a635f6eaeb904e116ec4cd887fb5a87fc7427c95279e6053e5bf0",
+			"0x175eeef716d52cf8ee972c6fefd60e47df5084efde3c188c40a81a42e72dfb04",
+			"0x017ac5e7a52bec07ca8ee344a9979aa083b7713f1196af35310de21746985079",
+			"0x2a6dda925d7af47190183415517709278c73a94b40ab39f56d058c0bf0a84c68",
+			"0x0000000000000000000000000000000000000000000000000000000000002710",
+			"0x17c57750af41a2dc524ba01dd95bf7876d738eac80936fe96f374086ed91391d",
+		];
+
+		let provider = 1;
+		let vk = hex_to_vec(VK_HEX);
+		let proof = hex_to_vec(PROOF_HEX);
+		let pubs: Vec<[u8; 32]> = PUBS_HEX.iter().map(|h| hex_to_pub(h)).collect();
+		let hash_commitment = pubs[3];
+
+		// Get the ATS data to calculate expected lock cost
+		let ats_data = crate::AtsData::<Test> {
+			owner: provider,
+			hash_commitment,
+			timestamp: 0,
+		};
+		let expected_lock_cost = (ats_data.encoded_size() as u64)
+			.saturating_mul(<<Test as crate::Config>::ByteDepositCost as TypedGet>::get());
+
+		assert_ok!(MockAts::register(
+			RuntimeOrigin::signed(provider),
+			vk,
+			pubs,
+			proof
+		));
+
+		// Check that funds are held
+		assert_eq!(expected_lock_cost, Balances::balance_on_hold(&crate::HoldReason::AtsRegistration.into(), &provider));
+
+		// Check that ATS data is stored
+		let stored_ats = AtsOf::<Test>::get(hash_commitment).expect("ATS should be stored");
+		assert_eq!(stored_ats.owner, provider);
+		assert_eq!(stored_ats.hash_commitment, hash_commitment);
+
+		// Check that hash commitment is added to owner's list
+		let owner_list = AtsByOwner::<Test>::get(provider).expect("Owner should have list");
+		assert!(owner_list.contains(&hash_commitment));
+	});
+}
+
+#[test]
+fn register_without_enough_funds_fail() {
+	sp_tracing::init_for_tests();
+
+	new_test_ext().execute_with(|| {
+		const VK_HEX: &str = "0x0dad748a7ef4a81fc022070d1d92142ce7dfe8565c4852fcd25fbcaf7906759f9b724b742bb839ebb319eb346ed517faf82e7e66276219c37cfa8d9d0b5cef0a3494b9dfc76fe7406f71be3fe5c2a72f04d85d13d113f0d2926f9b44f7876a29cf9f3060f8e58114518eb3d3ae033419dca17765b66b106dac5647cabc47da13169bc4a3e626f2200ba189f9f17f548cb66d6ef1da7c3e9db81388ae2f834d895d789bb4d21c35d8257991b0a339bbbd488328a7ee70358265b35bb3181aef02899afeaf67b693aa04828aa929998d0152527f2e67f901fab54f8717709e9faa0700000000000000e9e1273293c1a32aa27705729bb1f2e0293e1cb744a087c70d369d25cddff2a4ef73d88aec5f058ac2de61635a380211e49276e772c7926edb5264069101b106c91a5c9405a7b26c9bc188cd29d1275b141fdda0d766fbf019c2563b73c6d8ae2f6652677d17fc5f2e9c49ede6df9b01fe3ed1992a50c0d7c645a1852ce68f197fb033f9073337dbdf7645ad8efe51b9cbacb4726984a41fa00fadf2f73a080bf528732cf871bcc682a10d6a5973464b35e8589fe33a37d08748f8e4adc4470c60d97cbb85e99ff481168bda0d45c68e10a7433cea5287523ec800292cf94c95";
+		const PROOF_HEX: &str = "0x2e2008dc99bbc214438279dc6c527abf5d3b544d6535e2e1a8240eff60e3528524009ffa9f7dd9582f4aea6d64ee999dcbc068d84293f15ab7ee8121d4b5e812970acdff96b8371b2b75a194f591a0cb5c104aef6ad3523376f11cf17e13f7af3ba5ca7ff69cd5262c34092becafc3e44df7be4a830388640d8fd1821687d3a4";
+		const PUBS_HEX: [&str; 6] = [
+			"0x26d273f7c73a635f6eaeb904e116ec4cd887fb5a87fc7427c95279e6053e5bf0",
+			"0x175eeef716d52cf8ee972c6fefd60e47df5084efde3c188c40a81a42e72dfb04",
+			"0x017ac5e7a52bec07ca8ee344a9979aa083b7713f1196af35310de21746985079",
+			"0x2a6dda925d7af47190183415517709278c73a94b40ab39f56d058c0bf0a84c68",
+			"0x0000000000000000000000000000000000000000000000000000000000002710",
+			"0x17c57750af41a2dc524ba01dd95bf7876d738eac80936fe96f374086ed91391d",
+		];
+
+		let provider = 5; // This account has 0 balance in mock
+		let vk = hex_to_vec(VK_HEX);
+		let proof = hex_to_vec(PROOF_HEX);
+		let pubs: Vec<[u8; 32]> = PUBS_HEX.iter().map(|h| hex_to_pub(h)).collect();
+
+		assert_err!(
+			MockAts::register(RuntimeOrigin::signed(provider), vk, pubs, proof),
+			Error::<Test>::CantHoldFunds
+		);
+	});
+}
+
+#[test]
+fn register_same_hash_commitment_fail() {
+	sp_tracing::init_for_tests();
+
+	new_test_ext().execute_with(|| {
+		const VK_HEX: &str = "0x0dad748a7ef4a81fc022070d1d92142ce7dfe8565c4852fcd25fbcaf7906759f9b724b742bb839ebb319eb346ed517faf82e7e66276219c37cfa8d9d0b5cef0a3494b9dfc76fe7406f71be3fe5c2a72f04d85d13d113f0d2926f9b44f7876a29cf9f3060f8e58114518eb3d3ae033419dca17765b66b106dac5647cabc47da13169bc4a3e626f2200ba189f9f17f548cb66d6ef1da7c3e9db81388ae2f834d895d789bb4d21c35d8257991b0a339bbbd488328a7ee70358265b35bb3181aef02899afeaf67b693aa04828aa929998d0152527f2e67f901fab54f8717709e9faa0700000000000000e9e1273293c1a32aa27705729bb1f2e0293e1cb744a087c70d369d25cddff2a4ef73d88aec5f058ac2de61635a380211e49276e772c7926edb5264069101b106c91a5c9405a7b26c9bc188cd29d1275b141fdda0d766fbf019c2563b73c6d8ae2f6652677d17fc5f2e9c49ede6df9b01fe3ed1992a50c0d7c645a1852ce68f197fb033f9073337dbdf7645ad8efe51b9cbacb4726984a41fa00fadf2f73a080bf528732cf871bcc682a10d6a5973464b35e8589fe33a37d08748f8e4adc4470c60d97cbb85e99ff481168bda0d45c68e10a7433cea5287523ec800292cf94c95";
+		const PROOF_HEX: &str = "0x2e2008dc99bbc214438279dc6c527abf5d3b544d6535e2e1a8240eff60e3528524009ffa9f7dd9582f4aea6d64ee999dcbc068d84293f15ab7ee8121d4b5e812970acdff96b8371b2b75a194f591a0cb5c104aef6ad3523376f11cf17e13f7af3ba5ca7ff69cd5262c34092becafc3e44df7be4a830388640d8fd1821687d3a4";
+		const PUBS_HEX: [&str; 6] = [
+			"0x26d273f7c73a635f6eaeb904e116ec4cd887fb5a87fc7427c95279e6053e5bf0",
+			"0x175eeef716d52cf8ee972c6fefd60e47df5084efde3c188c40a81a42e72dfb04",
+			"0x017ac5e7a52bec07ca8ee344a9979aa083b7713f1196af35310de21746985079",
+			"0x2a6dda925d7af47190183415517709278c73a94b40ab39f56d058c0bf0a84c68",
+			"0x0000000000000000000000000000000000000000000000000000000000002710",
+			"0x17c57750af41a2dc524ba01dd95bf7876d738eac80936fe96f374086ed91391d",
+		];
+
+		let provider = 1;
+		let vk = hex_to_vec(VK_HEX);
+		let proof = hex_to_vec(PROOF_HEX);
+		let pubs: Vec<[u8; 32]> = PUBS_HEX.iter().map(|h| hex_to_pub(h)).collect();
+
+		// Register once - should succeed
+		assert_ok!(MockAts::register(
+			RuntimeOrigin::signed(provider),
+			vk.clone(),
+			pubs.clone(),
+			proof.clone()
+		));
+
+		// Try to register again with same hash commitment - should fail
+		assert_err!(
+			MockAts::register(RuntimeOrigin::signed(provider), vk, pubs, proof),
+			Error::<Test>::AtsDataAlreadyExist
+		);
+	});
+}
+
+// ============================
+// Claim Tests
+// ============================
+
+#[test]
+fn claim_ats_successfully() {
+	sp_tracing::init_for_tests();
+
+	new_test_ext().execute_with(|| {
+		const VK_HEX: &str = "0x0dad748a7ef4a81fc022070d1d92142ce7dfe8565c4852fcd25fbcaf7906759f9b724b742bb839ebb319eb346ed517faf82e7e66276219c37cfa8d9d0b5cef0a3494b9dfc76fe7406f71be3fe5c2a72f04d85d13d113f0d2926f9b44f7876a29cf9f3060f8e58114518eb3d3ae033419dca17765b66b106dac5647cabc47da13169bc4a3e626f2200ba189f9f17f548cb66d6ef1da7c3e9db81388ae2f834d895d789bb4d21c35d8257991b0a339bbbd488328a7ee70358265b35bb3181aef02899afeaf67b693aa04828aa929998d0152527f2e67f901fab54f8717709e9faa0700000000000000e9e1273293c1a32aa27705729bb1f2e0293e1cb744a087c70d369d25cddff2a4ef73d88aec5f058ac2de61635a380211e49276e772c7926edb5264069101b106c91a5c9405a7b26c9bc188cd29d1275b141fdda0d766fbf019c2563b73c6d8ae2f6652677d17fc5f2e9c49ede6df9b01fe3ed1992a50c0d7c645a1852ce68f197fb033f9073337dbdf7645ad8efe51b9cbacb4726984a41fa00fadf2f73a080bf528732cf871bcc682a10d6a5973464b35e8589fe33a37d08748f8e4adc4470c60d97cbb85e99ff481168bda0d45c68e10a7433cea5287523ec800292cf94c95";
+		const PROOF_HEX: &str = "0x2e2008dc99bbc214438279dc6c527abf5d3b544d6535e2e1a8240eff60e3528524009ffa9f7dd9582f4aea6d64ee999dcbc068d84293f15ab7ee8121d4b5e812970acdff96b8371b2b75a194f591a0cb5c104aef6ad3523376f11cf17e13f7af3ba5ca7ff69cd5262c34092becafc3e44df7be4a830388640d8fd1821687d3a4";
+		const PUBS_HEX: [&str; 6] = [
+			"0x26d273f7c73a635f6eaeb904e116ec4cd887fb5a87fc7427c95279e6053e5bf0",
+			"0x175eeef716d52cf8ee972c6fefd60e47df5084efde3c188c40a81a42e72dfb04",
+			"0x017ac5e7a52bec07ca8ee344a9979aa083b7713f1196af35310de21746985079",
+			"0x2a6dda925d7af47190183415517709278c73a94b40ab39f56d058c0bf0a84c68",
+			"0x0000000000000000000000000000000000000000000000000000000000002710",
+			"0x17c57750af41a2dc524ba01dd95bf7876d738eac80936fe96f374086ed91391d",
+		];
+
+		let original_owner = 1;
+		let new_owner = 2;
+		let vk = hex_to_vec(VK_HEX);
+		let proof = hex_to_vec(PROOF_HEX);
+		let pubs: Vec<[u8; 32]> = PUBS_HEX.iter().map(|h| hex_to_pub(h)).collect();
+		let hash_commitment = pubs[3];
+
+		// First register the ATS with original owner
+		assert_ok!(MockAts::register(
+			RuntimeOrigin::signed(original_owner),
+			vk.clone(),
+			pubs.clone(),
+			proof.clone()
+		));
+
+		// Verify original owner has it
+		let ats_data = AtsOf::<Test>::get(hash_commitment).expect("ATS should be stored");
+		assert_eq!(ats_data.owner, original_owner);
+
+		// Now claim it with new owner
+		assert_ok!(MockAts::claim(
+			RuntimeOrigin::signed(new_owner),
+			vk,
+			pubs,
+			proof
+		));
+
+		// Verify ownership transfer
+		let ats_data = AtsOf::<Test>::get(hash_commitment).expect("ATS should still be stored");
+		assert_eq!(ats_data.owner, new_owner);
+
+		// Verify hash commitment removed from original owner's list
+		let original_owner_list = AtsByOwner::<Test>::get(original_owner).unwrap_or_default();
+		assert!(!original_owner_list.contains(&hash_commitment));
+
+		// Verify hash commitment added to new owner's list
+		let new_owner_list = AtsByOwner::<Test>::get(new_owner).expect("New owner should have list");
+		assert!(new_owner_list.contains(&hash_commitment));
+	});
+}
+
+#[test]
+fn claim_non_existent_ats_fail() {
+	sp_tracing::init_for_tests();
+
+	new_test_ext().execute_with(|| {
+		const VK_HEX: &str = "0x0dad748a7ef4a81fc022070d1d92142ce7dfe8565c4852fcd25fbcaf7906759f9b724b742bb839ebb319eb346ed517faf82e7e66276219c37cfa8d9d0b5cef0a3494b9dfc76fe7406f71be3fe5c2a72f04d85d13d113f0d2926f9b44f7876a29cf9f3060f8e58114518eb3d3ae033419dca17765b66b106dac5647cabc47da13169bc4a3e626f2200ba189f9f17f548cb66d6ef1da7c3e9db81388ae2f834d895d789bb4d21c35d8257991b0a339bbbd488328a7ee70358265b35bb3181aef02899afeaf67b693aa04828aa929998d0152527f2e67f901fab54f8717709e9faa0700000000000000e9e1273293c1a32aa27705729bb1f2e0293e1cb744a087c70d369d25cddff2a4ef73d88aec5f058ac2de61635a380211e49276e772c7926edb5264069101b106c91a5c9405a7b26c9bc188cd29d1275b141fdda0d766fbf019c2563b73c6d8ae2f6652677d17fc5f2e9c49ede6df9b01fe3ed1992a50c0d7c645a1852ce68f197fb033f9073337dbdf7645ad8efe51b9cbacb4726984a41fa00fadf2f73a080bf528732cf871bcc682a10d6a5973464b35e8589fe33a37d08748f8e4adc4470c60d97cbb85e99ff481168bda0d45c68e10a7433cea5287523ec800292cf94c95";
+		const PROOF_HEX: &str = "0x2e2008dc99bbc214438279dc6c527abf5d3b544d6535e2e1a8240eff60e3528524009ffa9f7dd9582f4aea6d64ee999dcbc068d84293f15ab7ee8121d4b5e812970acdff96b8371b2b75a194f591a0cb5c104aef6ad3523376f11cf17e13f7af3ba5ca7ff69cd5262c34092becafc3e44df7be4a830388640d8fd1821687d3a4";
+		const PUBS_HEX: [&str; 6] = [
+			"0x26d273f7c73a635f6eaeb904e116ec4cd887fb5a87fc7427c95279e6053e5bf0",
+			"0x175eeef716d52cf8ee972c6fefd60e47df5084efde3c188c40a81a42e72dfb04",
+			"0x017ac5e7a52bec07ca8ee344a9979aa083b7713f1196af35310de21746985079",
+			"0x2a6dda925d7af47190183415517709278c73a94b40ab39f56d058c0bf0a84c68",
+			"0x0000000000000000000000000000000000000000000000000000000000002710",
+			"0x17c57750af41a2dc524ba01dd95bf7876d738eac80936fe96f374086ed91391d",
+		];
+
+		let claimer = 2;
+		let vk = hex_to_vec(VK_HEX);
+		let proof = hex_to_vec(PROOF_HEX);
+		let pubs: Vec<[u8; 32]> = PUBS_HEX.iter().map(|h| hex_to_pub(h)).collect();
+
+		// Try to claim without registering first - should fail
+		assert_err!(
+			MockAts::claim(RuntimeOrigin::signed(claimer), vk, pubs, proof),
+			Error::<Test>::AtsNotFound
+		);
+	});
+}
+
+#[test]
+fn claim_with_invalid_proof_fail() {
+	sp_tracing::init_for_tests();
+
+	new_test_ext().execute_with(|| {
+		const VK_HEX: &str = "0x0dad748a7ef4a81fc022070d1d92142ce7dfe8565c4852fcd25fbcaf7906759f9b724b742bb839ebb319eb346ed517faf82e7e66276219c37cfa8d9d0b5cef0a3494b9dfc76fe7406f71be3fe5c2a72f04d85d13d113f0d2926f9b44f7876a29cf9f3060f8e58114518eb3d3ae033419dca17765b66b106dac5647cabc47da13169bc4a3e626f2200ba189f9f17f548cb66d6ef1da7c3e9db81388ae2f834d895d789bb4d21c35d8257991b0a339bbbd488328a7ee70358265b35bb3181aef02899afeaf67b693aa04828aa929998d0152527f2e67f901fab54f8717709e9faa0700000000000000e9e1273293c1a32aa27705729bb1f2e0293e1cb744a087c70d369d25cddff2a4ef73d88aec5f058ac2de61635a380211e49276e772c7926edb5264069101b106c91a5c9405a7b26c9bc188cd29d1275b141fdda0d766fbf019c2563b73c6d8ae2f6652677d17fc5f2e9c49ede6df9b01fe3ed1992a50c0d7c645a1852ce68f197fb033f9073337dbdf7645ad8efe51b9cbacb4726984a41fa00fadf2f73a080bf528732cf871bcc682a10d6a5973464b35e8589fe33a37d08748f8e4adc4470c60d97cbb85e99ff481168bda0d45c68e10a7433cea5287523ec800292cf94c95";
+		const PROOF_HEX: &str = "0x2e2008dc99bbc214438279dc6c527abf5d3b544d6535e2e1a8240eff60e3528524009ffa9f7dd9582f4aea6d64ee999dcbc068d84293f15ab7ee8121d4b5e812970acdff96b8371b2b75a194f591a0cb5c104aef6ad3523376f11cf17e13f7af3ba5ca7ff69cd5262c34092becafc3e44df7be4a830388640d8fd1821687d3a4";
+		const INVALID_PROOF_HEX: &str = "0x2e2008dc99bbc214438279dc6c527abf5d3b544d6535e2e1a8240eff60e3528524009ffa9f7dd9582f4aea6d64ee999dcbc068d84293f15ab7ee8121d4b5e812970acdff96b8371b2b75a194f591a0cb5c104aef6ad3523376f11cf17e13f7af3ba5ca7ff69cd5262c34092becafc3e44df7be4a830388640d8fd1821687d3a0";
+		const PUBS_HEX: [&str; 6] = [
+			"0x26d273f7c73a635f6eaeb904e116ec4cd887fb5a87fc7427c95279e6053e5bf0",
+			"0x175eeef716d52cf8ee972c6fefd60e47df5084efde3c188c40a81a42e72dfb04",
+			"0x017ac5e7a52bec07ca8ee344a9979aa083b7713f1196af35310de21746985079",
+			"0x2a6dda925d7af47190183415517709278c73a94b40ab39f56d058c0bf0a84c68",
+			"0x0000000000000000000000000000000000000000000000000000000000002710",
+			"0x17c57750af41a2dc524ba01dd95bf7876d738eac80936fe96f374086ed91391d",
+		];
+
+		let original_owner = 1;
+		let claimer = 2;
+		let vk = hex_to_vec(VK_HEX);
+		let proof = hex_to_vec(PROOF_HEX);
+		let invalid_proof = hex_to_vec(INVALID_PROOF_HEX);
+		let pubs: Vec<[u8; 32]> = PUBS_HEX.iter().map(|h| hex_to_pub(h)).collect();
+
+		// First register the ATS with original owner
+		assert_ok!(MockAts::register(
+			RuntimeOrigin::signed(original_owner),
+			vk.clone(),
+			pubs.clone(),
+			proof
+		));
+
+		// Try to claim with invalid proof - should fail
+		assert_err!(
+			MockAts::claim(RuntimeOrigin::signed(claimer), vk, pubs, invalid_proof),
+			Error::<Test>::VerificationFailed
+		);
+	});
+}

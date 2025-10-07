@@ -21,29 +21,13 @@
 use crate::{self as pallet_ats};
 use frame_support::{
     self, PalletId, derive_impl,
-    sp_runtime::{BuildStorage, RuntimeDebug},
+    sp_runtime::BuildStorage,
     testing_prelude::*,
 };
 use frame_system::EnsureSigned;
 
-#[cfg(feature = "runtime-benchmarks")]
-use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
-use scale_info::TypeInfo;
-
 type Block = frame_system::mocking::MockBlock<Test>;
 
-#[derive(
-    Encode,
-    Default,
-    Decode,
-    DecodeWithMemTracking,
-    Clone,
-    Eq,
-    PartialEq,
-    RuntimeDebug,
-    TypeInfo,
-    MaxEncodedLen,
-)]
 #[frame_support::runtime]
 mod runtime {
 
@@ -85,7 +69,7 @@ impl pallet_balances::Config for Test {
 }
 
 parameter_types! {
-    pub AtsPalletId: PalletId = PalletId(*b"mockats");
+    pub AtsPalletId: PalletId = PalletId(*b"m/alltst");
 }
 
 #[derive_impl(pallet_timestamp::config_preludes::TestDefaultConfig)]
