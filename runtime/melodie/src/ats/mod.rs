@@ -16,4 +16,25 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod ats_songs;
+use crate::*;
+
+use allfeat_primitives::Balance;
+use frame_support::{PalletId, parameter_types};
+use frame_system::EnsureSigned;
+use shared_runtime::currency::MILLIAFT;
+
+parameter_types! {
+    pub const AtsPalletId: PalletId = PalletId(*b"m/alltst");
+    pub const ByteDepositCost: Balance = MILLIAFT;
+}
+
+impl pallet_ats::Config for Runtime {
+    type PalletId = AtsPalletId;
+    type RuntimeEvent = RuntimeEvent;
+    type Timestamp = Timestamp;
+    type Currency = Balances;
+    type RuntimeHoldReason = RuntimeHoldReason;
+    type ProviderOrigin = EnsureSigned<Self::AccountId>;
+    type ByteDepositCost = ByteDepositCost;
+    type WeightInfo = ();
+}
