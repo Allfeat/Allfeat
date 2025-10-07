@@ -50,6 +50,8 @@ pub mod pallet {
     };
 
     pub type Hash256 = [u8; 32];
+    pub type AtsId = u64;
+    pub type VersionNumber = u32;
 
     /// The in-code storage version.
     const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
@@ -133,43 +135,90 @@ pub mod pallet {
     )]
     #[scale_info(skip_type_params(T))]
     #[codec(mel_bound(T: Config))]
-    pub struct AtsData<T: Config> {
+    pub struct AtsWork<T: Config> {
         pub owner: T::AccountId,
-        pub hash_commitment: Hash256,
-        pub timestamp: Moment,
+        pub id: AtsId,
     }
 
-    impl<T: Config> core::fmt::Debug for AtsData<T>
+    impl<T: Config> core::fmt::Debug for AtsWork<T>
     where
         T::AccountId: core::fmt::Debug,
     {
         fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-            f.debug_struct("AtsData")
+            f.debug_struct("AtsWork")
                 .field("owner", &self.owner)
-                .field("hash_commitment", &self.hash_commitment)
-                .field("timestamp", &self.timestamp)
+                .field("id", &self.id)
                 .finish()
         }
     }
 
-    #[pallet::storage]
-    pub type AtsOf<T: Config> = StorageMap<_, Blake2_128Concat, Hash256, AtsData<T>>;
+    #[derive(
+        Encode, Decode, MaxEncodedLen, TypeInfo, Clone, PartialEq, Eq, DecodeWithMemTracking, Debug,
+    )]
+    pub struct AtsVersion {
+        pub version: VersionNumber,
+        pub hash_commitment: Hash256,
+        pub timestamp: Moment,
+    }
 
+    impl AtsVersion {
+        pub fn new(version: VersionNumber, hash_commitment: Hash256, timestamp: Moment) -> Self {
+            Self {
+                version,
+                hash_commitment,
+                timestamp,
+            }
+        }
+    }
+
+    /// Counter for generating unique ATS IDs
+    #[pallet::storage]
+    pub type NextAtsId<T: Config> = StorageValue<_, AtsId, ValueQuery>;
+
+    /// Maps ATS ID to AtsWork
+    #[pallet::storage]
+    pub type AtsWorks<T: Config> = StorageMap<_, Blake2_128Concat, AtsId, AtsWork<T>>;
+
+    /// Maps (ATS ID, VersionNumber) to AtsVersion
+    #[pallet::storage]
+    pub type AtsVersions<T: Config> = StorageDoubleMap<
+        _,
+        Blake2_128Concat, AtsId,
+        Blake2_128Concat, VersionNumber,
+        AtsVersion,
+    >;
+
+    /// Maps hash_commitment to ATS ID (for backward compatibility and lookup)
+    #[pallet::storage]
+    pub type AtsIdByHash<T: Config> = StorageMap<_, Blake2_128Concat, Hash256, AtsId>;
+
+    /// Latest version number for each ATS ID
+    #[pallet::storage]
+    pub type LatestVersion<T: Config> = StorageMap<_, Blake2_128Concat, AtsId, VersionNumber, ValueQuery>;
+
+    /// Maps owner to their list of ATS IDs
     #[pallet::storage]
     pub type AtsByOwner<T: Config> =
-        StorageMap<_, Blake2_128Concat, T::AccountId, BoundedVec<Hash256, ConstU32<1000>>>;
+        StorageMap<_, Blake2_128Concat, T::AccountId, BoundedVec<AtsId, ConstU32<1000>>>;
 
     #[pallet::event]
     #[pallet::generate_deposit(pub(super) fn deposit_event)]
     pub enum Event<T: Config> {
         ATSRegistered {
             provider: T::AccountId,
+            ats_id: AtsId,
             hash_commitment: Hash256,
             data_collateral: BalanceOf<T>,
         },
         ATSClaimed {
             old_owner: T::AccountId,
             new_owner: T::AccountId,
+            ats_id: AtsId,
+        },
+        ATSUpdated {
+            owner: T::AccountId,
+            ats_id: AtsId,
+            version: VersionNumber,
             hash_commitment: Hash256,
         },
     }
@@ -216,33 +265,46 @@ pub mod pallet {
 
             // Check if ATS with this hash commitment already exists
             ensure!(
-                !AtsOf::<T>::contains_key(hash_commitment),
+                !AtsIdByHash::<T>::contains_key(hash_commitment),
                 Error::<T>::AtsDataAlreadyExist
             );
 
             // Get current timestamp
             let timestamp = T::Timestamp::now();
 
-            // Calculate storage deposit based on encoded size
-            let ats_data = AtsData::<T> {
+            // Get next ATS ID
+            let ats_id = NextAtsId::<T>::get();
+            NextAtsId::<T>::put(ats_id.saturating_add(1));
+
+            // Create AtsWork
+            let ats_work = AtsWork::<T> {
                 owner: sender.clone(),
-                hash_commitment,
-                timestamp,
+                id: ats_id,
             };
-            let size = ats_data.encoded_size() as u32;
-            let data_cost = Self::calculate_ats_colateral(size);
+
+            // Create first AtsVersion (version = 1)
+            let ats_version = AtsVersion::new(1, hash_commitment, timestamp);
+
+            // Calculate storage deposit based on encoded size
+            let work_size = ats_work.encoded_size() as u32;
+            let version_size = ats_version.encoded_size() as u32;
+            let total_size = work_size + version_size;
+            let data_cost = Self::calculate_ats_colateral(total_size);
 
             // Hold the deposit from the sender
             T::Currency::hold(&HoldReason::AtsRegistration.into(), &sender, data_cost)
                 .map_err(|_| Error::<T>::CantHoldFunds)?;
 
-            // Store ATS data
-            AtsOf::<T>::insert(hash_commitment, ats_data);
+            // Store AtsWork and AtsVersion
+            AtsWorks::<T>::insert(ats_id, ats_work);
+            AtsVersions::<T>::insert(ats_id, 1, ats_version);
+            AtsIdByHash::<T>::insert(hash_commitment, ats_id);
+            LatestVersion::<T>::insert(ats_id, 1);
 
-            // Add hash commitment to owner's list
+            // Add ATS ID to owner's list
             AtsByOwner::<T>::try_mutate(&sender, |maybe_list| -> DispatchResult {
                 let list = maybe_list.get_or_insert_with(|| BoundedVec::default());
-                list.try_push(hash_commitment)
+                list.try_push(ats_id)
                     .map_err(|_| Error::<T>::MaxAtsPerOwnerReached)?;
                 Ok(())
             })?;
@@ -250,6 +312,7 @@ pub mod pallet {
             // Emit event
             Self::deposit_event(Event::ATSRegistered {
                 provider: sender,
+                ats_id,
                 hash_commitment,
                 data_collateral: data_cost,
             });
@@ -276,26 +339,42 @@ pub mod pallet {
                 Error::<T>::VerificationFailed
             );
 
-            // Get the ATS data
-            let mut ats_data = AtsOf::<T>::get(hash_commitment).ok_or(Error::<T>::AtsNotFound)?;
+            // Get the ATS ID from hash commitment
+            let ats_id = AtsIdByHash::<T>::get(hash_commitment).ok_or(Error::<T>::AtsNotFound)?;
 
-            let old_owner = ats_data.owner.clone();
+            // Get the latest version number
+            let latest_version = LatestVersion::<T>::get(ats_id);
+
+            // Get the latest version to verify hash_commitment matches
+            let latest_ats_version = AtsVersions::<T>::get(ats_id, latest_version)
+                .ok_or(Error::<T>::AtsNotFound)?;
+
+            // Verify the hash_commitment matches the latest version
+            ensure!(
+                latest_ats_version.hash_commitment == hash_commitment,
+                Error::<T>::InvalidData
+            );
+
+            // Get and update the ATS work
+            let mut ats_work = AtsWorks::<T>::get(ats_id).ok_or(Error::<T>::AtsNotFound)?;
+
+            let old_owner = ats_work.owner.clone();
 
             // Update the owner
-            ats_data.owner = sender.clone();
-            AtsOf::<T>::insert(hash_commitment, ats_data);
+            ats_work.owner = sender.clone();
+            AtsWorks::<T>::insert(ats_id, ats_work);
 
-            // Remove hash commitment from old owner's list
+            // Remove ATS ID from old owner's list
             AtsByOwner::<T>::mutate(&old_owner, |maybe_list| {
                 if let Some(list) = maybe_list {
-                    list.retain(|h| h != &hash_commitment);
+                    list.retain(|id| id != &ats_id);
                 }
             });
 
-            // Add hash commitment to new owner's list
+            // Add ATS ID to new owner's list
             AtsByOwner::<T>::try_mutate(&sender, |maybe_list| -> DispatchResult {
                 let list = maybe_list.get_or_insert_with(|| BoundedVec::default());
-                list.try_push(hash_commitment)
+                list.try_push(ats_id)
                     .map_err(|_| Error::<T>::MaxAtsPerOwnerReached)?;
                 Ok(())
             })?;
@@ -304,6 +383,66 @@ pub mod pallet {
             Self::deposit_event(Event::ATSClaimed {
                 old_owner,
                 new_owner: sender,
+                ats_id,
+            });
+
+            Ok(())
+        }
+
+        #[pallet::call_index(3)]
+        #[pallet::weight(T::WeightInfo::register((vk.len() + proof.len()) as u32))]
+        pub fn update(
+            origin: OriginFor<T>,
+            ats_id: AtsId,
+            vk: Vec<u8>,
+            pubs: Vec<[u8; 32]>,
+            proof: Vec<u8>,
+        ) -> DispatchResult {
+            let sender = T::ProviderOrigin::ensure_origin(origin)?;
+
+            // Extract hash_commitment from the 4th element of pubs
+            let hash_commitment = *pubs.get(3).ok_or(Error::<T>::InvalidData)?;
+
+            // Verify the zero-knowledge proof
+            ensure!(
+                Self::verify_zkp(vk, pubs, proof)?,
+                Error::<T>::VerificationFailed
+            );
+
+            // Get the ATS work and verify ownership
+            let ats_work = AtsWorks::<T>::get(ats_id).ok_or(Error::<T>::AtsNotFound)?;
+            ensure!(ats_work.owner == sender, Error::<T>::VerificationFailed);
+
+            // Get the latest version number and increment it
+            let current_version = LatestVersion::<T>::get(ats_id);
+            let new_version = current_version.saturating_add(1);
+
+            // Get current timestamp
+            let timestamp = T::Timestamp::now();
+
+            // Create new AtsVersion
+            let ats_version = AtsVersion::new(new_version, hash_commitment, timestamp);
+
+            // Calculate storage deposit for the new version
+            let version_size = ats_version.encoded_size() as u32;
+            let data_cost = Self::calculate_ats_colateral(version_size);
+
+            // Hold the deposit from the sender
+            T::Currency::hold(&HoldReason::AtsRegistration.into(), &sender, data_cost)
+                .map_err(|_| Error::<T>::CantHoldFunds)?;
+
+            // Store the new version
+            AtsVersions::<T>::insert(ats_id, new_version, ats_version);
+            LatestVersion::<T>::insert(ats_id, new_version);
+
+            // Update the hash lookup to point to this ATS ID
+            AtsIdByHash::<T>::insert(hash_commitment, ats_id);
+
+            // Emit event
+            Self::deposit_event(Event::ATSUpdated {
+                owner: sender,
+                ats_id,
+                version: new_version,
                 hash_commitment,
             });
 
