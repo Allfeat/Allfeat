@@ -131,25 +131,13 @@ pub mod pallet {
     pub struct Pallet<T>(PhantomData<T>);
 
     #[derive(
-        Encode, Decode, MaxEncodedLen, TypeInfo, Clone, PartialEq, Eq, DecodeWithMemTracking,
+        Encode, Decode, MaxEncodedLen, TypeInfo, Clone, PartialEq, Eq, DecodeWithMemTracking, Debug,
     )]
     #[scale_info(skip_type_params(T))]
     #[codec(mel_bound(T: Config))]
     pub struct AtsWork<T: Config> {
         pub owner: T::AccountId,
         pub id: AtsId,
-    }
-
-    impl<T: Config> core::fmt::Debug for AtsWork<T>
-    where
-        T::AccountId: core::fmt::Debug,
-    {
-        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-            f.debug_struct("AtsWork")
-                .field("owner", &self.owner)
-                .field("id", &self.id)
-                .finish()
-        }
     }
 
     #[derive(
@@ -159,16 +147,6 @@ pub mod pallet {
         pub version: VersionNumber,
         pub hash_commitment: Hash256,
         pub timestamp: Moment,
-    }
-
-    impl AtsVersion {
-        pub fn new(version: VersionNumber, hash_commitment: Hash256, timestamp: Moment) -> Self {
-            Self {
-                version,
-                hash_commitment,
-                timestamp,
-            }
-        }
     }
 
     /// Counter for generating unique ATS IDs
@@ -278,7 +256,11 @@ pub mod pallet {
             };
 
             // Create first AtsVersion (version = 1)
-            let ats_version = AtsVersion::new(1, hash_commitment, timestamp);
+            let ats_version = AtsVersion {
+                version: 1,
+                hash_commitment,
+                timestamp,
+            };
 
             // Calculate storage deposit based on encoded size
             let work_size = ats_work.encoded_size() as u32;
@@ -412,7 +394,11 @@ pub mod pallet {
             let timestamp = T::Timestamp::now();
 
             // Create new AtsVersion
-            let ats_version = AtsVersion::new(new_version, hash_commitment, timestamp);
+            let ats_version = AtsVersion {
+                version: new_version,
+                hash_commitment,
+                timestamp,
+            };
 
             // Calculate storage deposit for the new version
             let version_size = ats_version.encoded_size() as u32;
