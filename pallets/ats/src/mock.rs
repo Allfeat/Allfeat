@@ -19,11 +19,7 @@
 #![cfg(test)]
 
 use crate::{self as pallet_ats};
-use frame_support::{
-    self, PalletId, derive_impl,
-    sp_runtime::BuildStorage,
-    testing_prelude::*,
-};
+use frame_support::{self, PalletId, derive_impl, sp_runtime::BuildStorage, testing_prelude::*};
 use frame_system::EnsureSigned;
 
 type Block = frame_system::mocking::MockBlock<Test>;

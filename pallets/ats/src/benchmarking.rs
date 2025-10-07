@@ -35,9 +35,7 @@ mod benchmarks {
     use frame_support::sp_runtime::traits::Bounded;
 
     #[benchmark]
-    fn register(
-        x: Linear<32, 1024>,
-    ) {
+    fn register(x: Linear<32, 1024>) {
         let provider: T::AccountId = whitelisted_caller();
         let _ = T::Currency::set_balance(&provider, init_bal::<T>());
 
@@ -46,12 +44,30 @@ mod benchmarks {
         let proof = hex::decode("2e2008dc99bbc214438279dc6c527abf5d3b544d6535e2e1a8240eff60e3528524009ffa9f7dd9582f4aea6d64ee999dcbc068d84293f15ab7ee8121d4b5e812970acdff96b8371b2b75a194f591a0cb5c104aef6ad3523376f11cf17e13f7af3ba5ca7ff69cd5262c34092becafc3e44df7be4a830388640d8fd1821687d3a4").unwrap();
 
         let pubs: Vec<[u8; 32]> = vec![
-            hex::decode("26d273f7c73a635f6eaeb904e116ec4cd887fb5a87fc7427c95279e6053e5bf0").unwrap().try_into().unwrap(),
-            hex::decode("175eeef716d52cf8ee972c6fefd60e47df5084efde3c188c40a81a42e72dfb04").unwrap().try_into().unwrap(),
-            hex::decode("017ac5e7a52bec07ca8ee344a9979aa083b7713f1196af35310de21746985079").unwrap().try_into().unwrap(),
-            hex::decode("2a6dda925d7af47190183415517709278c73a94b40ab39f56d058c0bf0a84c68").unwrap().try_into().unwrap(),
-            hex::decode("0000000000000000000000000000000000000000000000000000000000002710").unwrap().try_into().unwrap(),
-            hex::decode("17c57750af41a2dc524ba01dd95bf7876d738eac80936fe96f374086ed91391d").unwrap().try_into().unwrap(),
+            hex::decode("26d273f7c73a635f6eaeb904e116ec4cd887fb5a87fc7427c95279e6053e5bf0")
+                .unwrap()
+                .try_into()
+                .unwrap(),
+            hex::decode("175eeef716d52cf8ee972c6fefd60e47df5084efde3c188c40a81a42e72dfb04")
+                .unwrap()
+                .try_into()
+                .unwrap(),
+            hex::decode("017ac5e7a52bec07ca8ee344a9979aa083b7713f1196af35310de21746985079")
+                .unwrap()
+                .try_into()
+                .unwrap(),
+            hex::decode("2a6dda925d7af47190183415517709278c73a94b40ab39f56d058c0bf0a84c68")
+                .unwrap()
+                .try_into()
+                .unwrap(),
+            hex::decode("0000000000000000000000000000000000000000000000000000000000002710")
+                .unwrap()
+                .try_into()
+                .unwrap(),
+            hex::decode("17c57750af41a2dc524ba01dd95bf7876d738eac80936fe96f374086ed91391d")
+                .unwrap()
+                .try_into()
+                .unwrap(),
         ];
 
         #[extrinsic_call]
@@ -74,12 +90,30 @@ mod benchmarks {
         let proof = hex::decode("2e2008dc99bbc214438279dc6c527abf5d3b544d6535e2e1a8240eff60e3528524009ffa9f7dd9582f4aea6d64ee999dcbc068d84293f15ab7ee8121d4b5e812970acdff96b8371b2b75a194f591a0cb5c104aef6ad3523376f11cf17e13f7af3ba5ca7ff69cd5262c34092becafc3e44df7be4a830388640d8fd1821687d3a4").unwrap();
 
         let pubs: Vec<[u8; 32]> = vec![
-            hex::decode("26d273f7c73a635f6eaeb904e116ec4cd887fb5a87fc7427c95279e6053e5bf0").unwrap().try_into().unwrap(),
-            hex::decode("175eeef716d52cf8ee972c6fefd60e47df5084efde3c188c40a81a42e72dfb04").unwrap().try_into().unwrap(),
-            hex::decode("017ac5e7a52bec07ca8ee344a9979aa083b7713f1196af35310de21746985079").unwrap().try_into().unwrap(),
-            hex::decode("2a6dda925d7af47190183415517709278c73a94b40ab39f56d058c0bf0a84c68").unwrap().try_into().unwrap(),
-            hex::decode("0000000000000000000000000000000000000000000000000000000000002710").unwrap().try_into().unwrap(),
-            hex::decode("17c57750af41a2dc524ba01dd95bf7876d738eac80936fe96f374086ed91391d").unwrap().try_into().unwrap(),
+            hex::decode("26d273f7c73a635f6eaeb904e116ec4cd887fb5a87fc7427c95279e6053e5bf0")
+                .unwrap()
+                .try_into()
+                .unwrap(),
+            hex::decode("175eeef716d52cf8ee972c6fefd60e47df5084efde3c188c40a81a42e72dfb04")
+                .unwrap()
+                .try_into()
+                .unwrap(),
+            hex::decode("017ac5e7a52bec07ca8ee344a9979aa083b7713f1196af35310de21746985079")
+                .unwrap()
+                .try_into()
+                .unwrap(),
+            hex::decode("2a6dda925d7af47190183415517709278c73a94b40ab39f56d058c0bf0a84c68")
+                .unwrap()
+                .try_into()
+                .unwrap(),
+            hex::decode("0000000000000000000000000000000000000000000000000000000000002710")
+                .unwrap()
+                .try_into()
+                .unwrap(),
+            hex::decode("17c57750af41a2dc524ba01dd95bf7876d738eac80936fe96f374086ed91391d")
+                .unwrap()
+                .try_into()
+                .unwrap(),
         ];
 
         AtsPallet::<T>::register(
@@ -94,11 +128,14 @@ mod benchmarks {
         #[extrinsic_call]
         _(RawOrigin::Signed(new_owner.clone()), vk, pubs, proof);
 
-        assert_last_event::<T>(Event::ATSClaimed {
-            old_owner: original_owner,
-            new_owner,
-            hash_commitment
-        }.into());
+        assert_last_event::<T>(
+            Event::ATSClaimed {
+                old_owner: original_owner,
+                new_owner,
+                hash_commitment,
+            }
+            .into(),
+        );
         Ok(())
     }
 

@@ -181,12 +181,8 @@ pub mod pallet {
 
     /// Maps (ATS ID, VersionNumber) to AtsVersion
     #[pallet::storage]
-    pub type AtsVersions<T: Config> = StorageDoubleMap<
-        _,
-        Blake2_128Concat, AtsId,
-        Blake2_128Concat, VersionNumber,
-        AtsVersion,
-    >;
+    pub type AtsVersions<T: Config> =
+        StorageDoubleMap<_, Blake2_128Concat, AtsId, Blake2_128Concat, VersionNumber, AtsVersion>;
 
     /// Maps hash_commitment to ATS ID (for backward compatibility and lookup)
     #[pallet::storage]
@@ -194,7 +190,8 @@ pub mod pallet {
 
     /// Latest version number for each ATS ID
     #[pallet::storage]
-    pub type LatestVersion<T: Config> = StorageMap<_, Blake2_128Concat, AtsId, VersionNumber, ValueQuery>;
+    pub type LatestVersion<T: Config> =
+        StorageMap<_, Blake2_128Concat, AtsId, VersionNumber, ValueQuery>;
 
     /// Maps owner to their list of ATS IDs
     #[pallet::storage]
@@ -346,8 +343,8 @@ pub mod pallet {
             let latest_version = LatestVersion::<T>::get(ats_id);
 
             // Get the latest version to verify hash_commitment matches
-            let latest_ats_version = AtsVersions::<T>::get(ats_id, latest_version)
-                .ok_or(Error::<T>::AtsNotFound)?;
+            let latest_ats_version =
+                AtsVersions::<T>::get(ats_id, latest_version).ok_or(Error::<T>::AtsNotFound)?;
 
             // Verify the hash_commitment matches the latest version
             ensure!(
