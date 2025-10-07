@@ -198,7 +198,7 @@ pub mod pallet {
         T::AccountId: core::fmt::Debug,
     {
         #[pallet::call_index(0)]
-        #[pallet::weight(T::WeightInfo::register(32))]
+        #[pallet::weight(T::WeightInfo::register((vk.len() + proof.len()) as u32))]
         pub fn register(
             origin: OriginFor<T>,
             vk: Vec<u8>,
