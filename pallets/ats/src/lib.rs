@@ -39,7 +39,6 @@ use frame_support::{pallet_prelude::*, sp_runtime::Saturating};
 use frame_system::pallet_prelude::*;
 pub use pallet::*;
 use scale_info::prelude::vec::Vec;
-use sp_core::U256;
 
 #[frame_support::pallet()]
 pub mod pallet {
@@ -52,7 +51,7 @@ pub mod pallet {
         traits::{Time, fungible::MutateHold},
     };
 
-    pub type Hash256 = U256;
+    pub type Hash256 = [u8; 32];
 
     /// The in-code storage version.
     const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
