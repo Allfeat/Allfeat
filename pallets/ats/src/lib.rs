@@ -198,19 +198,21 @@ pub mod pallet {
         T::AccountId: core::fmt::Debug,
     {
         #[pallet::call_index(0)]
-        #[pallet::weight(T::WeightInfo::register(hash_commitment.encoded_size() as u32))]
+        #[pallet::weight(T::WeightInfo::register(32))]
         pub fn register(
             origin: OriginFor<T>,
-            hash_commitment: Hash256,
             vk: Vec<u8>,
             pubs: Vec<[u8; 32]>,
             proof: Vec<u8>,
         ) -> DispatchResult {
             let sender = T::ProviderOrigin::ensure_origin(origin)?;
 
+            // Extract hash_commitment from the 4th element of pubs
+            let hash_commitment = *pubs.get(3).ok_or(Error::<T>::InvalidData)?;
+
             // Verify the zero-knowledge proof
             ensure!(
-                Self::verify_zkp(hash_commitment, vk, pubs, proof)?,
+                Self::verify_zkp(vk, pubs, proof)?,
                 Error::<T>::VerificationFailed
             );
 
@@ -261,16 +263,18 @@ pub mod pallet {
         #[pallet::weight(T::WeightInfo::claim())]
         pub fn claim(
             origin: OriginFor<T>,
-            hash_commitment: Hash256,
             vk: Vec<u8>,
             pubs: Vec<[u8; 32]>,
             proof: Vec<u8>,
         ) -> DispatchResult {
             let sender = T::ProviderOrigin::ensure_origin(origin)?;
 
+            // Extract hash_commitment from the 4th element of pubs
+            let hash_commitment = *pubs.get(3).ok_or(Error::<T>::InvalidData)?;
+
             // Verify the zero-knowledge proof
             ensure!(
-                Self::verify_zkp(hash_commitment, vk, pubs, proof)?,
+                Self::verify_zkp(vk, pubs, proof)?,
                 Error::<T>::VerificationFailed
             );
 
@@ -334,19 +338,8 @@ impl<T: Config> Pallet<T> {
         }
     }
 
-    fn verify_zkp(
-        hash_commitment: Hash256,
-        vk: Vec<u8>,
-        pubs: Vec<[u8; 32]>,
-        proof: Vec<u8>,
-    ) -> Result<bool, Error<T>> {
-        // 1) Check that hash_commitment matches the 4th element in pubs
-        ensure!(
-            pubs.get(3).map_or(false, |h| h == &hash_commitment),
-            Error::<T>::VerificationFailed
-        );
-
-        // 2) Deserialize
+    fn verify_zkp(vk: Vec<u8>, pubs: Vec<[u8; 32]>, proof: Vec<u8>) -> Result<bool, Error<T>> {
+        // 1) Deserialize
         let vk = VerifyingKey::<Bn254>::deserialize_compressed(vk.as_slice())
             .map_err(|_| Error::<T>::InvalidData)?;
         let pvk: PreparedVerifyingKey<Bn254> = ark_groth16::prepare_verifying_key(&vk);
@@ -359,7 +352,7 @@ impl<T: Config> Pallet<T> {
             publics.push(Self::fr_from_be32(b).map_err(|_| Error::<T>::InvalidData)?);
         }
 
-        // 3) Verify
+        // 2) Verify
         let proof_ok = match Groth16::<Bn254>::verify_proof(&pvk, &proof, &publics) {
             Ok(true) => true,
             Ok(false) => false,
