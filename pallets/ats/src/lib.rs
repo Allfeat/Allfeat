@@ -195,8 +195,8 @@ pub mod pallet {
 
     /// Maps owner to their list of ATS IDs
     #[pallet::storage]
-    pub type AtsByOwner<T: Config> =
-        StorageMap<_, Blake2_128Concat, T::AccountId, BoundedVec<AtsId, ConstU32<1000>>>;
+    #[pallet::unbounded]
+    pub type AtsByOwner<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, Vec<AtsId>>;
 
     #[pallet::event]
     #[pallet::generate_deposit(pub(super) fn deposit_event)]
@@ -228,8 +228,6 @@ pub mod pallet {
         AtsNotFound,
         /// Funds can't be held at this moment.
         CantHoldFunds,
-        /// The owner has reached the maximum number of ATS entries.
-        MaxAtsPerOwnerReached,
         /// Serialization or deserialization failed
         InvalidData,
         /// Verification failed
@@ -299,12 +297,10 @@ pub mod pallet {
             LatestVersion::<T>::insert(ats_id, 1);
 
             // Add ATS ID to owner's list
-            AtsByOwner::<T>::try_mutate(&sender, |maybe_list| -> DispatchResult {
-                let list = maybe_list.get_or_insert_with(|| BoundedVec::default());
-                list.try_push(ats_id)
-                    .map_err(|_| Error::<T>::MaxAtsPerOwnerReached)?;
-                Ok(())
-            })?;
+            AtsByOwner::<T>::mutate(&sender, |maybe_list| {
+                let list = maybe_list.get_or_insert_with(Vec::new);
+                list.push(ats_id);
+            });
 
             // Emit event
             Self::deposit_event(Event::ATSRegistered {
@@ -369,12 +365,10 @@ pub mod pallet {
             });
 
             // Add ATS ID to new owner's list
-            AtsByOwner::<T>::try_mutate(&sender, |maybe_list| -> DispatchResult {
-                let list = maybe_list.get_or_insert_with(|| BoundedVec::default());
-                list.try_push(ats_id)
-                    .map_err(|_| Error::<T>::MaxAtsPerOwnerReached)?;
-                Ok(())
-            })?;
+            AtsByOwner::<T>::mutate(&sender, |maybe_list| {
+                let list = maybe_list.get_or_insert_with(Vec::new);
+                list.push(ats_id);
+            });
 
             // Emit event
             Self::deposit_event(Event::ATSClaimed {
