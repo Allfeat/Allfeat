@@ -19,7 +19,6 @@
 use crate::{AtsByOwner, AtsIdByHash, AtsVersions, AtsWorks, Error, LatestVersion, mock::*};
 use frame_support::{pallet_prelude::TypedGet, testing_prelude::*, traits::fungible::InspectHold};
 use frame_system as system;
-use parity_scale_codec::Encode;
 
 /// 32 bytes of 0xFF
 fn not_in_fr() -> [u8; 32] {
@@ -187,18 +186,8 @@ fn register_ats_successfully() {
         let pubs: Vec<[u8; 32]> = PUBS_HEX.iter().map(|h| hex_to_pub(h)).collect();
         let hash_commitment = pubs[3];
 
-        // Get the ATS work and version to calculate expected lock cost
-        let ats_work = crate::AtsWork::<Test> {
-            owner: provider,
-            id: 0,
-        };
-        let ats_version = crate::AtsVersion {
-            version: 1,
-            hash_commitment,
-            timestamp: 0,
-        };
-        let expected_lock_cost = ((ats_work.encoded_size() + ats_version.encoded_size()) as u64)
-            .saturating_mul(<<Test as crate::Config>::ByteDepositCost as TypedGet>::get());
+        // Get the expected lock cost (fixed registration cost)
+        let expected_lock_cost = <<Test as crate::Config>::AtsRegistrationCost as TypedGet>::get();
 
         assert_ok!(MockAts::register(
             RuntimeOrigin::signed(provider),
@@ -411,14 +400,8 @@ fn update_ats_successfully() {
         assert_eq!(LatestVersion::<Test>::get(ats_id), 1);
 
         // Update with the same valid proof and hash commitment (in reality, this would be a new proof for a new version)
-        // Calculate expected cost for the new version
-        let ats_version = crate::AtsVersion {
-            version: 2,
-            hash_commitment: hash_commitment_v1,
-            timestamp: 0,
-        };
-        let version_cost = (ats_version.encoded_size() as u64)
-            .saturating_mul(<<Test as crate::Config>::ByteDepositCost as TypedGet>::get());
+        // Calculate expected cost for the new version (fixed registration cost per update)
+        let version_cost = <<Test as crate::Config>::AtsRegistrationCost as TypedGet>::get();
 
         let initial_hold =
             Balances::balance_on_hold(&crate::HoldReason::AtsRegistration.into(), &owner);

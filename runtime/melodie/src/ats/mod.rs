@@ -25,7 +25,7 @@ use shared_runtime::currency::MILLIAFT;
 
 parameter_types! {
     pub const AtsPalletId: PalletId = PalletId(*b"m/alltst");
-    pub const ByteDepositCost: Balance = MILLIAFT;
+    pub const AtsRegistrationCost: Balance = MILLIAFT;
 }
 
 impl pallet_ats::Config for Runtime {
@@ -35,6 +35,6 @@ impl pallet_ats::Config for Runtime {
     type Currency = Balances;
     type RuntimeHoldReason = RuntimeHoldReason;
     type ProviderOrigin = EnsureSigned<Self::AccountId>;
-    type ByteDepositCost = ByteDepositCost;
+    type AtsRegistrationCost = AtsRegistrationCost;
     type WeightInfo = ();
 }

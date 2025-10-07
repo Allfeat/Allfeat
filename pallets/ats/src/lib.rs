@@ -33,7 +33,7 @@ use ark_bn254::{Bn254, Fr};
 use ark_ff::{BigInteger, PrimeField};
 use ark_groth16::{Groth16, PreparedVerifyingKey, Proof, VerifyingKey};
 use ark_serialize::{CanonicalDeserialize, SerializationError};
-use frame_support::{pallet_prelude::*, sp_runtime::Saturating};
+use frame_support::pallet_prelude::*;
 use frame_system::pallet_prelude::*;
 pub use pallet::*;
 use scale_info::prelude::vec::Vec;
@@ -72,7 +72,7 @@ pub mod pallet {
             type RuntimeEvent = ();
             #[inject_runtime_type]
             type RuntimeHoldReason = ();
-            type ByteDepositCost = ConstU64<1>;
+            type AtsRegistrationCost = ConstU64<1>;
             type WeightInfo = ();
         }
     }
@@ -113,8 +113,8 @@ pub mod pallet {
 
         #[pallet::constant]
         #[pallet::no_default_bounds]
-        /// The per-byte deposit cost when depositing ATS on-chain.
-        type ByteDepositCost: Get<BalanceOf<Self>>;
+        /// The fixed deposit cost for registering an ATS on-chain.
+        type AtsRegistrationCost: Get<BalanceOf<Self>>;
 
         type WeightInfo: WeightInfo;
     }
@@ -183,7 +183,6 @@ pub mod pallet {
             provider: T::AccountId,
             ats_id: AtsId,
             hash_commitment: Hash256,
-            data_collateral: BalanceOf<T>,
         },
         ATSClaimed {
             old_owner: T::AccountId,
@@ -262,15 +261,16 @@ pub mod pallet {
                 timestamp,
             };
 
-            // Calculate storage deposit based on encoded size
-            let work_size = ats_work.encoded_size() as u32;
-            let version_size = ats_version.encoded_size() as u32;
-            let total_size = work_size + version_size;
-            let data_cost = Self::calculate_ats_colateral(total_size);
+            // Get fixed registration cost
+            let registration_cost = T::AtsRegistrationCost::get();
 
             // Hold the deposit from the sender
-            T::Currency::hold(&HoldReason::AtsRegistration.into(), &sender, data_cost)
-                .map_err(|_| Error::<T>::CantHoldFunds)?;
+            T::Currency::hold(
+                &HoldReason::AtsRegistration.into(),
+                &sender,
+                registration_cost,
+            )
+            .map_err(|_| Error::<T>::CantHoldFunds)?;
 
             // Store AtsWork and AtsVersion
             AtsWorks::<T>::insert(ats_id, ats_work);
@@ -289,7 +289,6 @@ pub mod pallet {
                 provider: sender,
                 ats_id,
                 hash_commitment,
-                data_collateral: data_cost,
             });
 
             Ok(())
@@ -400,13 +399,16 @@ pub mod pallet {
                 timestamp,
             };
 
-            // Calculate storage deposit for the new version
-            let version_size = ats_version.encoded_size() as u32;
-            let data_cost = Self::calculate_ats_colateral(version_size);
+            // Get fixed registration cost
+            let registration_cost = T::AtsRegistrationCost::get();
 
             // Hold the deposit from the sender
-            T::Currency::hold(&HoldReason::AtsRegistration.into(), &sender, data_cost)
-                .map_err(|_| Error::<T>::CantHoldFunds)?;
+            T::Currency::hold(
+                &HoldReason::AtsRegistration.into(),
+                &sender,
+                registration_cost,
+            )
+            .map_err(|_| Error::<T>::CantHoldFunds)?;
 
             // Store the new version
             AtsVersions::<T>::insert(ats_id, new_version, ats_version);
@@ -429,10 +431,6 @@ pub mod pallet {
 }
 
 impl<T: Config> Pallet<T> {
-    fn calculate_ats_colateral(size: u32) -> types::BalanceOf<T> {
-        T::ByteDepositCost::get().saturating_mul(types::BalanceOf::<T>::from(size))
-    }
-
     fn fr_from_be32(bytes: &[u8; 32]) -> Result<Fr, SerializationError> {
         // reduce mod p from BE bytes
         let x = Fr::from_be_bytes_mod_order(bytes);
