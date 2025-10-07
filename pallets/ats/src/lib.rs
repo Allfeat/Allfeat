@@ -29,8 +29,6 @@ mod tests;
 
 mod benchmarking;
 
-extern crate alloc;
-
 use ark_bn254::{Bn254, Fr};
 use ark_ff::{BigInteger, PrimeField};
 use ark_groth16::{Groth16, PreparedVerifyingKey, Proof, VerifyingKey};
