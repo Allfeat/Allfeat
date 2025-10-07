@@ -10,8 +10,6 @@ on:
       - "**.lock"
       - "Dockerfile"
       - "docker-entrypoint.sh"
-  pull_request:
-    branches: [ master ]
 
 env:
   REGISTRY: docker.io
