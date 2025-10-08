@@ -44,10 +44,7 @@ pub mod pallet {
     use allfeat_primitives::Moment;
     #[cfg(feature = "runtime-benchmarks")]
     use frame_support::traits::fungible::Mutate;
-    use frame_support::{
-        PalletId,
-        traits::{Time, fungible::MutateHold},
-    };
+    use frame_support::traits::{Time, fungible::MutateHold};
 
     pub type Hash256 = [u8; 32];
     pub type AtsId = u64;
@@ -69,8 +66,6 @@ pub mod pallet {
         #[frame_support::register_default_impl(TestDefaultConfig)]
         impl DefaultConfig for TestDefaultConfig {
             #[inject_runtime_type]
-            type RuntimeEvent = ();
-            #[inject_runtime_type]
             type RuntimeHoldReason = ();
             type AtsRegistrationCost = ConstU64<1>;
             type WeightInfo = ();
@@ -79,15 +74,6 @@ pub mod pallet {
 
     #[pallet::config(with_default)]
     pub trait Config: frame_system::Config {
-        /// The ATS pallet instance pallet id
-        #[pallet::no_default]
-        #[pallet::constant]
-        type PalletId: Get<PalletId>;
-
-        #[pallet::no_default_bounds]
-        /// The overarching event type.
-        type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-
         #[pallet::no_default]
         #[cfg(not(feature = "runtime-benchmarks"))]
         /// The currency trait used to manage ATS payments.

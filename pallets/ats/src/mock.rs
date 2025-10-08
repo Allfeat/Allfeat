@@ -73,7 +73,6 @@ impl pallet_timestamp::Config for Test {}
 
 #[derive_impl(pallet_ats::config_preludes::TestDefaultConfig)]
 impl pallet_ats::Config for Test {
-    type PalletId = AtsPalletId;
     type Timestamp = Time;
     type Currency = Balances;
     type ProviderOrigin = EnsureSigned<Self::AccountId>;

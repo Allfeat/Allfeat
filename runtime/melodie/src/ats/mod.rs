@@ -19,18 +19,15 @@
 use crate::*;
 
 use allfeat_primitives::Balance;
-use frame_support::{PalletId, parameter_types};
+use frame_support::parameter_types;
 use frame_system::EnsureSigned;
 use shared_runtime::currency::MILLIAFT;
 
 parameter_types! {
-    pub const AtsPalletId: PalletId = PalletId(*b"m/alltst");
     pub const AtsRegistrationCost: Balance = MILLIAFT;
 }
 
 impl pallet_ats::Config for Runtime {
-    type PalletId = AtsPalletId;
-    type RuntimeEvent = RuntimeEvent;
     type Timestamp = Timestamp;
     type Currency = Balances;
     type RuntimeHoldReason = RuntimeHoldReason;
