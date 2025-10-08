@@ -12,6 +12,7 @@ parity-scale-codec = { workspace = true, features = [
 	"max-encoded-len",
 ] }
 scale-info = { workspace = true, features = ["derive"] }
+pallet-ats = { workspace = true }
 pallet-midds = { workspace = true }
 allfeat-primitives = { workspace = true }
 
@@ -46,6 +47,7 @@ std = [
 	"frame-support/std",
 	"frame-system/std",
 	"sp-core/std",
+	"pallet-ats/std",
 	"pallet-midds/std",
 	"pallet-timestamp/std",
 	"pallet-utility/std",

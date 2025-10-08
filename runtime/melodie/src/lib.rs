@@ -55,6 +55,8 @@ pub use pallets::*;
 mod genesis;
 mod midds;
 pub use midds::*;
+mod ats;
+pub use ats::*;
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarks;
@@ -211,4 +213,7 @@ mod runtime {
 
     #[runtime::pallet_index(104)]
     pub type Releases = pallet_midds<Instance4>;
+
+    #[runtime::pallet_index(105)]
+    pub type Ats = pallet_ats;
 }
