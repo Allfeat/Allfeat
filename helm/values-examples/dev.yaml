@@ -1,0 +1,36 @@
+replicaCount: 1
+
+image:
+  repository: allfeatnetwork/allfeat
+  tag: "develop"
+  pullPolicy: Always
+
+node:
+  devMode: true
+  name: "dev-allfeat-node"
+
+persistence:
+  enabled: false
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+
+p2pService:
+  enabled: false
+
+metrics:
+  enabled: true
+
+livenessProbe:
+  enabled: false
+
+readinessProbe:
+  enabled: false
+
+startupProbe:
+  enabled: false

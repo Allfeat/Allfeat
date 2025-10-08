@@ -32,7 +32,6 @@ use alloc::vec::Vec;
 pub use allfeat_primitives::{AccountId, Address, Balance, BlockNumber, Moment, Nonce, Signature};
 
 use apis::RUNTIME_API_VERSIONS;
-use migrations::midds::party_identifier::PartyIdentifierV3ToV4;
 use sp_runtime::{generic, traits::NumberFor};
 use sp_version::{RuntimeVersion, runtime_version};
 
@@ -58,8 +57,6 @@ mod midds;
 pub use midds::*;
 mod ats;
 pub use ats::*;
-
-mod migrations;
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarks;
@@ -125,7 +122,7 @@ pub type RuntimeExecutive = frame_executive::Executive<
 ///
 /// This can be a tuple of types, each implementing `OnRuntimeUpgrade`.
 #[allow(unused_parens)]
-type Migrations = (PartyIdentifierV3ToV4<Runtime>);
+type Migrations = ();
 
 #[frame_support::runtime]
 mod runtime {
@@ -204,14 +201,15 @@ mod runtime {
     pub type Mmr = pallet_mmr;
 
     // Allfeat related
-    #[runtime::pallet_index(101)]
-    pub type PartyIdentifiers = pallet_midds<Instance1>;
+    //
+    // #[runtime::pallet_index(101)] DEPRECATED
+    // pub type PartyIdentifiers = pallet_midds<Instance1>;
 
     #[runtime::pallet_index(102)]
     pub type MusicalWorks = pallet_midds<Instance2>;
 
     #[runtime::pallet_index(103)]
-    pub type Tracks = pallet_midds<Instance3>;
+    pub type Recordings = pallet_midds<Instance3>;
 
     #[runtime::pallet_index(104)]
     pub type Releases = pallet_midds<Instance4>;

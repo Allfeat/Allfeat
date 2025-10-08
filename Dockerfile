@@ -6,7 +6,7 @@
 # needed to build the Allfeat binary are installed,
 # plus cargo-check to optimize rust dependency management and then speedup any re-build
 
-FROM rust:1.85-slim AS base
+FROM rustlang/rust:nightly-bookworm-slim as base
 
 WORKDIR /app
 
@@ -19,7 +19,6 @@ RUN apt update -y && \
 # it will be cached from the second build onwards
 RUN cargo install cargo-chef
 
-# FIXME: chef raises an error if those 2 deps are not pre-installed
 RUN rustup target add wasm32-unknown-unknown
 RUN rustup component add rust-src
 
@@ -82,9 +81,6 @@ RUN apt-get update && apt-get install -y \
 
 COPY --from=builder /usr/local/bin/allfeat /usr/local/bin
 
-# Copy and set permissions for entrypoint script
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 RUN useradd -m -u 1000 -U -s /bin/sh -d /app allfeat && \
     mkdir -p /data /app/.local/share && \
@@ -95,12 +91,9 @@ RUN useradd -m -u 1000 -U -s /bin/sh -d /app allfeat && \
 
 USER allfeat
 
-# Environment variable to control dev mode
-ENV DEV_MODE=false
-
 EXPOSE 30333 9933 9944 9615
 
 VOLUME ["/data"]
 
 
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/allfeat"]

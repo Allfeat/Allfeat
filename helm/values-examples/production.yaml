@@ -1,0 +1,156 @@
+replicaCount: 1
+
+image:
+  repository: allfeatnetwork/allfeat
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+# Production logging
+logging:
+  level: "warn"
+  backtrace: "1"
+
+node:
+  devMode: false
+  chain: "melodie"
+  name: "prod-allfeat-node"
+  network:
+    port: 30333
+    publicAddr: "/ip4/YOUR_PUBLIC_IP/tcp/30333"
+    bootnodes: "CONFIGURE_YOUR_BOOTNODES_HERE"
+
+persistence:
+  enabled: true
+  storageClass: "fast-ssd"
+  size: 1000Gi  # Increased for production blockchain data
+  backup:
+    enabled: true
+    schedule: "0 2 * * *"
+    retention: "30d"
+
+resources:
+  requests:
+    cpu: 2000m
+    memory: 4Gi
+    ephemeral-storage: 10Gi
+  limits:
+    cpu: 4000m
+    memory: 8Gi
+    ephemeral-storage: 20Gi
+
+p2pService:
+  enabled: true
+  type: LoadBalancer
+
+rpc:
+  external: true
+  methods: "safe"
+
+metrics:
+  enabled: true
+  external: false
+
+serviceMonitor:
+  enabled: true
+  interval: 15s
+  scrapeTimeout: 10s
+  labels:
+    app: allfeat-node
+    environment: production
+  metricRelabelings:
+    - sourceLabels: [__name__]
+      regex: "substrate_.*"
+      targetLabel: "component"
+      replacement: "substrate"
+    - sourceLabels: [__name__]
+      regex: "allfeat_.*"
+      targetLabel: "component"
+      replacement: "allfeat"
+
+# Production security settings
+networkPolicy:
+  enabled: true
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: monitoring
+      ports:
+        - protocol: TCP
+          port: 9615  # metrics
+    - from: []
+      ports:
+        - protocol: TCP
+          port: 9944  # RPC
+        - protocol: TCP
+          port: 30333 # P2P
+  egress:
+    - {}  # Allow all egress for P2P connectivity
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Production node selectors and affinity
+nodeSelector:
+  node-type: blockchain
+  storage-type: ssd
+
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      preference:
+        matchExpressions:
+        - key: kubernetes.io/arch
+          operator: In
+          values:
+          - amd64
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: app.kubernetes.io/name
+              operator: In
+              values:
+              - allfeat-node
+          topologyKey: kubernetes.io/hostname
+
+tolerations:
+  - key: "blockchain-node"
+    operator: "Equal"
+    value: "true"
+    effect: "NoSchedule"
+
+# Production health checks for Substrate nodes
+livenessProbe:
+  enabled: true
+  tcpSocket:
+    port: rpc
+  initialDelaySeconds: 120
+  periodSeconds: 60
+  timeoutSeconds: 15
+  failureThreshold: 3
+
+readinessProbe:
+  enabled: true
+  exec:
+    command:
+    - /bin/sh
+    - -c
+    - 'curl -f -s -X POST -H "Content-Type: application/json" -d '\''{"id":1,"jsonrpc":"2.0","method":"system_health"}'\'  http://localhost:9944 | grep -q '\"isSyncing\":false''
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 5
+
+startupProbe:
+  enabled: true
+  tcpSocket:
+    port: rpc
+  initialDelaySeconds: 120
+  periodSeconds: 60
+  timeoutSeconds: 15
+  failureThreshold: 30

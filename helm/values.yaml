@@ -1,0 +1,233 @@
+# Default values for allfeat-node
+# This is a YAML-formatted file
+# Declare variables to be passed into your templates
+
+replicaCount: 1
+
+# Logging configuration
+logging:
+  level: "info"
+  backtrace: "0"
+
+image:
+  repository: allfeatnetwork/allfeat
+  pullPolicy: IfNotPresent
+  tag: "develop"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# Node configuration
+node:
+  # Set to true for development mode (insecure)
+  devMode: false
+  # Custom arguments for the node (optional)
+  customArgs: []
+  # Base path for node data
+  basePath: "/data"
+  # Chain specification
+  chain: "melodie"
+  # Node name
+  name: "allfeat-node"
+  # Network configuration
+  network:
+    # P2P listening port
+    port: 30333
+    # External address for P2P
+    publicAddr: ""
+    # Reserved nodes (comma-separated)
+    reservedNodes: ""
+    # Bootnodes (comma-separated)
+    bootnodes: ""
+
+# RPC configuration
+rpc:
+  # Enable external RPC
+  external: false
+  # RPC listening port
+  port: 9944
+  # CORS configuration
+  cors: "all"
+  # RPC methods (safe, unsafe)
+  methods: "safe"
+  # Max connections
+  maxConnections: 100
+
+# Prometheus metrics
+metrics:
+  # Enable metrics
+  enabled: true
+  # Metrics port
+  port: 9615
+  # Enable external metrics
+  external: false
+
+# Database configuration
+database:
+  # Database type (rocksdb, paritydb)
+  type: "paritydb"
+  # Cache size in MB
+  cacheSize: 1024
+
+# Storage configuration
+persistence:
+  enabled: true
+  # Use existing PVC
+  existingClaim: ""
+  # Storage class
+  storageClass: ""
+  # Access mode
+  accessModes:
+    - ReadWriteOnce
+  # Storage size (blockchain data grows quickly)
+  size: 500Gi
+  # Annotations
+  annotations: {}
+  # Backup configuration
+  backup:
+    enabled: false
+    schedule: "0 2 * * *"
+    retention: "7d"
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  fsGroup: 1000
+  runAsUser: 1000
+  runAsGroup: 1000
+  runAsNonRoot: true
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+service:
+  type: ClusterIP
+  # P2P port
+  p2pPort: 30333
+  # RPC port
+  rpcPort: 9944
+  # Metrics port
+  metricsPort: 9615
+  # Annotations
+  annotations: {}
+
+# Service for P2P networking (typically NodePort or LoadBalancer)
+p2pService:
+  enabled: true
+  type: NodePort
+  port: 30333
+  nodePort: 30333
+  annotations: {}
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: allfeat-node.local
+      paths:
+        - path: /
+          pathType: Prefix
+          port: 9944
+  tls: []
+  #  - secretName: allfeat-node-tls
+  #    hosts:
+  #      - allfeat-node.local
+
+resources:
+  limits:
+    cpu: 4000m
+    memory: 8Gi
+    ephemeral-storage: 20Gi
+  requests:
+    cpu: 2000m
+    memory: 4Gi
+    ephemeral-storage: 10Gi
+
+livenessProbe:
+  enabled: true
+  tcpSocket:
+    port: rpc
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+
+readinessProbe:
+  enabled: true
+  tcpSocket:
+    port: rpc
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 5
+
+startupProbe:
+  enabled: true
+  tcpSocket:
+    port: rpc
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 20
+
+# Autoscaling is disabled for blockchain nodes as they are stateful
+# and require persistent storage. Use manual scaling instead.
+autoscaling:
+  enabled: false
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Pod disruption budget
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+  # maxUnavailable: 1
+
+# Network policies
+networkPolicy:
+  enabled: false
+  # Ingress rules
+  ingress: []
+  # Egress rules
+  egress: []
+
+# ServiceMonitor for Prometheus
+serviceMonitor:
+  enabled: false
+  namespace: ""
+  labels: {}
+  annotations: {}
+  interval: 30s
+  scrapeTimeout: 10s
+  # Metric relabeling rules
+  metricRelabelings: []
+  # Relabeling rules
+  relabelings: []
+  # Example blockchain-specific metrics relabeling:
+  # metricRelabelings:
+  #   - sourceLabels: [__name__]
+  #     regex: "substrate_.*"
+  #     targetLabel: "component"
+  #     replacement: "substrate"

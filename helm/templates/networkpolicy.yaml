@@ -1,0 +1,57 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "allfeat-node.fullname" . }}
+  labels:
+    {{- include "allfeat-node.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "allfeat-node.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow RPC access
+    - from: []
+      ports:
+        - protocol: TCP
+          port: {{ .Values.rpc.port }}
+    # Allow P2P access
+    - from: []
+      ports:
+        - protocol: TCP
+          port: {{ .Values.node.network.port }}
+    {{- if .Values.metrics.enabled }}
+    # Allow metrics access
+    - from: []
+      ports:
+        - protocol: TCP
+          port: {{ .Values.metrics.port }}
+    {{- end }}
+    {{- with .Values.networkPolicy.ingress }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  egress:
+    # Allow DNS
+    - to: []
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Allow HTTPS for chain sync
+    - to: []
+      ports:
+        - protocol: TCP
+          port: 443
+    # Allow P2P communication
+    - to: []
+      ports:
+        - protocol: TCP
+          port: {{ .Values.node.network.port }}
+    {{- with .Values.networkPolicy.egress }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- end }}

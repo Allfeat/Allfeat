@@ -18,6 +18,7 @@
 
 //! Service and service factory implementation. Specialized wrapper over substrate service.
 
+pub use allfeat_runtime::RuntimeApi as AllfeatRuntimeApi;
 pub use melodie_runtime::RuntimeApi as MelodieRuntimeApi;
 
 // std
@@ -80,6 +81,11 @@ pub trait IdentifyVariant {
     fn is_melodie(&self) -> bool {
         self.id().starts_with("melodie")
     }
+
+    /// Returns if this is a configuration for the `Allfeat` network.
+    fn is_allfeat(&self) -> bool {
+        self.id().starts_with("allfeat")
+    }
 }
 impl IdentifyVariant for Box<dyn sc_service::ChainSpec> {
     fn id(&self) -> &str {
@@ -115,7 +121,9 @@ impl<Api> RuntimeApiCollection for Api where
 {
 }
 
-pub fn new_partial<RuntimeApi>(config: &Configuration) -> Result<Service<RuntimeApi>, ServiceError>
+pub fn new_partial<RuntimeApi>(
+    config: &Configuration,
+) -> Result<Service<RuntimeApi>, Box<ServiceError>>
 where
     RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>>,
     RuntimeApi: Send + Sync + 'static,
@@ -130,7 +138,8 @@ where
             let telemetry = worker.handle().new_telemetry(endpoints);
             Ok((worker, telemetry))
         })
-        .transpose()?;
+        .transpose()
+        .map_err(|e| Box::new(sc_service::Error::Application(e.into())))?;
 
     let executor = sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(&config.executor);
     let (client, backend, keystore_container, task_manager) =
@@ -167,7 +176,8 @@ where
         &client,
         select_chain.clone(),
         telemetry.as_ref().map(|x| x.handle()),
-    )?;
+    )
+    .map_err(|e| Box::new(sc_service::Error::Application(e.into())))?;
 
     let cidp_client = client.clone();
     let import_queue =
@@ -178,10 +188,11 @@ where
             create_inherent_data_providers: move |parent_hash, _| {
                 let cidp_client = cidp_client.clone();
                 async move {
-                    let slot_duration = sc_consensus_aura::standalone::slot_duration_at(
-                        &*cidp_client,
-                        parent_hash,
-                    )?;
+                    let slot_duration =
+                        sc_consensus_aura::standalone::slot_duration_at(&*cidp_client, parent_hash)
+                            .map_err(|e| {
+                                Box::new(sp_consensus::error::Error::ClientImport(format!("{e:?}")))
+                            })?;
                     let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
 
                     let slot =
@@ -198,7 +209,8 @@ where
             check_for_equivocation: Default::default(),
             telemetry: telemetry.as_ref().map(|x| x.handle()),
             compatibility_mode: Default::default(),
-        })?;
+        })
+        .map_err(|e| Box::new(sc_service::Error::Application(e.into())))?;
     let consensus_parts = ConsensusParts {
         grandpa_block_import,
         grandpa_link,
@@ -220,7 +232,7 @@ where
 }
 
 /// Builds a new service for a full client.
-fn new_full<RuntimeApi, N>(config: Configuration) -> Result<TaskManager, ServiceError>
+fn new_full<RuntimeApi, N>(config: Configuration) -> Result<TaskManager, Box<ServiceError>>
 where
     N: sc_network::NetworkBackend<Block, <Block as sp_runtime::traits::Block>::Hash>,
     RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>>,
@@ -302,7 +314,8 @@ where
                 network_provider: Arc::new(network.clone()),
                 enable_http_requests: true,
                 custom_extensions: |_| vec![],
-            })?
+            })
+            .map_err(|e| Box::new(sc_service::Error::Application(e.into())))?
             .run(client.clone(), task_manager.spawn_handle())
             .boxed(),
         );
@@ -368,7 +381,8 @@ where
             extra_parts.telemetry.as_ref().map(|x| x.handle()),
         );
 
-        let slot_duration = sc_consensus_aura::slot_duration(&*client)?;
+        let slot_duration = sc_consensus_aura::slot_duration(&*client)
+            .map_err(|e| Box::new(sc_service::Error::Application(e.into())))?;
 
         let aura = sc_consensus_aura::start_aura::<AuraPair, _, _, _, _, _, _, _, _, _, _>(
             StartAuraParams {
@@ -398,7 +412,8 @@ where
                 telemetry: extra_parts.telemetry.as_ref().map(|x| x.handle()),
                 compatibility_mode: Default::default(),
             },
-        )?;
+        )
+        .map_err(|e| Box::new(sc_service::Error::Application(e.into())))?;
 
         // the AURA authoring task is considered essential, i.e. if it
         // fails we take down the service with it.
@@ -451,7 +466,8 @@ where
         task_manager.spawn_essential_handle().spawn_blocking(
             "grandpa-voter",
             None,
-            sc_consensus_grandpa::run_grandpa_voter(grandpa_config)?,
+            sc_consensus_grandpa::run_grandpa_voter(grandpa_config)
+                .map_err(|e| Box::new(sc_service::Error::Application(e.into())))?,
         );
     }
 
@@ -460,22 +476,19 @@ where
 
 pub fn new_full_from_network_cfg<RuntimeApi>(
     config: Configuration,
-) -> Result<TaskManager, ServiceError>
+) -> Result<TaskManager, Box<ServiceError>>
 where
     RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>>,
     RuntimeApi: Send + Sync + 'static,
     RuntimeApi::RuntimeApi: RuntimeApiCollection,
 {
     match config.network.network_backend {
-        Some(backend) => match backend {
-            sc_network::config::NetworkBackendType::Libp2p => new_full::<
-                RuntimeApi,
-                sc_network::NetworkWorker<Block, <Block as sp_runtime::traits::Block>::Hash>,
-            >(config),
-            sc_network::config::NetworkBackendType::Litep2p => {
-                new_full::<RuntimeApi, sc_network::Litep2pNetworkBackend>(config)
-            }
-        },
-        None => new_full::<RuntimeApi, sc_network::Litep2pNetworkBackend>(config),
+        sc_network::config::NetworkBackendType::Libp2p => new_full::<
+            RuntimeApi,
+            sc_network::NetworkWorker<Block, <Block as sp_runtime::traits::Block>::Hash>,
+        >(config),
+        sc_network::config::NetworkBackendType::Litep2p => {
+            new_full::<RuntimeApi, sc_network::Litep2pNetworkBackend>(config)
+        }
     }
 }

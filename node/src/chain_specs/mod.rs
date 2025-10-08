@@ -18,8 +18,12 @@
 
 //! Substrate chain configurations.
 
+#[cfg(feature = "allfeat-runtime")]
+pub mod mainnet;
 #[cfg(feature = "melodie-runtime")]
 pub mod melodie;
+#[cfg(feature = "allfeat-runtime")]
+pub use mainnet::{self as allfeat_chain_spec};
 #[cfg(feature = "melodie-runtime")]
 pub use melodie::{self as melodie_chain_spec};
 
