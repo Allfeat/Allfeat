@@ -19,7 +19,6 @@ parity-scale-codec = { features = [
 ], workspace = true }
 log = { workspace = true }
 scale-info = { features = ["derive"], workspace = true }
-midds = { workspace = true }
 allfeat-primitives = { workspace = true }
 frame-benchmarking = { workspace = true }
 frame-support = { workspace = true }
