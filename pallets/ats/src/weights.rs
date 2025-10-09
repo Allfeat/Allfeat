@@ -50,6 +50,7 @@ use core::marker::PhantomData;
 /// Weight functions needed for pallet_ats_party_identifiers.
 pub trait WeightInfo {
 	fn register(x: u32, ) -> Weight;
+	fn update(x: u32, ) -> Weight;
 	fn claim() -> Weight;
 }
 
@@ -65,6 +66,18 @@ impl WeightInfo for () {
 			.saturating_add(Weight::from_parts(5_511, 0).saturating_mul(x.into()))
 			.saturating_add(ParityDbWeight::get().reads(4_u64))
 			.saturating_add(ParityDbWeight::get().writes(5_u64))
+	}
+
+	fn update(x: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `150`
+		//  Estimated: `3700`
+		// Minimum execution time: 85_000_000 picoseconds.
+		Weight::from_parts(92_000_000, 3700)
+			// Standard Error: 400
+			.saturating_add(Weight::from_parts(5_500, 0).saturating_mul(x.into()))
+			.saturating_add(ParityDbWeight::get().reads(3_u64))
+			.saturating_add(ParityDbWeight::get().writes(4_u64))
 	}
 
 	fn claim() -> Weight {
