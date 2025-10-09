@@ -41,6 +41,8 @@ parameter_types! {
 
 impl pallet_session::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
+    type Currency = Balances;
+    type KeyDeposit = ();
     type ValidatorId = <Self as frame_system::Config>::AccountId;
     type ValidatorIdOf = ConvertInto;
     type ShouldEndSession = PeriodicSessions<SessionPeriod, SessionOffset>;
