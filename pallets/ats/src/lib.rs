@@ -204,10 +204,7 @@ pub mod pallet {
     {
         #[pallet::call_index(0)]
         #[pallet::weight(T::WeightInfo::register(0))]
-        pub fn register(
-            origin: OriginFor<T>,
-            hash_commitment: Hash256,
-        ) -> DispatchResult {
+        pub fn register(origin: OriginFor<T>, hash_commitment: Hash256) -> DispatchResult {
             let sender = T::ProviderOrigin::ensure_origin(origin)?;
 
             // Check if ATS with this hash commitment already exists
@@ -270,6 +267,62 @@ pub mod pallet {
         }
 
         #[pallet::call_index(2)]
+        #[pallet::weight(T::WeightInfo::update(0))]
+        pub fn update(
+            origin: OriginFor<T>,
+            ats_id: AtsId,
+            hash_commitment: Hash256,
+        ) -> DispatchResult {
+            let sender = T::ProviderOrigin::ensure_origin(origin)?;
+
+            // Get the ATS work and verify ownership
+            let ats_work = AtsWorks::<T>::get(ats_id).ok_or(Error::<T>::AtsNotFound)?;
+            ensure!(ats_work.owner == sender, Error::<T>::VerificationFailed);
+
+            // Get the latest version number and increment it
+            let current_version = LatestVersion::<T>::get(ats_id);
+            let new_version = current_version.saturating_add(1);
+
+            // Get current timestamp
+            let timestamp = T::Timestamp::now();
+
+            // Create new AtsVersion
+            let ats_version = AtsVersion {
+                version: new_version,
+                hash_commitment,
+                timestamp,
+            };
+
+            // Get fixed registration cost
+            let registration_cost = T::AtsRegistrationCost::get();
+
+            // Hold the deposit from the sender
+            T::Currency::hold(
+                &HoldReason::AtsRegistration.into(),
+                &sender,
+                registration_cost,
+            )
+            .map_err(|_| Error::<T>::CantHoldFunds)?;
+
+            // Store the new version
+            AtsVersions::<T>::insert(ats_id, new_version, ats_version);
+            LatestVersion::<T>::insert(ats_id, new_version);
+
+            // Update the hash lookup to point to this ATS ID
+            AtsIdByHash::<T>::insert(hash_commitment, ats_id);
+
+            // Emit event
+            Self::deposit_event(Event::ATSUpdated {
+                owner: sender,
+                ats_id,
+                version: new_version,
+                hash_commitment,
+            });
+
+            Ok(())
+        }
+
+        #[pallet::call_index(3)]
         #[pallet::weight(T::WeightInfo::claim())]
         pub fn claim(
             origin: OriginFor<T>,
@@ -331,73 +384,6 @@ pub mod pallet {
                 old_owner,
                 new_owner: sender,
                 ats_id,
-            });
-
-            Ok(())
-        }
-
-        #[pallet::call_index(3)]
-        #[pallet::weight(T::WeightInfo::register((vk.len() + proof.len()) as u32))]
-        pub fn update(
-            origin: OriginFor<T>,
-            ats_id: AtsId,
-            vk: Vec<u8>,
-            pubs: Vec<[u8; 32]>,
-            proof: Vec<u8>,
-        ) -> DispatchResult {
-            let sender = T::ProviderOrigin::ensure_origin(origin)?;
-
-            // Extract hash_commitment from the 4th element of pubs
-            let hash_commitment = *pubs.get(3).ok_or(Error::<T>::InvalidData)?;
-
-            // Verify the zero-knowledge proof
-            ensure!(
-                Self::verify_zkp(vk, pubs, proof)?,
-                Error::<T>::VerificationFailed
-            );
-
-            // Get the ATS work and verify ownership
-            let ats_work = AtsWorks::<T>::get(ats_id).ok_or(Error::<T>::AtsNotFound)?;
-            ensure!(ats_work.owner == sender, Error::<T>::VerificationFailed);
-
-            // Get the latest version number and increment it
-            let current_version = LatestVersion::<T>::get(ats_id);
-            let new_version = current_version.saturating_add(1);
-
-            // Get current timestamp
-            let timestamp = T::Timestamp::now();
-
-            // Create new AtsVersion
-            let ats_version = AtsVersion {
-                version: new_version,
-                hash_commitment,
-                timestamp,
-            };
-
-            // Get fixed registration cost
-            let registration_cost = T::AtsRegistrationCost::get();
-
-            // Hold the deposit from the sender
-            T::Currency::hold(
-                &HoldReason::AtsRegistration.into(),
-                &sender,
-                registration_cost,
-            )
-            .map_err(|_| Error::<T>::CantHoldFunds)?;
-
-            // Store the new version
-            AtsVersions::<T>::insert(ats_id, new_version, ats_version);
-            LatestVersion::<T>::insert(ats_id, new_version);
-
-            // Update the hash lookup to point to this ATS ID
-            AtsIdByHash::<T>::insert(hash_commitment, ats_id);
-
-            // Emit event
-            Self::deposit_event(Event::ATSUpdated {
-                owner: sender,
-                ats_id,
-                version: new_version,
-                hash_commitment,
             });
 
             Ok(())
