@@ -97,6 +97,10 @@ pub mod pallet {
         /// The origin which may provide new ATS to register on-chain for this instance.
         type ProviderOrigin: EnsureOrigin<Self::RuntimeOrigin, Success = Self::AccountId>;
 
+        #[pallet::no_default]
+        /// Origin that can update the verification key.
+        type AdminOrigin: EnsureOrigin<Self::RuntimeOrigin>;
+
         #[pallet::constant]
         #[pallet::no_default_bounds]
         /// The fixed deposit cost for registering an ATS on-chain.
@@ -162,6 +166,11 @@ pub mod pallet {
     #[pallet::unbounded]
     pub type AtsByOwner<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, Vec<AtsId>>;
 
+    /// Stores the verification key used for ZKP verification
+    #[pallet::storage]
+    #[pallet::unbounded]
+    pub type VerificationKey<T: Config> = StorageValue<_, Vec<u8>, OptionQuery>;
+
     #[pallet::event]
     #[pallet::generate_deposit(pub(super) fn deposit_event)]
     pub enum Event<T: Config> {
@@ -181,6 +190,9 @@ pub mod pallet {
             version: VersionNumber,
             hash_commitment: Hash256,
         },
+        VerificationKeyUpdated {
+            vk: Vec<u8>,
+        },
     }
 
     #[pallet::error]
@@ -195,6 +207,8 @@ pub mod pallet {
         InvalidData,
         /// Verification failed
         VerificationFailed,
+        /// Verification key has not been set
+        VerificationKeyNotSet,
     }
 
     #[pallet::call(weight(<T as Config>::WeightInfo))]
@@ -326,11 +340,13 @@ pub mod pallet {
         #[pallet::weight(T::WeightInfo::claim())]
         pub fn claim(
             origin: OriginFor<T>,
-            vk: Vec<u8>,
             pubs: Vec<[u8; 32]>,
             proof: Vec<u8>,
         ) -> DispatchResult {
             let sender = T::ProviderOrigin::ensure_origin(origin)?;
+
+            // Fetch verification key from storage
+            let vk = VerificationKey::<T>::get().ok_or(Error::<T>::VerificationKeyNotSet)?;
 
             // Extract hash_commitment from the 4th element of pubs
             let hash_commitment = *pubs.get(3).ok_or(Error::<T>::InvalidData)?;
@@ -385,6 +401,18 @@ pub mod pallet {
                 new_owner: sender,
                 ats_id,
             });
+
+            Ok(())
+        }
+
+        #[pallet::call_index(4)]
+        #[pallet::weight(T::WeightInfo::set_verification_key())]
+        pub fn set_verification_key(origin: OriginFor<T>, vk: Vec<u8>) -> DispatchResult {
+            T::AdminOrigin::ensure_origin(origin)?;
+
+            VerificationKey::<T>::put(vk.clone());
+
+            Self::deposit_event(Event::VerificationKeyUpdated { vk });
 
             Ok(())
         }
