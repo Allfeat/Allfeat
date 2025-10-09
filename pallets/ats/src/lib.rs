@@ -338,11 +338,7 @@ pub mod pallet {
 
         #[pallet::call_index(3)]
         #[pallet::weight(T::WeightInfo::claim())]
-        pub fn claim(
-            origin: OriginFor<T>,
-            pubs: Vec<[u8; 32]>,
-            proof: Vec<u8>,
-        ) -> DispatchResult {
+        pub fn claim(origin: OriginFor<T>, pubs: Vec<[u8; 32]>, proof: Vec<u8>) -> DispatchResult {
             let sender = T::ProviderOrigin::ensure_origin(origin)?;
 
             // Fetch verification key from storage

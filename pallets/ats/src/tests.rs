@@ -152,7 +152,10 @@ fn set_verification_key_successfully() {
         let vk = hex_to_vec(VK_HEX);
 
         // Set the verification key as root
-        assert_ok!(MockAts::set_verification_key(RuntimeOrigin::root(), vk.clone()));
+        assert_ok!(MockAts::set_verification_key(
+            RuntimeOrigin::root(),
+            vk.clone()
+        ));
 
         // Verify the VK is stored
         let stored_vk = crate::VerificationKey::<Test>::get().expect("VK should be stored");
@@ -185,12 +188,18 @@ fn set_verification_key_can_be_updated() {
         let vk2 = vec![0u8; 256]; // Different VK
 
         // Set initial VK
-        assert_ok!(MockAts::set_verification_key(RuntimeOrigin::root(), vk1.clone()));
+        assert_ok!(MockAts::set_verification_key(
+            RuntimeOrigin::root(),
+            vk1.clone()
+        ));
         let stored_vk = crate::VerificationKey::<Test>::get().expect("VK should be stored");
         assert_eq!(stored_vk, vk1);
 
         // Update to new VK
-        assert_ok!(MockAts::set_verification_key(RuntimeOrigin::root(), vk2.clone()));
+        assert_ok!(MockAts::set_verification_key(
+            RuntimeOrigin::root(),
+            vk2.clone()
+        ));
         let stored_vk = crate::VerificationKey::<Test>::get().expect("VK should be stored");
         assert_eq!(stored_vk, vk2);
     });
@@ -227,7 +236,11 @@ fn claim_ats_successfully() {
         assert_eq!(ats_work.owner, original_owner);
 
         // Now claim it with new owner (without vk parameter)
-        assert_ok!(MockAts::claim(RuntimeOrigin::signed(new_owner), pubs, proof));
+        assert_ok!(MockAts::claim(
+            RuntimeOrigin::signed(new_owner),
+            pubs,
+            proof
+        ));
 
         // Verify ownership transfer
         let ats_work = AtsWorks::<Test>::get(ats_id).expect("ATS work should still be stored");
