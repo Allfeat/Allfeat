@@ -203,23 +203,12 @@ pub mod pallet {
         T::AccountId: core::fmt::Debug,
     {
         #[pallet::call_index(0)]
-        #[pallet::weight(T::WeightInfo::register((vk.len() + proof.len()) as u32))]
+        #[pallet::weight(T::WeightInfo::register(0))]
         pub fn register(
             origin: OriginFor<T>,
-            vk: Vec<u8>,
-            pubs: Vec<[u8; 32]>,
-            proof: Vec<u8>,
+            hash_commitment: Hash256,
         ) -> DispatchResult {
             let sender = T::ProviderOrigin::ensure_origin(origin)?;
-
-            // Extract hash_commitment from the 4th element of pubs
-            let hash_commitment = *pubs.get(3).ok_or(Error::<T>::InvalidData)?;
-
-            // Verify the zero-knowledge proof
-            ensure!(
-                Self::verify_zkp(vk, pubs, proof)?,
-                Error::<T>::VerificationFailed
-            );
 
             // Check if ATS with this hash commitment already exists
             ensure!(
