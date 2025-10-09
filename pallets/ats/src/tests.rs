@@ -17,7 +17,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{AtsByOwner, AtsIdByHash, AtsVersions, AtsWorks, Error, LatestVersion, mock::*};
-use frame_support::{pallet_prelude::TypedGet, testing_prelude::*, traits::fungible::InspectHold};
+use frame_support::{
+    pallet_prelude::{DispatchError, TypedGet},
+    testing_prelude::*,
+    traits::fungible::InspectHold,
+};
 
 fn hex_to_vec(s: &str) -> Vec<u8> {
     let s = s.strip_prefix("0x").unwrap_or(s);
@@ -137,6 +141,62 @@ fn register_same_hash_commitment_fail() {
 }
 
 // ============================
+// Verification Key Tests
+// ============================
+
+#[test]
+fn set_verification_key_successfully() {
+    sp_tracing::init_for_tests();
+
+    new_test_ext().execute_with(|| {
+        let vk = hex_to_vec(VK_HEX);
+
+        // Set the verification key as root
+        assert_ok!(MockAts::set_verification_key(RuntimeOrigin::root(), vk.clone()));
+
+        // Verify the VK is stored
+        let stored_vk = crate::VerificationKey::<Test>::get().expect("VK should be stored");
+        assert_eq!(stored_vk, vk);
+    });
+}
+
+#[test]
+fn set_verification_key_non_admin_fails() {
+    sp_tracing::init_for_tests();
+
+    new_test_ext().execute_with(|| {
+        let non_admin = 1;
+        let vk = hex_to_vec(VK_HEX);
+
+        // Try to set VK as non-admin - should fail with BadOrigin
+        assert_err!(
+            MockAts::set_verification_key(RuntimeOrigin::signed(non_admin), vk),
+            DispatchError::BadOrigin
+        );
+    });
+}
+
+#[test]
+fn set_verification_key_can_be_updated() {
+    sp_tracing::init_for_tests();
+
+    new_test_ext().execute_with(|| {
+        let vk1 = hex_to_vec(VK_HEX);
+        let vk2 = vec![0u8; 256]; // Different VK
+
+        // Set initial VK
+        assert_ok!(MockAts::set_verification_key(RuntimeOrigin::root(), vk1.clone()));
+        let stored_vk = crate::VerificationKey::<Test>::get().expect("VK should be stored");
+        assert_eq!(stored_vk, vk1);
+
+        // Update to new VK
+        assert_ok!(MockAts::set_verification_key(RuntimeOrigin::root(), vk2.clone()));
+        let stored_vk = crate::VerificationKey::<Test>::get().expect("VK should be stored");
+        assert_eq!(stored_vk, vk2);
+    });
+}
+
+// ============================
 // Claim Tests
 // ============================
 
@@ -152,6 +212,9 @@ fn claim_ats_successfully() {
         let pubs: Vec<[u8; 32]> = PUBS_HEX.iter().map(|h| hex_to_pub(h)).collect();
         let hash_commitment = hex_to_pub(PUBS_HEX[3]);
 
+        // Set the verification key (as root)
+        assert_ok!(MockAts::set_verification_key(RuntimeOrigin::root(), vk));
+
         // First register the ATS with original owner
         assert_ok!(MockAts::register(
             RuntimeOrigin::signed(original_owner),
@@ -163,13 +226,8 @@ fn claim_ats_successfully() {
         let ats_work = AtsWorks::<Test>::get(ats_id).expect("ATS work should be stored");
         assert_eq!(ats_work.owner, original_owner);
 
-        // Now claim it with new owner
-        assert_ok!(MockAts::claim(
-            RuntimeOrigin::signed(new_owner),
-            vk,
-            pubs,
-            proof
-        ));
+        // Now claim it with new owner (without vk parameter)
+        assert_ok!(MockAts::claim(RuntimeOrigin::signed(new_owner), pubs, proof));
 
         // Verify ownership transfer
         let ats_work = AtsWorks::<Test>::get(ats_id).expect("ATS work should still be stored");
@@ -187,6 +245,31 @@ fn claim_ats_successfully() {
 }
 
 #[test]
+fn claim_without_verification_key_fails() {
+    sp_tracing::init_for_tests();
+
+    new_test_ext().execute_with(|| {
+        let original_owner = 1;
+        let claimer = 2;
+        let proof = hex_to_vec(PROOF_HEX);
+        let pubs: Vec<[u8; 32]> = PUBS_HEX.iter().map(|h| hex_to_pub(h)).collect();
+        let hash_commitment = hex_to_pub(PUBS_HEX[3]);
+
+        // Register the ATS with original owner (no VK needed for registration)
+        assert_ok!(MockAts::register(
+            RuntimeOrigin::signed(original_owner),
+            hash_commitment
+        ));
+
+        // Try to claim without setting VK first - should fail
+        assert_err!(
+            MockAts::claim(RuntimeOrigin::signed(claimer), pubs, proof),
+            Error::<Test>::VerificationKeyNotSet
+        );
+    });
+}
+
+#[test]
 fn claim_non_existent_ats_fail() {
     sp_tracing::init_for_tests();
 
@@ -196,9 +279,12 @@ fn claim_non_existent_ats_fail() {
         let proof = hex_to_vec(PROOF_HEX);
         let pubs: Vec<[u8; 32]> = PUBS_HEX.iter().map(|h| hex_to_pub(h)).collect();
 
+        // Set the verification key (as root)
+        assert_ok!(MockAts::set_verification_key(RuntimeOrigin::root(), vk));
+
         // Try to claim without registering first - should fail
         assert_err!(
-            MockAts::claim(RuntimeOrigin::signed(claimer), vk, pubs, proof),
+            MockAts::claim(RuntimeOrigin::signed(claimer), pubs, proof),
             Error::<Test>::AtsNotFound
         );
     });
@@ -216,6 +302,9 @@ fn claim_with_invalid_proof_fail() {
         let pubs: Vec<[u8; 32]> = PUBS_HEX.iter().map(|h| hex_to_pub(h)).collect();
         let hash_commitment = hex_to_pub(PUBS_HEX[3]);
 
+        // Set the verification key (as root)
+        assert_ok!(MockAts::set_verification_key(RuntimeOrigin::root(), vk));
+
         // First register the ATS with original owner
         assert_ok!(MockAts::register(
             RuntimeOrigin::signed(original_owner),
@@ -225,7 +314,7 @@ fn claim_with_invalid_proof_fail() {
         // Try to claim with invalid proof - should fail with InvalidData
         // because the proof format/verification fails
         assert_err!(
-            MockAts::claim(RuntimeOrigin::signed(claimer), vk, pubs, invalid_proof),
+            MockAts::claim(RuntimeOrigin::signed(claimer), pubs, invalid_proof),
             Error::<Test>::InvalidData
         );
     });
