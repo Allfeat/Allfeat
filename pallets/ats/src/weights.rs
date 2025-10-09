@@ -52,6 +52,7 @@ pub trait WeightInfo {
 	fn register(x: u32, ) -> Weight;
 	fn update(x: u32, ) -> Weight;
 	fn claim() -> Weight;
+	fn set_verification_key() -> Weight;
 }
 
 /// Weights for pallet_ats using the Allfeat node and recommended hardware.
@@ -88,5 +89,14 @@ impl WeightInfo for () {
 		Weight::from_parts(80_000_000, 3740)
 			.saturating_add(ParityDbWeight::get().reads(2_u64))
 			.saturating_add(ParityDbWeight::get().writes(4_u64))
+	}
+
+	fn set_verification_key() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 10_000_000 picoseconds.
+		Weight::from_parts(10_000_000, 0)
+			.saturating_add(ParityDbWeight::get().writes(1_u64))
 	}
 }
