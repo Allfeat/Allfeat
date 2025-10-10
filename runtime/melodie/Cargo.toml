@@ -30,7 +30,6 @@ pallet-midds = { workspace = true }
 
 # Allfeat MIDDS
 allfeat-midds = { workspace = true }
-allfeat-music-genres = { workspace = true }
 
 sp-application-crypto = { workspace = true }
 sp-core = { features = ["serde"], workspace = true }
