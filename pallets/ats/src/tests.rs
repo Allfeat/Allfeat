@@ -17,18 +17,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{AtsByOwner, AtsIdByHash, AtsVersions, AtsWorks, Error, LatestVersion, mock::*};
-use frame_support::{pallet_prelude::TypedGet, testing_prelude::*, traits::fungible::InspectHold};
-use frame_system as system;
-
-/// 32 bytes of 0xFF
-fn not_in_fr() -> [u8; 32] {
-    [0xFFu8; 32]
-}
-
-/// 32 bytes zero
-fn fr_zero() -> [u8; 32] {
-    [0u8; 32]
-}
+use frame_support::{
+    pallet_prelude::{DispatchError, TypedGet},
+    testing_prelude::*,
+    traits::fungible::InspectHold,
+};
 
 fn hex_to_vec(s: &str) -> Vec<u8> {
     let s = s.strip_prefix("0x").unwrap_or(s);
@@ -49,127 +42,14 @@ fn hex_to_pub(s: &str) -> [u8; 32] {
 
 const VK_HEX: &str = "0x0dad748a7ef4a81fc022070d1d92142ce7dfe8565c4852fcd25fbcaf7906759f9b724b742bb839ebb319eb346ed517faf82e7e66276219c37cfa8d9d0b5cef0a3494b9dfc76fe7406f71be3fe5c2a72f04d85d13d113f0d2926f9b44f7876a29cf9f3060f8e58114518eb3d3ae033419dca17765b66b106dac5647cabc47da13169bc4a3e626f2200ba189f9f17f548cb66d6ef1da7c3e9db81388ae2f834d895d789bb4d21c35d8257991b0a339bbbd488328a7ee70358265b35bb3181aef02899afeaf67b693aa04828aa929998d0152527f2e67f901fab54f8717709e9faa0700000000000000e9e1273293c1a32aa27705729bb1f2e0293e1cb744a087c70d369d25cddff2a4ef73d88aec5f058ac2de61635a380211e49276e772c7926edb5264069101b106c91a5c9405a7b26c9bc188cd29d1275b141fdda0d766fbf019c2563b73c6d8ae2f6652677d17fc5f2e9c49ede6df9b01fe3ed1992a50c0d7c645a1852ce68f197fb033f9073337dbdf7645ad8efe51b9cbacb4726984a41fa00fadf2f73a080bf528732cf871bcc682a10d6a5973464b35e8589fe33a37d08748f8e4adc4470c60d97cbb85e99ff481168bda0d45c68e10a7433cea5287523ec800292cf94c95";
 const PROOF_HEX: &str = "0x2e2008dc99bbc214438279dc6c527abf5d3b544d6535e2e1a8240eff60e3528524009ffa9f7dd9582f4aea6d64ee999dcbc068d84293f15ab7ee8121d4b5e812970acdff96b8371b2b75a194f591a0cb5c104aef6ad3523376f11cf17e13f7af3ba5ca7ff69cd5262c34092becafc3e44df7be4a830388640d8fd1821687d3a4";
-const INVALID_PROOF_HEX: &str = "0x2e2008dc99bbc214438279dc6c527abf5d3b544d6535e2e1a8240eff60e3528524009ffa9f7dd9582f4aea6d64ee999dcbc068d84293f15ab7ee8121d4b5e812970acdff96b8371b2b75a194f591a0cb5c104aef6ad3523376f11cf17e13f7af3ba5ca7ff69cd5262c34092becafc3e44df7be4a830388640d8fd1821687d3a0";
-const PUBS_HEX: [&str; 6] = [
-    "0x26d273f7c73a635f6eaeb904e116ec4cd887fb5a87fc7427c95279e6053e5bf0",
-    "0x175eeef716d52cf8ee972c6fefd60e47df5084efde3c188c40a81a42e72dfb04",
-    "0x017ac5e7a52bec07ca8ee344a9979aa083b7713f1196af35310de21746985079",
-    "0x2a6dda925d7af47190183415517709278c73a94b40ab39f56d058c0bf0a84c68",
-    "0x0000000000000000000000000000000000000000000000000000000000002710",
-    "0x17c57750af41a2dc524ba01dd95bf7876d738eac80936fe96f374086ed91391d",
-];
 
-// ============================
-// ZKP Verification Tests
-// ============================
-
-#[test]
-fn verify_zkp_rejects_bad_vk_bytes_and_emits_no_event() {
-    new_test_ext().execute_with(|| {
-        let who = 1;
-
-        // VK malformed
-        let vk = Vec::<u8>::new();
-        let proof = vec![0u8; 1];
-        let pubs = vec![fr_zero(), fr_zero(), fr_zero(), fr_zero()];
-
-        let before_events = system::Pallet::<Test>::events().len();
-
-        let res = MockAts::register(RuntimeOrigin::signed(who), vk, pubs, proof);
-        assert_noop!(res, Error::<Test>::InvalidData);
-
-        // No event must be emitted
-        let after_events = system::Pallet::<Test>::events().len();
-        assert_eq!(before_events, after_events, "no event must be emitted");
-    });
-}
-
-#[test]
-fn verify_zkp_rejects_bad_proof_bytes_and_emits_no_event() {
-    new_test_ext().execute_with(|| {
-        let who = 1;
-
-        // Proof malformed
-        let vk = vec![0u8; 1];
-        let proof = Vec::<u8>::new();
-        let pubs = vec![fr_zero(), fr_zero(), fr_zero(), fr_zero()];
-
-        let before_events = system::Pallet::<Test>::events().len();
-
-        let res = MockAts::register(RuntimeOrigin::signed(who), vk, pubs, proof);
-        assert_noop!(res, Error::<Test>::InvalidData);
-
-        let after_events = system::Pallet::<Test>::events().len();
-        assert_eq!(before_events, after_events, "no event must be emitted");
-    });
-}
-
-#[test]
-fn verify_zkp_rejects_public_input_not_in_field() {
-    new_test_ext().execute_with(|| {
-        let who = 1;
-
-        // We give VK and proof with some content (still invalid), but the expected
-        // error here is for PUBLIC INPUT out of field (fr_from_be32 fails).
-        let vk = vec![0u8; 8];
-        let proof = vec![0u8; 8];
-
-        // One valid and one invalid; with the invalid one it must fail.
-        let pubs = vec![fr_zero(), not_in_fr(), fr_zero(), fr_zero()];
-
-        let res = MockAts::register(RuntimeOrigin::signed(who), vk, pubs, proof);
-        assert_noop!(res, Error::<Test>::InvalidData);
-    });
-}
-
-#[test]
-fn verify_zkp_rejects_missing_hash_commitment() {
-    new_test_ext().execute_with(|| {
-        let who = 1;
-
-        // Only 3 public inputs instead of at least 4
-        let vk = vec![0u8; 8];
-        let proof = vec![0u8; 8];
-        let pubs = vec![fr_zero(), fr_zero(), fr_zero()];
-
-        let res = MockAts::register(RuntimeOrigin::signed(who), vk, pubs, proof);
-        assert_noop!(res, Error::<Test>::InvalidData);
-    });
-}
-
-#[test]
-fn verify_zkp_valid_succeeds() {
-    new_test_ext().execute_with(|| {
-        // 1) Decode hex into byte arrays
-        let vk = hex_to_vec(VK_HEX);
-        let proof = hex_to_vec(PROOF_HEX);
-        let pubs: Vec<[u8; 32]> = PUBS_HEX.iter().map(|h| hex_to_pub(h)).collect();
-
-        // 2) Call the extrinsic with a signed origin
-        let who = 1u64;
-        assert_ok!(MockAts::register(
-            RuntimeOrigin::signed(who),
-            vk,
-            pubs,
-            proof
-        ));
-    });
-}
-
-#[test]
-fn verify_zkp_invalid_fails() {
-    new_test_ext().execute_with(|| {
-        // 1) Decode hex into byte arrays
-        let vk = hex_to_vec(VK_HEX);
-        let proof = hex_to_vec(INVALID_PROOF_HEX);
-        let pubs: Vec<[u8; 32]> = PUBS_HEX.iter().map(|h| hex_to_pub(h)).collect();
-
-        // 2) Call the extrinsic with a signed origin
-        let who = 1u64;
-        let res = MockAts::register(RuntimeOrigin::signed(who), vk, pubs, proof);
-        assert_noop!(res, Error::<Test>::VerificationFailed);
-    });
-}
+// Public inputs for ZKP verification
+const HASH_TITLE: &str = "0x26d273f7c73a635f6eaeb904e116ec4cd887fb5a87fc7427c95279e6053e5bf0";
+const HASH_AUDIO: &str = "0x175eeef716d52cf8ee972c6fefd60e47df5084efde3c188c40a81a42e72dfb04";
+const HASH_CREATORS: &str = "0x017ac5e7a52bec07ca8ee344a9979aa083b7713f1196af35310de21746985079";
+const HASH_COMMITMENT: &str = "0x2a6dda925d7af47190183415517709278c73a94b40ab39f56d058c0bf0a84c68";
+const ZKP_TIMESTAMP: &str = "0x0000000000000000000000000000000000000000000000000000000000002710";
+const NULLIFIER: &str = "0x17c57750af41a2dc524ba01dd95bf7876d738eac80936fe96f374086ed91391d";
 
 // ============================
 // Register Tests
@@ -181,19 +61,14 @@ fn register_ats_successfully() {
 
     new_test_ext().execute_with(|| {
         let provider = 1;
-        let vk = hex_to_vec(VK_HEX);
-        let proof = hex_to_vec(PROOF_HEX);
-        let pubs: Vec<[u8; 32]> = PUBS_HEX.iter().map(|h| hex_to_pub(h)).collect();
-        let hash_commitment = pubs[3];
+        let hash_commitment = hex_to_pub(HASH_COMMITMENT);
 
         // Get the expected lock cost (fixed registration cost)
         let expected_lock_cost = <<Test as crate::Config>::AtsRegistrationCost as TypedGet>::get();
 
         assert_ok!(MockAts::register(
             RuntimeOrigin::signed(provider),
-            vk,
-            pubs,
-            proof
+            hash_commitment
         ));
 
         // Check that funds are held
@@ -234,12 +109,10 @@ fn register_without_enough_funds_fail() {
 
     new_test_ext().execute_with(|| {
         let provider = 5; // This account has 0 balance in mock
-        let vk = hex_to_vec(VK_HEX);
-        let proof = hex_to_vec(PROOF_HEX);
-        let pubs: Vec<[u8; 32]> = PUBS_HEX.iter().map(|h| hex_to_pub(h)).collect();
+        let hash_commitment = hex_to_pub(HASH_COMMITMENT);
 
         assert_err!(
-            MockAts::register(RuntimeOrigin::signed(provider), vk, pubs, proof),
+            MockAts::register(RuntimeOrigin::signed(provider), hash_commitment),
             Error::<Test>::CantHoldFunds
         );
     });
@@ -251,23 +124,84 @@ fn register_same_hash_commitment_fail() {
 
     new_test_ext().execute_with(|| {
         let provider = 1;
-        let vk = hex_to_vec(VK_HEX);
-        let proof = hex_to_vec(PROOF_HEX);
-        let pubs: Vec<[u8; 32]> = PUBS_HEX.iter().map(|h| hex_to_pub(h)).collect();
+        let hash_commitment = hex_to_pub(HASH_COMMITMENT);
 
         // Register once - should succeed
         assert_ok!(MockAts::register(
             RuntimeOrigin::signed(provider),
-            vk.clone(),
-            pubs.clone(),
-            proof.clone()
+            hash_commitment
         ));
 
         // Try to register again with same hash commitment - should fail
         assert_err!(
-            MockAts::register(RuntimeOrigin::signed(provider), vk, pubs, proof),
+            MockAts::register(RuntimeOrigin::signed(provider), hash_commitment),
             Error::<Test>::AtsDataAlreadyExist
         );
+    });
+}
+
+// ============================
+// Verification Key Tests
+// ============================
+
+#[test]
+fn set_verification_key_successfully() {
+    sp_tracing::init_for_tests();
+
+    new_test_ext().execute_with(|| {
+        let vk = hex_to_vec(VK_HEX);
+
+        // Set the verification key as root
+        assert_ok!(MockAts::set_verification_key(
+            RuntimeOrigin::root(),
+            vk.clone()
+        ));
+
+        // Verify the VK is stored
+        let stored_vk = crate::VerificationKey::<Test>::get().expect("VK should be stored");
+        assert_eq!(stored_vk, vk);
+    });
+}
+
+#[test]
+fn set_verification_key_non_admin_fails() {
+    sp_tracing::init_for_tests();
+
+    new_test_ext().execute_with(|| {
+        let non_admin = 1;
+        let vk = hex_to_vec(VK_HEX);
+
+        // Try to set VK as non-admin - should fail with BadOrigin
+        assert_err!(
+            MockAts::set_verification_key(RuntimeOrigin::signed(non_admin), vk),
+            DispatchError::BadOrigin
+        );
+    });
+}
+
+#[test]
+fn set_verification_key_can_be_updated() {
+    sp_tracing::init_for_tests();
+
+    new_test_ext().execute_with(|| {
+        let vk1 = hex_to_vec(VK_HEX);
+        let vk2 = vec![0u8; 256]; // Different VK
+
+        // Set initial VK
+        assert_ok!(MockAts::set_verification_key(
+            RuntimeOrigin::root(),
+            vk1.clone()
+        ));
+        let stored_vk = crate::VerificationKey::<Test>::get().expect("VK should be stored");
+        assert_eq!(stored_vk, vk1);
+
+        // Update to new VK
+        assert_ok!(MockAts::set_verification_key(
+            RuntimeOrigin::root(),
+            vk2.clone()
+        ));
+        let stored_vk = crate::VerificationKey::<Test>::get().expect("VK should be stored");
+        assert_eq!(stored_vk, vk2);
     });
 }
 
@@ -284,14 +218,20 @@ fn claim_ats_successfully() {
         let new_owner = 2;
         let vk = hex_to_vec(VK_HEX);
         let proof = hex_to_vec(PROOF_HEX);
-        let pubs: Vec<[u8; 32]> = PUBS_HEX.iter().map(|h| hex_to_pub(h)).collect();
+        let hash_title = hex_to_pub(HASH_TITLE);
+        let hash_audio = hex_to_pub(HASH_AUDIO);
+        let hash_creators = hex_to_pub(HASH_CREATORS);
+        let hash_commitment = hex_to_pub(HASH_COMMITMENT);
+        let zkp_timestamp = hex_to_pub(ZKP_TIMESTAMP);
+        let nullifier = hex_to_pub(NULLIFIER);
+
+        // Set the verification key (as root)
+        assert_ok!(MockAts::set_verification_key(RuntimeOrigin::root(), vk));
 
         // First register the ATS with original owner
         assert_ok!(MockAts::register(
             RuntimeOrigin::signed(original_owner),
-            vk.clone(),
-            pubs.clone(),
-            proof.clone()
+            hash_commitment
         ));
 
         // Verify original owner has it
@@ -302,8 +242,12 @@ fn claim_ats_successfully() {
         // Now claim it with new owner
         assert_ok!(MockAts::claim(
             RuntimeOrigin::signed(new_owner),
-            vk,
-            pubs,
+            hash_title,
+            hash_audio,
+            hash_creators,
+            hash_commitment,
+            zkp_timestamp,
+            nullifier,
             proof
         ));
 
@@ -323,6 +267,44 @@ fn claim_ats_successfully() {
 }
 
 #[test]
+fn claim_without_verification_key_fails() {
+    sp_tracing::init_for_tests();
+
+    new_test_ext().execute_with(|| {
+        let original_owner = 1;
+        let claimer = 2;
+        let proof = hex_to_vec(PROOF_HEX);
+        let hash_title = hex_to_pub(HASH_TITLE);
+        let hash_audio = hex_to_pub(HASH_AUDIO);
+        let hash_creators = hex_to_pub(HASH_CREATORS);
+        let hash_commitment = hex_to_pub(HASH_COMMITMENT);
+        let zkp_timestamp = hex_to_pub(ZKP_TIMESTAMP);
+        let nullifier = hex_to_pub(NULLIFIER);
+
+        // Register the ATS with original owner (no VK needed for registration)
+        assert_ok!(MockAts::register(
+            RuntimeOrigin::signed(original_owner),
+            hash_commitment
+        ));
+
+        // Try to claim without setting VK first - should fail
+        assert_err!(
+            MockAts::claim(
+                RuntimeOrigin::signed(claimer),
+                hash_title,
+                hash_audio,
+                hash_creators,
+                hash_commitment,
+                zkp_timestamp,
+                nullifier,
+                proof
+            ),
+            Error::<Test>::VerificationKeyNotSet
+        );
+    });
+}
+
+#[test]
 fn claim_non_existent_ats_fail() {
     sp_tracing::init_for_tests();
 
@@ -330,11 +312,28 @@ fn claim_non_existent_ats_fail() {
         let claimer = 2;
         let vk = hex_to_vec(VK_HEX);
         let proof = hex_to_vec(PROOF_HEX);
-        let pubs: Vec<[u8; 32]> = PUBS_HEX.iter().map(|h| hex_to_pub(h)).collect();
+        let hash_title = hex_to_pub(HASH_TITLE);
+        let hash_audio = hex_to_pub(HASH_AUDIO);
+        let hash_creators = hex_to_pub(HASH_CREATORS);
+        let hash_commitment = hex_to_pub(HASH_COMMITMENT);
+        let zkp_timestamp = hex_to_pub(ZKP_TIMESTAMP);
+        let nullifier = hex_to_pub(NULLIFIER);
+
+        // Set the verification key (as root)
+        assert_ok!(MockAts::set_verification_key(RuntimeOrigin::root(), vk));
 
         // Try to claim without registering first - should fail
         assert_err!(
-            MockAts::claim(RuntimeOrigin::signed(claimer), vk, pubs, proof),
+            MockAts::claim(
+                RuntimeOrigin::signed(claimer),
+                hash_title,
+                hash_audio,
+                hash_creators,
+                hash_commitment,
+                zkp_timestamp,
+                nullifier,
+                proof
+            ),
             Error::<Test>::AtsNotFound
         );
     });
@@ -348,22 +347,37 @@ fn claim_with_invalid_proof_fail() {
         let original_owner = 1;
         let claimer = 2;
         let vk = hex_to_vec(VK_HEX);
-        let proof = hex_to_vec(PROOF_HEX);
-        let invalid_proof = hex_to_vec(INVALID_PROOF_HEX);
-        let pubs: Vec<[u8; 32]> = PUBS_HEX.iter().map(|h| hex_to_pub(h)).collect();
+        let invalid_proof = vec![0u8; 128]; // Invalid proof data
+        let hash_title = hex_to_pub(HASH_TITLE);
+        let hash_audio = hex_to_pub(HASH_AUDIO);
+        let hash_creators = hex_to_pub(HASH_CREATORS);
+        let hash_commitment = hex_to_pub(HASH_COMMITMENT);
+        let zkp_timestamp = hex_to_pub(ZKP_TIMESTAMP);
+        let nullifier = hex_to_pub(NULLIFIER);
+
+        // Set the verification key (as root)
+        assert_ok!(MockAts::set_verification_key(RuntimeOrigin::root(), vk));
 
         // First register the ATS with original owner
         assert_ok!(MockAts::register(
             RuntimeOrigin::signed(original_owner),
-            vk.clone(),
-            pubs.clone(),
-            proof
+            hash_commitment
         ));
 
-        // Try to claim with invalid proof - should fail
+        // Try to claim with invalid proof - should fail with InvalidData
+        // because the proof format/verification fails
         assert_err!(
-            MockAts::claim(RuntimeOrigin::signed(claimer), vk, pubs, invalid_proof),
-            Error::<Test>::VerificationFailed
+            MockAts::claim(
+                RuntimeOrigin::signed(claimer),
+                hash_title,
+                hash_audio,
+                hash_creators,
+                hash_commitment,
+                zkp_timestamp,
+                nullifier,
+                invalid_proof
+            ),
+            Error::<Test>::InvalidData
         );
     });
 }
@@ -378,17 +392,12 @@ fn update_ats_successfully() {
 
     new_test_ext().execute_with(|| {
         let owner = 1;
-        let vk = hex_to_vec(VK_HEX);
-        let proof = hex_to_vec(PROOF_HEX);
-        let pubs: Vec<[u8; 32]> = PUBS_HEX.iter().map(|h| hex_to_pub(h)).collect();
-        let hash_commitment_v1 = pubs[3];
+        let hash_commitment_v1 = hex_to_pub(HASH_COMMITMENT);
 
         // First register the ATS
         assert_ok!(MockAts::register(
             RuntimeOrigin::signed(owner),
-            vk.clone(),
-            pubs.clone(),
-            proof.clone()
+            hash_commitment_v1
         ));
 
         let ats_id = 0;
@@ -399,33 +408,31 @@ fn update_ats_successfully() {
         assert_eq!(version_1.hash_commitment, hash_commitment_v1);
         assert_eq!(LatestVersion::<Test>::get(ats_id), 1);
 
-        // Update with the same valid proof and hash commitment (in reality, this would be a new proof for a new version)
         // Calculate expected cost for the new version (fixed registration cost per update)
         let version_cost = <<Test as crate::Config>::AtsRegistrationCost as TypedGet>::get();
 
         let initial_hold =
             Balances::balance_on_hold(&crate::HoldReason::AtsRegistration.into(), &owner);
 
-        // Update to version 2 (using same proof for test simplicity)
+        // Update to version 2 with a new hash commitment
+        let hash_commitment_v2 = hex_to_pub(HASH_COMMITMENT); // Use different hash for v2
         assert_ok!(MockAts::update(
             RuntimeOrigin::signed(owner),
             ats_id,
-            vk,
-            pubs,
-            proof
+            hash_commitment_v2
         ));
 
         // Verify version 2 is stored
         let version_2 = AtsVersions::<Test>::get(ats_id, 2).expect("Version 2 should be stored");
         assert_eq!(version_2.version, 2);
-        assert_eq!(version_2.hash_commitment, hash_commitment_v1);
+        assert_eq!(version_2.hash_commitment, hash_commitment_v2);
 
         // Verify latest version is updated
         assert_eq!(LatestVersion::<Test>::get(ats_id), 2);
 
-        // Verify hash lookup still points to this ATS ID
+        // Verify hash lookup points to this ATS ID
         let mapped_id =
-            AtsIdByHash::<Test>::get(hash_commitment_v1).expect("Hash should still map to ID");
+            AtsIdByHash::<Test>::get(hash_commitment_v2).expect("Hash should map to ID");
         assert_eq!(mapped_id, ats_id);
 
         // Verify version 1 is still accessible
@@ -447,23 +454,20 @@ fn update_ats_non_owner_fails() {
     new_test_ext().execute_with(|| {
         let owner = 1;
         let non_owner = 2;
-        let vk = hex_to_vec(VK_HEX);
-        let proof = hex_to_vec(PROOF_HEX);
-        let pubs: Vec<[u8; 32]> = PUBS_HEX.iter().map(|h| hex_to_pub(h)).collect();
+        let hash_commitment = hex_to_pub(HASH_COMMITMENT);
 
         // First register the ATS
         assert_ok!(MockAts::register(
             RuntimeOrigin::signed(owner),
-            vk.clone(),
-            pubs.clone(),
-            proof.clone()
+            hash_commitment
         ));
 
         let ats_id = 0;
 
-        // Try to update as non-owner with valid proof (ownership check happens after ZKP verification)
+        // Try to update as non-owner - should fail
+        let new_hash = hex_to_pub(HASH_COMMITMENT);
         assert_err!(
-            MockAts::update(RuntimeOrigin::signed(non_owner), ats_id, vk, pubs, proof),
+            MockAts::update(RuntimeOrigin::signed(non_owner), ats_id, new_hash),
             Error::<Test>::VerificationFailed
         );
     });
@@ -475,20 +479,12 @@ fn update_non_existent_ats_fails() {
 
     new_test_ext().execute_with(|| {
         let owner = 1;
-        let vk = hex_to_vec(VK_HEX);
-        let proof = hex_to_vec(PROOF_HEX);
-        let pubs: Vec<[u8; 32]> = PUBS_HEX.iter().map(|h| hex_to_pub(h)).collect();
+        let new_hash = hex_to_pub(HASH_COMMITMENT);
 
         // Try to update non-existent ATS
         let non_existent_id = 999;
         assert_err!(
-            MockAts::update(
-                RuntimeOrigin::signed(owner),
-                non_existent_id,
-                vk,
-                pubs,
-                proof
-            ),
+            MockAts::update(RuntimeOrigin::signed(owner), non_existent_id, new_hash),
             Error::<Test>::AtsNotFound
         );
     });

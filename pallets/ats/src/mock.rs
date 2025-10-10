@@ -20,7 +20,7 @@
 
 use crate::{self as pallet_ats};
 use frame_support::{self, PalletId, derive_impl, sp_runtime::BuildStorage, testing_prelude::*};
-use frame_system::EnsureSigned;
+use frame_system::{EnsureRoot, EnsureSigned};
 
 type Block = frame_system::mocking::MockBlock<Test>;
 
@@ -76,6 +76,7 @@ impl pallet_ats::Config for Test {
     type Timestamp = Time;
     type Currency = Balances;
     type ProviderOrigin = EnsureSigned<Self::AccountId>;
+    type AdminOrigin = EnsureRoot<Self::AccountId>;
 }
 
 pub(crate) fn new_test_ext() -> sp_io::TestExternalities {

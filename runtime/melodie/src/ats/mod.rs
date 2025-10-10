@@ -20,7 +20,7 @@ use crate::*;
 
 use allfeat_primitives::Balance;
 use frame_support::parameter_types;
-use frame_system::EnsureSigned;
+use frame_system::{EnsureRoot, EnsureSigned};
 use shared_runtime::currency::MILLIAFT;
 
 parameter_types! {
@@ -32,6 +32,7 @@ impl pallet_ats::Config for Runtime {
     type Currency = Balances;
     type RuntimeHoldReason = RuntimeHoldReason;
     type ProviderOrigin = EnsureSigned<Self::AccountId>;
+    type AdminOrigin = EnsureRoot<Self::AccountId>;
     type AtsRegistrationCost = AtsRegistrationCost;
     type WeightInfo = ();
 }

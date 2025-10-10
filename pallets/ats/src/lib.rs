@@ -97,6 +97,10 @@ pub mod pallet {
         /// The origin which may provide new ATS to register on-chain for this instance.
         type ProviderOrigin: EnsureOrigin<Self::RuntimeOrigin, Success = Self::AccountId>;
 
+        #[pallet::no_default]
+        /// Origin that can update the verification key.
+        type AdminOrigin: EnsureOrigin<Self::RuntimeOrigin>;
+
         #[pallet::constant]
         #[pallet::no_default_bounds]
         /// The fixed deposit cost for registering an ATS on-chain.
@@ -162,6 +166,11 @@ pub mod pallet {
     #[pallet::unbounded]
     pub type AtsByOwner<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, Vec<AtsId>>;
 
+    /// Stores the verification key used for ZKP verification
+    #[pallet::storage]
+    #[pallet::unbounded]
+    pub type VerificationKey<T: Config> = StorageValue<_, Vec<u8>, OptionQuery>;
+
     #[pallet::event]
     #[pallet::generate_deposit(pub(super) fn deposit_event)]
     pub enum Event<T: Config> {
@@ -181,6 +190,9 @@ pub mod pallet {
             version: VersionNumber,
             hash_commitment: Hash256,
         },
+        VerificationKeyUpdated {
+            vk: Vec<u8>,
+        },
     }
 
     #[pallet::error]
@@ -195,6 +207,8 @@ pub mod pallet {
         InvalidData,
         /// Verification failed
         VerificationFailed,
+        /// Verification key has not been set
+        VerificationKeyNotSet,
     }
 
     #[pallet::call(weight(<T as Config>::WeightInfo))]
@@ -203,23 +217,9 @@ pub mod pallet {
         T::AccountId: core::fmt::Debug,
     {
         #[pallet::call_index(0)]
-        #[pallet::weight(T::WeightInfo::register((vk.len() + proof.len()) as u32))]
-        pub fn register(
-            origin: OriginFor<T>,
-            vk: Vec<u8>,
-            pubs: Vec<[u8; 32]>,
-            proof: Vec<u8>,
-        ) -> DispatchResult {
+        #[pallet::weight(T::WeightInfo::register(0))]
+        pub fn register(origin: OriginFor<T>, hash_commitment: Hash256) -> DispatchResult {
             let sender = T::ProviderOrigin::ensure_origin(origin)?;
-
-            // Extract hash_commitment from the 4th element of pubs
-            let hash_commitment = *pubs.get(3).ok_or(Error::<T>::InvalidData)?;
-
-            // Verify the zero-knowledge proof
-            ensure!(
-                Self::verify_zkp(vk, pubs, proof)?,
-                Error::<T>::VerificationFailed
-            );
 
             // Check if ATS with this hash commitment already exists
             ensure!(
@@ -281,17 +281,87 @@ pub mod pallet {
         }
 
         #[pallet::call_index(2)]
+        #[pallet::weight(T::WeightInfo::update(0))]
+        pub fn update(
+            origin: OriginFor<T>,
+            ats_id: AtsId,
+            hash_commitment: Hash256,
+        ) -> DispatchResult {
+            let sender = T::ProviderOrigin::ensure_origin(origin)?;
+
+            // Get the ATS work and verify ownership
+            let ats_work = AtsWorks::<T>::get(ats_id).ok_or(Error::<T>::AtsNotFound)?;
+            ensure!(ats_work.owner == sender, Error::<T>::VerificationFailed);
+
+            // Get the latest version number and increment it
+            let current_version = LatestVersion::<T>::get(ats_id);
+            let new_version = current_version.saturating_add(1);
+
+            // Get current timestamp
+            let timestamp = T::Timestamp::now();
+
+            // Create new AtsVersion
+            let ats_version = AtsVersion {
+                version: new_version,
+                hash_commitment,
+                timestamp,
+            };
+
+            // Get fixed registration cost
+            let registration_cost = T::AtsRegistrationCost::get();
+
+            // Hold the deposit from the sender
+            T::Currency::hold(
+                &HoldReason::AtsRegistration.into(),
+                &sender,
+                registration_cost,
+            )
+            .map_err(|_| Error::<T>::CantHoldFunds)?;
+
+            // Store the new version
+            AtsVersions::<T>::insert(ats_id, new_version, ats_version);
+            LatestVersion::<T>::insert(ats_id, new_version);
+
+            // Update the hash lookup to point to this ATS ID
+            AtsIdByHash::<T>::insert(hash_commitment, ats_id);
+
+            // Emit event
+            Self::deposit_event(Event::ATSUpdated {
+                owner: sender,
+                ats_id,
+                version: new_version,
+                hash_commitment,
+            });
+
+            Ok(())
+        }
+
+        #[pallet::call_index(3)]
         #[pallet::weight(T::WeightInfo::claim())]
         pub fn claim(
             origin: OriginFor<T>,
-            vk: Vec<u8>,
-            pubs: Vec<[u8; 32]>,
+            hash_title: Hash256,
+            hash_audio: Hash256,
+            hash_creators: Hash256,
+            hash_commitment: Hash256,
+            zkp_timestamp: Hash256,
+            nullifier: Hash256,
             proof: Vec<u8>,
         ) -> DispatchResult {
             let sender = T::ProviderOrigin::ensure_origin(origin)?;
 
-            // Extract hash_commitment from the 4th element of pubs
-            let hash_commitment = *pubs.get(3).ok_or(Error::<T>::InvalidData)?;
+            // Fetch verification key from storage
+            let vk = VerificationKey::<T>::get().ok_or(Error::<T>::VerificationKeyNotSet)?;
+
+            // Construct pubs vector from individual parameters
+            let pubs = scale_info::prelude::vec![
+                hash_title,
+                hash_audio,
+                hash_creators,
+                hash_commitment,
+                zkp_timestamp,
+                nullifier,
+            ];
 
             // Verify the zero-knowledge proof
             ensure!(
@@ -347,69 +417,14 @@ pub mod pallet {
             Ok(())
         }
 
-        #[pallet::call_index(3)]
-        #[pallet::weight(T::WeightInfo::register((vk.len() + proof.len()) as u32))]
-        pub fn update(
-            origin: OriginFor<T>,
-            ats_id: AtsId,
-            vk: Vec<u8>,
-            pubs: Vec<[u8; 32]>,
-            proof: Vec<u8>,
-        ) -> DispatchResult {
-            let sender = T::ProviderOrigin::ensure_origin(origin)?;
+        #[pallet::call_index(4)]
+        #[pallet::weight(T::WeightInfo::set_verification_key())]
+        pub fn set_verification_key(origin: OriginFor<T>, vk: Vec<u8>) -> DispatchResult {
+            T::AdminOrigin::ensure_origin(origin)?;
 
-            // Extract hash_commitment from the 4th element of pubs
-            let hash_commitment = *pubs.get(3).ok_or(Error::<T>::InvalidData)?;
+            VerificationKey::<T>::put(vk.clone());
 
-            // Verify the zero-knowledge proof
-            ensure!(
-                Self::verify_zkp(vk, pubs, proof)?,
-                Error::<T>::VerificationFailed
-            );
-
-            // Get the ATS work and verify ownership
-            let ats_work = AtsWorks::<T>::get(ats_id).ok_or(Error::<T>::AtsNotFound)?;
-            ensure!(ats_work.owner == sender, Error::<T>::VerificationFailed);
-
-            // Get the latest version number and increment it
-            let current_version = LatestVersion::<T>::get(ats_id);
-            let new_version = current_version.saturating_add(1);
-
-            // Get current timestamp
-            let timestamp = T::Timestamp::now();
-
-            // Create new AtsVersion
-            let ats_version = AtsVersion {
-                version: new_version,
-                hash_commitment,
-                timestamp,
-            };
-
-            // Get fixed registration cost
-            let registration_cost = T::AtsRegistrationCost::get();
-
-            // Hold the deposit from the sender
-            T::Currency::hold(
-                &HoldReason::AtsRegistration.into(),
-                &sender,
-                registration_cost,
-            )
-            .map_err(|_| Error::<T>::CantHoldFunds)?;
-
-            // Store the new version
-            AtsVersions::<T>::insert(ats_id, new_version, ats_version);
-            LatestVersion::<T>::insert(ats_id, new_version);
-
-            // Update the hash lookup to point to this ATS ID
-            AtsIdByHash::<T>::insert(hash_commitment, ats_id);
-
-            // Emit event
-            Self::deposit_event(Event::ATSUpdated {
-                owner: sender,
-                ats_id,
-                version: new_version,
-                hash_commitment,
-            });
+            Self::deposit_event(Event::VerificationKeyUpdated { vk });
 
             Ok(())
         }
@@ -436,7 +451,7 @@ impl<T: Config> Pallet<T> {
         }
     }
 
-    fn verify_zkp(vk: Vec<u8>, pubs: Vec<[u8; 32]>, proof: Vec<u8>) -> Result<bool, Error<T>> {
+    fn verify_zkp(vk: Vec<u8>, pubs: Vec<Hash256>, proof: Vec<u8>) -> Result<bool, Error<T>> {
         // 1) Deserialize
         let vk = VerifyingKey::<Bn254>::deserialize_compressed(vk.as_slice())
             .map_err(|_| Error::<T>::InvalidData)?;
