@@ -338,14 +338,30 @@ pub mod pallet {
 
         #[pallet::call_index(3)]
         #[pallet::weight(T::WeightInfo::claim())]
-        pub fn claim(origin: OriginFor<T>, pubs: Vec<[u8; 32]>, proof: Vec<u8>) -> DispatchResult {
+        pub fn claim(
+            origin: OriginFor<T>,
+            hash_title: Hash256,
+            hash_audio: Hash256,
+            hash_creators: Hash256,
+            hash_commitment: Hash256,
+            zkp_timestamp: Hash256,
+            nullifier: Hash256,
+            proof: Vec<u8>,
+        ) -> DispatchResult {
             let sender = T::ProviderOrigin::ensure_origin(origin)?;
 
             // Fetch verification key from storage
             let vk = VerificationKey::<T>::get().ok_or(Error::<T>::VerificationKeyNotSet)?;
 
-            // Extract hash_commitment from the 4th element of pubs
-            let hash_commitment = *pubs.get(3).ok_or(Error::<T>::InvalidData)?;
+            // Construct pubs vector from individual parameters
+            let pubs = scale_info::prelude::vec![
+                hash_title,
+                hash_audio,
+                hash_creators,
+                hash_commitment,
+                zkp_timestamp,
+                nullifier,
+            ];
 
             // Verify the zero-knowledge proof
             ensure!(
@@ -435,7 +451,7 @@ impl<T: Config> Pallet<T> {
         }
     }
 
-    fn verify_zkp(vk: Vec<u8>, pubs: Vec<[u8; 32]>, proof: Vec<u8>) -> Result<bool, Error<T>> {
+    fn verify_zkp(vk: Vec<u8>, pubs: Vec<Hash256>, proof: Vec<u8>) -> Result<bool, Error<T>> {
         // 1) Deserialize
         let vk = VerifyingKey::<Bn254>::deserialize_compressed(vk.as_slice())
             .map_err(|_| Error::<T>::InvalidData)?;
