@@ -16,6 +16,7 @@ frame-support = { workspace = true }
 frame-system = { workspace = true }
 frame-benchmarking = { workspace = true }
 pallet-session = { workspace = true, features = ['historical'] }
+pallet-balances = { workspace = true }
 sp-io = { workspace = true }
 sp-runtime = { workspace = true }
 sp-staking = { workspace = true }
@@ -30,6 +31,7 @@ std = [
   'frame-support/std',
   'pallet-session/std',
   'frame-system/std',
+  "pallet-balances/std",
   'sp-io/std',
   'sp-runtime/std',
   'sp-staking/std',

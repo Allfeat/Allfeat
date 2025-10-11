@@ -143,16 +143,9 @@ pub mod pallet {
                     !Envelopes::<T>::contains_key(id),
                     "duplicate envelope in genesis"
                 );
-                let cliff: frame_system::pallet_prelude::BlockNumberFor<T> = cfg_in
-                    .cliff
-                    .try_into()
-                    .ok()
-                    .expect("cliff fits into BlockNumber");
-                let vesting: frame_system::pallet_prelude::BlockNumberFor<T> = cfg_in
-                    .vesting_duration
-                    .try_into()
-                    .ok()
-                    .expect("vesting fits into BlockNumber");
+                let cliff: frame_system::pallet_prelude::BlockNumberFor<T> = cfg_in.cliff;
+                let vesting: frame_system::pallet_prelude::BlockNumberFor<T> =
+                    cfg_in.vesting_duration;
                 let cfg = EnvelopeConfig::<
                     BalanceOf<T>,
                     frame_system::pallet_prelude::BlockNumberFor<T>,

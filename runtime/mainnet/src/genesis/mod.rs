@@ -19,14 +19,13 @@
 //! Genesis presets to build the runtime.
 
 extern crate alloc;
-use allfeat_primitives::{AccountId, Balance};
+use allfeat_primitives::AccountId;
 use alloc::{vec, vec::Vec};
 use development::development_config_genesis;
 use frame_support::build_struct_json_patch;
 use local::local_config_genesis;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use pallet_token_allocation::{EnvelopeConfig, EnvelopeId};
-use shared_runtime::currency::AFT;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
 use sp_genesis_builder::PresetId;
@@ -51,8 +50,6 @@ pub fn genesis(
     )>,
     root_key: AccountId,
 ) -> serde_json::Value {
-    const TOTAL_SUPPLY: Balance = 1_000_000_000 * AFT;
-
     build_struct_json_patch!(RuntimeGenesisConfig {
         balances: pallet_balances::GenesisConfig {
             balances: vec![

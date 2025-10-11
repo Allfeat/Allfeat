@@ -44,18 +44,28 @@ mod runtime {
     pub type System = frame_system;
 
     #[runtime::pallet_index(1)]
-    pub type Validators = pallet_validators;
+    pub type Balances = pallet_balances;
 
     #[runtime::pallet_index(2)]
-    pub type Session = pallet_session;
+    pub type Validators = pallet_validators;
 
     #[runtime::pallet_index(3)]
+    pub type Session = pallet_session;
+
+    #[runtime::pallet_index(4)]
     pub type Historical = pallet_session::historical;
 }
 
 #[derive_impl(frame_system::config_preludes::TestDefaultConfig)]
 impl frame_system::Config for Test {
     type Block = Block;
+
+    type AccountData = pallet_balances::AccountData<u64>;
+}
+
+#[derive_impl(pallet_balances::config_preludes::TestDefaultConfig)]
+impl pallet_balances::Config for Test {
+    type AccountStore = frame_system::Pallet<Test>;
 }
 
 parameter_types! {
@@ -66,6 +76,7 @@ parameter_types! {
 
 impl pallet_session::Config for Test {
     type RuntimeEvent = RuntimeEvent;
+    type Currency = Balances;
     type ShouldEndSession = pallet_session::PeriodicSessions<Period, Offset>;
     type SessionManager = pallet_session::historical::NoteHistoricalRoot<Test, Validators>;
     type SessionHandler = TestSessionHandler;
@@ -74,6 +85,7 @@ impl pallet_session::Config for Test {
     type Keys = UintAuthorityId;
     type NextSessionRotation = pallet_session::PeriodicSessions<Period, Offset>;
     type DisablingStrategy = ();
+    type KeyDeposit = ();
     type WeightInfo = ();
 }
 
