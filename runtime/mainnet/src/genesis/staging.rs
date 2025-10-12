@@ -24,6 +24,7 @@ use sp_application_crypto::Ss58Codec;
 pub fn staging_config_genesis() -> serde_json::Value {
     genesis(
         vec![],
+        vec![],
         AccountId::from_ss58check("5EARX89jfEp9DjBitYW55CtSQ2xW2gJRvB69nLNwbHNf9TY8").unwrap(),
     )
 }

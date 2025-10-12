@@ -46,6 +46,7 @@ sp-transaction-pool = { workspace = true }
 sp-storage = { workspace = true }
 sp-runtime = { features = ["serde"], workspace = true }
 sp-block-builder = { workspace = true }
+sp-io = { workspace = true }
 
 frame-try-runtime = { workspace = true, optional = true }
 frame-support = { workspace = true }
@@ -70,8 +71,8 @@ pallet-balances = { workspace = true }
 pallet-im-online = { workspace = true }
 pallet-transaction-payment = { workspace = true }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true }
+pallet-treasury = { workspace = true }
 pallet-identity = { workspace = true }
-pallet-safe-mode = { workspace = true }
 
 pallet-validators = { workspace = true }
 
@@ -113,8 +114,8 @@ std = [
 	"pallet-transaction-payment/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-identity/std",
-	"pallet-safe-mode/std",
 	"pallet-token-allocation/std",
+	"pallet-treasury/std",
 	"sp-application-crypto/std",
 	"sp-version/std",
 	"sp-consensus-aura/std",
@@ -128,6 +129,7 @@ std = [
 	"sp-session/std",
 	"sp-transaction-pool/std",
 	"sp-block-builder/std",
+	"sp-io/std",
 	"frame-metadata-hash-extension/std",
 	"frame-executive/std",
 	"frame-system-rpc-runtime-api/std",
@@ -156,8 +158,8 @@ runtime-benchmarks = [
 	"pallet-im-online/runtime-benchmarks",
 	"pallet-transaction-payment/runtime-benchmarks",
 	"pallet-identity/runtime-benchmarks",
-	"pallet-safe-mode/runtime-benchmarks",
 	"pallet-validators/runtime-benchmarks",
+	"pallet-treasury/runtime-benchmarks",
 	"pallet-token-allocation/runtime-benchmarks",
 	"allfeat-midds/runtime-benchmarks",
 ]
@@ -184,8 +186,8 @@ try-runtime = [
 	"pallet-im-online/try-runtime",
 	"pallet-transaction-payment/try-runtime",
 	"pallet-identity/try-runtime",
-	"pallet-safe-mode/try-runtime",
-	"pallet-token-allocation/try-runtime"
+	"pallet-token-allocation/try-runtime",
+	"pallet-treasury/try-runtime"
 ]
 
 metadata-hash = ["substrate-wasm-builder/metadata-hash"]

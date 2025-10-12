@@ -23,6 +23,7 @@ mod scheduler;
 mod aura;
 mod authorship;
 mod balances;
+mod fndn_treasury;
 mod grandpa;
 mod identity;
 mod im_online;

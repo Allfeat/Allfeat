@@ -56,6 +56,8 @@ mod genesis;
 mod midds;
 pub use midds::*;
 
+mod tests;
+
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarks;
 
@@ -193,6 +195,9 @@ mod runtime {
     pub type Multisig = pallet_multisig;
 
     #[runtime::pallet_index(19)]
+    pub type TreasuryFoundation = pallet_treasury;
+
+    #[runtime::pallet_index(20)]
     pub type TokenAllocation = pallet_token_allocation;
 
     #[runtime::pallet_index(50)]

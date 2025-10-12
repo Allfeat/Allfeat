@@ -23,10 +23,15 @@ use crate::*;
 
 parameter_types! {
     pub const TokenAllocPalletId: PalletId = PalletId(*b"m/tknalc");
+    pub const EpochDuration: BlockNumber = DAYS;
+    pub const MaxPayoutsPerBlock: u32 = 256;
 }
 
 impl pallet_token_allocation::Config for Runtime {
     type Currency = Balances;
     type AdminOrigin = EnsureRoot<Self::AccountId>;
     type PalletId = TokenAllocPalletId;
+    type EpochDuration = EpochDuration;
+    type MaxPayoutsPerBlock = MaxPayoutsPerBlock;
+    type RuntimeHoldReason = RuntimeHoldReason;
 }

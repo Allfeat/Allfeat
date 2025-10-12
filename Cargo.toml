@@ -162,6 +162,7 @@ pallet-im-online = { version = "42.0.0", default-features = false }
 pallet-transaction-payment = { version = "43.0.0", default-features = false }
 pallet-transaction-payment-rpc = { version = "46.0.0", default-features = false }
 pallet-transaction-payment-rpc-runtime-api = { version = "43.0.0", default-features = false }
+pallet-treasury = { version = "42.0.0", default-features = false }
 pallet-identity = { version = "43.0.0", default-features = false }
 pallet-authority-discovery = { version = "43.0.0", default-features = false }
 pallet-safe-mode = { version = "24.0.0", default-features = false }

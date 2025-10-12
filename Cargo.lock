@@ -201,7 +201,6 @@ dependencies = [
  "pallet-multisig",
  "pallet-preimage",
  "pallet-proxy",
- "pallet-safe-mode",
  "pallet-scheduler",
  "pallet-session",
  "pallet-sudo",
@@ -209,6 +208,7 @@ dependencies = [
  "pallet-token-allocation",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
+ "pallet-treasury",
  "pallet-utility",
  "pallet-validators",
  "parity-scale-codec",
@@ -224,6 +224,7 @@ dependencies = [
  "sp-core",
  "sp-genesis-builder",
  "sp-inherents",
+ "sp-io",
  "sp-keyring",
  "sp-offchain",
  "sp-runtime",
@@ -6941,6 +6942,26 @@ dependencies = [
  "sp-api",
  "sp-runtime",
  "sp-weights",
+]
+
+[[package]]
+name = "pallet-treasury"
+version = "42.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e7bd354ff36d74e80050e71c87c7497dc57db9b9a02ab66c8e97b04e2613d87"
+dependencies = [
+ "docify",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "impl-trait-for-tuples",
+ "log",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-core",
+ "sp-runtime",
 ]
 
 [[package]]

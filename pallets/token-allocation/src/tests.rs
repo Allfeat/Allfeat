@@ -1,654 +1,355 @@
 use super::*;
-use crate::pallet::{Allocations, EnvelopeDistributed, Envelopes, Event as PalletEvent};
-use frame_support::{assert_noop, assert_ok, traits::Currency};
+use crate::{
+    mock::{EpochDuration, RuntimeHoldReason, RuntimeOrigin, run_to_block},
+    pallet::{Allocations, Event as PalletEvent, PayoutCursor},
+};
+use frame_support::{
+    assert_noop, assert_ok,
+    traits::{Currency, fungible::InspectHold},
+};
 use sp_runtime::Percent;
 
 use crate::mock::{
     Balances, RuntimeEvent as TestEvent, System, Test, TokenAllocation, new_test_ext,
 };
 
-fn set_block(n: u64) {
-    System::set_block_number(n);
+fn hold_reason() -> RuntimeHoldReason {
+    RuntimeHoldReason::TokenAllocation(HoldReason::TokenAllocation)
 }
 
 #[test]
-fn add_allocation_pays_upfront_and_stores_allocation() {
-    new_test_ext().execute_with(|| {
-        let id = EnvelopeId::Founders;
-        let total_cap: u64 = 1_000_000;
-        let upfront_rate: Percent = Percent::from_percent(10);
-        let cliff: u64 = 10;
-        let duration: u64 = 100;
+fn add_allocation_pays_upfront_and_holds_rest() {
+    let total_cap: u64 = 1_000_000;
+    let env = EnvelopeConfig {
+        total_cap,
+        upfront_rate: Percent::from_percent(10),
+        cliff: 10,
+        vesting_duration: 100,
+        unique_beneficiary: None,
+    };
 
-        // fund envelope source account sufficiently: upfront + vested_total == total
-        let source = id.account::<Test>();
-        // give source large balance
-        Balances::make_free_balance_be(&source, 500_000);
+    let mut ext = new_test_ext(vec![(EnvelopeId::Seed, env.clone())], vec![]);
 
-        // Insert envelope config in storage (as done by genesis build normally)
-        Envelopes::<Test>::insert(
-            id,
-            EnvelopeConfig::<u64, u64> {
-                total_cap,
-                upfront_rate,
-                cliff,
-                vesting_duration: duration,
-            },
-        );
-        EnvelopeDistributed::<Test>::insert(id, 0u64);
+    ext.execute_with(|| {
+        let alice = 100u128;
+        let alloc = 500_000u64;
 
-        let who = 1u128;
-        let total: u64 = 100_000;
+        let src = EnvelopeId::Seed.account::<Test>();
+        pallet_balances::Pallet::<Test>::make_free_balance_be(&src, total_cap);
 
-        let before_who = Balances::free_balance(who);
-
+        // add_allocation (Root)
         assert_ok!(TokenAllocation::add_allocation(
-            mock::RuntimeOrigin::root(),
-            id,
-            who,
-            total
+            RuntimeOrigin::root(),
+            EnvelopeId::Seed,
+            alice,
+            alloc,
+            Some(0),
         ));
 
-        // upfront should be 10_000 (10%)
-        let upfront = 10_000u64;
-        assert_eq!(Balances::free_balance(who), before_who + upfront);
+        // upfront = 10% of 500_000 = 50_000
+        let upfront = env.upfront_rate.mul_floor(alloc);
+        assert_eq!(Balances::free_balance(alice), upfront);
 
-        // allocation stored
-        let alloc = Allocations::<Test>::get(id, who).expect("allocation exists");
-        assert_eq!(alloc.total, total);
-        assert_eq!(alloc.upfront, upfront);
-        assert_eq!(alloc.vested_total, total - upfront);
-        assert_eq!(alloc.released, 0);
+        // the rest is held
+        let held = pallet_balances::Pallet::<Test>::balance_on_hold(&hold_reason(), &alice);
+        assert_eq!(held, alloc - upfront);
 
-        // events include UpfrontPaid then AllocationAdded
-        let events: Vec<TestEvent> = System::events().into_iter().map(|r| r.event).collect();
-        assert!(events.iter().any(|e| matches!(e,
-            TestEvent::TokenAllocation(PalletEvent::UpfrontPaid(eid, account, amount)) if eid == &id && account == &who && amount == &upfront
-        )));
-        assert!(events.iter().any(|e| matches!(e,
-            TestEvent::TokenAllocation(PalletEvent::AllocationAdded(eid, account, amount)) if eid == &id && account == &who && amount == &total
-        )));
+        // allocation stored correctly
+        let a = Allocations::<Test>::get((EnvelopeId::Seed, alice)).expect("alloc");
+        assert_eq!(a.total, alloc);
+        assert_eq!(a.upfront, upfront);
+        assert_eq!(a.vested_total, alloc - upfront);
+        assert_eq!(a.released, 0);
+        assert_eq!(a.start, 0);
     });
 }
 
+// -----------------------------------------------------------------------------
+// 2) Epoch payout releases linearly and completes (allocation removed)
+// -----------------------------------------------------------------------------
 #[test]
-fn cannot_over_cap_envelope() {
-    new_test_ext().execute_with(|| {
-        let id = EnvelopeId::KoL;
-        let total_cap: u64 = 150;
-        let upfront_rate: Percent = Percent::from_percent(0);
-        let cliff: u64 = 0;
-        let duration: u64 = 0;
+fn epoch_payout_releases_linearly_and_completes() {
+    let total_cap: u64 = 2_000_000;
+    let env = EnvelopeConfig {
+        total_cap,
+        upfront_rate: Percent::from_percent(20),
+        cliff: 2,
+        vesting_duration: 10,
+        unique_beneficiary: None,
+    };
 
-        let source = id.account::<Test>();
-        Balances::make_free_balance_be(&source, 1_000_000);
+    let mut ext = new_test_ext(vec![(EnvelopeId::ICO1, env.clone())], vec![]);
+    ext.execute_with(|| {
+        let alice = 200u128;
+        let alloc = 1_000_000u64;
 
-        Envelopes::<Test>::insert(
-            id,
-            EnvelopeConfig::<u64, u64> {
-                total_cap,
-                upfront_rate,
-                cliff,
-                vesting_duration: duration,
-            },
-        );
-        EnvelopeDistributed::<Test>::insert(id, 0u64);
+        // Fund the envelope sub-account
+        let src = EnvelopeId::ICO1.account::<Test>();
+        pallet_balances::Pallet::<Test>::make_free_balance_be(&src, total_cap);
 
-        // First allocation within cap
+        // Add allocation (Root)
         assert_ok!(TokenAllocation::add_allocation(
-            mock::RuntimeOrigin::root(),
-            id,
-            1u128,
-            100u64
+            RuntimeOrigin::root(),
+            EnvelopeId::ICO1,
+            alice,
+            alloc,
+            Some(0),
         ));
-        // Second would exceed cap
+
+        // Before cliff: nothing released
+        run_to_block(1);
+        let a1 = Allocations::<Test>::get((EnvelopeId::ICO1, alice)).unwrap();
+        assert_eq!(a1.released, 0);
+
+        // Reach first epoch (EpochDuration=5 in mock) after cliff
+        run_to_block(5);
+        let a2 = Allocations::<Test>::get((EnvelopeId::ICO1, alice)).unwrap();
+        assert!(
+            a2.released > 0 && a2.released < a2.vested_total,
+            "should be partially released"
+        );
+
+        // Go far enough so vesting completes and allocation is pruned
+        run_to_block(30);
+        assert!(
+            Allocations::<Test>::get((EnvelopeId::ICO1, alice)).is_none(),
+            "completed allocation must be removed"
+        );
+
+        // Sanity: free balance increased beyond upfront
+        let upfront = env.upfront_rate.mul_floor(alloc);
+        assert!(Balances::free_balance(alice) > upfront);
+
+        // Optional: ensure at least one EpochPayout event was emitted
+        let has_epoch_event = System::events().iter().any(|e| {
+            matches!(
+                e.event,
+                TestEvent::TokenAllocation(PalletEvent::EpochPayout { .. })
+            )
+        });
+        assert!(has_epoch_event, "should emit EpochPayout at least once");
+    });
+}
+
+// -----------------------------------------------------------------------------
+// 3) Pagination respects MaxPayoutPerBlock and cursor doesn't reprocess
+// -----------------------------------------------------------------------------
+#[test]
+fn pagination_continues_next_block_not_next_epoch() {
+    // MaxPayoutPerBlock = 5 (mock). Create 6 allocations so we need 2 blocks within the same epoch.
+    let total_cap: u64 = 10_000_000;
+    let env = EnvelopeConfig {
+        total_cap,
+        upfront_rate: Percent::from_percent(0),
+        cliff: 0,
+        vesting_duration: 20,
+        unique_beneficiary: None,
+    };
+
+    let mut ext = new_test_ext(vec![(EnvelopeId::Airdrop, env.clone())], vec![]);
+    ext.execute_with(|| {
+        let src = EnvelopeId::Airdrop.account::<Test>();
+        pallet_balances::Pallet::<Test>::make_free_balance_be(&src, total_cap);
+
+        // 6 allocations
+        for i in 0..6u128 {
+            let who = 3000u128 + i;
+            assert_ok!(TokenAllocation::add_allocation(
+                RuntimeOrigin::root(),
+                EnvelopeId::Airdrop,
+                who,
+                1_000u64,
+                Some(0),
+            ));
+        }
+
+        // 1) First epoch tick at block 5 processes at most 5 items and leaves a cursor.
+        run_to_block(5);
+        let cur1 = PayoutCursor::<Test>::get();
+        assert!(
+            cur1.is_some(),
+            "cursor should exist when there is remaining work"
+        );
+
+        // Snapshot released after block 5 (some accounts advanced, one still pending).
+        let released_after_5 = |acc: u128| {
+            Allocations::<Test>::get((EnvelopeId::Airdrop, acc))
+                .map(|a| a.released)
+                .unwrap_or(0)
+        };
+        let r5: Vec<u64> = (0..6u128).map(|i| released_after_5(3000 + i)).collect();
+
+        // 2) Next block (6) must continue processing (same epoch), finish the last item,
+        //    close the epoch, clear cursor, and push NextPayoutAt to 6 + EpochDuration (= 11).
+        run_to_block(6);
+        let cur2 = PayoutCursor::<Test>::get();
+        assert!(
+            cur2.is_none(),
+            "cursor must be cleared once the scan completes"
+        );
+
+        // Check NextPayoutAt moved to 6 + EpochDuration (EpochDuration = 5 in mock)
+        let expected_next = 6 + EpochDuration::get();
+        let next_at = crate::pallet::NextPayoutAt::<Test>::get();
+        assert_eq!(
+            next_at, expected_next,
+            "NextPayoutAt should be set right after completion"
+        );
+
+        // Snapshot released after block 6.
+        let r6: Vec<u64> = (0..6u128).map(|i| released_after_5(3000 + i)).collect();
+
+        // Everyone should be >= their values at block 5 (monotonic).
+        for (a5, a6) in r5.iter().zip(r6.iter()) {
+            assert!(a6 >= a5, "released must be monotonic between 5 -> 6");
+        }
+
+        // 3) Between blocks 7..10, on_initialize should *not* run (we're before NextPayoutAt=11),
+        //    so released amounts must remain unchanged.
+        run_to_block(10);
+        let r10: Vec<u64> = (0..6u128).map(|i| released_after_5(3000 + i)).collect();
+        assert_eq!(r10, r6, "released should not change before NextPayoutAt");
+
+        // 4) At block 11 (new epoch), payouts resume and released must increase (if vesting remains).
+        run_to_block(11);
+        let r11: Vec<u64> = (0..6u128).map(|i| released_after_5(3000 + i)).collect();
+        let any_increased = r11.iter().zip(r10.iter()).any(|(n, p)| n > p);
+        assert!(
+            any_increased,
+            "released should increase again at the next epoch start (block 11)"
+        );
+    });
+}
+
+// -----------------------------------------------------------------------------
+// 4) Upfront 100% finishes immediately and allocation disappears
+// -----------------------------------------------------------------------------
+#[test]
+fn upfront_100_percent_finishes_immediately_and_disappears() {
+    let total_cap: u64 = 1_000_000;
+    let env = EnvelopeConfig {
+        total_cap,
+        upfront_rate: Percent::from_percent(100),
+        cliff: 0,
+        vesting_duration: 0,
+        unique_beneficiary: None,
+    };
+
+    let mut ext = new_test_ext(vec![(EnvelopeId::Exchanges, env.clone())], vec![]);
+    ext.execute_with(|| {
+        let alice = 909u128;
+        let src = EnvelopeId::Exchanges.account::<Test>();
+        pallet_balances::Pallet::<Test>::make_free_balance_be(&src, total_cap);
+
+        assert_ok!(TokenAllocation::add_allocation(
+            RuntimeOrigin::root(),
+            EnvelopeId::Exchanges,
+            alice,
+            500_000u64,
+            Some(0),
+        ));
+
+        // With 100% upfront, vesting_total == 0, allocation should be removed on first epoch pass
+        run_to_block(5);
+        assert!(
+            Allocations::<Test>::get((EnvelopeId::Exchanges, alice)).is_none(),
+            "100% upfront allocation must not persist"
+        );
+    });
+}
+
+// -----------------------------------------------------------------------------
+// 5) Envelope cap is enforced
+// -----------------------------------------------------------------------------
+#[test]
+fn envelope_cap_enforced() {
+    let total_cap: u64 = 50_000;
+    let env = EnvelopeConfig {
+        total_cap,
+        upfront_rate: Percent::from_percent(0),
+        cliff: 0,
+        vesting_duration: 10,
+        unique_beneficiary: None,
+    };
+
+    let mut ext = new_test_ext(vec![(EnvelopeId::Private1, env.clone())], vec![]);
+    ext.execute_with(|| {
+        let bob = 777u128;
+        let charlie = 888u128;
+        let src = EnvelopeId::Private1.account::<Test>();
+        pallet_balances::Pallet::<Test>::make_free_balance_be(&src, total_cap);
+
+        // First allocation fills the cap
+        assert_ok!(TokenAllocation::add_allocation(
+            RuntimeOrigin::root(),
+            EnvelopeId::Private1,
+            bob,
+            total_cap,
+            Some(0),
+        ));
+
+        // Second allocation should fail with EnvelopeCapExceeded
+        let err = TokenAllocation::add_allocation(
+            RuntimeOrigin::root(),
+            EnvelopeId::Private1,
+            charlie,
+            1u64,
+            Some(0),
+        )
+        .unwrap_err();
+
+        // Match pallet error
+        assert_eq!(
+            err,
+            sp_runtime::DispatchError::from(pallet::Error::<Test>::EnvelopeCapExceeded)
+        );
+    });
+}
+
+// -----------------------------------------------------------------------------
+// 6) Unique beneficiary disables runtime allocations
+// -----------------------------------------------------------------------------
+#[test]
+fn unique_beneficiary_disables_runtime_allocations() {
+    let total_cap: u64 = 100_000;
+    let enforced = 42u128;
+
+    let env = EnvelopeConfig {
+        total_cap,
+        upfront_rate: Percent::from_percent(0),
+        cliff: 0,
+        vesting_duration: 10,
+        unique_beneficiary: Some(enforced),
+    };
+
+    let mut ext = new_test_ext(vec![(EnvelopeId::Reserve, env.clone())], vec![]);
+    ext.execute_with(|| {
+        // Fund envelope
+        let src = EnvelopeId::Reserve.account::<Test>();
+        pallet_balances::Pallet::<Test>::make_free_balance_be(&src, total_cap);
+
+        // Any runtime add_allocation must be disabled when unique_beneficiary is set
         assert_noop!(
-            TokenAllocation::add_allocation(mock::RuntimeOrigin::root(), id, 2u128, 60u64),
-            Error::<Test>::EnvelopeCapExceeded
+            TokenAllocation::add_allocation(
+                RuntimeOrigin::root(),
+                EnvelopeId::Reserve,
+                999u128, // different from enforced
+                10_000u64,
+                Some(0),
+            ),
+            pallet::Error::<Test>::AllocationDisabled
         );
-    });
-}
 
-#[test]
-fn cannot_add_duplicate_allocation() {
-    new_test_ext().execute_with(|| {
-        let id = EnvelopeId::Private1;
-        Envelopes::<Test>::insert(
-            id,
-            EnvelopeConfig::<u64, u64> {
-                total_cap: 1_000,
-                upfront_rate: Percent::from_percent(0),
-                cliff: 0,
-                vesting_duration: 0,
-            },
-        );
-        EnvelopeDistributed::<Test>::insert(id, 0u64);
-        let source = id.account::<Test>();
-        Balances::make_free_balance_be(&source, 1_000_000);
-
-        assert_ok!(TokenAllocation::add_allocation(
-            mock::RuntimeOrigin::root(),
-            id,
-            1u128,
-            100u64
-        ));
+        // Even for the same enforced account, runtime is disabled (genesis-only)
         assert_noop!(
-            TokenAllocation::add_allocation(mock::RuntimeOrigin::root(), id, 1u128, 50u64),
-            Error::<Test>::AllocationExists
+            TokenAllocation::add_allocation(
+                RuntimeOrigin::root(),
+                EnvelopeId::Reserve,
+                enforced,
+                10_000u64,
+                Some(0),
+            ),
+            pallet::Error::<Test>::AllocationDisabled
         );
-    });
-}
-
-#[test]
-fn add_allocation_fails_if_source_insufficient() {
-    new_test_ext().execute_with(|| {
-        let id = EnvelopeId::Private2;
-        Envelopes::<Test>::insert(
-            id,
-            EnvelopeConfig::<u64, u64> {
-                total_cap: 1_000_000,
-                upfront_rate: Percent::from_percent(50),
-                cliff: 0,
-                vesting_duration: 100,
-            },
-        );
-        EnvelopeDistributed::<Test>::insert(id, 0u64);
-        let source = id.account::<Test>();
-        // Provide less than required (required == total), set only 99
-        Balances::make_free_balance_be(&source, 99);
-
-        assert_noop!(
-            TokenAllocation::add_allocation(mock::RuntimeOrigin::root(), id, 1u128, 100u64),
-            Error::<Test>::EnvelopeCapExceeded
-        );
-    });
-}
-
-#[test]
-fn claim_before_cliff_is_zero() {
-    new_test_ext().execute_with(|| {
-        let id = EnvelopeId::ICO1;
-        let total_cap = 1_000_000u64;
-        let upfront_rate: Percent = Percent::from_percent(0);
-        let cliff = 100u64;
-        let duration = 1_000u64;
-        let who = 1u128;
-        let total = 1_000u64;
-        let source = id.account::<Test>();
-        Balances::make_free_balance_be(&source, total_cap);
-
-        Envelopes::<Test>::insert(
-            id,
-            EnvelopeConfig {
-                total_cap,
-                upfront_rate,
-                cliff,
-                vesting_duration: duration,
-            },
-        );
-        EnvelopeDistributed::<Test>::insert(id, 0u64);
-        assert_ok!(TokenAllocation::add_allocation(
-            mock::RuntimeOrigin::root(),
-            id,
-            who,
-            total
-        ));
-
-        set_block(50);
-        assert_noop!(
-            TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id),
-            Error::<Test>::NothingToClaim
-        );
-    });
-}
-
-#[test]
-fn linear_vesting_claims_over_time() {
-    new_test_ext().execute_with(|| {
-        let id = EnvelopeId::Seed;
-        let total_cap = 1_000_000u64;
-        let upfront_rate: Percent = Percent::from_percent(0);
-        let cliff = 10u64;
-        let duration = 100u64;
-        let who = 1u128;
-        let total = 1_000u64;
-        let source = id.account::<Test>();
-        Balances::make_free_balance_be(&source, total_cap);
-
-        Envelopes::<Test>::insert(id, EnvelopeConfig { total_cap, upfront_rate, cliff, vesting_duration: duration });
-        EnvelopeDistributed::<Test>::insert(id, 0u64);
-        assert_ok!(TokenAllocation::add_allocation(mock::RuntimeOrigin::root(), id, who, total));
-
-        // At cliff exactly, claimable == 0 because now <= cliff returns 0
-        set_block(cliff);
-        assert_noop!(TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id), Error::<Test>::NothingToClaim);
-
-        // After some time: 50% of duration
-        set_block(cliff + duration / 2);
-        let before = Balances::free_balance(who);
-        assert_ok!(TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id));
-        let after = Balances::free_balance(who);
-        // vested_total == total (no upfront). 50% of 1000 = 500
-        assert_eq!(after - before, 500);
-
-        // After end, remaining all can be claimed
-        set_block(cliff + duration + 1);
-        let before2 = Balances::free_balance(who);
-        assert_ok!(TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id));
-        let after2 = Balances::free_balance(who);
-        // remaining 500
-        assert_eq!(after2 - before2, 500);
-
-        // No more to claim
-        assert_noop!(TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id), Error::<Test>::NothingToClaim);
-
-        // Event emitted on claims
-        let events: Vec<TestEvent> = System::events().into_iter().map(|r| r.event).collect();
-        assert!(events.iter().any(|e| matches!(e,
-            TestEvent::TokenAllocation(PalletEvent::VestedReleased(eid, account, amount)) if eid == &id && account == &who && amount == &500u64
-        )));
-    });
-}
-
-#[test]
-fn upfront_zero_skips_transfer_and_event() {
-    new_test_ext().execute_with(|| {
-        let id = EnvelopeId::ICO2;
-        let total_cap = 1_000_000u64;
-        let upfront_rate: Percent = Percent::from_percent(0); // 0%
-        let cliff = 0u64;
-        let duration = 100u64;
-        let who = 2u128;
-        let total = 1_000u64;
-        let source = id.account::<Test>();
-        Balances::make_free_balance_be(&source, total_cap);
-
-        Envelopes::<Test>::insert(
-            id,
-            EnvelopeConfig {
-                total_cap,
-                upfront_rate,
-                cliff,
-                vesting_duration: duration,
-            },
-        );
-        EnvelopeDistributed::<Test>::insert(id, 0u64);
-
-        let before_events = System::events().len();
-        let before_balance = Balances::free_balance(who);
-        assert_ok!(TokenAllocation::add_allocation(
-            mock::RuntimeOrigin::root(),
-            id,
-            who,
-            total
-        ));
-        let after_balance = Balances::free_balance(who);
-
-        assert_eq!(after_balance, before_balance); // no upfront received
-        let events = &System::events()[before_events..];
-        // Only AllocationAdded should be present for this call (no UpfrontPaid)
-        assert!(events.iter().any(|rec| matches!(
-            rec.event,
-            TestEvent::TokenAllocation(PalletEvent::AllocationAdded(..))
-        )));
-        assert!(!events.iter().any(|rec| matches!(
-            rec.event,
-            TestEvent::TokenAllocation(PalletEvent::UpfrontPaid(..))
-        )));
-    });
-}
-
-#[test]
-fn claim_fails_when_allocation_missing_or_envelope_unknown() {
-    new_test_ext().execute_with(|| {
-        let id = EnvelopeId::SerieA;
-        // Claim fails if envelope unknown
-        assert_noop!(
-            TokenAllocation::claim(mock::RuntimeOrigin::signed(1u128), id),
-            Error::<Test>::EnvelopeUnknown
-        );
-
-        // Claim fails if allocation missing
-        Envelopes::<Test>::insert(
-            id,
-            EnvelopeConfig::<u64, u64> {
-                total_cap: 1000,
-                upfront_rate: Percent::from_percent(0),
-                cliff: 0,
-                vesting_duration: 0,
-            },
-        );
-        EnvelopeDistributed::<Test>::insert(id, 0u64);
-        assert_noop!(
-            TokenAllocation::claim(mock::RuntimeOrigin::signed(1u128), id),
-            Error::<Test>::EnvelopeUnknown
-        );
-    });
-}
-
-#[test]
-fn claim_all_at_exact_end_block() {
-    new_test_ext().execute_with(|| {
-        // At now == cliff + duration, full remaining vested should be claimable
-        let id = EnvelopeId::Founders;
-        let total_cap = 1_000_000u64;
-        let upfront_rate = Percent::from_percent(0);
-        let cliff = 10u64;
-        let duration = 90u64;
-        let who = 1u128;
-        let total = 1_000u64;
-        let source = id.account::<Test>();
-        Balances::make_free_balance_be(&source, total_cap);
-        Envelopes::<Test>::insert(
-            id,
-            EnvelopeConfig {
-                total_cap,
-                upfront_rate,
-                cliff,
-                vesting_duration: duration,
-            },
-        );
-        EnvelopeDistributed::<Test>::insert(id, 0u64);
-        assert_ok!(TokenAllocation::add_allocation(
-            mock::RuntimeOrigin::root(),
-            id,
-            who,
-            total
-        ));
-
-        set_block(cliff + duration);
-        let before = Balances::free_balance(who);
-        assert_ok!(TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id));
-        let after = Balances::free_balance(who);
-        assert_eq!(after - before, total);
-    });
-}
-
-#[test]
-fn multiple_claims_track_released_correctly() {
-    new_test_ext().execute_with(|| {
-        // Claim in two steps: mid-vesting and at end; released should accumulate
-        let id = EnvelopeId::Seed;
-        let total_cap = 1_000_000u64;
-        let upfront_rate = Percent::from_percent(0);
-        let cliff = 10u64;
-        let duration = 100u64;
-        let who = 1u128;
-        let total = 1_000u64;
-        let source = id.account::<Test>();
-        Balances::make_free_balance_be(&source, total_cap);
-        Envelopes::<Test>::insert(
-            id,
-            EnvelopeConfig {
-                total_cap,
-                upfront_rate,
-                cliff,
-                vesting_duration: duration,
-            },
-        );
-        EnvelopeDistributed::<Test>::insert(id, 0u64);
-        assert_ok!(TokenAllocation::add_allocation(
-            mock::RuntimeOrigin::root(),
-            id,
-            who,
-            total
-        ));
-
-        set_block(cliff + duration / 4);
-        let b0 = Balances::free_balance(who);
-        assert_ok!(TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id));
-        let c1 = Balances::free_balance(who) - b0; // 25% of 1000 = 250
-        assert_eq!(c1, 250);
-
-        set_block(cliff + duration);
-        let b1 = Balances::free_balance(who);
-        assert_ok!(TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id));
-        let c2 = Balances::free_balance(who) - b1; // remaining 750
-        assert_eq!(c2, 750);
-
-        // No more to claim
-        assert_noop!(
-            TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id),
-            Error::<Test>::NothingToClaim
-        );
-    });
-}
-
-#[test]
-fn upfront_rounds_down_and_linear_floor() {
-    new_test_ext().execute_with(|| {
-        // Percent 1% with total 99 => upfront 0; vesting floors over time
-        let id = EnvelopeId::ICO1;
-        let total_cap = 10_000u64;
-        let upfront_rate = Percent::from_percent(1); // 1%
-        let cliff = 0u64;
-        let duration = 10u64;
-        let who = 3u128;
-        let total = 99u64; // upfront should floor to 0
-        let source = id.account::<Test>();
-        Balances::make_free_balance_be(&source, total_cap);
-        Envelopes::<Test>::insert(
-            id,
-            EnvelopeConfig {
-                total_cap,
-                upfront_rate,
-                cliff,
-                vesting_duration: duration,
-            },
-        );
-        EnvelopeDistributed::<Test>::insert(id, 0u64);
-        assert_ok!(TokenAllocation::add_allocation(
-            mock::RuntimeOrigin::root(),
-            id,
-            who,
-            total
-        ));
-
-        // No upfront event expected
-        let before = Balances::free_balance(who);
-        set_block(duration / 2); // at half duration, vested = floor(99*5/10)=49
-        assert_ok!(TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id));
-        let mid = Balances::free_balance(who);
-        assert_eq!(mid - before, 49);
-
-        set_block(duration);
-        assert_ok!(TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id));
-        let after = Balances::free_balance(who);
-        assert_eq!(after - mid, 50); // remaining
-    });
-}
-
-#[test]
-fn vesting_duration_zero_unlocks_after_cliff() {
-    new_test_ext().execute_with(|| {
-        // If duration == 0, all vested becomes claimable right after cliff
-        let id = EnvelopeId::Private2;
-        let total_cap = 1_000_000u64;
-        let upfront_rate = Percent::from_percent(0);
-        let cliff = 5u64;
-        let duration = 0u64;
-        let who = 4u128;
-        let total = 1_000u64;
-        let source = id.account::<Test>();
-        Balances::make_free_balance_be(&source, total_cap);
-        Envelopes::<Test>::insert(
-            id,
-            EnvelopeConfig {
-                total_cap,
-                upfront_rate,
-                cliff,
-                vesting_duration: duration,
-            },
-        );
-        EnvelopeDistributed::<Test>::insert(id, 0u64);
-        assert_ok!(TokenAllocation::add_allocation(
-            mock::RuntimeOrigin::root(),
-            id,
-            who,
-            total
-        ));
-
-        set_block(cliff);
-        assert_noop!(
-            TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id),
-            Error::<Test>::NothingToClaim
-        );
-
-        set_block(cliff + 1);
-        let b0 = Balances::free_balance(who);
-        assert_ok!(TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id));
-        let after = Balances::free_balance(who);
-        assert_eq!(after - b0, total);
-    });
-}
-
-#[test]
-fn funding_must_cover_upfront_and_vested_total() {
-    new_test_ext().execute_with(|| {
-        // If source covers only upfront but not vested_total, allocation must fail
-        let id = EnvelopeId::KoL;
-        let total_cap = 1_000_000u64;
-        let upfront_rate = Percent::from_percent(30);
-        let cliff = 0u64;
-        let duration = 100u64;
-        let who = 5u128;
-        let total = 1_000u64; // upfront 300, vested 700
-        let source = id.account::<Test>();
-        Balances::make_free_balance_be(&source, 299); // less than required 1000
-        Envelopes::<Test>::insert(
-            id,
-            EnvelopeConfig {
-                total_cap,
-                upfront_rate,
-                cliff,
-                vesting_duration: duration,
-            },
-        );
-        EnvelopeDistributed::<Test>::insert(id, 0u64);
-
-        assert_noop!(
-            TokenAllocation::add_allocation(mock::RuntimeOrigin::root(), id, who, total),
-            Error::<Test>::EnvelopeCapExceeded
-        );
-    });
-}
-
-#[test]
-fn exact_fill_of_cap_with_multiple_beneficiaries() {
-    new_test_ext().execute_with(|| {
-        // Two allocations exactly fill cap; third should fail
-        let id = EnvelopeId::ICO2;
-        let total_cap = 1_000u64;
-        let upfront_rate = Percent::from_percent(0);
-        let cliff = 0u64;
-        let duration = 10u64;
-        let source = id.account::<Test>();
-        Balances::make_free_balance_be(&source, 10_000);
-        Envelopes::<Test>::insert(
-            id,
-            EnvelopeConfig {
-                total_cap,
-                upfront_rate,
-                cliff,
-                vesting_duration: duration,
-            },
-        );
-        EnvelopeDistributed::<Test>::insert(id, 0u64);
-
-        assert_ok!(TokenAllocation::add_allocation(
-            mock::RuntimeOrigin::root(),
-            id,
-            10u128,
-            400u64
-        ));
-        assert_ok!(TokenAllocation::add_allocation(
-            mock::RuntimeOrigin::root(),
-            id,
-            11u128,
-            600u64
-        ));
-        assert_noop!(
-            TokenAllocation::add_allocation(mock::RuntimeOrigin::root(), id, 12u128, 1u64),
-            Error::<Test>::EnvelopeCapExceeded
-        );
-    });
-}
-
-#[test]
-fn repeated_claim_when_nothing_new_vested_is_noop() {
-    new_test_ext().execute_with(|| {
-        // Claim twice in same block: second yields NothingToClaim
-        let id = EnvelopeId::Seed;
-        let total_cap = 1_000_000u64;
-        let upfront_rate = Percent::from_percent(0);
-        let cliff = 0u64;
-        let duration = 100u64;
-        let who = 6u128;
-        let total = 1_000u64;
-        let source = id.account::<Test>();
-        Balances::make_free_balance_be(&source, total_cap);
-        Envelopes::<Test>::insert(
-            id,
-            EnvelopeConfig {
-                total_cap,
-                upfront_rate,
-                cliff,
-                vesting_duration: duration,
-            },
-        );
-        EnvelopeDistributed::<Test>::insert(id, 0u64);
-        assert_ok!(TokenAllocation::add_allocation(
-            mock::RuntimeOrigin::root(),
-            id,
-            who,
-            total
-        ));
-
-        set_block(duration / 2);
-        assert_ok!(TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id));
-        assert_noop!(
-            TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id),
-            Error::<Test>::NothingToClaim
-        );
-    });
-}
-
-#[test]
-fn large_values_no_overflow_in_mul_div() {
-    new_test_ext().execute_with(|| {
-        // Exercise mul_div with large values via long vesting and large totals
-        let id = EnvelopeId::Founders;
-        let total_cap: u64 = u64::MAX / 4; // big but safe
-        let upfront_rate = Percent::from_percent(0);
-        let cliff = 0u64;
-        let duration: u64 = u32::MAX as u64; // large duration
-        let who = 7u128;
-        let total: u64 = (u64::MAX / 8) & !1; // even
-        let source = id.account::<Test>();
-        Balances::make_free_balance_be(&source, total_cap);
-        Envelopes::<Test>::insert(
-            id,
-            EnvelopeConfig {
-                total_cap,
-                upfront_rate,
-                cliff,
-                vesting_duration: duration,
-            },
-        );
-        EnvelopeDistributed::<Test>::insert(id, 0u64);
-        assert_ok!(TokenAllocation::add_allocation(
-            mock::RuntimeOrigin::root(),
-            id,
-            who,
-            total
-        ));
-
-        set_block(duration / 2);
-        let before = Balances::free_balance(who);
-        assert_ok!(TokenAllocation::claim(mock::RuntimeOrigin::signed(who), id));
-        let after = Balances::free_balance(who);
-        // Roughly half should be claimable (floor); ensure non-zero and <= total/2
-        assert!(after > before);
-        assert!(after - before <= total / 2);
     });
 }

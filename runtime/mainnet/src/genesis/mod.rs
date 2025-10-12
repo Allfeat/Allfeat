@@ -19,24 +19,29 @@
 //! Genesis presets to build the runtime.
 
 extern crate alloc;
-use allfeat_primitives::AccountId;
+
+use allfeat_primitives::{AccountId, Balance};
 use alloc::{vec, vec::Vec};
 use development::development_config_genesis;
 use frame_support::build_struct_json_patch;
 use local::local_config_genesis;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
-use pallet_token_allocation::{EnvelopeConfig, EnvelopeId};
+use shared_runtime::currency::AFT;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
 use sp_genesis_builder::PresetId;
-use sp_runtime::Percent;
 use staging::staging_config_genesis;
+use token::tokenomics;
 
-use crate::{MONTHS, Runtime, RuntimeGenesisConfig, SessionKeys};
+use crate::{RuntimeGenesisConfig, SessionKeys};
 
 mod development;
 mod local;
 mod staging;
+
+pub mod token;
+
+const DEV_ENDOWMENT: Balance = 100_000_000 * AFT;
 
 // Returns the genesis config template populated with given parameters.
 pub fn genesis(
@@ -48,21 +53,23 @@ pub fn genesis(
         AuraId,
         ImOnlineId,
     )>,
+    dev_accounts: Vec<AccountId>,
     root_key: AccountId,
 ) -> serde_json::Value {
+    let mut token_genesis = tokenomics();
+
+    let dev_accounts_balances: Vec<(AccountId, Balance)> = dev_accounts
+        .into_iter()
+        .map(|acc| (acc, DEV_ENDOWMENT))
+        .collect();
+    token_genesis
+        .balances
+        .balances
+        .extend(dev_accounts_balances);
+
     build_struct_json_patch!(RuntimeGenesisConfig {
-        balances: pallet_balances::GenesisConfig {
-            balances: vec![
-                (EnvelopeId::Founders.account::<Runtime>(), 67_000_000),
-                (EnvelopeId::KoL.account::<Runtime>(), 3_000_000),
-                (EnvelopeId::Private1.account::<Runtime>(), 120_000_000),
-                (EnvelopeId::Private2.account::<Runtime>(), 80_000_000),
-                (EnvelopeId::ICO1.account::<Runtime>(), 30_000_000),
-                (EnvelopeId::Seed.account::<Runtime>(), 75_000_000),
-                (EnvelopeId::ICO2.account::<Runtime>(), 30_000_000),
-                (EnvelopeId::SerieA.account::<Runtime>(), 80_000_000)
-            ]
-        },
+        balances: token_genesis.balances,
+        token_allocation: token_genesis.allocations,
         validators: pallet_validators::GenesisConfig {
             initial_validators: initial_authorities
                 .iter()
@@ -89,82 +96,6 @@ pub fn genesis(
         sudo: pallet_sudo::GenesisConfig {
             key: Some(root_key)
         },
-        token_allocation: pallet_token_allocation::GenesisConfig {
-            envelopes: vec![
-                (
-                    EnvelopeId::Founders,
-                    EnvelopeConfig {
-                        total_cap: 67_000_000,
-                        upfront_rate: Percent::from_percent(0),
-                        cliff: 12 * MONTHS,
-                        vesting_duration: 36 * MONTHS
-                    }
-                ),
-                (
-                    EnvelopeId::KoL,
-                    EnvelopeConfig {
-                        total_cap: 3_000_000,
-                        upfront_rate: Percent::from_percent(0),
-                        cliff: 9 * MONTHS,
-                        vesting_duration: 9 * MONTHS
-                    }
-                ),
-                (
-                    EnvelopeId::Private1,
-                    EnvelopeConfig {
-                        total_cap: 120_000_000,
-                        upfront_rate: Percent::from_percent(5),
-                        cliff: 8 * MONTHS,
-                        vesting_duration: 38 * MONTHS
-                    }
-                ),
-                (
-                    EnvelopeId::Private2,
-                    EnvelopeConfig {
-                        total_cap: 80_000_000,
-                        upfront_rate: Percent::from_percent(5),
-                        cliff: 3 * MONTHS,
-                        vesting_duration: 36 * MONTHS
-                    }
-                ),
-                (
-                    EnvelopeId::ICO1,
-                    EnvelopeConfig {
-                        total_cap: 600_000,
-                        upfront_rate: Percent::from_percent(0),
-                        cliff: 0u32,
-                        vesting_duration: 6 * MONTHS
-                    }
-                ),
-                (
-                    EnvelopeId::ICO2,
-                    EnvelopeConfig {
-                        total_cap: 1_200_000,
-                        upfront_rate: Percent::from_percent(0),
-                        cliff: 0u32,
-                        vesting_duration: 6 * MONTHS
-                    }
-                ),
-                (
-                    EnvelopeId::Seed,
-                    EnvelopeConfig {
-                        total_cap: 1_500_000,
-                        upfront_rate: Percent::from_percent(0),
-                        cliff: 18 * MONTHS,
-                        vesting_duration: 12 * MONTHS
-                    }
-                ),
-                (
-                    EnvelopeId::SerieA,
-                    EnvelopeConfig {
-                        total_cap: 4_000_000,
-                        upfront_rate: Percent::from_percent(0),
-                        cliff: 12 * MONTHS,
-                        vesting_duration: 12 * MONTHS
-                    }
-                ),
-            ]
-        }
     })
 }
 
