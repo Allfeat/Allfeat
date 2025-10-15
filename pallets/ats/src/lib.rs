@@ -41,10 +41,9 @@ use scale_info::prelude::vec::Vec;
 #[frame_support::pallet()]
 pub mod pallet {
     use super::*;
-    use allfeat_primitives::Moment;
     #[cfg(feature = "runtime-benchmarks")]
     use frame_support::traits::fungible::Mutate;
-    use frame_support::traits::{Time, fungible::MutateHold};
+    use frame_support::traits::fungible::MutateHold;
 
     pub type Hash256 = [u8; 32];
     pub type AtsId = u64;
@@ -78,9 +77,6 @@ pub mod pallet {
         #[cfg(not(feature = "runtime-benchmarks"))]
         /// The currency trait used to manage ATS payments.
         type Currency: MutateHold<Self::AccountId, Reason = Self::RuntimeHoldReason>;
-
-        #[pallet::no_default]
-        type Timestamp: Time<Moment = Moment>;
 
         #[pallet::no_default]
         #[cfg(feature = "runtime-benchmarks")]
@@ -133,10 +129,12 @@ pub mod pallet {
     #[derive(
         Encode, Decode, MaxEncodedLen, TypeInfo, Clone, PartialEq, Eq, DecodeWithMemTracking, Debug,
     )]
-    pub struct AtsVersion {
+    #[scale_info(skip_type_params(T))]
+    #[codec(mel_bound(T: Config))]
+    pub struct AtsVersion<T: Config> {
         pub version: VersionNumber,
         pub hash_commitment: Hash256,
-        pub timestamp: Moment,
+        pub registered_at: BlockNumberFor<T>,
     }
 
     /// Counter for generating unique ATS IDs
@@ -149,8 +147,14 @@ pub mod pallet {
 
     /// Maps (ATS ID, VersionNumber) to AtsVersion
     #[pallet::storage]
-    pub type AtsVersions<T: Config> =
-        StorageDoubleMap<_, Blake2_128Concat, AtsId, Blake2_128Concat, VersionNumber, AtsVersion>;
+    pub type AtsVersions<T: Config> = StorageDoubleMap<
+        _,
+        Blake2_128Concat,
+        AtsId,
+        Blake2_128Concat,
+        VersionNumber,
+        AtsVersion<T>,
+    >;
 
     /// Maps hash_commitment to ATS ID (for backward compatibility and lookup)
     #[pallet::storage]
@@ -227,8 +231,8 @@ pub mod pallet {
                 Error::<T>::AtsDataAlreadyExist
             );
 
-            // Get current timestamp
-            let timestamp = T::Timestamp::now();
+            // Get current block number
+            let registered_at = <frame_system::Pallet<T>>::block_number();
 
             // Get next ATS ID
             let ats_id = NextAtsId::<T>::get();
@@ -241,10 +245,10 @@ pub mod pallet {
             };
 
             // Create first AtsVersion (version = 1)
-            let ats_version = AtsVersion {
+            let ats_version = AtsVersion::<T> {
                 version: 1,
                 hash_commitment,
-                timestamp,
+                registered_at,
             };
 
             // Get fixed registration cost
@@ -297,14 +301,14 @@ pub mod pallet {
             let current_version = LatestVersion::<T>::get(ats_id);
             let new_version = current_version.saturating_add(1);
 
-            // Get current timestamp
-            let timestamp = T::Timestamp::now();
+            // Get current block number
+            let registered_at = <frame_system::Pallet<T>>::block_number();
 
             // Create new AtsVersion
-            let ats_version = AtsVersion {
+            let ats_version = AtsVersion::<T> {
                 version: new_version,
                 hash_commitment,
-                timestamp,
+                registered_at,
             };
 
             // Get fixed registration cost
