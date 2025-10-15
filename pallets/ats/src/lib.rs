@@ -49,8 +49,27 @@ pub mod pallet {
     pub type AtsId = u64;
     pub type VersionNumber = u32;
 
+    /// Public inputs for the claim ZKP verification
+    #[derive(
+        Encode, Decode, MaxEncodedLen, TypeInfo, Clone, PartialEq, Eq, DecodeWithMemTracking, Debug,
+    )]
+    pub struct ZkpPublicInputs {
+        pub hash_title: Hash256,
+        pub hash_audio: Hash256,
+        pub hash_creators: Hash256,
+        pub hash_commitment: Hash256,
+        pub zkp_timestamp: Hash256,
+        pub nullifier: Hash256,
+    }
+
     /// The in-code storage version.
     const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
+
+    /// Maximum size for a Groth16 proof (in bytes)
+    /// A Groth16 proof consists of 3 G1 points (2 for π_A, π_B, π_C)
+    /// Each G1 point is 32 bytes compressed = 96 bytes total
+    /// We add some buffer for safety
+    const MAX_PROOF_SIZE: u32 = 256;
 
     /// Default implementations of [`DefaultConfig`], which can be used to implement [`Config`].
     pub mod config_preludes {
@@ -342,18 +361,22 @@ pub mod pallet {
 
         #[pallet::call_index(3)]
         #[pallet::weight(T::WeightInfo::claim())]
-        pub fn claim(origin: OriginFor<T>, pubs: Vec<Hash256>, proof: Vec<u8>) -> DispatchResult {
+        pub fn claim(
+            origin: OriginFor<T>,
+            public_inputs: ZkpPublicInputs,
+            proof: BoundedVec<u8, ConstU32<MAX_PROOF_SIZE>>,
+        ) -> DispatchResult {
             let sender = T::ProviderOrigin::ensure_origin(origin)?;
 
             // Fetch verification key from storage
             let vk = VerificationKey::<T>::get().ok_or(Error::<T>::VerificationKeyNotSet)?;
 
-            // Extract hash_commitment from the 4th element of pubs
-            let hash_commitment = *pubs.get(3).ok_or(Error::<T>::InvalidData)?;
+            // Extract hash_commitment from public inputs
+            let hash_commitment = public_inputs.hash_commitment;
 
             // Verify the zero-knowledge proof
             ensure!(
-                Self::verify_zkp(vk, pubs, proof)?,
+                Self::verify_zkp(vk, public_inputs, proof.into_inner())?,
                 Error::<T>::VerificationFailed
             );
 
@@ -439,7 +462,11 @@ impl<T: Config> Pallet<T> {
         }
     }
 
-    fn verify_zkp(vk: Vec<u8>, pubs: Vec<Hash256>, proof: Vec<u8>) -> Result<bool, Error<T>> {
+    fn verify_zkp(
+        vk: Vec<u8>,
+        public_inputs: ZkpPublicInputs,
+        proof: Vec<u8>,
+    ) -> Result<bool, Error<T>> {
         // 1) Deserialize
         let vk = VerifyingKey::<Bn254>::deserialize_compressed(vk.as_slice())
             .map_err(|_| Error::<T>::InvalidData)?;
@@ -448,8 +475,18 @@ impl<T: Config> Pallet<T> {
         let proof = Proof::<Bn254>::deserialize_compressed(proof.as_slice())
             .map_err(|_| Error::<T>::InvalidData)?;
 
-        let mut publics: Vec<Fr> = Vec::with_capacity(pubs.len());
-        for b in &pubs {
+        // Convert public inputs to field elements in the correct order
+        let pubs_array = [
+            public_inputs.hash_title,
+            public_inputs.hash_audio,
+            public_inputs.hash_creators,
+            public_inputs.hash_commitment,
+            public_inputs.zkp_timestamp,
+            public_inputs.nullifier,
+        ];
+
+        let mut publics: Vec<Fr> = Vec::with_capacity(pubs_array.len());
+        for b in &pubs_array {
             publics.push(Self::fr_from_be32(b).map_err(|_| Error::<T>::InvalidData)?);
         }
 
