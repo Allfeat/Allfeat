@@ -28,7 +28,6 @@ parameter_types! {
 }
 
 impl pallet_ats::Config for Runtime {
-    type Timestamp = Timestamp;
     type Currency = Balances;
     type RuntimeHoldReason = RuntimeHoldReason;
     type ProviderOrigin = EnsureSigned<Self::AccountId>;
