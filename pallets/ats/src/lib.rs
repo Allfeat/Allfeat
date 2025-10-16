@@ -69,7 +69,7 @@ pub mod pallet {
     /// A Groth16 proof consists of 3 G1 points (2 for π_A, π_B, π_C)
     /// Each G1 point is 32 bytes compressed = 96 bytes total
     /// We add some buffer for safety
-    const MAX_PROOF_SIZE: u32 = 256;
+    pub const MAX_PROOF_SIZE: u32 = 256;
 
     /// Default implementations of [`DefaultConfig`], which can be used to implement [`Config`].
     pub mod config_preludes {
@@ -376,7 +376,7 @@ pub mod pallet {
 
             // Verify the zero-knowledge proof
             ensure!(
-                Self::verify_zkp(vk, public_inputs, proof.into_inner())?,
+                Self::verify_zkp(vk, public_inputs, proof)?,
                 Error::<T>::VerificationFailed
             );
 
@@ -465,7 +465,7 @@ impl<T: Config> Pallet<T> {
     fn verify_zkp(
         vk: Vec<u8>,
         public_inputs: ZkpPublicInputs,
-        proof: Vec<u8>,
+        proof: BoundedVec<u8, ConstU32<{ pallet::MAX_PROOF_SIZE }>>,
     ) -> Result<bool, Error<T>> {
         // 1) Deserialize
         let vk = VerifyingKey::<Bn254>::deserialize_compressed(vk.as_slice())
