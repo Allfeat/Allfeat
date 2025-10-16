@@ -41,17 +41,35 @@ use scale_info::prelude::vec::Vec;
 #[frame_support::pallet()]
 pub mod pallet {
     use super::*;
-    use allfeat_primitives::Moment;
     #[cfg(feature = "runtime-benchmarks")]
     use frame_support::traits::fungible::Mutate;
-    use frame_support::traits::{Time, fungible::MutateHold};
+    use frame_support::traits::fungible::MutateHold;
 
     pub type Hash256 = [u8; 32];
     pub type AtsId = u64;
     pub type VersionNumber = u32;
 
+    /// Public inputs for the claim ZKP verification
+    #[derive(
+        Encode, Decode, MaxEncodedLen, TypeInfo, Clone, PartialEq, Eq, DecodeWithMemTracking, Debug,
+    )]
+    pub struct ZkpPublicInputs {
+        pub hash_title: Hash256,
+        pub hash_audio: Hash256,
+        pub hash_creators: Hash256,
+        pub hash_commitment: Hash256,
+        pub zkp_timestamp: Hash256,
+        pub nullifier: Hash256,
+    }
+
     /// The in-code storage version.
     const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
+
+    /// Maximum size for a Groth16 proof (in bytes)
+    /// A Groth16 proof consists of 3 G1 points (2 for π_A, π_B, π_C)
+    /// Each G1 point is 32 bytes compressed = 96 bytes total
+    /// We add some buffer for safety
+    pub const MAX_PROOF_SIZE: u32 = 256;
 
     /// Default implementations of [`DefaultConfig`], which can be used to implement [`Config`].
     pub mod config_preludes {
@@ -78,9 +96,6 @@ pub mod pallet {
         #[cfg(not(feature = "runtime-benchmarks"))]
         /// The currency trait used to manage ATS payments.
         type Currency: MutateHold<Self::AccountId, Reason = Self::RuntimeHoldReason>;
-
-        #[pallet::no_default]
-        type Timestamp: Time<Moment = Moment>;
 
         #[pallet::no_default]
         #[cfg(feature = "runtime-benchmarks")]
@@ -133,10 +148,12 @@ pub mod pallet {
     #[derive(
         Encode, Decode, MaxEncodedLen, TypeInfo, Clone, PartialEq, Eq, DecodeWithMemTracking, Debug,
     )]
-    pub struct AtsVersion {
+    #[scale_info(skip_type_params(T))]
+    #[codec(mel_bound(T: Config))]
+    pub struct AtsVersion<T: Config> {
         pub version: VersionNumber,
         pub hash_commitment: Hash256,
-        pub timestamp: Moment,
+        pub registered_at: BlockNumberFor<T>,
     }
 
     /// Counter for generating unique ATS IDs
@@ -149,8 +166,14 @@ pub mod pallet {
 
     /// Maps (ATS ID, VersionNumber) to AtsVersion
     #[pallet::storage]
-    pub type AtsVersions<T: Config> =
-        StorageDoubleMap<_, Blake2_128Concat, AtsId, Blake2_128Concat, VersionNumber, AtsVersion>;
+    pub type AtsVersions<T: Config> = StorageDoubleMap<
+        _,
+        Blake2_128Concat,
+        AtsId,
+        Blake2_128Concat,
+        VersionNumber,
+        AtsVersion<T>,
+    >;
 
     /// Maps hash_commitment to ATS ID (for backward compatibility and lookup)
     #[pallet::storage]
@@ -227,8 +250,8 @@ pub mod pallet {
                 Error::<T>::AtsDataAlreadyExist
             );
 
-            // Get current timestamp
-            let timestamp = T::Timestamp::now();
+            // Get current block number
+            let registered_at = <frame_system::Pallet<T>>::block_number();
 
             // Get next ATS ID
             let ats_id = NextAtsId::<T>::get();
@@ -241,10 +264,10 @@ pub mod pallet {
             };
 
             // Create first AtsVersion (version = 1)
-            let ats_version = AtsVersion {
+            let ats_version = AtsVersion::<T> {
                 version: 1,
                 hash_commitment,
-                timestamp,
+                registered_at,
             };
 
             // Get fixed registration cost
@@ -297,14 +320,14 @@ pub mod pallet {
             let current_version = LatestVersion::<T>::get(ats_id);
             let new_version = current_version.saturating_add(1);
 
-            // Get current timestamp
-            let timestamp = T::Timestamp::now();
+            // Get current block number
+            let registered_at = <frame_system::Pallet<T>>::block_number();
 
             // Create new AtsVersion
-            let ats_version = AtsVersion {
+            let ats_version = AtsVersion::<T> {
                 version: new_version,
                 hash_commitment,
-                timestamp,
+                registered_at,
             };
 
             // Get fixed registration cost
@@ -340,32 +363,20 @@ pub mod pallet {
         #[pallet::weight(T::WeightInfo::claim())]
         pub fn claim(
             origin: OriginFor<T>,
-            hash_title: Hash256,
-            hash_audio: Hash256,
-            hash_creators: Hash256,
-            hash_commitment: Hash256,
-            zkp_timestamp: Hash256,
-            nullifier: Hash256,
-            proof: Vec<u8>,
+            public_inputs: ZkpPublicInputs,
+            proof: BoundedVec<u8, ConstU32<MAX_PROOF_SIZE>>,
         ) -> DispatchResult {
             let sender = T::ProviderOrigin::ensure_origin(origin)?;
 
             // Fetch verification key from storage
             let vk = VerificationKey::<T>::get().ok_or(Error::<T>::VerificationKeyNotSet)?;
 
-            // Construct pubs vector from individual parameters
-            let pubs = scale_info::prelude::vec![
-                hash_title,
-                hash_audio,
-                hash_creators,
-                hash_commitment,
-                zkp_timestamp,
-                nullifier,
-            ];
+            // Extract hash_commitment from public inputs
+            let hash_commitment = public_inputs.hash_commitment;
 
             // Verify the zero-knowledge proof
             ensure!(
-                Self::verify_zkp(vk, pubs, proof)?,
+                Self::verify_zkp(vk, public_inputs, proof)?,
                 Error::<T>::VerificationFailed
             );
 
@@ -451,7 +462,11 @@ impl<T: Config> Pallet<T> {
         }
     }
 
-    fn verify_zkp(vk: Vec<u8>, pubs: Vec<Hash256>, proof: Vec<u8>) -> Result<bool, Error<T>> {
+    fn verify_zkp(
+        vk: Vec<u8>,
+        public_inputs: ZkpPublicInputs,
+        proof: BoundedVec<u8, ConstU32<{ pallet::MAX_PROOF_SIZE }>>,
+    ) -> Result<bool, Error<T>> {
         // 1) Deserialize
         let vk = VerifyingKey::<Bn254>::deserialize_compressed(vk.as_slice())
             .map_err(|_| Error::<T>::InvalidData)?;
@@ -460,8 +475,18 @@ impl<T: Config> Pallet<T> {
         let proof = Proof::<Bn254>::deserialize_compressed(proof.as_slice())
             .map_err(|_| Error::<T>::InvalidData)?;
 
-        let mut publics: Vec<Fr> = Vec::with_capacity(pubs.len());
-        for b in &pubs {
+        // Convert public inputs to field elements in the correct order
+        let pubs_array = [
+            public_inputs.hash_title,
+            public_inputs.hash_audio,
+            public_inputs.hash_creators,
+            public_inputs.hash_commitment,
+            public_inputs.zkp_timestamp,
+            public_inputs.nullifier,
+        ];
+
+        let mut publics: Vec<Fr> = Vec::with_capacity(pubs_array.len());
+        for b in &pubs_array {
             publics.push(Self::fr_from_be32(b).map_err(|_| Error::<T>::InvalidData)?);
         }
 

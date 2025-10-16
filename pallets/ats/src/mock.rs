@@ -44,12 +44,9 @@ mod runtime {
     pub type System = frame_system;
 
     #[runtime::pallet_index(1)]
-    pub type Time = pallet_timestamp;
-
-    #[runtime::pallet_index(2)]
     pub type Balances = pallet_balances;
 
-    #[runtime::pallet_index(3)]
+    #[runtime::pallet_index(2)]
     pub type MockAts = pallet_ats;
 }
 
@@ -68,12 +65,8 @@ parameter_types! {
     pub AtsPalletId: PalletId = PalletId(*b"m/alltst");
 }
 
-#[derive_impl(pallet_timestamp::config_preludes::TestDefaultConfig)]
-impl pallet_timestamp::Config for Test {}
-
 #[derive_impl(pallet_ats::config_preludes::TestDefaultConfig)]
 impl pallet_ats::Config for Test {
-    type Timestamp = Time;
     type Currency = Balances;
     type ProviderOrigin = EnsureSigned<Self::AccountId>;
     type AdminOrigin = EnsureRoot<Self::AccountId>;
