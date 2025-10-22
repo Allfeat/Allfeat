@@ -83,7 +83,7 @@ pallet-ats = { version = "1.0.0-dev", default-features = false, path = "./pallet
 pallet-midds = { version = "1.0.0-dev", default-features = false, path = "./pallets/midds" }
 pallet-token-allocation = { version = "1.0.0", default-features = false, path = "./pallets/token-allocation" }
 
-allfeat-midds = { package = "allfeat-midds-v2", version = "1.1.0", default-features = false }
+allfeat-midds = { package = "allfeat-midds-v2", version = "1.1.1", default-features = false }
 
 pallet-validators = { version = "1.0.0", default-features = false, path = "./pallets/validators" }
 

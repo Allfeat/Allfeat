@@ -30,7 +30,7 @@ use frame_support::traits::fungible::Inspect;
 use frame_support::{
     PalletId,
     traits::{
-        fungible::MutateHold,
+        fungible::{Mutate, MutateHold, Unbalanced},
         tokens::{Fortitude, Precision, Preservation},
     },
 };
@@ -112,6 +112,7 @@ pub struct EnvelopeConfig<Balance, BlockNumber, AccountId> {
 
 #[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, TypeInfo, MaxEncodedLen)]
 pub struct Allocation<Balance, BlockNumber> {
+    pub envelope: EnvelopeId,
     pub total: Balance,
     pub upfront: Balance,
     pub vested_total: Balance,
@@ -121,17 +122,20 @@ pub struct Allocation<Balance, BlockNumber> {
 
 #[frame_support::pallet(dev_mode)]
 pub mod pallet {
-
     use super::*;
 
     #[pallet::config]
     pub trait Config: frame_system::Config {
-        type Currency: MutateHold<Self::AccountId, Reason = Self::RuntimeHoldReason>;
+        type Currency: MutateHold<Self::AccountId, Reason = Self::RuntimeHoldReason>
+            + Mutate<Self::AccountId>;
 
         type AdminOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
         #[pallet::constant]
         type PalletId: Get<PalletId>;
+
+        #[pallet::constant]
+        type MaxAllocations: Get<u32>;
 
         #[pallet::constant]
         type EpochDuration: Get<BlockNumberFor<Self>>;
@@ -160,12 +164,12 @@ pub mod pallet {
         StorageMap<_, Blake2_128Concat, EnvelopeId, BalanceOf<T>, ValueQuery>;
 
     #[pallet::storage]
-    pub type Allocations<T: Config> = StorageMap<
+    pub type AllocationsOf<T: Config> = StorageMap<
         _,
         Blake2_128Concat,
-        (EnvelopeId, T::AccountId),
-        Allocation<BalanceOf<T>, BlockNumberFor<T>>,
-        OptionQuery,
+        T::AccountId,
+        BoundedVec<Allocation<BalanceOf<T>, BlockNumberFor<T>>, T::MaxAllocations>,
+        ValueQuery,
     >;
 
     #[pallet::storage]
@@ -176,7 +180,7 @@ pub mod pallet {
     pub type NextPayoutAt<T: Config> = StorageValue<_, BlockNumberFor<T>, ValueQuery>;
 
     #[pallet::storage]
-    pub type PayoutCursor<T: Config> = StorageValue<_, (EnvelopeId, T::AccountId), OptionQuery>;
+    pub type PayoutCursor<T: Config> = StorageValue<_, (T::AccountId, u32), OptionQuery>;
 
     #[pallet::storage]
     pub type EpochIndex<T: Config> = StorageValue<_, u64, ValueQuery>;
@@ -191,62 +195,47 @@ pub mod pallet {
             let mut remaining = T::MaxPayoutsPerBlock::get();
             let mut db_reads: u64 = 0;
             let mut db_writes: u64 = 0;
-
             let mut total_released = BalanceOf::<T>::zero();
 
-            let start = PayoutCursor::<T>::get();
-
-            let mut iter = match start {
-                Some(k) => Allocations::<T>::iter_from(Allocations::<T>::hashed_key_for(k)),
-                None => Allocations::<T>::iter(),
-            };
-
-            while remaining > 0 {
-                if let Some(((id, who), mut alloc)) = iter.next() {
-                    db_reads += 1;
-
-                    let cfg = match Envelopes::<T>::get(id) {
-                        Some(c) => c,
-                        None => {
-                            remaining -= 1;
-                            continue;
-                        }
-                    };
-
-                    if let Some(claimable) = Self::claimable_amount(&cfg, &alloc, now) {
-                        if !claimable.is_zero() {
-                            let reason: T::RuntimeHoldReason = HoldReason::TokenAllocation.into();
-                            if T::Currency::release(&reason, &who, claimable, Precision::Exact)
-                                .is_ok()
-                            {
-                                alloc.released = alloc.released.saturating_add(claimable);
-                                total_released = total_released.saturating_add(claimable);
-
-                                let done =
-                                    alloc.vested_total.saturating_sub(alloc.released).is_zero();
-                                if done {
-                                    Self::release_provider(&who);
-                                    Allocations::<T>::remove((id, &who));
-                                    db_writes += 1;
-                                } else {
-                                    Allocations::<T>::insert((id, &who), &alloc);
-                                    db_writes += 1;
-                                }
-                            }
-                        }
-                    }
-
-                    remaining -= 1;
-                } else {
-                    break;
-                }
-            }
-
-            if let Some(((next_id, next_who), _)) = iter.next() {
+            if let Some((cursor_who, cursor_idx)) = PayoutCursor::<T>::get() {
                 db_reads += 1;
-                PayoutCursor::<T>::put((next_id, next_who));
-                db_writes += 1;
-            } else {
+
+                let (rem_after, next_idx_opt, released_delta, writes) =
+                    Self::process_account(&cursor_who, cursor_idx, remaining, now);
+
+                remaining = rem_after;
+                total_released = total_released.saturating_add(released_delta);
+                db_writes = db_writes.saturating_add(writes);
+
+                if remaining == 0 {
+                    let idx = next_idx_opt.unwrap_or(0);
+                    PayoutCursor::<T>::put((cursor_who, idx));
+                    db_writes += 1;
+                    return T::DbWeight::get().reads_writes(db_reads, db_writes);
+                }
+
+                let mut iter =
+                    AllocationsOf::<T>::iter_from(AllocationsOf::<T>::hashed_key_for(&cursor_who));
+
+                if iter.next().is_some() {
+                    db_reads += 1;
+                }
+
+                for (who, _vec) in iter {
+                    db_reads += 1;
+                    let (rem_after, _next_idx_opt, released_delta, writes) =
+                        Self::process_account(&who, 0u32, remaining, now);
+                    remaining = rem_after;
+                    total_released = total_released.saturating_add(released_delta);
+                    db_writes = db_writes.saturating_add(writes);
+
+                    if remaining == 0 {
+                        PayoutCursor::<T>::put((who, 0u32));
+                        db_writes += 1;
+                        return T::DbWeight::get().reads_writes(db_reads, db_writes);
+                    }
+                }
+
                 PayoutCursor::<T>::kill();
                 let next = now.saturating_add(T::EpochDuration::get());
                 NextPayoutAt::<T>::put(next);
@@ -258,7 +247,36 @@ pub mod pallet {
                     at: now,
                     total_released,
                 });
+
+                return T::DbWeight::get().reads_writes(db_reads, db_writes);
             }
+
+            for (who, _vec) in AllocationsOf::<T>::iter() {
+                db_reads += 1;
+                let (rem_after, _next_idx_opt, released_delta, writes) =
+                    Self::process_account(&who, 0u32, remaining, now);
+                remaining = rem_after;
+                total_released = total_released.saturating_add(released_delta);
+                db_writes = db_writes.saturating_add(writes);
+
+                if remaining == 0 {
+                    PayoutCursor::<T>::put((who, 0u32));
+                    db_writes += 1;
+                    return T::DbWeight::get().reads_writes(db_reads, db_writes);
+                }
+            }
+
+            PayoutCursor::<T>::kill();
+            let next = now.saturating_add(T::EpochDuration::get());
+            NextPayoutAt::<T>::put(next);
+            EpochIndex::<T>::mutate(|e| *e = e.saturating_add(1));
+            db_writes += 3;
+
+            Self::deposit_event(Event::EpochPayout {
+                epoch: EpochIndex::<T>::get(),
+                at: now,
+                total_released,
+            });
 
             T::DbWeight::get().reads_writes(db_reads, db_writes)
         }
@@ -287,16 +305,23 @@ pub mod pallet {
                     !Envelopes::<T>::contains_key(id),
                     "duplicate envelope in genesis"
                 );
-                let cliff: BlockNumberFor<T> = cfg_in.cliff;
-                let vesting: BlockNumberFor<T> = cfg_in.vesting_duration;
                 let cfg: EnvConfigOf<T> =
                     EnvelopeConfig::<BalanceOf<T>, BlockNumberFor<T>, T::AccountId> {
                         total_cap: cfg_in.total_cap,
                         upfront_rate: cfg_in.upfront_rate,
-                        cliff,
-                        vesting_duration: vesting,
+                        cliff: cfg_in.cliff,
+                        vesting_duration: cfg_in.vesting_duration,
                         unique_beneficiary: cfg_in.unique_beneficiary.clone(),
                     };
+
+                let envelope_acc = id.account::<T>();
+                if !cfg.total_cap.is_zero() {
+                    <T as Config>::Currency::mint_into(&envelope_acc, cfg.total_cap)
+                        .expect("mint_into should succeed at genesis");
+                }
+
+                <T as Config>::Currency::deactivate(cfg.total_cap);
+
                 Envelopes::<T>::insert(id, cfg);
                 EnvelopeDistributed::<T>::insert(id, BalanceOf::<T>::zero());
             }
@@ -311,7 +336,7 @@ pub mod pallet {
                     );
                 }
                 assert!(
-                    !Allocations::<T>::contains_key((id, who)),
+                    !AllocationsOf::<T>::contains_key(who),
                     "duplicate allocation in genesis"
                 );
 
@@ -357,6 +382,7 @@ pub mod pallet {
         AllocationExists,
         EnvelopeCapExceeded,
         ArithmeticOverflow,
+        TooMuchAllocations,
         AllocationDisabled,
     }
 
@@ -379,7 +405,7 @@ pub mod pallet {
             }
 
             ensure!(
-                !Allocations::<T>::contains_key((id, &who)),
+                !AllocationsOf::<T>::contains_key(&who),
                 Error::<T>::AllocationExists
             );
 
@@ -426,6 +452,7 @@ pub mod pallet {
             let vested_total = total.saturating_sub(upfront);
             let start_block = start.unwrap_or(cfg.cliff);
             let alloc = Allocation {
+                envelope: id,
                 total,
                 upfront,
                 vested_total,
@@ -447,6 +474,9 @@ pub mod pallet {
 
             if !upfront.is_zero() {
                 <T as Config>::Currency::release(&reason, who, upfront, Precision::Exact)?;
+
+                <T as Config>::Currency::reactivate(upfront);
+
                 if emit_events {
                     Self::deposit_event(Event::UpfrontPaid(id, who.clone(), upfront));
                 }
@@ -457,7 +487,13 @@ pub mod pallet {
                 return Ok(());
             }
 
-            Allocations::<T>::insert((id, who), alloc);
+            AllocationsOf::<T>::try_mutate(who, |vec| -> DispatchResult {
+                vec.try_push(alloc.clone())
+                    .map_err(|_| Error::<T>::TooMuchAllocations)?;
+
+                Ok(())
+            })?;
+
             EnvelopeDistributed::<T>::insert(id, new_distributed);
 
             Ok(())
@@ -479,6 +515,75 @@ pub mod pallet {
             let vested = Self::mul_div(alloc.vested_total, elapsed, cfg.vesting_duration)?;
             let available = vested.saturating_sub(alloc.released);
             Some(available)
+        }
+
+        fn process_account(
+            who: &T::AccountId,
+            start_idx: u32,
+            mut remaining: u32,
+            now: BlockNumberFor<T>,
+        ) -> (u32, Option<u32>, BalanceOf<T>, u64) {
+            let mut writes: u64 = 0;
+            let mut total_released = BalanceOf::<T>::zero();
+
+            AllocationsOf::<T>::mutate(who, |vec| {
+                if (start_idx as usize) > vec.len() {
+                    return;
+                }
+
+                let mut i = start_idx as usize;
+                while remaining > 0 && i < vec.len() {
+                    let alloc = &mut vec[i];
+
+                    let id = alloc.envelope;
+
+                    let Some(cfg) = Envelopes::<T>::get(id) else {
+                        vec.swap_remove(i);
+                        writes += 1;
+                        continue;
+                    };
+
+                    if let Some(claimable) = Self::claimable_amount(&cfg, alloc, now) {
+                        if !claimable.is_zero() {
+                            let reason: T::RuntimeHoldReason = HoldReason::TokenAllocation.into();
+                            if T::Currency::release(&reason, who, claimable, Precision::Exact)
+                                .is_ok()
+                            {
+                                alloc.released = alloc.released.saturating_add(claimable);
+                                total_released = total_released.saturating_add(claimable);
+
+                                <T as Config>::Currency::reactivate(claimable);
+
+                                let done =
+                                    alloc.vested_total.saturating_sub(alloc.released).is_zero();
+                                if done {
+                                    vec.swap_remove(i);
+                                    writes += 1;
+                                    remaining = remaining.saturating_sub(1);
+                                    continue;
+                                } else {
+                                    writes += 1;
+                                }
+                            }
+                        }
+                    }
+
+                    i += 1;
+                    remaining = remaining.saturating_sub(1);
+                }
+            });
+
+            let mut next_idx: Option<u32> = None;
+            if !AllocationsOf::<T>::get(who).is_empty() {
+                if remaining == 0 {
+                    next_idx = Some(0u32);
+                }
+            } else {
+                Self::release_provider(who);
+                writes += 1;
+            }
+
+            (remaining, next_idx, total_released, writes)
         }
 
         pub fn mul_div(

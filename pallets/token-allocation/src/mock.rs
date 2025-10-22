@@ -66,6 +66,7 @@ parameter_types! {
     pub TokenAllocPalletId: PalletId = PalletId(*b"tkalloc8");
     pub const EpochDuration: u64 = 5;
     pub const MaxPayoutPerBlock: u32 = 5;
+    pub const MaxAllocations: u32 = 5;
 }
 
 impl pallet_token_allocation::Config for Test {
@@ -74,6 +75,7 @@ impl pallet_token_allocation::Config for Test {
     type PalletId = TokenAllocPalletId;
     type EpochDuration = EpochDuration;
     type MaxPayoutsPerBlock = MaxPayoutPerBlock;
+    type MaxAllocations = MaxAllocations;
     type RuntimeHoldReason = RuntimeHoldReason;
 }
 

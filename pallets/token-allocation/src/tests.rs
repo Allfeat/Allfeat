@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     mock::{EpochDuration, RuntimeHoldReason, RuntimeOrigin, run_to_block},
-    pallet::{Allocations, Event as PalletEvent, PayoutCursor},
+    pallet::{Event as PalletEvent, PayoutCursor},
 };
 use frame_support::{
     assert_noop, assert_ok,
@@ -55,12 +55,12 @@ fn add_allocation_pays_upfront_and_holds_rest() {
         assert_eq!(held, alloc - upfront);
 
         // allocation stored correctly
-        let a = Allocations::<Test>::get((EnvelopeId::Seed, alice)).expect("alloc");
-        assert_eq!(a.total, alloc);
-        assert_eq!(a.upfront, upfront);
-        assert_eq!(a.vested_total, alloc - upfront);
-        assert_eq!(a.released, 0);
-        assert_eq!(a.start, 0);
+        let a = AllocationsOf::<Test>::get(alice);
+        assert_eq!(a.first().unwrap().total, alloc);
+        assert_eq!(a.first().unwrap().upfront, upfront);
+        assert_eq!(a.first().unwrap().vested_total, alloc - upfront);
+        assert_eq!(a.first().unwrap().released, 0);
+        assert_eq!(a.first().unwrap().start, 0);
     });
 }
 
@@ -98,21 +98,22 @@ fn epoch_payout_releases_linearly_and_completes() {
 
         // Before cliff: nothing released
         run_to_block(1);
-        let a1 = Allocations::<Test>::get((EnvelopeId::ICO1, alice)).unwrap();
-        assert_eq!(a1.released, 0);
+        let a1 = AllocationsOf::<Test>::get(alice);
+        assert_eq!(a1.first().unwrap().released, 0);
 
         // Reach first epoch (EpochDuration=5 in mock) after cliff
         run_to_block(5);
-        let a2 = Allocations::<Test>::get((EnvelopeId::ICO1, alice)).unwrap();
+        let a2 = AllocationsOf::<Test>::get(alice);
         assert!(
-            a2.released > 0 && a2.released < a2.vested_total,
+            a2.first().unwrap().released > 0
+                && a2.first().unwrap().released < a2.first().unwrap().vested_total,
             "should be partially released"
         );
 
         // Go far enough so vesting completes and allocation is pruned
         run_to_block(30);
         assert!(
-            Allocations::<Test>::get((EnvelopeId::ICO1, alice)).is_none(),
+            AllocationsOf::<Test>::get(alice).is_empty(),
             "completed allocation must be removed"
         );
 
@@ -172,11 +173,8 @@ fn pagination_continues_next_block_not_next_epoch() {
         );
 
         // Snapshot released after block 5 (some accounts advanced, one still pending).
-        let released_after_5 = |acc: u128| {
-            Allocations::<Test>::get((EnvelopeId::Airdrop, acc))
-                .map(|a| a.released)
-                .unwrap_or(0)
-        };
+        let released_after_5 =
+            |acc: u128| AllocationsOf::<Test>::get(acc).first().unwrap().released;
         let r5: Vec<u64> = (0..6u128).map(|i| released_after_5(3000 + i)).collect();
 
         // 2) Next block (6) must continue processing (same epoch), finish the last item,
@@ -252,7 +250,7 @@ fn upfront_100_percent_finishes_immediately_and_disappears() {
         // With 100% upfront, vesting_total == 0, allocation should be removed on first epoch pass
         run_to_block(5);
         assert!(
-            Allocations::<Test>::get((EnvelopeId::Exchanges, alice)).is_none(),
+            AllocationsOf::<Test>::get(alice).is_empty(),
             "100% upfront allocation must not persist"
         );
     });

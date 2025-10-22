@@ -25,6 +25,7 @@ parameter_types! {
     pub const TokenAllocPalletId: PalletId = PalletId(*b"m/tknalc");
     pub const EpochDuration: BlockNumber = DAYS;
     pub const MaxPayoutsPerBlock: u32 = 256;
+    pub const MaxAllocations: u32 = 10;
 }
 
 impl pallet_token_allocation::Config for Runtime {
@@ -33,5 +34,6 @@ impl pallet_token_allocation::Config for Runtime {
     type PalletId = TokenAllocPalletId;
     type EpochDuration = EpochDuration;
     type MaxPayoutsPerBlock = MaxPayoutsPerBlock;
+    type MaxAllocations = MaxAllocations;
     type RuntimeHoldReason = RuntimeHoldReason;
 }

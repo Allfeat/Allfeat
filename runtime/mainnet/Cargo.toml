@@ -25,11 +25,7 @@ shared-runtime = { workspace = true }
 allfeat-primitives = { workspace = true }
 
 # Allfeat pallets
-pallet-midds = { workspace = true }
 pallet-token-allocation = { workspace = true }
-
-# Allfeat MIDDS
-allfeat-midds = { workspace = true }
 
 sp-application-crypto = { workspace = true }
 sp-core = { features = ["serde"], workspace = true }
@@ -93,7 +89,6 @@ std = [
 	"pallet-validators/std",
 	"shared-runtime/std",
 	"serde_json/std",
-	"pallet-midds/std",
 	"pallet-timestamp/std",
 	"frame-support/std",
 	"frame-system/std",
@@ -136,15 +131,12 @@ std = [
 	"frame-benchmarking?/std",
 	"frame-system-benchmarking?/std",
 	"substrate-wasm-builder",
-	# MIDDS
-	"allfeat-midds/std",
 ]
 runtime-benchmarks = [
 	"frame-benchmarking/runtime-benchmarks",
 	"frame-support/runtime-benchmarks",
 	"frame-system-benchmarking/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
-	"pallet-midds/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-utility/runtime-benchmarks",
 	"pallet-grandpa/runtime-benchmarks",
@@ -161,7 +153,6 @@ runtime-benchmarks = [
 	"pallet-validators/runtime-benchmarks",
 	"pallet-treasury/runtime-benchmarks",
 	"pallet-token-allocation/runtime-benchmarks",
-	"allfeat-midds/runtime-benchmarks",
 ]
 try-runtime = [
 	"frame-executive/try-runtime",
@@ -169,7 +160,6 @@ try-runtime = [
 	"frame-system/try-runtime",
 	"frame-try-runtime/try-runtime",
 	"pallet-validators/try-runtime",
-	"pallet-midds/try-runtime",
 	"pallet-timestamp/try-runtime",
 	"pallet-utility/try-runtime",
 	"pallet-aura/try-runtime",

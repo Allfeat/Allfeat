@@ -10,15 +10,15 @@ use sp_runtime::traits::IdentityLookup;
 #[cfg(feature = "runtime-benchmarks")]
 use pallet_treasury::ArgumentsFactory;
 
-use crate::{Balances, BlockNumber, DAYS, Runtime, RuntimeEvent, System, TreasuryFoundation};
+use crate::{Balances, BlockNumber, DAYS, Runtime, RuntimeEvent, System, Treasury};
 
 parameter_types! {
-    pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsr1");
+    pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
     pub const SpendPeriod: BlockNumber = 6 * DAYS;
     pub const PayoutSpendPeriod: BlockNumber = 30 * DAYS;
     pub const MaxBalance: Balance = Balance::MAX;
 
-    pub TreasuryAccount: AccountId = TreasuryFoundation::account_id();
+    pub TreasuryAccount: AccountId = Treasury::account_id();
 }
 
 #[cfg(feature = "runtime-benchmarks")]

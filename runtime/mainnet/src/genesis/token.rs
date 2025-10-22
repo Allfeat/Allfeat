@@ -3,7 +3,7 @@ use pallet_token_allocation::{EnvelopeConfig, EnvelopeId};
 use shared_runtime::currency::AFT;
 use sp_runtime::Percent;
 
-use crate::{MONTHS, Runtime, TreasuryFoundation};
+use crate::{MONTHS, Runtime, Treasury};
 
 pub struct TokenGenesis {
     pub balances: pallet_balances::GenesisConfig<Runtime>,
@@ -13,30 +13,7 @@ pub struct TokenGenesis {
 pub fn tokenomics() -> TokenGenesis {
     TokenGenesis {
         balances: pallet_balances::GenesisConfig {
-            balances: vec![
-                (EnvelopeId::Founders.account::<Runtime>(), 67_000_000 * AFT),
-                (EnvelopeId::KoL.account::<Runtime>(), 3_000_000 * AFT),
-                (EnvelopeId::Private1.account::<Runtime>(), 120_000_000 * AFT),
-                (EnvelopeId::Private2.account::<Runtime>(), 80_000_000 * AFT),
-                (EnvelopeId::ICO1.account::<Runtime>(), 30_000_000 * AFT),
-                (EnvelopeId::Seed.account::<Runtime>(), 75_000_000 * AFT),
-                (EnvelopeId::ICO2.account::<Runtime>(), 30_000_000 * AFT),
-                (EnvelopeId::SerieA.account::<Runtime>(), 80_000_000 * AFT),
-                (EnvelopeId::Airdrop.account::<Runtime>(), 10_000_000 * AFT),
-                (
-                    EnvelopeId::CommunityRewards.account::<Runtime>(),
-                    260_000_000 * AFT,
-                ),
-                (
-                    EnvelopeId::Exchanges.account::<Runtime>(),
-                    100_000_000 * AFT,
-                ),
-                (
-                    EnvelopeId::ResearchDevelopment.account::<Runtime>(),
-                    125_000_000 * AFT,
-                ),
-                (EnvelopeId::Reserve.account::<Runtime>(), 20_000_000 * AFT),
-            ],
+            balances: vec![],
             dev_accounts: None,
         },
         allocations: pallet_token_allocation::GenesisConfig {
@@ -84,7 +61,7 @@ pub fn tokenomics() -> TokenGenesis {
                 (
                     EnvelopeId::ICO1,
                     EnvelopeConfig {
-                        total_cap: 600_000 * AFT,
+                        total_cap: 30_000_000 * AFT,
                         upfront_rate: Percent::from_percent(0),
                         cliff: 0u32,
                         vesting_duration: 6 * MONTHS,
@@ -94,7 +71,7 @@ pub fn tokenomics() -> TokenGenesis {
                 (
                     EnvelopeId::ICO2,
                     EnvelopeConfig {
-                        total_cap: 1_200_000 * AFT,
+                        total_cap: 30_000_000 * AFT,
                         upfront_rate: Percent::from_percent(0),
                         cliff: 0u32,
                         vesting_duration: 6 * MONTHS,
@@ -104,7 +81,7 @@ pub fn tokenomics() -> TokenGenesis {
                 (
                     EnvelopeId::Seed,
                     EnvelopeConfig {
-                        total_cap: 1_500_000 * AFT,
+                        total_cap: 75_000_000 * AFT,
                         upfront_rate: Percent::from_percent(0),
                         cliff: 18 * MONTHS,
                         vesting_duration: 12 * MONTHS,
@@ -114,7 +91,7 @@ pub fn tokenomics() -> TokenGenesis {
                 (
                     EnvelopeId::SerieA,
                     EnvelopeConfig {
-                        total_cap: 4_000_000 * AFT,
+                        total_cap: 80_000_000 * AFT,
                         upfront_rate: Percent::from_percent(0),
                         cliff: 12 * MONTHS,
                         vesting_duration: 12 * MONTHS,
@@ -138,7 +115,7 @@ pub fn tokenomics() -> TokenGenesis {
                         upfront_rate: Percent::from_percent(0),
                         cliff: 5 * MONTHS,
                         vesting_duration: 46 * MONTHS,
-                        unique_beneficiary: Some(TreasuryFoundation::account_id()),
+                        unique_beneficiary: Some(Treasury::account_id()),
                     },
                 ),
                 (
@@ -148,7 +125,7 @@ pub fn tokenomics() -> TokenGenesis {
                         upfront_rate: Percent::from_percent(0),
                         cliff: 4 * MONTHS,
                         vesting_duration: 12 * MONTHS,
-                        unique_beneficiary: Some(TreasuryFoundation::account_id()),
+                        unique_beneficiary: Some(Treasury::account_id()),
                     },
                 ),
                 (
@@ -158,7 +135,7 @@ pub fn tokenomics() -> TokenGenesis {
                         upfront_rate: Percent::from_percent(20),
                         cliff: 0u32,
                         vesting_duration: 26 * MONTHS,
-                        unique_beneficiary: Some(TreasuryFoundation::account_id()),
+                        unique_beneficiary: Some(Treasury::account_id()),
                     },
                 ),
                 (
@@ -168,7 +145,7 @@ pub fn tokenomics() -> TokenGenesis {
                         upfront_rate: Percent::from_percent(100),
                         cliff: 0u32,
                         vesting_duration: 0u32,
-                        unique_beneficiary: Some(TreasuryFoundation::account_id()),
+                        unique_beneficiary: Some(Treasury::account_id()),
                     },
                 ),
             ],

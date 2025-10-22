@@ -6,14 +6,14 @@ use frame_support::{
     traits::{Hooks, fungible::InspectHold},
 };
 use frame_system::pallet_prelude::BlockNumberFor;
-use pallet_token_allocation::{Allocations, HoldReason};
+use pallet_token_allocation::{AllocationsOf, HoldReason};
 use shared_runtime::currency::AFT;
 use sp_keyring::Sr25519Keyring;
 
 // Helper: read “held” balance on treasury under this pallet’s hold reason
 fn held_on_treasury() -> Balance {
     let reason = RuntimeHoldReason::TokenAllocation(HoldReason::TokenAllocation);
-    pallet_balances::Pallet::<Runtime>::balance_on_hold(&reason, &TreasuryFoundation::account_id())
+    pallet_balances::Pallet::<Runtime>::balance_on_hold(&reason, &Treasury::account_id())
 }
 
 fn advance_to(n: BlockNumberFor<Runtime>) {
@@ -54,8 +54,7 @@ fn foundation_receives_correct_upfront_at_genesis() {
         // Expected held: (260 + 100 + 125 + 20) - 45 = 460M
         let expected_held = 460_000_000u128 * AFT;
 
-        let free =
-            pallet_balances::Pallet::<Runtime>::free_balance(TreasuryFoundation::account_id());
+        let free = pallet_balances::Pallet::<Runtime>::free_balance(Treasury::account_id());
         assert_eq!(
             free, expected_upfront,
             "Treasury free balance (upfront) at genesis is wrong"
@@ -108,29 +107,22 @@ fn e2e_add_beneficiary_and_distribute_until_completion() {
         );
 
         // Allocation exists in storage with proper fields.
-        let mut alloc = Allocations::<Runtime>::get((
-            pallet_token_allocation::EnvelopeId::Private2,
-            alice.clone(),
-        ))
-        .expect("allocation should be created");
-        assert_eq!(alloc.total, alloc_total);
-        assert_eq!(alloc.upfront, upfront);
-        assert_eq!(alloc.vested_total, alloc_total - upfront);
-        assert_eq!(alloc.released, 0);
+        let mut alloc = AllocationsOf::<Runtime>::get(alice.clone());
+        assert_eq!(alloc.first().unwrap().total, alloc_total);
+        assert_eq!(alloc.first().unwrap().upfront, upfront);
+        assert_eq!(alloc.first().unwrap().vested_total, alloc_total - upfront);
+        assert_eq!(alloc.first().unwrap().released, 0);
 
         // --- BEFORE CLIFF: no release, even if epochs tick before the cliff.
         // Move to just before the cliff.
         let before_cliff = 3 * MONTHS - 1;
         advance_to(before_cliff);
 
-        alloc = Allocations::<Runtime>::get((
-            pallet_token_allocation::EnvelopeId::Private2,
-            alice.clone(),
-        ))
-        .unwrap();
+        alloc = AllocationsOf::<Runtime>::get(alice.clone());
         let free_before_cliff = pallet_balances::Pallet::<Runtime>::free_balance(&alice);
         assert_eq!(
-            alloc.released, 0,
+            alloc.first().unwrap().released,
+            0,
             "no vested release before the cliff (even with epochs)"
         );
         assert_eq!(
@@ -141,14 +133,11 @@ fn e2e_add_beneficiary_and_distribute_until_completion() {
         // --- AT CLIFF (exact): still nothing until the next epoch tick after the cliff.
         let at_cliff = 3 * MONTHS;
         advance_to(at_cliff);
-        alloc = Allocations::<Runtime>::get((
-            pallet_token_allocation::EnvelopeId::Private2,
-            alice.clone(),
-        ))
-        .unwrap();
+        alloc = AllocationsOf::<Runtime>::get(alice.clone());
         let free_at_cliff = pallet_balances::Pallet::<Runtime>::free_balance(&alice);
         assert_eq!(
-            alloc.released, 0,
+            alloc.first().unwrap().released,
+            0,
             "no release exactly at cliff unless epoch fires here"
         );
         assert_eq!(free_at_cliff, upfront);
@@ -157,14 +146,10 @@ fn e2e_add_beneficiary_and_distribute_until_completion() {
         let first_release_block = at_cliff + epoch;
         advance_to(first_release_block);
 
-        alloc = Allocations::<Runtime>::get((
-            pallet_token_allocation::EnvelopeId::Private2,
-            alice.clone(),
-        ))
-        .unwrap();
+        alloc = AllocationsOf::<Runtime>::get(alice.clone());
         let free_first_release = pallet_balances::Pallet::<Runtime>::free_balance(&alice);
         assert!(
-            alloc.released > 0,
+            alloc.first().unwrap().released > 0,
             "first release must happen on the first epoch after the cliff"
         );
         assert!(
@@ -179,12 +164,9 @@ fn e2e_add_beneficiary_and_distribute_until_completion() {
         advance_to(after_vest);
 
         // Allocation should be removed from storage.
-        let finished = Allocations::<Runtime>::get((
-            pallet_token_allocation::EnvelopeId::Private2,
-            alice.clone(),
-        ));
+        let finished = AllocationsOf::<Runtime>::get(alice.clone());
         assert!(
-            finished.is_none(),
+            finished.is_empty(),
             "allocation must be pruned once fully released"
         );
 

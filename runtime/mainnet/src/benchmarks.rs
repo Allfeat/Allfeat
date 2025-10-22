@@ -23,9 +23,6 @@ frame_benchmarking::define_benchmarks!(
     [pallet_grandpa, Grandpa]
     [pallet_identity, Identity]
     [pallet_im_online, ImOnline]
-    [pallet_midds_musical_works, MusicalWorks]
-    [pallet_midds_recordings, Recordings]
-    [pallet_midds_releases, Releases]
     [pallet_mmr, Mmr]
     [pallet_multisig, Multisig]
     [pallet_preimage, Preimage]
@@ -37,4 +34,5 @@ frame_benchmarking::define_benchmarks!(
     [pallet_utility, Utility]
     [pallet_validators, Validators]
     [pallet_transaction_payment, TransactionPayment]
+    [pallet_treasury, Treasury]
 );

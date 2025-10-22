@@ -19,7 +19,6 @@
 //! The Melodie runtime.
 
 #![cfg_attr(not(feature = "std"), no_std)]
-#![recursion_limit = "256"]
 
 // Make the WASM binary available.
 #[cfg(feature = "std")]
@@ -53,8 +52,6 @@ pub use constants::time::*;
 mod pallets;
 pub use pallets::*;
 mod genesis;
-mod midds;
-pub use midds::*;
 
 mod tests;
 
@@ -195,21 +192,11 @@ mod runtime {
     pub type Multisig = pallet_multisig;
 
     #[runtime::pallet_index(19)]
-    pub type TreasuryFoundation = pallet_treasury;
+    pub type Treasury = pallet_treasury;
 
     #[runtime::pallet_index(20)]
     pub type TokenAllocation = pallet_token_allocation;
 
     #[runtime::pallet_index(50)]
     pub type Mmr = pallet_mmr;
-
-    // Allfeat related
-    #[runtime::pallet_index(100)]
-    pub type MusicalWorks = pallet_midds<Instance1>;
-
-    #[runtime::pallet_index(101)]
-    pub type Recordings = pallet_midds<Instance2>;
-
-    #[runtime::pallet_index(102)]
-    pub type Releases = pallet_midds<Instance3>;
 }

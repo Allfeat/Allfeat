@@ -23,7 +23,6 @@ mod scheduler;
 mod aura;
 mod authorship;
 mod balances;
-mod fndn_treasury;
 mod grandpa;
 mod identity;
 mod im_online;
@@ -35,6 +34,7 @@ mod system;
 mod timestamp;
 mod token_allocation;
 mod transaction_payment;
+mod treasury;
 mod utility;
 mod validators;
 
