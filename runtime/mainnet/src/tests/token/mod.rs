@@ -54,6 +54,8 @@ fn foundation_receives_correct_upfront_at_genesis() {
         // Expected held: (260 + 100 + 125 + 20) - 45 = 460M
         let expected_held = 460_000_000u128 * AFT;
 
+        println!("{}", Treasury::account_id());
+
         let free = pallet_balances::Pallet::<Runtime>::free_balance(Treasury::account_id());
         assert_eq!(
             free, expected_upfront,

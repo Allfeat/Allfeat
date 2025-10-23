@@ -32,7 +32,7 @@ EXCLUDED_PALLETS=(
 
 # Load all pallet names in an array.
 ALL_PALLETS=($(
-  $BENCHER v1 benchmark pallet --runtime $RUNTIME_PATH --list=pallets --no-csv-header --genesis-builder-preset=development
+  $BENCHER v1 benchmark pallet --runtime $RUNTIME_PATH --list=pallets --no-csv-header --genesis-builder-preset=staging
 ))
 
 # Filter out the excluded pallets by concatenating the arrays and discarding duplicates.
@@ -54,7 +54,7 @@ for PALLET in "${PALLETS[@]}"; do
   OUTPUT=$(
     $BENCHER v1 benchmark pallet \
       --runtime $RUNTIME_PATH \
-      --genesis-builder-preset="development" \
+      --genesis-builder-preset="staging" \
       --pallet="$PALLET" \
       --extrinsic="*" \
       --output="$WEIGHT_FILE" \

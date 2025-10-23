@@ -1,14 +1,21 @@
+#[cfg(feature = "runtime-benchmarks")]
+use core::marker::PhantomData;
+
 use allfeat_primitives::{AccountId, Balance};
 use frame_support::{
     PalletId, parameter_types,
     traits::tokens::{PayFromAccount, UnityAssetBalanceConversion},
 };
-use frame_system::{EnsureRoot, EnsureWithSuccess};
+use frame_system::{EnsureRoot, EnsureRootWithSuccess};
 use sp_core::ConstU32;
 use sp_runtime::traits::IdentityLookup;
 
 #[cfg(feature = "runtime-benchmarks")]
+use frame_support::traits::fungible::{Inspect, Mutate};
+#[cfg(feature = "runtime-benchmarks")]
 use pallet_treasury::ArgumentsFactory;
+#[cfg(feature = "runtime-benchmarks")]
+use sp_core::crypto::FromEntropy;
 
 use crate::{Balances, BlockNumber, DAYS, Runtime, RuntimeEvent, System, Treasury};
 
@@ -22,15 +29,19 @@ parameter_types! {
 }
 
 #[cfg(feature = "runtime-benchmarks")]
-pub struct PalletTreasuryArguments;
+pub struct PalletTreasuryArguments<T>(PhantomData<T>);
 #[cfg(feature = "runtime-benchmarks")]
-impl ArgumentsFactory<(), AccountId> for PalletTreasuryArguments {
-    fn create_asset_kind(seed: u32) -> () {
+impl<T> ArgumentsFactory<(), AccountId> for PalletTreasuryArguments<T>
+where
+    T: Mutate<AccountId> + Inspect<AccountId>,
+{
+    fn create_asset_kind(_seed: u32) -> () {
         ()
     }
-
     fn create_beneficiary(seed: [u8; 32]) -> AccountId {
-        AccountId::from_entropy(&mut seed.as_slice()).unwrap()
+        let account = AccountId::from_entropy(&mut seed.as_slice()).unwrap();
+        <T as Mutate<_>>::mint_into(&account, <T as Inspect<_>>::minimum_balance()).unwrap();
+        account
     }
 }
 
@@ -45,7 +56,7 @@ impl pallet_treasury::Config for Runtime {
     type MaxApprovals = ConstU32<100>;
     type WeightInfo = pallet_treasury::weights::SubstrateWeight<Runtime>;
     type SpendFunds = ();
-    type SpendOrigin = EnsureWithSuccess<EnsureRoot<Self::AccountId>, Self::AccountId, MaxBalance>;
+    type SpendOrigin = EnsureRootWithSuccess<Self::AccountId, MaxBalance>;
     type AssetKind = ();
     type Beneficiary = Self::AccountId;
     type BeneficiaryLookup = IdentityLookup<Self::Beneficiary>;
@@ -54,5 +65,5 @@ impl pallet_treasury::Config for Runtime {
     type PayoutPeriod = PayoutSpendPeriod;
     type BlockNumberProvider = System;
     #[cfg(feature = "runtime-benchmarks")]
-    type BenchmarkHelper = ();
+    type BenchmarkHelper = PalletTreasuryArguments<Balances>;
 }
