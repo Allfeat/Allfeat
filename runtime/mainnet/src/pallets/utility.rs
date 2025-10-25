@@ -17,7 +17,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::*;
-use shared_runtime::weights;
 
 impl pallet_utility::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;

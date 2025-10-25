@@ -53,6 +53,8 @@ mod pallets;
 pub use pallets::*;
 mod genesis;
 
+mod weights;
+
 mod tests;
 
 #[cfg(feature = "runtime-benchmarks")]

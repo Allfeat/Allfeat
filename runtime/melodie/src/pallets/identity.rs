@@ -53,8 +53,7 @@ impl pallet_identity::Config for Runtime {
     type PendingUsernameExpiration = ConstU32<{ 7 * DAYS }>;
     type MaxSuffixLength = ConstU32<7>;
     type MaxUsernameLength = ConstU32<32>;
-    type WeightInfo = shared_runtime::weights::identity::AllfeatWeight<Runtime>;
-    //type WeightInfo = pallet_identity::weights::SubstrateWeight<Runtime>;
+    type WeightInfo = pallet_identity::weights::SubstrateWeight<Runtime>;
 
     #[cfg(feature = "runtime-benchmarks")]
     type BenchmarkHelper = ();

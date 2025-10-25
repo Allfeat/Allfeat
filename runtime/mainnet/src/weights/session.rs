@@ -45,16 +45,11 @@
 
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
-
-/// Weight functions needed for pallet_session.
-pub trait WeightInfo {
-	fn set_keys() -> Weight;
-	fn purge_keys() -> Weight;
-}
+use pallet_session::WeightInfo;
 
 /// Weights for pallet_session using the Allfeat node and recommended hardware.
 pub struct AllfeatWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> pallet_session::WeightInfo for AllfeatWeight<T> {
+impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
 	/// Storage: `Staking::Ledger` (r:1 w:0)
 	/// Proof: `Staking::Ledger` (`max_values`: None, `max_size`: Some(1067), added: 3542, mode: `MaxEncodedLen`)
 	/// Storage: `Session::NextKeys` (r:1 w:1)

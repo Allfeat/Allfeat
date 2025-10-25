@@ -22,7 +22,6 @@ use frame_support::{
     traits::{ConstU32, EqualPrivilegeOnly},
 };
 use frame_system::EnsureRoot;
-use shared_runtime::weights;
 
 parameter_types! {
     pub MaximumSchedulerWeight: frame_support::weights::Weight = frame_support::sp_runtime::Perbill::from_percent(80) *
@@ -38,7 +37,7 @@ impl pallet_scheduler::Config for Runtime {
     type ScheduleOrigin = EnsureRoot<AccountId>;
     type OriginPrivilegeCmp = EqualPrivilegeOnly;
     type MaxScheduledPerBlock = ConstU32<50>;
-    type WeightInfo = weights::scheduler::AllfeatWeight<Runtime>;
+    type WeightInfo = pallet_scheduler::weights::SubstrateWeight<Runtime>;
     type BlockNumberProvider = frame_system::Pallet<Runtime>;
     type Preimages = Preimage;
 }

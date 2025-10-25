@@ -26,7 +26,7 @@ use frame_support::{
     },
 };
 use frame_system::limits::BlockWeights;
-use shared_runtime::{NORMAL_DISPATCH_RATIO, RuntimeBlockLength, weights};
+use shared_runtime::{NORMAL_DISPATCH_RATIO, RuntimeBlockLength};
 
 frame_support::parameter_types! {
     pub const Version: sp_version::RuntimeVersion = VERSION;

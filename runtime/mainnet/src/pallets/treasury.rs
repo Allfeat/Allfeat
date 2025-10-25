@@ -1,6 +1,7 @@
 #[cfg(feature = "runtime-benchmarks")]
 use core::marker::PhantomData;
 
+use crate::weights;
 use allfeat_primitives::{AccountId, Balance};
 use frame_support::{
     PalletId, parameter_types,
@@ -54,7 +55,7 @@ impl pallet_treasury::Config for Runtime {
     type Burn = ();
     type BurnDestination = ();
     type MaxApprovals = ConstU32<100>;
-    type WeightInfo = pallet_treasury::weights::SubstrateWeight<Runtime>;
+    type WeightInfo = weights::treasury::AllfeatWeight<Runtime>;
     type SpendFunds = ();
     type SpendOrigin = EnsureRootWithSuccess<Self::AccountId, MaxBalance>;
     type AssetKind = ();

@@ -23,7 +23,6 @@ use frame_support::{
     traits::InstanceFilter,
 };
 use shared_runtime::currency::deposit;
-use shared_runtime::weights;
 
 parameter_types! {
     // One storage item; key size 32, value size 8; .

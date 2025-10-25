@@ -23,7 +23,7 @@ use allfeat_midds::release::Release;
 use allfeat_primitives::Balance;
 use frame_support::{PalletId, parameter_types};
 use frame_system::EnsureSigned;
-use shared_runtime::{currency::MILLIAFT, weights};
+use shared_runtime::currency::MILLIAFT;
 
 #[cfg(feature = "runtime-benchmarks")]
 use allfeat_midds::benchmarking::ReleaseBenchmarkHelper;
@@ -52,7 +52,7 @@ impl pallet_midds::Config<Releases> for Runtime {
     type ProviderOrigin = EnsureSigned<Self::AccountId>;
     type ByteDepositCost = ByteDepositCost;
     type UnregisterPeriod = UnregisterPeriod;
-    type WeightInfo = weights::midds_releases::AllfeatWeight<Runtime>;
+    type WeightInfo = ();
 
     #[cfg(feature = "runtime-benchmarks")]
     type BenchmarkHelper = ReleaseBenchmarkHelper;

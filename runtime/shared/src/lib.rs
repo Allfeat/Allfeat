@@ -33,9 +33,6 @@ pub mod elections;
 
 pub mod currency;
 
-/// Custom weights for Allfeat runtimes
-pub mod weights;
-
 parameter_types! {
     pub const BlockHashCount: BlockNumber = 4096;
     /// The portion of the `NORMAL_DISPATCH_RATIO` that we adjust the fees with. Blocks filled less

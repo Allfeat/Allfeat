@@ -22,7 +22,6 @@ use frame_support::{
     traits::{ConstU32, EqualPrivilegeOnly},
 };
 use frame_system::EnsureRoot;
-use shared_runtime::weights;
 
 parameter_types! {
     pub MaximumSchedulerWeight: frame_support::weights::Weight = frame_support::sp_runtime::Perbill::from_percent(80) *

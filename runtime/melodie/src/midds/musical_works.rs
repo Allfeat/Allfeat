@@ -23,7 +23,7 @@ use allfeat_midds::musical_work::MusicalWork;
 use allfeat_primitives::Balance;
 use frame_support::{PalletId, parameter_types};
 use frame_system::EnsureSigned;
-use shared_runtime::{currency::MILLIAFT, weights};
+use shared_runtime::currency::MILLIAFT;
 
 #[cfg(feature = "runtime-benchmarks")]
 use allfeat_midds::benchmarking::MusicalWorkBenchmarkHelper;
@@ -52,7 +52,7 @@ impl pallet_midds::Config<MusicalWorks> for Runtime {
     type ProviderOrigin = EnsureSigned<Self::AccountId>;
     type ByteDepositCost = ByteDepositCost;
     type UnregisterPeriod = UnregisterPeriod;
-    type WeightInfo = weights::midds_musical_works::AllfeatWeight<Runtime>;
+    type WeightInfo = ();
 
     #[cfg(feature = "runtime-benchmarks")]
     type BenchmarkHelper = MusicalWorkBenchmarkHelper;

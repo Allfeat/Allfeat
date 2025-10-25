@@ -23,7 +23,6 @@ use frame_support::{
     traits::InstanceFilter,
 };
 use shared_runtime::currency::deposit;
-use shared_runtime::weights;
 
 parameter_types! {
     // One storage item; key size 32, value size 8; .
@@ -85,7 +84,7 @@ impl pallet_proxy::Config for Runtime {
     type ProxyDepositBase = ProxyDepositBase;
     type ProxyDepositFactor = ProxyDepositFactor;
     type MaxProxies = MaxProxies;
-    type WeightInfo = weights::proxy::AllfeatWeight<Runtime>;
+    type WeightInfo = pallet_proxy::weights::SubstrateWeight<Runtime>;
     type MaxPending = MaxPending;
     type CallHasher = frame_support::sp_runtime::traits::BlakeTwo256;
     type AnnouncementDepositBase = AnnouncementDepositBase;

@@ -59,7 +59,7 @@ for PALLET in "${PALLETS[@]}"; do
       --extrinsic="*" \
       --output="$WEIGHT_FILE" \
       --header="./HEADER" \
-      --template=./.maintain/frame-weight-template.hbs 2>&1
+      --template=./.maintain/runtimes-weight-template.hbs 2>&1
   )
   if [ $? -ne 0 ]; then
     echo "$OUTPUT" >>"$ERR_FILE"

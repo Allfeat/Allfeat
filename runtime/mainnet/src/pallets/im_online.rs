@@ -24,7 +24,7 @@ use frame_support::sp_runtime::{
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use pallet_session::PeriodicSessions;
 use parity_scale_codec::Encode;
-use shared_runtime::{BlockHashCount, weights};
+use shared_runtime::BlockHashCount;
 
 frame_support::parameter_types! {
     pub const ImOnlineUnsignedPriority: TransactionPriority = TransactionPriority::MAX;

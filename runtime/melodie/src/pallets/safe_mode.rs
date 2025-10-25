@@ -53,6 +53,5 @@ impl pallet_safe_mode::Config for Runtime {
     type ForceDepositOrigin = EnsureRoot<AccountId>;
     type Notify = ();
     type ReleaseDelay = ReleaseDelay;
-    //type WeightInfo = polkadot_sdk::pallet_safe_mode::SubstrateWeight<Runtime>;
-    type WeightInfo = shared_runtime::weights::safe_mode::AllfeatWeight<Runtime>;
+    type WeightInfo = pallet_safe_mode::weights::SubstrateWeight<Runtime>;
 }

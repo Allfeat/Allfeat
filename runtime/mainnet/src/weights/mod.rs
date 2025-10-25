@@ -16,21 +16,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// MIDDS
 pub mod balances;
 pub mod identity;
 pub mod im_online;
-pub mod midds_musical_works;
-pub mod midds_party_identifiers;
-pub mod midds_releases;
-pub mod midds_tracks;
 pub mod multisig;
 pub mod preimage;
 pub mod proxy;
-pub mod safe_mode;
 pub mod scheduler;
 pub mod session;
 pub mod sudo;
 pub mod system;
 pub mod timestamp;
+pub mod transaction_payment;
+pub mod treasury;
 pub mod utility;
+pub mod validators;

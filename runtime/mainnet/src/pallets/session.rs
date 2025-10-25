@@ -23,7 +23,6 @@ use frame_support::{
     sp_runtime::{impl_opaque_keys, traits::OpaqueKeys},
 };
 use pallet_session::PeriodicSessions;
-use shared_runtime::weights;
 use sp_runtime::traits::ConvertInto;
 
 impl_opaque_keys! {

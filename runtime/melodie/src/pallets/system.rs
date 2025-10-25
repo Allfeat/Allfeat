@@ -26,7 +26,7 @@ use frame_support::{
     },
 };
 use frame_system::limits::BlockWeights;
-use shared_runtime::{NORMAL_DISPATCH_RATIO, RuntimeBlockLength, weights};
+use shared_runtime::{NORMAL_DISPATCH_RATIO, RuntimeBlockLength};
 
 frame_support::parameter_types! {
     pub const Version: sp_version::RuntimeVersion = VERSION;
@@ -49,7 +49,7 @@ impl frame_system::Config for Runtime {
     type DbWeight = ParityDbWeight;
     type Version = Version;
     type AccountData = pallet_balances::AccountData<Balance>;
-    type SystemWeightInfo = weights::system::AllfeatWeight<Runtime>;
+    type SystemWeightInfo = frame_system::weights::SubstrateWeight<Runtime>;
     type SS58Prefix = ConstU16<42>;
     type MaxConsumers = ConstU32<16>;
 }

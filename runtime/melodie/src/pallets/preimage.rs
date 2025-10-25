@@ -22,7 +22,7 @@ use frame_support::{
     traits::{LinearStoragePrice, fungible::HoldConsideration},
 };
 use frame_system::EnsureRoot;
-use shared_runtime::{currency::deposit, weights};
+use shared_runtime::currency::deposit;
 
 parameter_types! {
     pub const PreimageBaseDeposit: Balance = deposit(2, 64);
@@ -33,7 +33,7 @@ parameter_types! {
 
 impl pallet_preimage::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type WeightInfo = weights::preimage::AllfeatWeight<Runtime>;
+    type WeightInfo = pallet_preimage::weights::SubstrateWeight<Runtime>;
     type Currency = Balances;
     type ManagerOrigin = EnsureRoot<AccountId>;
     type Consideration = HoldConsideration<

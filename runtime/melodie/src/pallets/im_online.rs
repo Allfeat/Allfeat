@@ -24,7 +24,7 @@ use frame_support::sp_runtime::{
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use pallet_session::PeriodicSessions;
 use parity_scale_codec::Encode;
-use shared_runtime::{BlockHashCount, weights};
+use shared_runtime::BlockHashCount;
 
 frame_support::parameter_types! {
     pub const ImOnlineUnsignedPriority: TransactionPriority = TransactionPriority::MAX;
@@ -45,7 +45,7 @@ impl pallet_im_online::Config for Runtime {
     type UnsignedPriority = ImOnlineUnsignedPriority;
     type MaxKeys = MaxKeys;
     type MaxPeerInHeartbeats = MaxPeerInHeartbeats;
-    type WeightInfo = weights::im_online::AllfeatWeight<Runtime>;
+    type WeightInfo = pallet_im_online::weights::SubstrateWeight<Runtime>;
 }
 
 impl<LocalCall> frame_system::offchain::CreateTransaction<LocalCall> for Runtime

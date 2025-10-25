@@ -18,7 +18,7 @@
 
 use crate::*;
 use frame_support::parameter_types;
-use shared_runtime::{currency::AFT, weights};
+use shared_runtime::currency::AFT;
 use sp_core::ConstU32;
 
 parameter_types! {
@@ -40,7 +40,6 @@ impl pallet_balances::Config for Runtime {
     type ExistentialDeposit = ExistentialDeposit;
     type AccountStore = frame_system::Pallet<Runtime>;
     type WeightInfo = weights::balances::AllfeatWeight<Runtime>;
-    // type WeightInfo = pallet_balances::weights::SubstrateWeight<Runtime>;
     type MaxLocks = MaxLocks;
     type MaxReserves = MaxReserves;
     type ReserveIdentifier = [u8; 8];

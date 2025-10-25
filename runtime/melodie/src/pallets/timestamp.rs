@@ -18,7 +18,6 @@
 
 use crate::*;
 use frame_support::parameter_types;
-use shared_runtime::weights;
 
 parameter_types! {
     pub const MinimumPeriod: Moment = SLOT_DURATION / 2;
@@ -28,5 +27,5 @@ impl pallet_timestamp::Config for Runtime {
     type Moment = Moment;
     type OnTimestampSet = Aura;
     type MinimumPeriod = MinimumPeriod;
-    type WeightInfo = weights::timestamp::AllfeatWeight<Runtime>;
+    type WeightInfo = pallet_timestamp::weights::SubstrateWeight<Runtime>;
 }
