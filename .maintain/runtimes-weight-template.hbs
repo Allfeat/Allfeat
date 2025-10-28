@@ -22,11 +22,8 @@ use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 use {{pallet}}::WeightInfo;
 
-/// Weights for `{{pallet}}` using the Allfeat node and recommended hardware.
 pub struct AllfeatWeight<T>(PhantomData<T>);
-{{else}}
 impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
-{{/if}}
 	{{#each benchmarks as |benchmark|}}
 	{{#each benchmark.comments as |comment|}}
 	/// {{comment}}

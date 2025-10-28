@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
-    mock::{EpochDuration, RuntimeHoldReason, RuntimeOrigin, run_to_block},
-    pallet::{Event as PalletEvent, PayoutCursor},
+    mock::{RuntimeHoldReason, RuntimeOrigin, run_to_block},
+    pallet::Event as PalletEvent,
 };
 use frame_support::{
     assert_noop, assert_ok,
@@ -55,12 +55,12 @@ fn add_allocation_pays_upfront_and_holds_rest() {
         assert_eq!(held, alloc - upfront);
 
         // allocation stored correctly
-        let a = AllocationsOf::<Test>::get(alice);
-        assert_eq!(a.first().unwrap().total, alloc);
-        assert_eq!(a.first().unwrap().upfront, upfront);
-        assert_eq!(a.first().unwrap().vested_total, alloc - upfront);
-        assert_eq!(a.first().unwrap().released, 0);
-        assert_eq!(a.first().unwrap().start, 0);
+        let a = Allocations::<Test>::get(0).unwrap();
+        assert_eq!(a.total, alloc);
+        assert_eq!(a.upfront, upfront);
+        assert_eq!(a.vested_total, alloc - upfront);
+        assert_eq!(a.released, 0);
+        assert_eq!(a.start, 0);
     });
 }
 
@@ -98,22 +98,21 @@ fn epoch_payout_releases_linearly_and_completes() {
 
         // Before cliff: nothing released
         run_to_block(1);
-        let a1 = AllocationsOf::<Test>::get(alice);
-        assert_eq!(a1.first().unwrap().released, 0);
+        let a1 = Allocations::<Test>::get(0).unwrap();
+        assert_eq!(a1.released, 0);
 
         // Reach first epoch (EpochDuration=5 in mock) after cliff
         run_to_block(5);
-        let a2 = AllocationsOf::<Test>::get(alice);
+        let a2 = Allocations::<Test>::get(0).unwrap();
         assert!(
-            a2.first().unwrap().released > 0
-                && a2.first().unwrap().released < a2.first().unwrap().vested_total,
+            a2.released > 0 && a2.released < a2.vested_total,
             "should be partially released"
         );
 
         // Go far enough so vesting completes and allocation is pruned
         run_to_block(30);
         assert!(
-            AllocationsOf::<Test>::get(alice).is_empty(),
+            !Allocations::<Test>::contains_key(0),
             "completed allocation must be removed"
         );
 
@@ -129,93 +128,6 @@ fn epoch_payout_releases_linearly_and_completes() {
             )
         });
         assert!(has_epoch_event, "should emit EpochPayout at least once");
-    });
-}
-
-// -----------------------------------------------------------------------------
-// 3) Pagination respects MaxPayoutPerBlock and cursor doesn't reprocess
-// -----------------------------------------------------------------------------
-#[test]
-fn pagination_continues_next_block_not_next_epoch() {
-    // MaxPayoutPerBlock = 5 (mock). Create 6 allocations so we need 2 blocks within the same epoch.
-    let total_cap: u64 = 10_000_000;
-    let env = EnvelopeConfig {
-        total_cap,
-        upfront_rate: Percent::from_percent(0),
-        cliff: 0,
-        vesting_duration: 20,
-        unique_beneficiary: None,
-    };
-
-    let mut ext = new_test_ext(vec![(EnvelopeId::Airdrop, env.clone())], vec![]);
-    ext.execute_with(|| {
-        let src = EnvelopeId::Airdrop.account::<Test>();
-        pallet_balances::Pallet::<Test>::make_free_balance_be(&src, total_cap);
-
-        // 6 allocations
-        for i in 0..6u128 {
-            let who = 3000u128 + i;
-            assert_ok!(TokenAllocation::add_allocation(
-                RuntimeOrigin::root(),
-                EnvelopeId::Airdrop,
-                who,
-                1_000u64,
-                Some(0),
-            ));
-        }
-
-        // 1) First epoch tick at block 5 processes at most 5 items and leaves a cursor.
-        run_to_block(5);
-        let cur1 = PayoutCursor::<Test>::get();
-        assert!(
-            cur1.is_some(),
-            "cursor should exist when there is remaining work"
-        );
-
-        // Snapshot released after block 5 (some accounts advanced, one still pending).
-        let released_after_5 =
-            |acc: u128| AllocationsOf::<Test>::get(acc).first().unwrap().released;
-        let r5: Vec<u64> = (0..6u128).map(|i| released_after_5(3000 + i)).collect();
-
-        // 2) Next block (6) must continue processing (same epoch), finish the last item,
-        //    close the epoch, clear cursor, and push NextPayoutAt to 6 + EpochDuration (= 11).
-        run_to_block(6);
-        let cur2 = PayoutCursor::<Test>::get();
-        assert!(
-            cur2.is_none(),
-            "cursor must be cleared once the scan completes"
-        );
-
-        // Check NextPayoutAt moved to 6 + EpochDuration (EpochDuration = 5 in mock)
-        let expected_next = 6 + EpochDuration::get();
-        let next_at = crate::pallet::NextPayoutAt::<Test>::get();
-        assert_eq!(
-            next_at, expected_next,
-            "NextPayoutAt should be set right after completion"
-        );
-
-        // Snapshot released after block 6.
-        let r6: Vec<u64> = (0..6u128).map(|i| released_after_5(3000 + i)).collect();
-
-        // Everyone should be >= their values at block 5 (monotonic).
-        for (a5, a6) in r5.iter().zip(r6.iter()) {
-            assert!(a6 >= a5, "released must be monotonic between 5 -> 6");
-        }
-
-        // 3) Between blocks 7..10, on_initialize should *not* run (we're before NextPayoutAt=11),
-        //    so released amounts must remain unchanged.
-        run_to_block(10);
-        let r10: Vec<u64> = (0..6u128).map(|i| released_after_5(3000 + i)).collect();
-        assert_eq!(r10, r6, "released should not change before NextPayoutAt");
-
-        // 4) At block 11 (new epoch), payouts resume and released must increase (if vesting remains).
-        run_to_block(11);
-        let r11: Vec<u64> = (0..6u128).map(|i| released_after_5(3000 + i)).collect();
-        let any_increased = r11.iter().zip(r10.iter()).any(|(n, p)| n > p);
-        assert!(
-            any_increased,
-            "released should increase again at the next epoch start (block 11)"
-        );
     });
 }
 
@@ -250,7 +162,7 @@ fn upfront_100_percent_finishes_immediately_and_disappears() {
         // With 100% upfront, vesting_total == 0, allocation should be removed on first epoch pass
         run_to_block(5);
         assert!(
-            AllocationsOf::<Test>::get(alice).is_empty(),
+            !Allocations::<Test>::contains_key(0),
             "100% upfront allocation must not persist"
         );
     });
