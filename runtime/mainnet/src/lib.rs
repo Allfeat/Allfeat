@@ -120,7 +120,6 @@ pub type RuntimeExecutive = frame_executive::Executive<
 /// All migrations of the runtime, aside from the ones declared in the pallets.
 ///
 /// This can be a tuple of types, each implementing `OnRuntimeUpgrade`.
-#[allow(unused_parens)]
 type Migrations = ();
 
 #[frame_support::runtime]
@@ -179,26 +178,20 @@ mod runtime {
     pub type Historical = pallet_session::historical;
 
     #[runtime::pallet_index(14)]
-    pub type Identity = pallet_identity;
-
-    #[runtime::pallet_index(15)]
     pub type Scheduler = pallet_scheduler;
 
-    #[runtime::pallet_index(16)]
+    #[runtime::pallet_index(15)]
     pub type Preimage = pallet_preimage;
 
-    #[runtime::pallet_index(17)]
+    #[runtime::pallet_index(16)]
     pub type Proxy = pallet_proxy;
 
-    #[runtime::pallet_index(18)]
+    #[runtime::pallet_index(17)]
     pub type Multisig = pallet_multisig;
 
-    #[runtime::pallet_index(19)]
+    #[runtime::pallet_index(18)]
     pub type Treasury = pallet_treasury;
 
-    #[runtime::pallet_index(20)]
+    #[runtime::pallet_index(19)]
     pub type TokenAllocation = pallet_token_allocation;
-
-    #[runtime::pallet_index(50)]
-    pub type Mmr = pallet_mmr;
 }
