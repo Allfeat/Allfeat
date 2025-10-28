@@ -1,0 +1,32 @@
+name: Allfeat Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release-allfeat:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Srtool build
+        id: srtool_build
+        uses: chevdor/srtool-actions@v0.8.0
+        env:
+          BUILD_OPTS: "--features on-chain-release-build"
+        with:
+          chain: allfeat
+          runtime_dir: runtime/mainnet
+      - name: Summary
+        run: |
+          echo Summary:
+          echo - version: ${{ steps.srtool_build.outputs.version }}
+          echo - info: ${{ steps.srtool_build.outputs.info }}
+          echo - prop: ${{ steps.srtool_build.outputs.proposal_hash }}
+          echo - json: ${{ steps.srtool_build.outputs.json }}
+      - name: Archive Runtime
+        uses: actions/upload-artifact@v2
+        with:
+          name: allfeat-runtime-${{ github.sha }}
+          path: |
+            ${{ steps.srtool_build.outputs.wasm }}
+            allfeat-srtool-digest.json
