@@ -34,5 +34,5 @@ impl pallet_token_allocation::Config for Runtime {
     type EpochDuration = EpochDuration;
     type MaxPayoutsPerBlock = MaxPayoutsPerBlock;
     type RuntimeHoldReason = RuntimeHoldReason;
-    type WeightInfo = ();
+    type WeightInfo = weights::token_allocation::AllfeatWeight<Runtime>;
 }

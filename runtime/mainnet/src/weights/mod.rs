@@ -27,6 +27,7 @@ pub mod session;
 pub mod sudo;
 pub mod system;
 pub mod timestamp;
+pub mod token_allocation;
 pub mod transaction_payment;
 pub mod treasury;
 pub mod utility;
