@@ -6,65 +6,20 @@ name = "shared-runtime"
 version.workspace = true
 
 [dependencies]
-enumflags2 = { workspace = true }
-parity-scale-codec = { workspace = true, features = [
-	"derive",
-	"max-encoded-len",
-] }
-scale-info = { workspace = true, features = ["derive"] }
-pallet-ats = { workspace = true }
-pallet-midds = { workspace = true }
 allfeat-primitives = { workspace = true }
 
 frame-support = { workspace = true }
 frame-system = { workspace = true }
 sp-core = { workspace = true }
-pallet-timestamp = { workspace = true }
-pallet-utility = { workspace = true }
-pallet-mmr = { workspace = true }
-pallet-authorship = { workspace = true }
-pallet-sudo = { workspace = true }
-pallet-session = { workspace = true }
-pallet-scheduler = { workspace = true }
-pallet-preimage = { workspace = true }
-pallet-proxy = { workspace = true }
-pallet-multisig = { workspace = true }
-pallet-balances = { workspace = true }
-pallet-im-online = { workspace = true }
 pallet-transaction-payment = { workspace = true }
-pallet-identity = { workspace = true }
-pallet-authority-discovery = { workspace = true }
-pallet-safe-mode = { workspace = true }
-pallet-validators = { workspace = true }
 
 [features]
 default = ["std"]
 std = [
-	"scale-info/std",
-	"enumflags2/std",
 	"allfeat-primitives/std",
-	"parity-scale-codec/std",
 	"frame-support/std",
 	"frame-system/std",
 	"sp-core/std",
-	"pallet-ats/std",
-	"pallet-midds/std",
-	"pallet-timestamp/std",
-	"pallet-utility/std",
-	"pallet-mmr/std",
-	"pallet-authorship/std",
-	"pallet-sudo/std",
-	"pallet-session/std",
-	"pallet-scheduler/std",
-	"pallet-preimage/std",
-	"pallet-proxy/std",
-	"pallet-multisig/std",
-	"pallet-balances/std",
-	"pallet-im-online/std",
 	"pallet-transaction-payment/std",
-	"pallet-identity/std",
-	"pallet-authority-discovery/std",
-	"pallet-safe-mode/std",
-	"pallet-validators/std"
 ]
 test = []

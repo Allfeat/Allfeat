@@ -12,9 +12,6 @@ clap = { workspace = true }
 serde_json = { workspace = true }
 futures = { workspace = true }
 log = { workspace = true }
-rand = { workspace = true }
-tokio = { version = "1.40", default-features = false }
-async-trait = { version = "0.1.79" }
 
 allfeat-primitives = { workspace = true }
 
@@ -42,28 +39,20 @@ sc-consensus-slots = { workspace = true, default-features = true }
 sp-consensus-aura = { workspace = true, default-features = true }
 sp-consensus-grandpa = { workspace = true, default-features = true }
 sp-core = { workspace = true, default-features = true }
-sp-genesis-builder = { workspace = true, default-features = true }
 sp-offchain = { workspace = true, default-features = true }
 sp-session = { workspace = true, default-features = true }
 sp-transaction-pool = { workspace = true, default-features = true }
-sp-keystore = { workspace = true, default-features = true }
 sp-consensus = { workspace = true, default-features = true }
-sp-transaction-storage-proof = { workspace = true, default-features = true }
 
 # substrate primitives
 sp-api = { workspace = true, default-features = true }
 sp-block-builder = { workspace = true, default-features = true }
 sp-blockchain = { workspace = true, default-features = true }
-sp-inherents = { workspace = true, default-features = true }
 sp-io = { workspace = true, default-features = true }
-sp-keyring = { workspace = true, default-features = true }
 sp-runtime = { workspace = true, default-features = true }
 sp-timestamp = { workspace = true, default-features = true }
 
 # frame and pallets
-frame-metadata-hash-extension = { workspace = true, default-features = true }
-frame-system = { workspace = true, default-features = true }
-pallet-transaction-payment = { workspace = true, default-features = true }
 pallet-transaction-payment-rpc = { workspace = true, default-features = true }
 substrate-frame-rpc-system = { workspace = true, default-features = true }
 
@@ -84,8 +73,6 @@ all-runtime = ["melodie-runtime", "allfeat-runtime"]
 
 runtime-benchmarks = [
 	"frame-benchmarking-cli/runtime-benchmarks",
-	"frame-system/runtime-benchmarks",
-	"pallet-transaction-payment/runtime-benchmarks",
 	"sc-service/runtime-benchmarks",
 	"melodie-runtime?/runtime-benchmarks",
 	"allfeat-runtime?/runtime-benchmarks",

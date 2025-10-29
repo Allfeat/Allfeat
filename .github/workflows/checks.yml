@@ -8,9 +8,6 @@ on:
       - "**.rs"
       - "**.toml"
       - "**.lock"
-      - "**.ts"
-      - "**.yml"
-      - "**.sol"
   pull_request:
     types: [ opened, synchronize, ready_for_review ]
     branches:
@@ -20,9 +17,6 @@ on:
       - "**.rs"
       - "**.toml"
       - "**.lock"
-      - "**.ts"
-      - "**.yml"
-      - "**.sol"
 
 env:
   CACHE_VERSION: 0

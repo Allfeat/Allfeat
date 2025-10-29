@@ -17,9 +17,7 @@ parity-scale-codec = { features = [
 	"derive",
 	"max-encoded-len",
 ], workspace = true }
-log = { workspace = true }
 scale-info = { features = ["derive"], workspace = true }
-allfeat-primitives = { workspace = true }
 frame-benchmarking = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
@@ -41,9 +39,7 @@ std = [
 	"frame-support/std",
 	"frame-system/std",
 	"parity-scale-codec/std",
-	"log/std",
 	"scale-info/std",
-	"allfeat-primitives/std",
 	"pallet-timestamp/std",
 	"pallet-balances/std",
 	"frame-benchmarking/std",
