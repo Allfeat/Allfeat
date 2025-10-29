@@ -55,6 +55,7 @@ mod genesis;
 
 mod weights;
 
+#[cfg(test)]
 mod tests;
 
 #[cfg(feature = "runtime-benchmarks")]

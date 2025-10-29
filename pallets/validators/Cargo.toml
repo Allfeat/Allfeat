@@ -7,7 +7,6 @@ license = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-serde = { workspace = true }
 log = { workspace = true }
 
 parity-scale-codec = { workspace = true }
@@ -26,7 +25,6 @@ default = ['std']
 std = [
   'parity-scale-codec/std',
   'scale-info/std',
-  'serde/std',
   'log/std',
   'frame-support/std',
   'pallet-session/std',

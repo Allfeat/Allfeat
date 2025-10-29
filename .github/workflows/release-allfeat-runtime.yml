@@ -35,7 +35,7 @@ jobs:
           WASM_PATH="runtime/mainnet/target/srtool/release/wbuild/allfeat-runtime/allfeat_runtime.compact.compressed.wasm"
           cp "${WASM_PATH}" "release-artifacts/allfeat_runtime.compact.compressed.wasm"
 
-          echo '${{ steps.srtool_build.outputs.json }}' > release-artifacts/srtool.json
+          echo '${{ steps.srtool_build.outputs.json }}' > release-artifacts/allfeat-runtime-srtool.json
 
           cat > release-artifacts/RELEASE_SUMMARY.md << 'EOF'
           # Allfeat Runtime Release
@@ -47,18 +47,7 @@ jobs:
           ## Srtool Info
           ${{ steps.srtool_build.outputs.info }}
 
-          ## Srtool JSON (build metadata)
-          ```json
-          ${{ steps.srtool_build.outputs.json }}
-          ```
           EOF
-
-          SPEC_VERSION=$(echo '${{ steps.srtool_build.outputs.json }}' | jq -r '
-            .runtime.compressed.subwasm.core_version.specVersion
-          ')
-          echo "$SPEC_VERSION" > release-artifacts/spec_version.txt
-
-          echo "spec_version=$SPEC_VERSION" >> $GITHUB_OUTPUT
 
       - name: Upload workflow artifact (debug)
         uses: actions/upload-artifact@v4
@@ -77,24 +66,18 @@ jobs:
 
             ## Runtime
             - Git tag: `${{ github.ref_name }}`
-            - Runtime version (Cargo): `${{ steps.srtool_build.outputs.version }}`
-            - Runtime specVersion: `${{ steps.prep.outputs.spec_version }}`
+            - Runtime version (Cargo): `${{ steps.srtool_build.outputs.info.rustc }}`
             - Proposal hash: `${{ steps.srtool_build.outputs.proposal_hash }}`
 
             ## Deterministic build (srtool)
             - Info:
               ${{ steps.srtool_build.outputs.info }}
 
-            - JSON:
-              ```json
-              ${{ steps.srtool_build.outputs.json }}
-              ```
-
             ## Verification
             Built with srtool-actions@v0.9.2 and
             BUILD_OPTS="--features on-chain-release-build".
 
-          draft: false
+          draft: true
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -105,7 +88,6 @@ jobs:
           tag_name: ${{ github.ref_name }}
           files: |
             release-artifacts/allfeat_runtime.compact.compressed.wasm
-            release-artifacts/srtool.json
-            release-artifacts/RELEASE_SUMMARY.md
+            release-artifacts/allfeat-runtime-srtool.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

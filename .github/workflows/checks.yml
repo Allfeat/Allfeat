@@ -8,9 +8,6 @@ on:
       - "**.rs"
       - "**.toml"
       - "**.lock"
-      - "**.ts"
-      - "**.yml"
-      - "**.sol"
   pull_request:
     types: [ opened, synchronize, ready_for_review ]
     branches:
@@ -20,9 +17,6 @@ on:
       - "**.rs"
       - "**.toml"
       - "**.lock"
-      - "**.ts"
-      - "**.yml"
-      - "**.sol"
 
 env:
   CACHE_VERSION: 0
@@ -74,19 +68,6 @@ jobs:
       - name: Action ${{ matrix.action }}
         if: matrix.action == 'test'
         run: SKIP_WASM_BUILD=1 cargo test --locked --features all-runtime,runtime-benchmarks --profile ci
-      - name: Configure artifacts
-        if: matrix.action == 'build'
-        run: |
-          mv target/ci/allfeat .
-          chmod u+x .github/shrink-cache.sh
-          .github/shrink-cache.sh
-      - name: Upload
-        if: matrix.action == 'build'
-        uses: actions/upload-artifact@v4
-        with:
-          name: allfeat
-          path: allfeat
-          retention-days: 1
 
   format-checks:
     name: Task check format
@@ -94,8 +75,6 @@ jobs:
     steps:
       - name: Fetch latest code
         uses: actions/checkout@v4
-      - name: Install nightly Rust
-        run: rustup toolchain install nightly && rustup component add rustfmt --toolchain nightly
       - name: Check format
         run: cargo fmt --all -- --check
       - name: Fast fail

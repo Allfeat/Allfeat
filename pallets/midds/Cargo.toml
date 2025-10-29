@@ -17,7 +17,6 @@ parity-scale-codec = { features = [
 	"derive",
 	"max-encoded-len",
 ], workspace = true }
-log = { workspace = true }
 scale-info = { features = ["derive"], workspace = true }
 allfeat-midds = { workspace = true }
 allfeat-primitives = { workspace = true }
@@ -37,7 +36,6 @@ std = [
 	"frame-support/std",
 	"frame-system/std",
 	"parity-scale-codec/std",
-	"log/std",
 	"scale-info/std",
 	"allfeat-midds/std",
 	"allfeat-primitives/std",

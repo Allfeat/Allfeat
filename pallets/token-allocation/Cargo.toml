@@ -12,14 +12,12 @@ description = "FRAME pallet to manage launch supply token allocations with upfro
 parity-scale-codec = { workspace = true, features = ["derive", "max-encoded-len"] }
 scale-info = { workspace = true, features = ["derive"] }
 serde = { workspace = true, features = ["derive"] }
-log = { workspace = true }
 
 frame-support = { workspace = true }
 frame-system = { workspace = true }
 frame-benchmarking = { workspace = true }
 pallet-balances = { workspace = true }
 sp-runtime = { workspace = true }
-sp-core = { workspace = true }
 sp-io = { workspace = true }
 
 [features]
@@ -28,7 +26,6 @@ std = [
   "parity-scale-codec/std",
   "scale-info/std",
   "serde/std",
-  "log/std",
   "frame-support/std",
   "frame-system/std",
   "pallet-balances/std",
