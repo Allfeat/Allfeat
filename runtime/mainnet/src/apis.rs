@@ -205,7 +205,7 @@ impl sp_consensus_grandpa::GrandpaApi<Block> for Runtime {
 
     #[cfg(feature = "try-runtime")]
     impl frame_try_runtime::TryRuntime<Block> for Runtime {
-        fn on_runtime_upgrade(checks: frame_try_runtime::UpgradeCheckSelect) -> (Weight, Weight) {
+        fn on_runtime_upgrade(checks: frame_try_runtime::UpgradeCheckSelect) -> (frame_support::weights::Weight, frame_support::weights::Weight) {
             log::info!("try-runtime::on_runtime_upgrade");
 
             let weight = RuntimeExecutive::try_runtime_upgrade(checks).unwrap();
@@ -218,7 +218,7 @@ impl sp_consensus_grandpa::GrandpaApi<Block> for Runtime {
             state_root_check: bool,
             signature_check: bool,
             select: frame_try_runtime::TryStateSelect
-        ) -> Weight {
+        ) -> frame_support::weights::Weight {
             // NOTE: intentional unwrap: we don't want to propagate the error backwards, and want to
             // have a backtrace here.
             RuntimeExecutive::try_execute_block(block, state_root_check, signature_check, select).unwrap()

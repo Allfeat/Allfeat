@@ -1,0 +1,40 @@
+# This workflow ensure the cargo check is passing the code compiles for all features.
+name: Check Build
+
+on:
+  workflow_dispatch:
+  workflow_call:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "node/**"
+  pull_request:
+    branches:
+      - "**"
+    paths:
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "node/**"
+
+jobs:
+  check-node-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Cargo Check
+        run: |
+          cargo check --locked --verbose --all-features

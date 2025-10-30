@@ -1,0 +1,36 @@
+name: Check Melodie Runtime Build
+
+on:
+  workflow_dispatch:
+  workflow_call:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "pallets/**"
+      - "runtime/melodie/**"
+  pull_request:
+    branches:
+      - "**"
+    paths:
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "pallets/**"
+      - "runtime/melodie/**"
+
+jobs:
+  check-melodie-runtime-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Cargo Check
+        run: |
+          cargo check --locked --verbose --all-features -p melodie-runtime

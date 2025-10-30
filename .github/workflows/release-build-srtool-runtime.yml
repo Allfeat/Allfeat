@@ -1,0 +1,59 @@
+name: Deterministic Build Runtime
+
+on:
+  workflow_dispatch:
+    inputs:
+      runtime_name:
+        description: "Name of the runtime chain (allfeat/melodie)"
+        required: true
+        default: "allfeat"
+        type: string
+      runtime_dir:
+        description: "Path of the runtime crate (ex: runtime/mainnet)"
+        required: true
+        default: "runtime/mainnet"
+        type: string
+  workflow_call:
+    inputs:
+      runtime_name:
+        required: true
+        type: string
+        description: "Name of the runtime chain (allfeat/melodie)"
+      runtime_dir:
+        required: true
+        type: string
+        description: "Path of the runtime crate (ex: runtime/mainnet)"
+
+jobs:
+  build-runtime:
+    name: Build runtime (${{ inputs.runtime_name }})
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Srtool build
+        id: srtool_build
+        uses: chevdor/srtool-actions@v0.9.2
+        env:
+          BUILD_OPTS: "--features on-chain-release-build"
+        with:
+          chain: ${{ inputs.runtime_name }}
+          runtime_dir: ${{ inputs.runtime_dir }}
+
+      - name: Prepare artifacts
+        id: prep
+        run: |
+          RUNTIME_NAME=${{ inputs.runtime_name }}
+          RUNTIME_DIR=${{ inputs.runtime_dir }}
+
+          WASM_PATH=$(find "${RUNTIME_DIR}/target/srtool/release/wbuild/${RUNTIME_NAME}-runtime/${RUNTIME_NAME}_runtime.compact.compressed.wasm")
+
+          cp "$WASM_PATH" "dist/."
+
+      - name: Upload runtime artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.runtime_name }}-runtime
+          path: dist/
