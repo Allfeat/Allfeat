@@ -50,7 +50,8 @@ jobs:
 
           WASM_PATH=$(find "${RUNTIME_DIR}/target/srtool/release/wbuild/${RUNTIME_NAME}-runtime/${RUNTIME_NAME}_runtime.compact.compressed.wasm")
 
-          cp "$WASM_PATH" "dist/."
+          mkdir dist
+          cp "$WASM_PATH" "dist/"
 
       - name: Upload runtime artifacts
         uses: actions/upload-artifact@v4

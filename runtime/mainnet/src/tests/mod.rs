@@ -1,5 +1,3 @@
-#![cfg(test)]
-
 use crate::{Runtime, genesis::token::tokenomics};
 use sp_runtime::BuildStorage;
 
