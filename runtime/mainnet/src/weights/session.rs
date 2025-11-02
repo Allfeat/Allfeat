@@ -50,34 +50,34 @@ use pallet_session::WeightInfo;
 /// Weights for pallet_session using the Allfeat node and recommended hardware.
 pub struct AllfeatWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
-	/// Storage: `Staking::Ledger` (r:1 w:0)
-	/// Proof: `Staking::Ledger` (`max_values`: None, `max_size`: Some(1067), added: 3542, mode: `MaxEncodedLen`)
-	/// Storage: `Session::NextKeys` (r:1 w:1)
-	/// Proof: `Session::NextKeys` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `Session::KeyOwner` (r:4 w:4)
-	/// Proof: `Session::KeyOwner` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	fn set_keys() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `1558`
-		//  Estimated: `12448`
-		// Minimum execution time: 73_441_000 picoseconds.
-		Weight::from_parts(75_561_000, 12448)
-			.saturating_add(T::DbWeight::get().reads(6_u64))
-			.saturating_add(T::DbWeight::get().writes(5_u64))
-	}
-	/// Storage: `Staking::Ledger` (r:1 w:0)
-	/// Proof: `Staking::Ledger` (`max_values`: None, `max_size`: Some(1067), added: 3542, mode: `MaxEncodedLen`)
-	/// Storage: `Session::NextKeys` (r:1 w:1)
-	/// Proof: `Session::NextKeys` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `Session::KeyOwner` (r:0 w:4)
-	/// Proof: `Session::KeyOwner` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	fn purge_keys() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `1460`
-		//  Estimated: `4925`
-		// Minimum execution time: 54_240_000 picoseconds.
-		Weight::from_parts(56_720_000, 4925)
-			.saturating_add(T::DbWeight::get().reads(2_u64))
-			.saturating_add(T::DbWeight::get().writes(5_u64))
-	}
+        /// Storage: `Staking::Ledger` (r:1 w:0)
+        /// Proof: `Staking::Ledger` (`max_values`: None, `max_size`: Some(1067), added: 3542, mode: `MaxEncodedLen`)
+        /// Storage: `Session::NextKeys` (r:1 w:1)
+        /// Proof: `Session::NextKeys` (`max_values`: None, `max_size`: None, mode: `Measured`)
+        /// Storage: `Session::KeyOwner` (r:4 w:4)
+        /// Proof: `Session::KeyOwner` (`max_values`: None, `max_size`: None, mode: `Measured`)
+        fn set_keys() -> Weight {
+                // Proof Size summary in bytes:
+                //  Measured:  `1558`
+                //  Estimated: `12448`
+                // Minimum execution time: 73_441_000 picoseconds.
+                Weight::from_parts(75_561_000, 12448)
+                        .saturating_add(T::DbWeight::get().reads(6_u64))
+                        .saturating_add(T::DbWeight::get().writes(5_u64))
+        }
+        /// Storage: `Staking::Ledger` (r:1 w:0)
+        /// Proof: `Staking::Ledger` (`max_values`: None, `max_size`: Some(1067), added: 3542, mode: `MaxEncodedLen`)
+        /// Storage: `Session::NextKeys` (r:1 w:1)
+        /// Proof: `Session::NextKeys` (`max_values`: None, `max_size`: None, mode: `Measured`)
+        /// Storage: `Session::KeyOwner` (r:0 w:4)
+        /// Proof: `Session::KeyOwner` (`max_values`: None, `max_size`: None, mode: `Measured`)
+        fn purge_keys() -> Weight {
+                // Proof Size summary in bytes:
+                //  Measured:  `1460`
+                //  Estimated: `4925`
+                // Minimum execution time: 54_240_000 picoseconds.
+                Weight::from_parts(56_720_000, 4925)
+                        .saturating_add(T::DbWeight::get().reads(2_u64))
+                        .saturating_add(T::DbWeight::get().writes(5_u64))
+        }
 }
