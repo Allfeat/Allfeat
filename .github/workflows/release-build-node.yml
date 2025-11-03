@@ -43,21 +43,17 @@ jobs:
           mkdir dist
           cp target/${{ matrix.target }}/release/allfeat dist/${{ matrix.out_name }}
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@main
-        with:
-          role-to-assume: arn:aws:iam::679799252113:role/AllfeatCiArtifactUploader
-          aws-region: eu-west-3
-
       - name: Upload artifacts to S3
+        env:
+          AWS_ACCESS_KEY_ID:     ${{ secrets.OVH_S3_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.OVH_S3_SECRET }}
+          OVH_S3_ENDPOINT:       https://s3.eu-west-par.io.cloud.ovh.net
+          BUCKET:                allfeat-prod-binaries-releases
+          BRANCH:                ${{ github.ref_name }}
+          FILE:                  ${{ matrix.out_name }}
         run: |
-          BUCKET="allfeat-prod-binaries-releases"
-          BRANCH="${{ github.ref_name }}"
-          FILE="${{ matrix.out_name }}"
-
           echo "Uploading $FILE to s3://$BUCKET/$BRANCH/$FILE"
-
-          aws s3 cp "dist/$FILE" "s3://$BUCKET/$BRANCH/$FILE"
+          aws --endpoint-url "$OVH_S3_ENDPOINT" s3 cp "dist/$FILE" "s3://$BUCKET/$BRANCH/$FILE" --acl public-read --only-show-errors
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
