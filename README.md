@@ -2,78 +2,88 @@
 
 ![logo](docs/logo.svg)
 
-# [Allfeat](https://allfeat.com)
+[![Check Build](https://github.com/allfeat/allfeat/actions/workflows/check-node.yml/badge.svg)](https://github.com/allfeat/allfeat/actions/workflows/check-node.yml)
+[![Runtime Checks](https://github.com/allfeat/allfeat/actions/workflows/check-melodie-runtime.yml/badge.svg)](https://github.com/allfeat/allfeat/actions/workflows/check-melodie-runtime.yml)
+[![Format](https://github.com/allfeat/allfeat/actions/workflows/check-format.yml/badge.svg)](https://github.com/allfeat/allfeat/actions/workflows/check-format.yml)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-[![Twitter URL](https://img.shields.io/twitter/follow/Allfeat_music?style=social)](https://twitter.com/Allfeat_music) [![Telegram](https://img.shields.io/endpoint?color=neon&style=flat-square&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2FAllfeat_music)](https://t.me/Allfeat_fndn) [![Discord](https://img.shields.io/badge/Discord-gray?logo=discord)](https://allfeat.discord.com)
-[![GitHub code lines](https://tokei.rs/b1/github/allfeat/allfeat)](https://github.com/allfeat/allfeat) [![GitHub last commit](https://img.shields.io/github/last-commit/allfeat/allfeat?color=red&style=plastic)](https://github.com/allfeat/allfeat) [![CI](https://github.com/allfeat/allfeat/actions/workflows/checks.yml/badge.svg)](https://github.com/allfeat/allfeat/actions/workflows/checks.yml/badge.svg)
+[allfeat.org](https://allfeat.org) · [discord.allfeat.org](https://discord.allfeat.org)
+
 </div>
 
-</div>
+---
 
-## Introduction
+# Allfeat
 
-- **MIDDS: Metadata Integrity, Certification, and Monetization**
+## Vision
 
-  At the heart of Allfeat lies **MIDDS** (Metadata Integrity and Data Decentralization System), a groundbreaking approach to the certification, securitization, and monetization of music metadata. With MIDDS, artists and creators can confidently certify their metadata on-chain, ensuring its integrity while monetizing their content directly.
+Allfeat delivers a music-native blockchain where creators certify, protect, and monetise metadata without intermediaries. The network is preparing its mainnet launch and this repository captures everything required to ship production-grade runtimes and node software.
 
-- **Proof Of Metadata**
+## What It Offers
 
-  Allfeat leverages a highly secure blockchain infrastructure to offer decentralized storage and verification of music metadata through his own consensus, which ensures that the data is protected, immutable, and auditable. By using MIDDS, Allfeat enables artists to secure their creations and protect their intellectual property.
+- **Metadata integrity**: MIDDS (Metadata Integrity, Decentralisation & Distribution System) anchors music metadata on-chain for transparent provenance.
+- **ATS protection-first**: Asset Trusted Shield enforces artist-controlled access policies and notarises works before distribution to curb misuse.
+- **Creator-first economics**: On-chain incentives and allocation logic distribute value between artists, contributors, and stakeholders.
+- **Operational readiness**: Dual runtimes (Melodie Testnet & upcoming Mainnet) and a hardened node client built on the latest Polkadot SDK.
 
-- **Monetization and Certification Platform**
+## Technical Overview
 
-  Through MIDDS, creators can certify their metadata in a transparent way that integrates monetization opportunities, opening new revenue streams. Fans, collaborators, and partners can easily verify the authenticity of metadata, enabling a more trustworthy music ecosystem.
+- **Foundation**: Rust workspace leveraging Substrate/Polkadot SDK, optimised for deterministic runtime builds and lightweight node execution.
+- **Runtimes**: `runtime/melodie` powers the Harmonie testnet; `runtime/mainnet` contains the production configuration. Shared logic lives in `runtime/shared`.
+- **Custom pallets**: Bespoke modules such as `pallet-midds`, `pallet-validators`, `pallet-token-allocation`, and ATS provide Allfeat-specific business logic and governance rules.
+- **Node client**: The `node/` crate hosts CLI, RPC, consensus wiring (Aura/Grandpa), and chain-spec plumbing with runtime selection at launch time.
 
-- **Cross-Chain Compatibility and Integration**
+## Repository Structure
 
-  Built with modern frameworks, Allfeat integrates seamlessly with EVM-compatible chains and other ecosystems to provide cross-chain functionalities. This ensures that certified metadata and Assets as NFTs can interact across various blockchain networks, enhancing discoverability and collaboration.
+- `node/`: Executable node, CLI, chain specs, service wiring, benchmarking glue.
+- `runtime/`: Melodie & Mainnet runtimes plus shared constants, ensuring deterministic WASM builds.
+- `pallets/`: Domain-specific pallets with unit tests, benchmarking stubs, and weight templates in `.maintain/`.
+- `primitives/`: Shared type aliases (`AccountId`, `Balance`, etc.) used across runtimes and client code.
+- `scripts/`: Operational tooling for key rotation, validator setup, benchmarking, and testnet preparation.
+- `helm/`: Kubernetes Helm chart for deploying validator or node instances.
+- `docs/`: Developer documentation, including environment bootstrap instructions (`docs/rust-setup.md`).
 
-## Release
+## Getting Started
 
-### Testnet (Harmonie)
+1. **Install prerequisites**
+   - Follow `docs/rust-setup.md` or launch the Nix development shell: `nix develop`.
+   - Ensure `wasm32-unknown-unknown` target and `subkey` are available (provided via the flake).
+2. **Clone & enter workspace**
+   ```bash
+   git clone https://github.com/allfeat/allfeat.git
+   cd allfeat
+   ```
+3. **Bootstrap dependencies**
+   - Optional: `just` is recommended (installed via Nix shell).
+   - Environment variable `PROFILE` controls build profile (defaults to `release`).
 
-Test and experience the features of the Allfeat network, including MIDDS registration, NFT deployment, and cross-chain functionalities. Developers can participate in the gamified testnet and provide feedback.
+## Build & Test Workflows
 
-### Mainnet
+- **Build node**: `just build` (`cargo build --profile $PROFILE`).
+- **Run node (warp sync)**: `just start`. For a local dev chain: `just start-dev`.
+- **Compile runtimes**: `just build-melodie` or `cargo build --profile production -p melodie-runtime --features on-chain-release-build`.
+- **Unit tests**: `cargo test --workspace`. Target pallets individually with `cargo test -p pallet-midds`.
+- **Linting**: `just format` (rustfmt), `just clippy`.
+- **Static checks**: `just check` (`cargo check`).
 
-Coming soon. Stay tuned for updates.
+## Runtime Artifacts & Release Process
 
-### Tags and Runtime Versions
+- Deterministic WASM builds are produced via the `release-build-srtool-runtime.yml` workflow using `srtool` with `on-chain-release-build` features.
+- Runtime weights and benchmarks rely on templates stored in `.maintain/`. Update weights before tagging a runtime release.
+- Production binaries are compiled in CI (`release-build-node.yml`) for x86_64 and aarch64 and distributed through releases S3 hosted by OVH.
 
-Each release tag includes the different versions of the runtimes corresponding to on-chain upgrades. This ensures that all changes and updates to the Allfeat network and runtime environments are fully traceable and easy to follow.
+## Operational Tooling
 
-## Documentation
+- `scripts/prepare_testnet.sh`: Generates authority keys using `subkey` (requires `SECRET` env var).
+- `scripts/rotate_node_keys.sh`, `scripts/setup_validator_keys.sh`: Support validator lifecycle management.
+- Helm chart (`helm/`) encapsulates Kubernetes deployment defaults for validators and RPC nodes.
 
-- [Allfeat Docs](https://docs.allfeat.com)
-- [MIDDS Overview](https://docs.allfeat.com/features/midds/)
+## Contributing & Governance
 
-## Quick Node Bootstrap
+- Contributions follow GPLv3 licensing. Please open issues or pull requests against `master` with CI passing.
+- Keep `Cargo.lock` up to date and regenerate runtime weights when modifying pallets impacting extrinsics or fee models.
+- Security-related disclosures should be reported privately to `security@allfeat.com` (see repository SECURITY policy if present).
 
-You can easily bootstrap your own Allfeat node either with Docker or by building it from source using Rust. Below are the instructions for Docker:
+## License
 
-### Using Docker
-
-1. Pull the Allfeat node Docker image:
-
-```bash
-docker pull allfeatnetwork/allfeat:master
-```
-
-2. Run the Allfeat node Docker container:
-
-```bash
-docker run docker.io/allfeatnetwork/allfeat:master
-```
-
-It will start syncing the blockchain with the Harmonie Live Testnet.
-You can also choose to start a Development Node in local by using `--dev` argument.
-
-```bash
-docker run docker.io/allfeatnetwork/allfeat:master --dev
-```
-
-## Contribution
-
-[![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-
-Allfeat is open-source under the GPLv3 license. We welcome community contributions. Please review [CONTRIBUTIONS.md](doc/CONTRIBUTIONS.md) for details on how to contribute to the project.
+Allfeat is released under the [GNU General Public License v3.0](LICENSE).
