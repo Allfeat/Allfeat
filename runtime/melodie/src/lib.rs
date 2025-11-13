@@ -32,7 +32,10 @@ use alloc::vec::Vec;
 pub use allfeat_primitives::{AccountId, Address, Balance, BlockNumber, Moment, Nonce, Signature};
 
 use apis::RUNTIME_API_VERSIONS;
-use migrations::MiddsCleaner;
+use frame_support::{
+    migrations::{RemovePallet, RemoveStorage},
+    parameter_types,
+};
 use sp_runtime::{generic, traits::NumberFor};
 use sp_version::{RuntimeVersion, runtime_version};
 
@@ -58,8 +61,6 @@ mod midds;
 pub use midds::*;
 mod ats;
 pub use ats::*;
-
-mod migrations;
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarks;
@@ -121,11 +122,27 @@ pub type RuntimeExecutive = frame_executive::Executive<
     Migrations,
 >;
 
+parameter_types! {
+    pub const ReleasesStr: &'static str = "Releases";
+    pub const TracksStr: &'static str = "Tracks";
+    pub const PartyIdentifiersStr: &'static str = "PartyIdentifiers";
+    pub const MusicalWorksStr: &'static str = "MusicalWorks";
+
+    pub const BalancesStr: &'static str = "Balances";
+    pub const HoldsStr: &'static str = "Holds";
+}
+
 /// All migrations of the runtime, aside from the ones declared in the pallets.
 ///
 /// This can be a tuple of types, each implementing `OnRuntimeUpgrade`.
 #[allow(unused_parens)]
-type Migrations = MiddsCleaner;
+type Migrations = (
+    RemovePallet<PartyIdentifiersStr, <Runtime as frame_system::Config>::DbWeight>,
+    RemovePallet<TracksStr, <Runtime as frame_system::Config>::DbWeight>,
+    RemovePallet<MusicalWorksStr, <Runtime as frame_system::Config>::DbWeight>,
+    RemovePallet<ReleasesStr, <Runtime as frame_system::Config>::DbWeight>,
+    RemoveStorage<BalancesStr, HoldsStr, <Runtime as frame_system::Config>::DbWeight>,
+);
 
 #[frame_support::runtime]
 mod runtime {
