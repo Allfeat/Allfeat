@@ -31,9 +31,9 @@ pub type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
 #[codec(mel_bound())]
 #[scale_info(skip_type_params(T, I))]
 pub struct MiddsInfo<T: Config<I>, I: 'static> {
-    pub(crate) provider: AccountIdOf<T>,
-    pub(crate) registered_at: MomentOf<T, I>,
-    pub(crate) hash: [u8; 32],
-    pub(crate) encoded_size: u32,
-    pub(crate) data_cost: BalanceOf<T, I>,
+    pub provider: AccountIdOf<T>,
+    pub registered_at: MomentOf<T, I>,
+    pub hash: [u8; 32],
+    pub encoded_size: u32,
+    pub data_cost: BalanceOf<T, I>,
 }

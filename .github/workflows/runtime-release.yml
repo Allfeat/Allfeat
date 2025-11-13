@@ -1,0 +1,106 @@
+name: Runtime Release
+
+on:
+  push:
+    tags:
+      - "melodie-*"
+      - "allfeat-*"
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      runtime_name: ${{ steps.extract.outputs.runtime_name }}
+      runtime_dir: ${{ steps.extract.outputs.runtime_dir }}
+      spec_version: ${{ steps.extract.outputs.spec_version }}
+    steps:
+      - name: Extract runtime metadata
+        id: extract
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+
+          if [[ "${TAG}" != *-* ]]; then
+            echo "Tag format must be <runtime>-<spec_version>, got: ${TAG}" >&2
+            exit 1
+          fi
+
+          RUNTIME_NAME="${TAG%%-*}"
+          SPEC_VERSION="${TAG#*-}"
+
+          case "${RUNTIME_NAME}" in
+            allfeat)
+              RUNTIME_DIR="runtime/mainnet"
+              ;;
+            melodie)
+              RUNTIME_DIR="runtime/melodie"
+              ;;
+            *)
+              RUNTIME_DIR="runtime/${RUNTIME_NAME}"
+              ;;
+          esac
+
+          echo "Runtime: ${RUNTIME_NAME}"
+          echo "Spec version: ${SPEC_VERSION}"
+          echo "Runtime dir: ${RUNTIME_DIR}"
+
+          echo "runtime_name=${RUNTIME_NAME}" >> "${GITHUB_OUTPUT}"
+          echo "runtime_dir=${RUNTIME_DIR}" >> "${GITHUB_OUTPUT}"
+          echo "spec_version=${SPEC_VERSION}" >> "${GITHUB_OUTPUT}"
+
+  build-runtime:
+    needs: prepare
+    uses: ./.github/workflows/release-build-srtool-runtime.yml
+    with:
+      runtime_name: ${{ needs.prepare.outputs.runtime_name }}
+      runtime_dir: ${{ needs.prepare.outputs.runtime_dir }}
+
+  publish:
+    needs:
+      - prepare
+      - build-runtime
+    runs-on: ubuntu-latest
+    env:
+      RUNTIME_NAME: ${{ needs.prepare.outputs.runtime_name }}
+      SPEC_VERSION: ${{ needs.prepare.outputs.spec_version }}
+      TAG_NAME: ${{ github.ref_name }}
+    steps:
+      - name: Wait for runtime artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.RUNTIME_NAME }}-runtime
+          path: dist
+
+      - name: Compose release notes
+        run: |
+          set -euo pipefail
+          cat <<EOF > RELEASE_NOTES.md
+Automated runtime release for ${RUNTIME_NAME} (spec ${SPEC_VERSION}).
+
+- Tag: ${TAG_NAME}
+- Source commit: ${GITHUB_SHA}
+EOF
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="${TAG_NAME}"
+          TITLE="${RUNTIME_NAME} runtime spec ${SPEC_VERSION}"
+          NOTES_FILE="RELEASE_NOTES.md"
+          PRERELEASE_FLAG=""
+          if [[ "${SPEC_VERSION}" == *-* ]]; then
+            PRERELEASE_FLAG="--prerelease"
+          fi
+
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            echo "Release ${TAG} already exists. Delete it first or push a new tag." >&2
+            exit 1
+          fi
+
+          gh release create "${TAG}" dist/* --title "${TITLE}" --notes-file "${NOTES_FILE}" ${PRERELEASE_FLAG}

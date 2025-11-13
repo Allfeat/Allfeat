@@ -1,0 +1,21 @@
+name: Check Melodie Try Runtime Migrations
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  check-melodie-migrations:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+
+      - name: Run Try Runtime Checks
+        uses: "paritytech/try-runtime-gha@v0.1.0"
+        with:
+          runtime-package: "melodie-runtime"        # The runtime package name
+          node-uri: "wss://melodie-rpc.allfeat.io:443" # Extra args to pass to the ''on-runtime-upgrade'' subcommand. For example, "--disable-idempotency-check --no-weight-warnings". See all options at https://paritytech.github.io/try-runtime-cli/try_runtime_core/commands/on_runtime_upgrade/struct.Command.html.
+          checks: "all"                        # OPTIONAL: Types of checks to run. For example, "pre-and-post". See all options at https://paritytech.github.io/try-runtime-cli/frame_support/traits/enum.UpgradeCheckSelect.html. Default: "all".
