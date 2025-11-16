@@ -24,7 +24,6 @@ mod aura;
 mod authorship;
 mod balances;
 mod grandpa;
-mod im_online;
 mod preimage;
 mod session;
 mod sudo;
@@ -37,8 +36,8 @@ mod utility;
 mod validators;
 
 // External required imports
+pub use aura::*;
 pub use balances::*;
-pub use im_online::*;
 pub use session::*;
 pub use system::*;
 pub use transaction_payment::*;

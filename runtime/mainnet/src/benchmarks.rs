@@ -21,7 +21,6 @@ frame_benchmarking::define_benchmarks!(
     [frame_benchmarking, BaselineBench::<Runtime>]
     [pallet_balances, Balances]
     [pallet_grandpa, Grandpa]
-    [pallet_im_online, ImOnline]
     [pallet_multisig, Multisig]
     [pallet_preimage, Preimage]
     [pallet_proxy, Proxy]

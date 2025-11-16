@@ -168,6 +168,7 @@ name = "allfeat-runtime"
 version = "1.0.0-dev"
 dependencies = [
  "allfeat-primitives",
+ "array-bytes 9.3.0",
  "frame-benchmarking",
  "frame-executive",
  "frame-metadata-hash-extension",
@@ -181,7 +182,6 @@ dependencies = [
  "pallet-authorship",
  "pallet-balances",
  "pallet-grandpa",
- "pallet-im-online",
  "pallet-multisig",
  "pallet-preimage",
  "pallet-proxy",

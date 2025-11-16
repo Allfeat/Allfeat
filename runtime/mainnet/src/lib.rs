@@ -172,9 +172,6 @@ mod runtime {
     #[runtime::pallet_index(10)]
     pub type Sudo = pallet_sudo;
 
-    #[runtime::pallet_index(11)]
-    pub type ImOnline = pallet_im_online;
-
     #[runtime::pallet_index(13)]
     pub type Historical = pallet_session::historical;
 

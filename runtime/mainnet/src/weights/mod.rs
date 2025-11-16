@@ -17,7 +17,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod balances;
-pub mod im_online;
 pub mod multisig;
 pub mod preimage;
 pub mod proxy;

@@ -63,7 +63,7 @@ pub fn live_chain_spec() -> Result<ChainSpec, String> {
 fn properties() -> Properties {
     serde_json::json!({
         "tokenDecimals": 12,
-        "tokenSymbol": "ALLFEAT",
+        "tokenSymbol": "AFT",
     })
     .as_object()
     .expect("Map given; qed")

@@ -241,13 +241,17 @@ fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpecT>, String> {
             .iter()
             .cloned()
             .find(|&chain| n.starts_with(chain))
-            .unwrap_or("melodie")
+            .unwrap_or("allfeat")
     } else {
         id
     };
     let chain_spec = match id.to_lowercase().as_str() {
+        #[cfg(feature = "allfeat-runtime")]
+        "" | "allfeat" => Box::new(ChainSpec::from_json_bytes(
+            &include_bytes!("../specs/mainnet/allfeat_raw.json")[..],
+        )?),
         #[cfg(feature = "melodie-runtime")]
-        "" | "melodie" => Box::new(ChainSpec::from_json_bytes(
+        "melodie" => Box::new(ChainSpec::from_json_bytes(
             &include_bytes!("../specs/testnets/melodie/v2/melodie_raw.json")[..],
         )?),
         #[cfg(feature = "melodie-runtime")]
