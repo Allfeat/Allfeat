@@ -3,7 +3,8 @@
   "id": "allfeat_staging",
   "chainType": "Live",
   "bootNodes": [
-    "/ip4/127.0.0.1/tcp/30333/p2p/12D3KooWG7ZEHGsiSv7XcEQehdTGTmxs64byREGhsgM7GSCZzqFU"
+    "/dns/aft-bootnode-1.allfeat.io/tcp/30311/ws/p2p/12D3KooWKinUZoty6JatWekofxcosbeBKPbeRk5NXMYosdmSsL3j",
+    "/dns/aft-bootnode-2.allfeat.io/tcp/30311/ws/p2p/12D3KooWB1FF5K6LgHs8Kun9b3zywrMeLX9DNBDxSaqfdk8MS6QR"
   ],
   "telemetryEndpoints": null,
   "protocolId": "aft",
