@@ -18,6 +18,10 @@ pub fn tokenomics() -> TokenGenesis {
         },
         allocations: pallet_token_allocation::GenesisConfig {
             envelopes: vec![
+                // Envelope name: Founders
+                // Total amount: 67 000 000 AFT
+                // 0% Upfront rate, 12 months of cliff (locked)
+                // Vesting on 36 months
                 (
                     EnvelopeId::Founders,
                     EnvelopeConfig {
@@ -28,6 +32,10 @@ pub fn tokenomics() -> TokenGenesis {
                         unique_beneficiary: None,
                     },
                 ),
+                // Envelope name: KoL
+                // Total amount: 3 000 000 AFT
+                // 0% Upfront rate, 9 months of cliff
+                // Vesting on 9 months
                 (
                     EnvelopeId::KoL,
                     EnvelopeConfig {
@@ -38,6 +46,10 @@ pub fn tokenomics() -> TokenGenesis {
                         unique_beneficiary: None,
                     },
                 ),
+                // Envelope name: Private1
+                // Total amount: 120 000 000 AFT
+                // 5% Upfront rate, 8 months of cliff
+                // Vesting on 38 months
                 (
                     EnvelopeId::Private1,
                     EnvelopeConfig {
@@ -48,6 +60,10 @@ pub fn tokenomics() -> TokenGenesis {
                         unique_beneficiary: None,
                     },
                 ),
+                // Envelope name: Private2
+                // Total amount: 80 000 000 AFT
+                // 5% Upfront rate, 3 months of cliff
+                // Vesting on 36 months
                 (
                     EnvelopeId::Private2,
                     EnvelopeConfig {
@@ -58,6 +74,10 @@ pub fn tokenomics() -> TokenGenesis {
                         unique_beneficiary: None,
                     },
                 ),
+                // Envelope name: ICO1
+                // Total amount: 30 000 000 AFT
+                // 0% Upfront rate, no cliff
+                // Vesting on 6 months
                 (
                     EnvelopeId::ICO1,
                     EnvelopeConfig {
@@ -68,6 +88,10 @@ pub fn tokenomics() -> TokenGenesis {
                         unique_beneficiary: None,
                     },
                 ),
+                // Envelope name: ICO2
+                // Total amount: 30 000 000 AFT
+                // 0% Upfront rate, no cliff
+                // Vesting on 6 months
                 (
                     EnvelopeId::ICO2,
                     EnvelopeConfig {
@@ -78,6 +102,10 @@ pub fn tokenomics() -> TokenGenesis {
                         unique_beneficiary: None,
                     },
                 ),
+                // Envelope name: Seed
+                // Total amount: 75 000 000 AFT
+                // 0% Upfront rate, 18 months of cliff
+                // Vesting on 12 months
                 (
                     EnvelopeId::Seed,
                     EnvelopeConfig {
@@ -88,6 +116,10 @@ pub fn tokenomics() -> TokenGenesis {
                         unique_beneficiary: None,
                     },
                 ),
+                // Envelope name: SerieA
+                // Total amount: 80 000 000 AFT
+                // 0% Upfront rate, 12 months of cliff
+                // Vesting on 12 months
                 (
                     EnvelopeId::SerieA,
                     EnvelopeConfig {
@@ -98,6 +130,10 @@ pub fn tokenomics() -> TokenGenesis {
                         unique_beneficiary: None,
                     },
                 ),
+                // Envelope name: Airdrop
+                // Total amount: 10 000 000 AFT
+                // 100% Upfront rate
+                // No cliff, no vesting
                 (
                     EnvelopeId::Airdrop,
                     EnvelopeConfig {
@@ -108,6 +144,11 @@ pub fn tokenomics() -> TokenGenesis {
                         unique_beneficiary: None,
                     },
                 ),
+                // Envelope name: Community Rewards
+                // Total amount: 260 000 000 AFT
+                // 0% Upfront rate, 5 months of cliff
+                // Vesting on 46 months
+                // Beneficiary: Treasury
                 (
                     EnvelopeId::CommunityRewards,
                     EnvelopeConfig {
@@ -118,8 +159,13 @@ pub fn tokenomics() -> TokenGenesis {
                         unique_beneficiary: Some(Treasury::account_id()),
                     },
                 ),
+                // Envelope name: Exchanges
+                // Total amount: 100 000 000 AFT
+                // 0% Upfront rate, 4 months of cliff
+                // Vesting on 12 months
+                // Beneficiary: Treasury
                 (
-                    EnvelopeId::Exchanges, // CEX/DEX listings.
+                    EnvelopeId::Exchanges, // CEX/DEX listings
                     EnvelopeConfig {
                         total_cap: 100_000_000 * AFT,
                         upfront_rate: Percent::from_percent(0),
@@ -128,6 +174,11 @@ pub fn tokenomics() -> TokenGenesis {
                         unique_beneficiary: Some(Treasury::account_id()),
                     },
                 ),
+                // Envelope name: Research & Development
+                // Total amount: 125 000 000 AFT
+                // 20% Upfront rate, no cliff
+                // Vesting on 26 months
+                // Beneficiary: Treasury
                 (
                     EnvelopeId::ResearchDevelopment,
                     EnvelopeConfig {
@@ -138,6 +189,11 @@ pub fn tokenomics() -> TokenGenesis {
                         unique_beneficiary: Some(Treasury::account_id()),
                     },
                 ),
+                // Envelope name: Reserve
+                // Total amount: 20 000 000 AFT
+                // 100% Upfront rate
+                // No cliff, no vesting
+                // Beneficiary: Treasury
                 (
                     EnvelopeId::Reserve,
                     EnvelopeConfig {
