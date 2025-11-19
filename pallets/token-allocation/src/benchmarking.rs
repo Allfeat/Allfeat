@@ -45,7 +45,6 @@ fn setup_envelope<T: Config>(
     if !total_cap.is_zero() {
         T::Currency::mint_into(&envelope_acc, total_cap).expect("mint in benchmark should work");
     }
-    T::Currency::deactivate(total_cap);
 
     if NextPayoutAt::<T>::get().is_zero() {
         NextPayoutAt::<T>::put(T::EpochDuration::get());
@@ -78,7 +77,6 @@ fn force_allocation<T: Config>(
 /// Then at `now = 1`, `claimable_amount` == full vested_total.
 /// So payout_allocation() will:
 /// - call release(...)
-/// - reactivate(...)
 /// - see allocation fully vested
 /// - remove it from storage
 /// - dec_providers
@@ -116,7 +114,7 @@ mod benches {
     /// Worst case:
     /// - caller is AdminOrigin -> we simulate with RawOrigin::Root and assume runtime maps it.
     /// - `AllocationsOf` for `who` is empty (first push so we hit try_push)
-    /// - upfront > 0 so it has to release + reactivate
+    /// - upfront > 0 so it has to release.
     #[benchmark]
     fn add_allocation() -> Result<(), BenchmarkError> {
         let who: T::AccountId = account("recipient", 0, 0u32);
@@ -172,7 +170,6 @@ mod benches {
     /// - Have (MaxPayoutsPerBlock + 1) allocations that will all fully vest at `now`,
     ///   so each payout_allocation() triggers the heavy path:
     ///     - release()
-    ///     - reactivate()
     ///     - remove allocation
     ///     - dec_providers()
     ///     - emit VestedReleased(...)

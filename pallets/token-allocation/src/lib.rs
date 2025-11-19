@@ -36,7 +36,7 @@ use frame_support::traits::fungible::Inspect;
 use frame_support::{
     PalletId,
     traits::{
-        fungible::{Mutate, MutateHold, Unbalanced},
+        fungible::{Mutate, MutateHold},
         tokens::{Fortitude, Precision, Preservation},
     },
 };
@@ -282,8 +282,6 @@ pub mod pallet {
                         .expect("mint_into should succeed at genesis");
                 }
 
-                <T as Config>::Currency::deactivate(cfg.total_cap);
-
                 Envelopes::<T>::insert(id, cfg);
                 EnvelopeDistributed::<T>::insert(id, BalanceOf::<T>::zero());
             }
@@ -414,8 +412,6 @@ pub mod pallet {
             if !upfront.is_zero() {
                 <T as Config>::Currency::release(&reason, who, upfront, Precision::Exact)?;
 
-                <T as Config>::Currency::reactivate(upfront);
-
                 if emit_events {
                     Self::deposit_event(Event::UpfrontPaid(alloc_id));
                 }
@@ -473,8 +469,6 @@ pub mod pallet {
                     .is_ok()
                     {
                         alloc.released = alloc.released.saturating_add(claimable);
-
-                        <T as Config>::Currency::reactivate(claimable);
 
                         // Allocation is fully vested, we can remove it
                         if alloc.vested_total.saturating_sub(alloc.released).is_zero() {

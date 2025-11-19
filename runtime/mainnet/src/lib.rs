@@ -188,8 +188,8 @@ mod runtime {
     pub type Multisig = pallet_multisig;
 
     #[runtime::pallet_index(18)]
-    pub type Treasury = pallet_treasury;
+    pub type TokenAllocation = pallet_token_allocation;
 
     #[runtime::pallet_index(19)]
-    pub type TokenAllocation = pallet_token_allocation;
+    pub type Treasury = pallet_treasury;
 }
