@@ -43,6 +43,7 @@ use frame_support::{
 use frame_system::pallet_prelude::OriginFor;
 use frame_system::pallet_prelude::*;
 use serde::{Deserialize, Serialize};
+use sp_core::U256;
 use sp_runtime::Percent;
 use sp_runtime::traits::{AccountIdConversion, SaturatedConversion, Saturating, Zero};
 
@@ -146,6 +147,7 @@ pub mod pallet {
         #[pallet::constant]
         type EpochDuration: Get<BlockNumberFor<Self>>;
 
+        /// A safety hard-cap on how many allocations can be processed in one block.
         #[pallet::constant]
         type MaxPayoutsPerBlock: Get<u32>;
 
@@ -190,57 +192,75 @@ pub mod pallet {
     #[pallet::hooks]
     impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
         fn on_initialize(now: BlockNumberFor<T>) -> Weight {
-            // We ensure we are at a new epoch
             let next_epoch_at = NextPayoutAt::<T>::get();
-            if now < next_epoch_at {
+
+            // 1. Check if it is time for a new epoch OR if we are finishing a pending epoch (cursor exists)
+            let cursor = PayoutCursor::<T>::get();
+
+            if now < next_epoch_at && cursor.is_none() {
                 return T::WeightInfo::on_initialize_noop();
             }
 
-            let epoch = EpochIndex::<T>::get();
-            let current_cursor = PayoutCursor::<T>::get();
-            let iter = match current_cursor {
-                Some(k) => Allocations::<T>::iter_keys_from_key(k),
-                None => Allocations::<T>::iter_keys(),
+            // 2. Initialize processing variables
+            let limit = T::MaxPayoutsPerBlock::get();
+            let mut processed_count = 0u32;
+
+            // 3. Determine where to start iterating
+            let iter = match cursor {
+                Some(last_key) => Allocations::<T>::iter_keys_from_key(last_key),
+                None => Allocations::<T>::iter_keys(), // Start from beginning
             };
 
-            let limit = T::MaxPayoutsPerBlock::get();
+            let mut last_processed_id: Option<AllocationId> = None;
+            let mut fully_finished = true;
 
-            let mut payout = 0u32;
+            // 4. The Loop
             for id in iter {
-                if payout < limit {
-                    Self::payout_allocation(id, now);
-
-                    // We did a new payout
-                    payout += 1;
-                } else {
-                    // payout limit is enforced, and there is still allocations to
-                    // process
-                    PayoutCursor::<T>::set(Some(id));
-
-                    Self::deposit_event(Event::EpochPayout {
-                        epoch,
-                        at: now,
-                        cursor: Some(id),
-                    });
-
-                    return T::WeightInfo::on_initialize_partial();
+                if processed_count >= limit {
+                    fully_finished = false;
+                    break;
                 }
+
+                // We process the payout
+                // Note: This reads Storage, calculates math, and potentially Writes storage (release hold)
+                Self::payout_allocation(id, now);
+
+                last_processed_id = Some(id);
+                processed_count += 1;
             }
 
-            // If we come to the end, then we processed everything without enforcing the
-            // limit. We can proceed to the next epoch correctly.
-            let next = now.saturating_add(T::EpochDuration::get());
-            NextPayoutAt::<T>::put(next);
-            PayoutCursor::<T>::set(None);
-            EpochIndex::<T>::set(epoch.saturating_add(1));
+            // 5. Update State based on loop result
+            if fully_finished {
+                // Epoch complete
+                let current_epoch = EpochIndex::<T>::get();
+                let next_epoch_time = now.saturating_add(T::EpochDuration::get());
 
-            Self::deposit_event(Event::EpochPayout {
-                epoch,
-                at: now,
-                cursor: None,
-            });
+                NextPayoutAt::<T>::put(next_epoch_time);
+                PayoutCursor::<T>::kill(); // Clear cursor
+                EpochIndex::<T>::put(current_epoch.saturating_add(1));
 
-            T::WeightInfo::on_initialize_epoch_finished(payout)
+                Self::deposit_event(Event::EpochPayout {
+                    epoch: current_epoch,
+                    at: now,
+                    cursor: None,
+                });
+
+                // Return weight for full completion
+                T::WeightInfo::on_initialize_epoch_finished(processed_count)
+            } else {
+                // Epoch ongoing, save cursor for next block
+                PayoutCursor::<T>::set(last_processed_id);
+
+                let current_epoch = EpochIndex::<T>::get();
+                Self::deposit_event(Event::EpochPayout {
+                    epoch: current_epoch,
+                    at: now,
+                    cursor: last_processed_id,
+                });
+
+                // Return weight for partial completion
+                T::WeightInfo::on_initialize_partial()
+            }
         }
     }
 
@@ -439,62 +459,90 @@ pub mod pallet {
             now: BlockNumberFor<T>,
         ) -> BalanceOf<T> {
             let effective_start = core::cmp::max(alloc.start, cfg.cliff);
+
+            // Too early
             if now <= effective_start {
                 return Zero::zero();
             }
+
             let elapsed = now.saturating_sub(effective_start);
+
+            // Fully vested
             if elapsed >= cfg.vesting_duration {
                 return alloc.vested_total.saturating_sub(alloc.released);
             }
-            let vested = Self::mul_div(alloc.vested_total, elapsed, cfg.vesting_duration);
-            vested.saturating_sub(alloc.released)
+
+            // Partial vesting calculation: (total * elapsed) / duration
+            // SAFETY: We perform calculation in U256 to avoid overflow of (Balance * BlockNumber)
+            let total_u256 = U256::from(alloc.vested_total.saturated_into::<u128>());
+            let elapsed_u256 = U256::from(elapsed.saturated_into::<u128>());
+            let duration_u256 = U256::from(cfg.vesting_duration.saturated_into::<u128>());
+
+            if duration_u256.is_zero() {
+                return alloc.vested_total.saturating_sub(alloc.released);
+            }
+
+            // Calculate: (Total * Elapsed)
+            let numerator = total_u256.saturating_mul(elapsed_u256);
+            // Calculate: Numerator / Duration
+            let vested_amount_u256 = numerator / duration_u256;
+
+            // Convert back to Balance
+            let vested_amount: BalanceOf<T> = vested_amount_u256.as_u128().saturated_into();
+
+            vested_amount.saturating_sub(alloc.released)
         }
 
         pub(crate) fn payout_allocation(id: AllocationId, now: BlockNumberFor<T>) {
+            // We read the allocation.
+            // If it doesn't exist, we do nothing (loop continues).
             if let Some(mut alloc) = Allocations::<T>::get(id) {
+                // If envelope config is missing, we can't calculate math. Skip.
                 let cfg = match Envelopes::<T>::get(alloc.envelope) {
                     Some(cfg) => cfg,
                     None => return,
                 };
+
                 let claimable = Self::claimable_amount(&cfg, &alloc, now);
 
                 if !claimable.is_zero() {
                     let reason: T::RuntimeHoldReason = HoldReason::TokenAllocation.into();
-                    if T::Currency::release(
+
+                    // Attempt to release the hold
+                    // +1 Storage Write
+                    match T::Currency::release(
                         &reason,
                         &alloc.beneficiary,
                         claimable,
                         Precision::Exact,
-                    )
-                    .is_ok()
-                    {
-                        alloc.released = alloc.released.saturating_add(claimable);
+                    ) {
+                        Ok(_) => {
+                            // Success: Update state
+                            alloc.released = alloc.released.saturating_add(claimable);
 
-                        // Allocation is fully vested, we can remove it
-                        if alloc.vested_total.saturating_sub(alloc.released).is_zero() {
-                            Allocations::<T>::remove(id);
-                            let _ = frame_system::Pallet::<T>::dec_providers(&alloc.beneficiary);
-                        } else {
-                            Allocations::<T>::insert(id, alloc);
+                            // Check if fully vested
+                            let remaining = alloc.vested_total.saturating_sub(alloc.released);
+
+                            if remaining.is_zero() {
+                                // Cleanup
+                                Allocations::<T>::remove(id);
+                                let _ =
+                                    frame_system::Pallet::<T>::dec_providers(&alloc.beneficiary);
+                            } else {
+                                // Update progress
+                                Allocations::<T>::insert(id, alloc);
+                            }
+
+                            Self::deposit_event(Event::VestedReleased(id, claimable));
                         }
-
-                        Self::deposit_event(Event::VestedReleased(id, claimable));
+                        Err(_) => {
+                            // If release fails (e.g. weird state), we simply don't update `released`.
+                            // It will be retried next epoch.
+                            // We might want to log a warning here if 'log' feature is enabled.
+                        }
                     }
                 }
             }
-        }
-
-        pub fn mul_div(
-            a: BalanceOf<T>,
-            b: frame_system::pallet_prelude::BlockNumberFor<T>,
-            c: frame_system::pallet_prelude::BlockNumberFor<T>,
-        ) -> BalanceOf<T> {
-            let a128: u128 = a.saturated_into();
-            let b128: u128 = b.saturated_into();
-            let c128: u128 = c.saturated_into();
-            a128.saturating_mul(b128)
-                .saturating_div(c128)
-                .saturated_into()
         }
     }
 }

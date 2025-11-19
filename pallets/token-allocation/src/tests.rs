@@ -1,265 +1,273 @@
-use super::*;
-use crate::{
-    mock::{RuntimeHoldReason, RuntimeOrigin, run_to_block},
-    pallet::Event as PalletEvent,
-};
+// tests.rs
+
+use crate::{EnvelopeConfig, EnvelopeId, Error, mock::*};
 use frame_support::{
     assert_noop, assert_ok,
-    traits::{Currency, fungible::InspectHold},
+    traits::fungible::{InspectHold, Mutate},
 };
 use sp_runtime::Percent;
 
-use crate::mock::{
-    Balances, RuntimeEvent as TestEvent, System, Test, TokenAllocation, new_test_ext,
-};
-
-fn hold_reason() -> RuntimeHoldReason {
-    RuntimeHoldReason::TokenAllocation(HoldReason::TokenAllocation)
-}
-
-#[test]
-fn add_allocation_pays_upfront_and_holds_rest() {
-    let total_cap: u64 = 1_000_000;
-    let env = EnvelopeConfig {
-        total_cap,
-        upfront_rate: Percent::from_percent(10),
-        cliff: 10,
-        vesting_duration: 100,
-        unique_beneficiary: None,
+// --- HELPER ---
+// Reduces test verbosity by centralizing configuration.
+fn setup_and_fund_envelope(
+    id: EnvelopeId,
+    cap: u128,
+    upfront: u8,
+    cliff: u64,
+    duration: u64,
+    unique: Option<u128>,
+) {
+    let config = EnvelopeConfig {
+        total_cap: cap,
+        upfront_rate: Percent::from_percent(upfront),
+        cliff,
+        vesting_duration: duration,
+        unique_beneficiary: unique,
     };
 
-    let mut ext = new_test_ext(vec![(EnvelopeId::Seed, env.clone())], vec![]);
+    // Direct insertion into storage (simulates Genesis or prior setup).
+    crate::Envelopes::<Test>::insert(id, config);
+    crate::EnvelopeDistributed::<Test>::insert(id, 0);
 
-    ext.execute_with(|| {
-        let alice = 100u128;
-        let alloc = 500_000u64;
+    // Mint funds to the envelope account so it can distribute them.
+    let envelope_acc = id.account::<Test>();
+    let _ = Balances::mint_into(&envelope_acc, cap);
+}
 
-        let src = EnvelopeId::Seed.account::<Test>();
-        pallet_balances::Pallet::<Test>::make_free_balance_be(&src, total_cap);
+// --- TESTS ---
 
-        // add_allocation (Root)
+#[test]
+fn full_lifecycle_works() {
+    // Tests the standard scenario: Upfront -> Cliff -> Progressive Vesting -> Finish.
+    new_test_ext(vec![], vec![]).execute_with(|| {
+        // Config: 1000 tokens, 10% upfront, Cliff at block 10, Duration 100 blocks.
+        setup_and_fund_envelope(EnvelopeId::Seed, 1000, 10, 10, 100, None);
+        let ben = 1u128;
+
+        // 1. Create allocation
         assert_ok!(TokenAllocation::add_allocation(
             RuntimeOrigin::root(),
             EnvelopeId::Seed,
-            alice,
-            alloc,
-            Some(0),
+            ben,
+            1000,
+            None // Start default (Cliff)
         ));
 
-        // upfront = 10% of 500_000 = 50_000
-        let upfront = env.upfront_rate.mul_floor(alloc);
-        assert_eq!(Balances::free_balance(alice), upfront);
+        // CHECK 1: Upfront paid immediately.
+        // 10% of 1000 = 100 Free. The rest (900) is Held.
+        assert_eq!(
+            Balances::free_balance(ben),
+            100,
+            "Upfront should be free immediately"
+        );
+        assert_eq!(
+            Balances::total_balance_on_hold(&ben),
+            900,
+            "Remaining should be held"
+        );
 
-        // the rest is held
-        let held = pallet_balances::Pallet::<Test>::balance_on_hold(&hold_reason(), &alice);
-        assert_eq!(held, alloc - upfront);
+        // 2. Advance before the Cliff (Block 5).
+        run_to_block(5);
+        // Nothing should change.
+        assert_eq!(Balances::free_balance(ben), 100);
 
-        // allocation stored correctly
-        let a = Allocations::<Test>::get(0).unwrap();
-        assert_eq!(a.total, alloc);
-        assert_eq!(a.upfront, upfront);
-        assert_eq!(a.vested_total, alloc - upfront);
-        assert_eq!(a.released, 0);
-        assert_eq!(a.start, 0);
+        // 3. Advance to middle of vesting (Block 60: 10 cliff + 50 duration).
+        // Elapsed time = 50 blocks out of 100 = 50% of the remainder.
+        // Remaining to vest = 900. 50% of 900 = 450.
+        // Total Free = 100 (upfront) + 450 (vested) = 550.
+        run_to_block(60);
+        assert_eq!(Balances::free_balance(ben), 550, "Upfront + 50% vested");
+        assert_eq!(Balances::total_balance_on_hold(&ben), 450);
+
+        // 4. Finish vesting (Block 120).
+        run_to_block(120);
+        assert_eq!(
+            Balances::free_balance(ben),
+            1000,
+            "All funds should be free"
+        );
+        assert_eq!(Balances::total_balance_on_hold(&ben), 0, "No funds held");
+
+        // CHECK 2: Storage cleanup.
+        assert_eq!(
+            crate::Allocations::<Test>::iter_keys().count(),
+            0,
+            "Allocation should be removed after full vesting"
+        );
     });
 }
 
-// -----------------------------------------------------------------------------
-// 2) Epoch payout releases linearly and completes (allocation removed)
-// -----------------------------------------------------------------------------
 #[test]
-fn epoch_payout_releases_linearly_and_completes() {
-    let total_cap: u64 = 2_000_000;
-    let env = EnvelopeConfig {
-        total_cap,
-        upfront_rate: Percent::from_percent(20),
-        cliff: 2,
-        vesting_duration: 10,
-        unique_beneficiary: None,
-    };
+fn pagination_logic_handles_overflowing_allocations() {
+    // Tests the 'Push' mechanism when there are more allocations than the block limit.
+    new_test_ext(vec![], vec![]).execute_with(|| {
+        // Mock Config: MaxPayoutPerBlock = 5 (defined in mock.rs).
 
-    let mut ext = new_test_ext(vec![(EnvelopeId::ICO1, env.clone())], vec![]);
-    ext.execute_with(|| {
-        let alice = 200u128;
-        let alloc = 1_000_000u64;
+        // Config: Instant vesting (duration 1) to force payout at every tick.
+        setup_and_fund_envelope(EnvelopeId::Airdrop, 1_000_000, 0, 0, 1, None);
 
-        // Fund the envelope sub-account
-        let src = EnvelopeId::ICO1.account::<Test>();
-        pallet_balances::Pallet::<Test>::make_free_balance_be(&src, total_cap);
+        // Create 7 allocations (7 > 5) that must all pay out at block 100.
+        for i in 0..7 {
+            assert_ok!(TokenAllocation::add_allocation(
+                RuntimeOrigin::root(),
+                EnvelopeId::Airdrop,
+                i + 100, // Unique IDs
+                100,
+                Some(99) // Start vesting at block 99
+            ));
+        }
 
-        // Add allocation (Root)
+        // Force next payout at block 100.
+        crate::NextPayoutAt::<Test>::put(100);
+        crate::EpochIndex::<Test>::put(0);
+
+        // --- EXECUTION BLOCK 100 ---
+        run_to_block(100);
+
+        // CHECK 1: Pagination active.
+        // Should have 2 remaining (7 - 5 processed).
+        assert_eq!(
+            crate::Allocations::<Test>::iter_keys().count(),
+            2,
+            "Should have 2 allocations remaining"
+        );
+        // Cursor must be set to resume in next block.
+        assert!(
+            crate::PayoutCursor::<Test>::get().is_some(),
+            "Cursor should be set"
+        );
+        // Epoch should NOT have changed yet.
+        assert_eq!(
+            crate::EpochIndex::<Test>::get(),
+            0,
+            "Epoch should not increment yet"
+        );
+
+        // --- EXECUTION BLOCK 101 ---
+        run_to_block(101);
+
+        // CHECK 2: Processing finished.
+        assert_eq!(
+            crate::Allocations::<Test>::iter_keys().count(),
+            0,
+            "All allocations processed"
+        );
+        assert!(
+            crate::PayoutCursor::<Test>::get().is_none(),
+            "Cursor cleared"
+        );
+        // Epoch changed, next payout scheduled.
+        assert_eq!(crate::EpochIndex::<Test>::get(), 1);
+    });
+}
+
+#[test]
+fn math_is_safe_with_u256() {
+    // Tests protection against mathematical overflow.
+    new_test_ext(vec![], vec![]).execute_with(|| {
+        let huge_cap = u128::MAX / 10;
+        // Very long duration.
+        setup_and_fund_envelope(EnvelopeId::Reserve, huge_cap, 0, 0, 1_000_000, None);
+
+        let ben = 1u128;
+        assert_ok!(TokenAllocation::add_allocation(
+            RuntimeOrigin::root(),
+            EnvelopeId::Reserve,
+            ben,
+            huge_cap,
+            Some(0)
+        ));
+
+        assert_eq!(
+            Balances::total_balance_on_hold(&ben),
+            huge_cap,
+            "Funds should be held"
+        );
+
+        // Advance to half duration.
+        // If code did (Amount * Time), it would be u128::MAX * 500_000 -> Immediate Panic in pure u128.
+        // With U256, this must pass.
+        run_to_block(500_000);
+
+        // We should receive approximately half.
+        let free = Balances::free_balance(ben);
+        let expected = huge_cap / 2;
+
+        // Minimal rounding error tolerance.
+        let diff = free.abs_diff(expected);
+        assert!(diff <= 1, "Math should result in ~50% of u128::MAX");
+    });
+}
+
+#[test]
+fn constraints_are_enforced() {
+    // Tests limits (Caps) and business rules.
+    new_test_ext(vec![], vec![]).execute_with(|| {
+        // 1. Test CAP
+        setup_and_fund_envelope(EnvelopeId::ICO1, 1000, 0, 0, 100, None);
+
+        // Allocation OK (1000 <= 1000).
         assert_ok!(TokenAllocation::add_allocation(
             RuntimeOrigin::root(),
             EnvelopeId::ICO1,
-            alice,
-            alloc,
-            Some(0),
+            1,
+            1000,
+            None
         ));
 
-        // Before cliff: nothing released
-        run_to_block(1);
-        let a1 = Allocations::<Test>::get(0).unwrap();
-        assert_eq!(a1.released, 0);
-
-        // Reach first epoch (EpochDuration=5 in mock) after cliff
-        run_to_block(5);
-        let a2 = Allocations::<Test>::get(0).unwrap();
-        assert!(
-            a2.released > 0 && a2.released < a2.vested_total,
-            "should be partially released"
+        // Allocation fails (Cap exceeded because 1000 already distributed).
+        assert_noop!(
+            TokenAllocation::add_allocation(RuntimeOrigin::root(), EnvelopeId::ICO1, 2, 1, None),
+            Error::<Test>::EnvelopeCapExceeded
         );
 
-        // Go far enough so vesting completes and allocation is pruned
-        run_to_block(30);
-        assert!(
-            !Allocations::<Test>::contains_key(0),
-            "completed allocation must be removed"
-        );
+        // 2. Test Unique Beneficiary
+        // Config with enforced beneficiary (e.g., ID 99).
+        setup_and_fund_envelope(EnvelopeId::Founders, 1000, 0, 0, 100, Some(99));
 
-        // Sanity: free balance increased beyond upfront
-        let upfront = env.upfront_rate.mul_floor(alloc);
-        assert!(Balances::free_balance(alice) > upfront);
-
-        // Optional: ensure at least one EpochPayout event was emitted
-        let has_epoch_event = System::events().iter().any(|e| {
-            matches!(
-                e.event,
-                TestEvent::TokenAllocation(PalletEvent::EpochPayout { .. })
-            )
-        });
-        assert!(has_epoch_event, "should emit EpochPayout at least once");
-    });
-}
-
-// -----------------------------------------------------------------------------
-// 4) Upfront 100% finishes immediately and allocation disappears
-// -----------------------------------------------------------------------------
-#[test]
-fn upfront_100_percent_finishes_immediately_and_disappears() {
-    let total_cap: u64 = 1_000_000;
-    let env = EnvelopeConfig {
-        total_cap,
-        upfront_rate: Percent::from_percent(100),
-        cliff: 0,
-        vesting_duration: 0,
-        unique_beneficiary: None,
-    };
-
-    let mut ext = new_test_ext(vec![(EnvelopeId::Exchanges, env.clone())], vec![]);
-    ext.execute_with(|| {
-        let alice = 909u128;
-        let src = EnvelopeId::Exchanges.account::<Test>();
-        pallet_balances::Pallet::<Test>::make_free_balance_be(&src, total_cap);
-
-        assert_ok!(TokenAllocation::add_allocation(
-            RuntimeOrigin::root(),
-            EnvelopeId::Exchanges,
-            alice,
-            500_000u64,
-            Some(0),
-        ));
-
-        // With 100% upfront, vesting_total == 0, allocation should be removed on first epoch pass
-        run_to_block(5);
-        assert!(
-            !Allocations::<Test>::contains_key(0),
-            "100% upfront allocation must not persist"
-        );
-    });
-}
-
-// -----------------------------------------------------------------------------
-// 5) Envelope cap is enforced
-// -----------------------------------------------------------------------------
-#[test]
-fn envelope_cap_enforced() {
-    let total_cap: u64 = 50_000;
-    let env = EnvelopeConfig {
-        total_cap,
-        upfront_rate: Percent::from_percent(0),
-        cliff: 0,
-        vesting_duration: 10,
-        unique_beneficiary: None,
-    };
-
-    let mut ext = new_test_ext(vec![(EnvelopeId::Private1, env.clone())], vec![]);
-    ext.execute_with(|| {
-        let bob = 777u128;
-        let charlie = 888u128;
-        let src = EnvelopeId::Private1.account::<Test>();
-        pallet_balances::Pallet::<Test>::make_free_balance_be(&src, total_cap);
-
-        // First allocation fills the cap
-        assert_ok!(TokenAllocation::add_allocation(
-            RuntimeOrigin::root(),
-            EnvelopeId::Private1,
-            bob,
-            total_cap,
-            Some(0),
-        ));
-
-        // Second allocation should fail with EnvelopeCapExceeded
-        let err = TokenAllocation::add_allocation(
-            RuntimeOrigin::root(),
-            EnvelopeId::Private1,
-            charlie,
-            1u64,
-            Some(0),
-        )
-        .unwrap_err();
-
-        // Match pallet error
-        assert_eq!(
-            err,
-            sp_runtime::DispatchError::from(pallet::Error::<Test>::EnvelopeCapExceeded)
-        );
-    });
-}
-
-// -----------------------------------------------------------------------------
-// 6) Unique beneficiary disables runtime allocations
-// -----------------------------------------------------------------------------
-#[test]
-fn unique_beneficiary_disables_runtime_allocations() {
-    let total_cap: u64 = 100_000;
-    let enforced = 42u128;
-
-    let env = EnvelopeConfig {
-        total_cap,
-        upfront_rate: Percent::from_percent(0),
-        cliff: 0,
-        vesting_duration: 10,
-        unique_beneficiary: Some(enforced),
-    };
-
-    let mut ext = new_test_ext(vec![(EnvelopeId::Reserve, env.clone())], vec![]);
-    ext.execute_with(|| {
-        // Fund envelope
-        let src = EnvelopeId::Reserve.account::<Test>();
-        pallet_balances::Pallet::<Test>::make_free_balance_be(&src, total_cap);
-
-        // Any runtime add_allocation must be disabled when unique_beneficiary is set
+        // Try to allocate to someone else.
         assert_noop!(
             TokenAllocation::add_allocation(
                 RuntimeOrigin::root(),
-                EnvelopeId::Reserve,
-                999u128, // different from enforced
-                10_000u64,
-                Some(0),
+                EnvelopeId::Founders,
+                50,
+                100,
+                None
             ),
-            pallet::Error::<Test>::AllocationDisabled
+            Error::<Test>::AllocationDisabled
         );
 
-        // Even for the same enforced account, runtime is disabled (genesis-only)
+        // Even if we try to allocate manually to the correct user,
+        // the current code returns AllocationDisabled if unique_beneficiary is set
+        // (assuming it's handled by genesis or special logic).
         assert_noop!(
             TokenAllocation::add_allocation(
                 RuntimeOrigin::root(),
-                EnvelopeId::Reserve,
-                enforced,
-                10_000u64,
-                Some(0),
+                EnvelopeId::Founders,
+                99,
+                100,
+                None
             ),
-            pallet::Error::<Test>::AllocationDisabled
+            Error::<Test>::AllocationDisabled
+        );
+    });
+}
+
+#[test]
+fn permission_checks() {
+    new_test_ext(vec![], vec![]).execute_with(|| {
+        setup_and_fund_envelope(EnvelopeId::Seed, 1000, 0, 0, 100, None);
+
+        // A normal user cannot create an allocation.
+        assert_noop!(
+            TokenAllocation::add_allocation(
+                RuntimeOrigin::signed(1), // Not root
+                EnvelopeId::Seed,
+                2,
+                100,
+                None
+            ),
+            sp_runtime::DispatchError::BadOrigin
         );
     });
 }

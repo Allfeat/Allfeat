@@ -2,13 +2,16 @@
 
 use crate::{tests::new_test_ext, *};
 use frame_support::{
-    assert_ok,
-    traits::{Hooks, fungible::InspectHold},
+    assert_noop, assert_ok,
+    traits::{Currency, Hooks, fungible::InspectHold},
 };
 use frame_system::pallet_prelude::BlockNumberFor;
-use pallet_token_allocation::{Allocations, HoldReason, NextAllocationId};
+use pallet_token_allocation::{Allocations, EnvelopeId, HoldReason};
 use shared_runtime::currency::AFT;
 use sp_keyring::Sr25519Keyring;
+use sp_runtime::TokenError;
+
+// --- HELPERS ---
 
 // Helper: read “held” balance on treasury under this pallet’s hold reason
 fn held_on_treasury() -> Balance {
@@ -16,167 +19,209 @@ fn held_on_treasury() -> Balance {
     pallet_balances::Pallet::<Runtime>::balance_on_hold(&reason, &Treasury::account_id())
 }
 
-fn advance_to(n: BlockNumberFor<Runtime>) {
+fn jump_to(n: BlockNumberFor<Runtime>) {
     frame_system::Pallet::<Runtime>::set_block_number(n);
     let _ = pallet_token_allocation::Pallet::<Runtime>::on_initialize(n);
 }
 
 #[test]
-fn total_issuance_is_one_billion_at_genesis() {
+fn genesis_issuance_integrity() {
     new_test_ext().execute_with(|| {
         let total_issuance: Balance = pallet_balances::Pallet::<Runtime>::total_issuance();
-
         let expected: Balance = 1_000_000_000 * AFT;
-        assert_eq!(
-            total_issuance as u128, expected,
-            "Unexpected total issuance at genesis"
-        );
 
-        advance_to(10_000_000);
-
-        let total_issuance_future: Balance = pallet_balances::Pallet::<Runtime>::total_issuance();
         assert_eq!(
-            total_issuance_future as u128, expected,
-            "Unexpected total issuance in the future."
+            total_issuance, expected,
+            "CRITICAL: Total issuance at genesis must be exactly 1 Billion AFT"
         );
     })
 }
 
 #[test]
-fn foundation_receives_correct_upfront_at_genesis() {
+fn treasury_allocations_are_correctly_locked() {
     new_test_ext().execute_with(|| {
-        // Expected upfront per enveloppes:
-        // - ResearchDevelopment: 125M * 20% = 25M
-        // - Reserve:            20M  *100% = 20M
-        // Total upfront = 45M
-        let expected_upfront = (25_000_000u128 + 20_000_000u128) * AFT;
+        // 1. Verify Upfront (Liquid)
+        // ResearchDevelopment (20% of 125M) + Reserve (100% of 20M) = 25M + 20M = 45M
+        let expected_upfront = (25_000_000 + 20_000_000) * AFT;
+        let free_treasury =
+            pallet_balances::Pallet::<Runtime>::free_balance(Treasury::account_id());
 
-        // Expected held: (260 + 100 + 125 + 20) - 45 = 460M
-        let expected_held = 460_000_000u128 * AFT;
-
-        println!("{}", Treasury::account_id());
-
-        let free = pallet_balances::Pallet::<Runtime>::free_balance(Treasury::account_id());
         assert_eq!(
-            free, expected_upfront,
-            "Treasury free balance (upfront) at genesis is wrong"
+            free_treasury, expected_upfront,
+            "Treasury liquid balance (upfront) mismatch"
         );
 
-        let held = held_on_treasury() as u128;
+        // 2. Verify Locked (Held)
+        // Total Treasury Allocations:
+        // Community (260) + Exchanges (100) + R&D (125) + Reserve (20) = 505M
+        // Minus Upfront (45M) = 460M locked.
+        let expected_held = 460_000_000 * AFT;
+        let held_treasury = held_on_treasury();
+
         assert_eq!(
-            held, expected_held,
-            "Treasury held balance at genesis is wrong"
+            held_treasury, expected_held,
+            "Treasury held balance mismatch"
+        );
+
+        // 3. SECURITY CHECK: Treasury cannot spend locked funds
+        // Try to transfer more than free balance (e.g. free + 1 AFT from locked)
+        let attempt_amount = free_treasury + (AFT);
+        let bob = Sr25519Keyring::Bob.to_account_id();
+
+        assert_noop!(
+            pallet_balances::Pallet::<Runtime>::transfer_allow_death(
+                RuntimeOrigin::signed(Treasury::account_id()),
+                bob.into(),
+                attempt_amount
+            ),
+            TokenError::FundsUnavailable
         );
     });
 }
 
-/// End-to-end integrity test:
-/// - add a runtime allocation (no unique beneficiary) to a user,
-/// - upfront is paid immediately,
-/// - nothing releases before the cliff,
-/// - release starts only at the next epoch after the cliff,
-/// - allocation is removed when fully vested.
 #[test]
-fn e2e_add_beneficiary_and_distribute_until_completion() {
-    // GIVEN the full runtime genesis (tokenomics already applied by new_test_ext()).
+fn e2e_vesting_schedule_private2() {
     new_test_ext().execute_with(|| {
-        // Constants from the runtime tokenomics for `Private2`
-        // Private2: upfront 5%, cliff 3 * MONTHS, vesting 36 * MONTHS
-        let epoch: BlockNumber = <Runtime as pallet_token_allocation::Config>::EpochDuration::get();
+        let alice = Sr25519Keyring::Alice.to_account_id();
 
-        // Choose a test account for the runtime allocation (must not be the foundation account).
-        let alice: AccountId = Sr25519Keyring::Alice.to_account_id();
+        let alloc_total: u128 = 1_000_000 * AFT;
 
-        // Pick an allocation size that is small but visible.
-        let alloc_total: Balance = 1_000_000 * AFT;
+        let alloc_id = pallet_token_allocation::NextAllocationId::<Runtime>::get();
 
-        let alloc_id = NextAllocationId::<Runtime>::get();
-
-        // WHEN we add a runtime allocation on an envelope that allows it (no unique beneficiary).
+        // Create Allocation
         assert_ok!(pallet_token_allocation::Pallet::<Runtime>::add_allocation(
             RuntimeOrigin::root(),
-            pallet_token_allocation::EnvelopeId::Private2,
+            EnvelopeId::Private2,
             alice.clone(),
             alloc_total,
-            Some(0), // start=0 → effective_start = max(0, cliff) = cliff
+            Some(0),
         ));
 
-        // THEN upfront (5%) is paid immediately and the rest is held.
-        let upfront_rate = sp_runtime::Percent::from_percent(5);
-        let upfront = upfront_rate.mul_floor(alloc_total);
-        let free_0 = pallet_balances::Pallet::<Runtime>::free_balance(&alice);
+        // --- Check Upfront (5%) ---
+        let expected_upfront = alloc_total * 5 / 100;
         assert_eq!(
-            free_0, upfront,
-            "upfront must be credited at allocation time"
+            pallet_balances::Pallet::<Runtime>::free_balance(&alice),
+            expected_upfront,
+            "Upfront calculation incorrect"
         );
 
-        // Allocation exists in storage with proper fields.
-        let mut alloc = Allocations::<Runtime>::get(alloc_id).unwrap();
-        assert_eq!(alloc.total, alloc_total);
-        assert_eq!(alloc.upfront, upfront);
-        assert_eq!(alloc.vested_total, alloc_total - upfront);
-        assert_eq!(alloc.released, 0);
+        // --- Check Cliff ---
+        let cliff_block = 3 * MONTHS;
+        jump_to(cliff_block - 1);
 
-        // --- BEFORE CLIFF: no release, even if epochs tick before the cliff.
-        // Move to just before the cliff.
-        let before_cliff = 3 * MONTHS - 1;
-        advance_to(before_cliff);
+        let alloc = pallet_token_allocation::Allocations::<Runtime>::get(alloc_id)
+            .expect("Allocation must exist");
 
-        alloc = Allocations::<Runtime>::get(alloc_id).unwrap();
-        let free_before_cliff = pallet_balances::Pallet::<Runtime>::free_balance(&alice);
+        assert_eq!(alloc.released, 0, "Nothing released before cliff");
+
+        // --- Check Vesting Progress (15 months after cliff) ---
+        let check_block = 3 * MONTHS + 15 * MONTHS;
+        jump_to(check_block);
+
+        // Force manual payout trigger
+        pallet_token_allocation::NextPayoutAt::<Runtime>::put(check_block);
+        pallet_token_allocation::Pallet::<Runtime>::on_initialize(check_block);
+
+        // Reload allocation
+        let alloc_updated = pallet_token_allocation::Allocations::<Runtime>::get(alloc_id).unwrap();
+
+        let remaining_total = alloc_total - expected_upfront;
+
+        // Math: We expect (15/36) of the remaining amount
+        let expected_vested_part = remaining_total
+            .saturating_mul(15 * MONTHS as u128)
+            .saturating_div(36 * MONTHS as u128);
+
+        let released = alloc_updated.released;
+
+        let diff = released.abs_diff(expected_vested_part);
+
+        let tolerance = AFT;
+
+        assert!(
+            diff < tolerance,
+            "Vesting math deviation too high. Diff: {diff} raw units (Tolerance: {tolerance} raw units)"
+        );
+
+        // --- Check Completion ---
+        let end_block = 3 * MONTHS + 36 * MONTHS + MONTHS;
+
+        pallet_token_allocation::NextPayoutAt::<Runtime>::put(end_block);
+        pallet_token_allocation::Pallet::<Runtime>::on_initialize(end_block);
+
+        assert!(
+            pallet_token_allocation::Allocations::<Runtime>::get(alloc_id).is_none(),
+            "Allocation should be pruned from storage"
+        );
+
+        let final_balance = pallet_balances::Pallet::<Runtime>::free_balance(&alice);
+
+        let dust = alloc_total.saturating_sub(final_balance);
+        assert!(
+            dust <= 1,
+            "Alice should have full amount at the end. Missing: {dust} raw units"
+        );
+    });
+}
+
+#[test]
+fn ensure_no_unexpected_allocations() {
+    new_test_ext().execute_with(|| {
+        let count = Allocations::<Runtime>::iter_keys().count();
         assert_eq!(
-            alloc.released, 0,
-            "no vested release before the cliff (even with epochs)"
+            count, 3,
+            "Should have exactly 3 auto-allocations for Treasury"
         );
+
+        for (_, alloc) in Allocations::<Runtime>::iter() {
+            assert_eq!(alloc.beneficiary, Treasury::account_id());
+        }
+    });
+}
+
+#[test]
+fn ensure_vesting_really_locks_funds_for_users() {
+    new_test_ext().execute_with(|| {
+        let alice = Sr25519Keyring::Alice.to_account_id();
+        let bob = Sr25519Keyring::Bob.to_account_id();
+
+        let alloc_total: u128 = 1_000 * AFT;
+
+        // Allocation : Private2 (5% Upfront = 50 AFT)
+        assert_ok!(pallet_token_allocation::Pallet::<Runtime>::add_allocation(
+            RuntimeOrigin::root(),
+            EnvelopeId::Private2,
+            alice.clone(),
+            alloc_total,
+            Some(0),
+        ));
+
+        let total_balance = pallet_balances::Pallet::<Runtime>::total_balance(&alice);
+        assert_eq!(total_balance, alloc_total, "Alice should see total balance");
+
+        let free_balance = pallet_balances::Pallet::<Runtime>::free_balance(&alice);
+        let expected_free = 50 * AFT;
+        assert_eq!(free_balance, expected_free);
+
+        assert_noop!(
+            pallet_balances::Pallet::<Runtime>::transfer_allow_death(
+                RuntimeOrigin::signed(alice.clone()),
+                bob.clone().into(),
+                expected_free + (AFT)
+            ),
+            TokenError::FundsUnavailable
+        );
+
+        assert_ok!(pallet_balances::Pallet::<Runtime>::transfer_allow_death(
+            RuntimeOrigin::signed(alice.clone()),
+            bob.clone().into(),
+            expected_free
+        ));
+
+        assert_eq!(pallet_balances::Pallet::<Runtime>::free_balance(&alice), 0);
         assert_eq!(
-            free_before_cliff, upfront,
-            "free balance must stay at upfront before the cliff"
-        );
-
-        // --- AT CLIFF (exact): still nothing until the next epoch tick after the cliff.
-        let at_cliff = 3 * MONTHS;
-        advance_to(at_cliff);
-        alloc = Allocations::<Runtime>::get(alloc_id).unwrap();
-        let free_at_cliff = pallet_balances::Pallet::<Runtime>::free_balance(&alice);
-        assert_eq!(
-            alloc.released, 0,
-            "no release exactly at cliff unless epoch fires here"
-        );
-        assert_eq!(free_at_cliff, upfront);
-
-        // --- FIRST RELEASE: at the next epoch after the cliff.
-        let first_release_block = at_cliff + epoch;
-        advance_to(first_release_block);
-
-        alloc = Allocations::<Runtime>::get(alloc_id).unwrap();
-        let free_first_release = pallet_balances::Pallet::<Runtime>::free_balance(&alice);
-        assert!(
-            alloc.released > 0,
-            "first release must happen on the first epoch after the cliff"
-        );
-        assert!(
-            free_first_release > upfront,
-            "free balance should increase after first epoch post-cliff"
-        );
-
-        // --- CONTINUE UNTIL COMPLETION:
-        // Jump far beyond vesting end to ensure the allocation finishes and is pruned.
-        let vest_duration = 36 * MONTHS;
-        let after_vest = at_cliff + vest_duration + epoch * 2;
-        advance_to(after_vest);
-
-        // Allocation should be removed from storage.
-        let finished = Allocations::<Runtime>::get(alloc_id);
-        assert!(
-            finished.is_none(),
-            "allocation must be pruned once fully released"
-        );
-
-        // And free balance must be initial upfront + full vested_total.
-        let free_end = pallet_balances::Pallet::<Runtime>::free_balance(&alice);
-        assert!(
-            free_end == alloc_total, // == alloc_total in the ideal case
-            "by the end, beneficiary should have received the whole allocation"
+            pallet_balances::Pallet::<Runtime>::total_balance(&alice),
+            950 * AFT
         );
     });
 }

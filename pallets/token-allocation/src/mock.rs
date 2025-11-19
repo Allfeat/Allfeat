@@ -21,8 +21,11 @@ use frame_support::{
     PalletId, derive_impl, parameter_types, sp_runtime::BuildStorage, traits::Hooks,
 };
 use frame_system::{EnsureRoot, pallet_prelude::BlockNumberFor};
+use sp_core::ConstU128;
 use sp_runtime::traits::IdentityLookup;
 
+// We use u128 to match production and test math overflows properly
+pub type Balance = u128;
 type Block = frame_system::mocking::MockBlock<Test>;
 
 #[frame_support::runtime]
@@ -54,17 +57,21 @@ impl frame_system::Config for Test {
     type Block = Block;
     type AccountId = u128; // u64 is not enough to hold bytes used to generate accounts
     type Lookup = IdentityLookup<Self::AccountId>;
-    type AccountData = pallet_balances::AccountData<u64>;
+    type AccountData = pallet_balances::AccountData<Balance>;
 }
 
 #[derive_impl(pallet_balances::config_preludes::TestDefaultConfig)]
 impl pallet_balances::Config for Test {
+    type Balance = Balance;
+    type ExistentialDeposit = ConstU128<1>;
     type AccountStore = frame_system::Pallet<Test>;
 }
 
 parameter_types! {
     pub TokenAllocPalletId: PalletId = PalletId(*b"tkalloc8");
-    pub const EpochDuration: u64 = 5;
+    // Short duration for easier testing
+    pub const EpochDuration: u64 = 10;
+    // Small limit to easily test the "cursor" logic and loop breaking
     pub const MaxPayoutPerBlock: u32 = 5;
 }
 
@@ -78,11 +85,22 @@ impl pallet_token_allocation::Config for Test {
     type WeightInfo = ();
 }
 
+// Helper function to simulate block progression
 pub(crate) fn run_to_block(n: BlockNumberFor<Test>) {
     while System::block_number() < n {
-        let b = System::block_number() + 1;
-        System::set_block_number(b);
-        let _ = TokenAllocation::on_initialize(b);
+        let current_block = System::block_number();
+
+        // Finalize the previous block
+        TokenAllocation::on_finalize(current_block);
+        System::on_finalize(current_block);
+
+        // Move to the next block
+        let next_block = current_block + 1;
+        System::set_block_number(next_block);
+
+        // Initialize the new block
+        System::on_initialize(next_block);
+        TokenAllocation::on_initialize(next_block);
     }
 }
 
