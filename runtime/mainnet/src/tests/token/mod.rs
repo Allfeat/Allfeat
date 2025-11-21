@@ -41,8 +41,8 @@ fn genesis_issuance_integrity() {
 fn treasury_allocations_are_correctly_locked() {
     new_test_ext().execute_with(|| {
         // 1. Verify Upfront (Liquid)
-        // ResearchDevelopment (20% of 125M) + Reserve (100% of 20M) = 25M + 20M = 45M
-        let expected_upfront = (25_000_000 + 20_000_000) * AFT;
+        // ResearchDevelopment (20% of 124,999M) + Reserve (100% of 20M) = 25M + 20M = 45M
+        let expected_upfront = (24_999_800 + 20_000_000) * AFT;
         let free_treasury =
             pallet_balances::Pallet::<Runtime>::free_balance(Treasury::account_id());
 
@@ -53,9 +53,9 @@ fn treasury_allocations_are_correctly_locked() {
 
         // 2. Verify Locked (Held)
         // Total Treasury Allocations:
-        // Community (260) + Exchanges (100) + R&D (125) + Reserve (20) = 505M
+        // Community (259 999 000) + Exchanges (100) + R&D (125) + Reserve (20) = 505M
         // Minus Upfront (45M) = 460M locked.
-        let expected_held = 460_000_000 * AFT;
+        let expected_held = 459_999_200 * AFT;
         let held_treasury = held_on_treasury();
 
         assert_eq!(

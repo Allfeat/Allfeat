@@ -1,3 +1,4 @@
+use allfeat_primitives::{AccountId, Balance};
 use alloc::vec;
 use pallet_token_allocation::{EnvelopeConfig, EnvelopeId};
 use shared_runtime::currency::AFT;
@@ -5,15 +6,17 @@ use sp_runtime::Percent;
 
 use crate::{MONTHS, Runtime, Treasury};
 
+pub const SUDO_AMOUNT: Balance = 1_000 * AFT;
+
 pub struct TokenGenesis {
     pub balances: pallet_balances::GenesisConfig<Runtime>,
     pub allocations: pallet_token_allocation::GenesisConfig<Runtime>,
 }
 
-pub fn tokenomics() -> TokenGenesis {
+pub fn tokenomics(sudo_key: AccountId) -> TokenGenesis {
     TokenGenesis {
         balances: pallet_balances::GenesisConfig {
-            balances: vec![],
+            balances: vec![(sudo_key, SUDO_AMOUNT)],
             dev_accounts: None,
         },
         allocations: pallet_token_allocation::GenesisConfig {
@@ -179,10 +182,12 @@ pub fn tokenomics() -> TokenGenesis {
                 // 20% Upfront rate, no cliff
                 // Vesting on 26 months
                 // Beneficiary: Treasury
+                //
+                // Note: Available sudo key amount balance is taken from this envelope.
                 (
                     EnvelopeId::ResearchDevelopment,
                     EnvelopeConfig {
-                        total_cap: 125_000_000 * AFT,
+                        total_cap: (125_000_000 * AFT).saturating_sub(SUDO_AMOUNT),
                         upfront_rate: Percent::from_percent(20),
                         cliff: 0u32,
                         vesting_duration: 26 * MONTHS,

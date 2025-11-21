@@ -36,7 +36,7 @@ use crate::{RuntimeGenesisConfig, SessionKeys};
 
 mod development;
 mod local;
-mod staging;
+pub mod staging;
 
 pub mod token;
 
@@ -54,7 +54,7 @@ pub fn genesis(
     dev_accounts: Vec<AccountId>,
     root_key: AccountId,
 ) -> serde_json::Value {
-    let mut token_genesis = tokenomics();
+    let mut token_genesis = tokenomics(root_key.clone());
 
     let dev_accounts_balances: Vec<(AccountId, Balance)> = dev_accounts
         .into_iter()
