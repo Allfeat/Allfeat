@@ -6,7 +6,7 @@
 # needed to build the Allfeat binary are installed,
 # plus cargo-check to optimize rust dependency management and then speedup any re-build
 
-FROM rustlang/rust:nightly-bookworm-slim as base
+FROM rust:bookworm as base
 
 WORKDIR /app
 
@@ -19,9 +19,6 @@ RUN apt update -y && \
 # it will be cached from the second build onwards
 RUN cargo install cargo-chef
 
-RUN rustup target add wasm32-unknown-unknown
-RUN rustup component add rust-src
-
 ###########
 # PLANNER #
 ###########
@@ -30,6 +27,7 @@ RUN rustup component add rust-src
 
 FROM base AS planner
 COPY . .
+
 RUN --mount=type=cache,mode=0755,target=/app/target cargo chef prepare --recipe-path recipe.json
 
 ##########
@@ -42,6 +40,7 @@ FROM base as cacher
 COPY --from=planner /app/recipe.json recipe.json
 
 # Build dependencies - this is the caching Docker layer!
+COPY --from=planner /app/rust-toolchain.toml rust-toolchain.toml
 RUN --mount=type=cache,mode=0755,target=/app/target cargo chef cook --release --recipe-path recipe.json
 
 ###########
@@ -52,8 +51,18 @@ RUN --mount=type=cache,mode=0755,target=/app/target cargo chef cook --release --
 
 FROM cacher AS builder
 COPY . .
-RUN --mount=type=cache,mode=0755,target=/app/target cargo build --locked --release
-RUN --mount=type=cache,mode=0755,target=/app/target cp /app/target/release/allfeat /usr/local/bin
+
+# Build the binary
+# We prioritize the local toolchain file
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/app/target \
+    cargo build --locked --release
+
+# Strip the binary to reduce the final image size significantly
+# (Removes debug symbols, not needed for production runtime)
+RUN --mount=type=cache,target=/app/target \
+    strip /app/target/release/allfeat && \
+    cp /app/target/release/allfeat /usr/local/bin/allfeat
 
 ###########
 # RUNTIME #
@@ -67,9 +76,9 @@ FROM debian:bookworm-slim AS runtime
 WORKDIR /app
 
 LABEL io.allfeat.image.type="builder" \
-    io.allfeat.image.authors="tech@allfeat.com" \
-    io.allfeat.image.vendor="Allfeat labs" \
-    io.allfeat.image.description="Multistage Docker image for allfeat-blockchain" \
+    io.allfeat.image.authors="hello@allfeat.com" \
+    io.allfeat.image.vendor="Allfeat" \
+    io.allfeat.image.description="Multistage Container image of the Allfeat Node." \
     io.allfeat.image.source="https://github.com/allfeat/allfeat/blob/${VCS_REF}/Dockerfile" \
     io.allfeat.image.documentation="https://github.com/allfeat/allfeat"
 
