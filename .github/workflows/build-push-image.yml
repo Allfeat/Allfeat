@@ -21,6 +21,14 @@ jobs:
       packages: write
 
     steps:
+      - name: Free Disk Space for Docker
+        uses: endersonmenezes/free-disk-space@v3
+        with:
+          remove_android: true
+          remove_dotnet: true
+          remove_haskell: true
+          rm_cmd: "rmz"  # Faster cleanup
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
