@@ -68,7 +68,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
     spec_name: alloc::borrow::Cow::Borrowed("allfeat-melodie-2"),
     impl_name: alloc::borrow::Cow::Borrowed("allfeatlabs-melodie-2"),
     authoring_version: 1,
-    spec_version: 700,
+    spec_version: 800,
     impl_version: 0,
     apis: RUNTIME_API_VERSIONS,
     transaction_version: 2,
@@ -200,6 +200,9 @@ mod runtime {
 
     #[runtime::pallet_index(19)]
     pub type SafeMode = pallet_safe_mode;
+
+    #[runtime::pallet_index(20)]
+    pub type MetaTx = pallet_meta_tx;
 
     #[runtime::pallet_index(50)]
     pub type Mmr = pallet_mmr;

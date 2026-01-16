@@ -16,31 +16,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod multisig;
-mod proxy;
-mod scheduler;
-// System stuffs.
-mod aura;
-mod authorship;
-mod balances;
-mod grandpa;
-mod identity;
-mod im_online;
-mod meta_tx;
-mod mmr;
-mod preimage;
-mod safe_mode;
-mod session;
-mod sudo;
-mod system;
-mod timestamp;
-mod transaction_payment;
-mod utility;
-mod validators;
+use crate::*;
 
-// External required imports
-pub use balances::*;
-pub use im_online::*;
-pub use session::*;
-pub use system::*;
-pub use transaction_payment::*;
+impl pallet_meta_tx::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type Extension = SignedExtra;
+    type WeightInfo = pallet_meta_tx::weights::SubstrateWeight<Runtime>; // TODO
+}
