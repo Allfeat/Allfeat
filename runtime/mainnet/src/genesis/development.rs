@@ -29,7 +29,6 @@ pub fn development_config_genesis() -> serde_json::Value {
             Sr25519Keyring::Alice.public().into(), // Aura
         )],
         vec![
-            Sr25519Keyring::Alice.to_account_id(),
             Sr25519Keyring::Bob.to_account_id(),
             Sr25519Keyring::Charlie.to_account_id(),
             Sr25519Keyring::Dave.to_account_id(),
