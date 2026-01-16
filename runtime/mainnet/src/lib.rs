@@ -115,13 +115,7 @@ pub type RuntimeExecutive = frame_executive::Executive<
     frame_system::ChainContext<Runtime>,
     Runtime,
     AllPalletsWithSystem,
-    Migrations,
 >;
-
-/// All migrations of the runtime, aside from the ones declared in the pallets.
-///
-/// This can be a tuple of types, each implementing `OnRuntimeUpgrade`.
-type Migrations = ();
 
 #[frame_support::runtime]
 mod runtime {

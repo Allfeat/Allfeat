@@ -28,6 +28,12 @@ use frame_support::{
 use frame_system::limits::BlockWeights;
 use shared_runtime::{NORMAL_DISPATCH_RATIO, RuntimeBlockLength};
 
+/// All migrations of the runtime, aside from the ones declared in the pallets.
+///
+/// This can be a tuple of types, each implementing `OnRuntimeUpgrade`.
+#[allow(unused_parens)]
+type SingleBlockMigrations = ();
+
 frame_support::parameter_types! {
     pub const Version: sp_version::RuntimeVersion = VERSION;
     /// We allow for 4 seconds of compute with a 12 second average block time.
@@ -52,4 +58,5 @@ impl frame_system::Config for Runtime {
     type SystemWeightInfo = frame_system::weights::SubstrateWeight<Runtime>;
     type SS58Prefix = ConstU16<42>;
     type MaxConsumers = ConstU32<16>;
+    type SingleBlockMigrations = SingleBlockMigrations;
 }

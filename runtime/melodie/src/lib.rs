@@ -32,10 +32,7 @@ use alloc::vec::Vec;
 pub use allfeat_primitives::{AccountId, Address, Balance, BlockNumber, Moment, Nonce, Signature};
 
 use apis::RUNTIME_API_VERSIONS;
-use frame_support::{
-    migrations::{RemovePallet, RemoveStorage},
-    parameter_types,
-};
+use frame_support::parameter_types;
 use sp_runtime::{generic, traits::NumberFor};
 use sp_version::{RuntimeVersion, runtime_version};
 
@@ -119,7 +116,6 @@ pub type RuntimeExecutive = frame_executive::Executive<
     frame_system::ChainContext<Runtime>,
     Runtime,
     AllPalletsWithSystem,
-    Migrations,
 >;
 
 parameter_types! {
@@ -131,18 +127,6 @@ parameter_types! {
     pub const BalancesStr: &'static str = "Balances";
     pub const HoldsStr: &'static str = "Holds";
 }
-
-/// All migrations of the runtime, aside from the ones declared in the pallets.
-///
-/// This can be a tuple of types, each implementing `OnRuntimeUpgrade`.
-#[allow(unused_parens)]
-type Migrations = (
-    RemovePallet<PartyIdentifiersStr, <Runtime as frame_system::Config>::DbWeight>,
-    RemovePallet<TracksStr, <Runtime as frame_system::Config>::DbWeight>,
-    RemovePallet<MusicalWorksStr, <Runtime as frame_system::Config>::DbWeight>,
-    RemovePallet<ReleasesStr, <Runtime as frame_system::Config>::DbWeight>,
-    RemoveStorage<BalancesStr, HoldsStr, <Runtime as frame_system::Config>::DbWeight>,
-);
 
 #[frame_support::runtime]
 mod runtime {

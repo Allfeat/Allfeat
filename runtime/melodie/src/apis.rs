@@ -19,6 +19,7 @@
 use frame_support::pallet_prelude::{TransactionSource, TransactionValidity};
 use sp_api::impl_runtime_apis;
 use sp_inherents::InherentData;
+use sp_runtime::traits::Block as BlockT;
 
 use super::*;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -29,7 +30,7 @@ impl_runtime_apis! {
             VERSION
         }
 
-        fn execute_block(block: Block) {
+        fn execute_block(block: <Block as BlockT>::LazyBlock) {
             RuntimeExecutive::execute_block(block);
         }
 
@@ -65,7 +66,7 @@ impl_runtime_apis! {
             data.create_extrinsics()
         }
 
-        fn check_inherents(block: Block, data: InherentData) -> sp_inherents::CheckInherentsResult {
+        fn check_inherents(block: <Block as BlockT>::LazyBlock, data: InherentData) -> sp_inherents::CheckInherentsResult {
             data.check_extrinsics(&block)
         }
     }
@@ -214,7 +215,7 @@ impl sp_consensus_grandpa::GrandpaApi<Block> for Runtime {
         }
 
         fn execute_block(
-            block: Block,
+            block: <Block as BlockT>::LazyBlock,
             state_root_check: bool,
             signature_check: bool,
             select: frame_try_runtime::TryStateSelect

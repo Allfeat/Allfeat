@@ -370,6 +370,7 @@ where
         sync_service: sync_service.clone(),
         config,
         telemetry: extra_parts.telemetry.as_mut(),
+        tracing_execute_block: None,
     })?;
 
     if role.is_authority() {
