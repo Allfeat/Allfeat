@@ -13,7 +13,7 @@ WORKDIR /app
 # This installs all debian dependencies we need (besides Rust).
 RUN apt update -y && \
     apt install -y build-essential git clang curl libssl-dev \
-    llvm libudev-dev make protobuf-compiler pkg-config
+    llvm libudev-dev make protobuf-compiler pkg-config libclang-dev
 
 # Using cargo-chef to only pay the deps installation cost once,
 # it will be cached from the second build onwards
