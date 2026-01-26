@@ -167,6 +167,7 @@ pallet-identity = { version = "45.0.0", default-features = false }
 pallet-authority-discovery = { version = "45.0.0", default-features = false }
 pallet-safe-mode = { version = "26.0.0", default-features = false }
 pallet-meta-tx = { version = "0.7.0", default-features = false }
+pallet-verify-signature = { version = "0.8.0", default-features = false }
 
 substrate-wasm-builder = { version = "31.0.0", default-features = false }
 

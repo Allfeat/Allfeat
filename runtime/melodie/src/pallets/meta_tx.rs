@@ -16,10 +16,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use sp_runtime::{MultiSignature, traits::Verify};
+
 use crate::*;
 
 impl pallet_meta_tx::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type Extension = SignedExtra;
+    type Extension = MetaTxExtension;
     type WeightInfo = pallet_meta_tx::weights::SubstrateWeight<Runtime>; // TODO
+}
+
+impl pallet_verify_signature::Config for Runtime {
+    type Signature = MultiSignature;
+    type AccountIdentifier = <Signature as Verify>::Signer;
+    type WeightInfo = ();
+    #[cfg(feature = "runtime-benchmarks")]
+    type BenchmarkHelper = ();
 }

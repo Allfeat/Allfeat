@@ -41,15 +41,10 @@
               just
 
               # Polkadot SDK
-              frame-omni-bencher
               psvm
               subkey
             ]
-            ++ lib.optionals stdenv.hostPlatform.isLinux [ rust-jemalloc-sys-unprefixed ]
-            ++ lib.optionals stdenv.hostPlatform.isDarwin [
-              darwin.apple_sdk.frameworks.Security
-              darwin.apple_sdk.frameworks.SystemConfiguration
-            ];
+            ++ lib.optionals stdenv.hostPlatform.isLinux [ rust-jemalloc-sys-unprefixed ];
 
           LIBCLANG_PATH = "${pkgs.libclang.lib}/lib";
           # New flag required since https://github.com/eigerco/polka-storage/pull/730

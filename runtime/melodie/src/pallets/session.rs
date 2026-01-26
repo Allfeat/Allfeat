@@ -29,7 +29,6 @@ impl_opaque_keys! {
     pub struct SessionKeys {
         pub grandpa: Grandpa,
         pub aura: Aura,
-        pub im_online: ImOnline,
     }
 }
 

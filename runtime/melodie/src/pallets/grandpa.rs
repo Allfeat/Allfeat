@@ -19,6 +19,8 @@
 use crate::*;
 use frame_support::parameter_types;
 
+use super::aura::MaxAuthorities;
+
 parameter_types! {
     pub const MaxNominatorRewardedPerValidator: u32 = 0;
 }

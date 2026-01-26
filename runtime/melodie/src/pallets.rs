@@ -25,7 +25,6 @@ mod authorship;
 mod balances;
 mod grandpa;
 mod identity;
-mod im_online;
 mod meta_tx;
 mod mmr;
 mod preimage;
@@ -40,7 +39,6 @@ mod validators;
 
 // External required imports
 pub use balances::*;
-pub use im_online::*;
 pub use session::*;
 pub use system::*;
 pub use transaction_payment::*;

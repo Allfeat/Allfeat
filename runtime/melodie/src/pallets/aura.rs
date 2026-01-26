@@ -18,12 +18,16 @@
 
 use crate::*;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
-use sp_core::{ConstBool, ConstU32};
+use sp_core::ConstBool;
+
+parameter_types! {
+    pub const MaxAuthorities: u32 = 12;
+}
 
 impl pallet_aura::Config for Runtime {
     type AuthorityId = AuraId;
     type DisabledValidators = ();
-    type MaxAuthorities = ConstU32<12>;
+    type MaxAuthorities = MaxAuthorities;
     type AllowMultipleBlocksPerSlot = ConstBool<false>;
     type SlotDuration = pallet_aura::MinimumPeriodTimesTwo<Runtime>;
 }

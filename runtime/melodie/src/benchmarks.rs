@@ -22,7 +22,6 @@ frame_benchmarking::define_benchmarks!(
     [pallet_balances, Balances]
     [pallet_grandpa, Grandpa]
     [pallet_identity, Identity]
-    [pallet_im_online, ImOnline]
     [pallet_midds_musical_works, MusicalWorks]
     [pallet_midds_recordings, Recordings]
     [pallet_midds_releases, Releases]

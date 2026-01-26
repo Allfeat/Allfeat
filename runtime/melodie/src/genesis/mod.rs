@@ -24,7 +24,6 @@ use alloc::{vec, vec::Vec};
 use development::development_config_genesis;
 use frame_support::build_struct_json_patch;
 use local::local_config_genesis;
-use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use shared_runtime::currency::AFT;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
@@ -45,7 +44,6 @@ pub fn genesis(
         // Session Keys
         GrandpaId,
         AuraId,
-        ImOnlineId,
     )>,
     root_key: AccountId,
     mut endowed_accounts: Vec<AccountId>,
@@ -83,7 +81,6 @@ pub fn genesis(
                         SessionKeys {
                             grandpa: x.1.clone(),
                             aura: x.2.clone(),
-                            im_online: x.3.clone(),
                         },
                     )
                 })
