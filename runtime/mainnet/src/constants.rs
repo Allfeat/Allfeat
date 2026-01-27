@@ -23,7 +23,7 @@ pub mod time {
     #[cfg(feature = "fast-runtime")]
     pub const MILLISECS_PER_BLOCK: Moment = 3000;
     #[cfg(not(feature = "fast-runtime"))]
-    pub const MILLISECS_PER_BLOCK: Moment = 12000;
+    pub const MILLISECS_PER_BLOCK: Moment = 6000;
 
     pub const SECS_PER_BLOCK: Moment = MILLISECS_PER_BLOCK / 1000;
 
