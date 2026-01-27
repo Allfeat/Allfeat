@@ -72,7 +72,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
     spec_name: alloc::borrow::Cow::Borrowed("allfeat-melodie-2"),
     impl_name: alloc::borrow::Cow::Borrowed("allfeatlabs-melodie-2"),
     authoring_version: 1,
-    spec_version: 900,
+    spec_version: 910,
     impl_version: 0,
     apis: RUNTIME_API_VERSIONS,
     transaction_version: 2,
@@ -109,7 +109,7 @@ pub type TxBareExtension = (
 pub const META_EXTENSION_VERSION: ExtensionVersion = 0;
 
 #[cfg(feature = "runtime-benchmarks")]
-pub type MetaTxExtension = crate::benchmarking::types::WeightlessExtension<Runtime>;
+pub type MetaTxExtension = pallet_meta_tx::WeightlessExtension<Runtime>;
 
 #[cfg(not(feature = "runtime-benchmarks"))]
 /// Meta transaction extension.
@@ -129,7 +129,6 @@ pub type MetaTxBareExtension = (
     frame_system::CheckGenesis<Runtime>,
     frame_system::CheckMortality<Runtime>,
     frame_system::CheckNonce<Runtime>,
-    frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
 );
 
 /// Transaction extension for signed transactions (v4 format, compatible with Polkadot-JS).

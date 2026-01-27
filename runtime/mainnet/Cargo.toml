@@ -65,6 +65,8 @@ pallet-balances = { workspace = true }
 pallet-transaction-payment = { workspace = true }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true }
 pallet-treasury = { workspace = true }
+pallet-meta-tx = { workspace = true }
+pallet-verify-signature = { workspace = true }
 
 pallet-validators = { workspace = true }
 
@@ -104,6 +106,8 @@ std = [
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-token-allocation/std",
 	"pallet-treasury/std",
+	"pallet-meta-tx/std",
+	"pallet-verify-signature/std",
 	"sp-application-crypto/std",
 	"sp-version/std",
 	"sp-consensus-aura/std",
@@ -143,6 +147,8 @@ runtime-benchmarks = [
 	"pallet-validators/runtime-benchmarks",
 	"pallet-treasury/runtime-benchmarks",
 	"pallet-token-allocation/runtime-benchmarks",
+	"pallet-meta-tx/runtime-benchmarks",
+	"pallet-verify-signature/runtime-benchmarks",
 ]
 try-runtime = [
 	"frame-executive/try-runtime",
@@ -164,7 +170,9 @@ try-runtime = [
 	"pallet-balances/try-runtime",
 	"pallet-transaction-payment/try-runtime",
 	"pallet-token-allocation/try-runtime",
-	"pallet-treasury/try-runtime"
+	"pallet-treasury/try-runtime",
+	"pallet-meta-tx/try-runtime",
+	"pallet-verify-signature/try-runtime",
 ]
 
 metadata-hash = ["substrate-wasm-builder/metadata-hash"]

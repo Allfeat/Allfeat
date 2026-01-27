@@ -31,7 +31,11 @@ use alloc::vec::Vec;
 pub use allfeat_primitives::{AccountId, Address, Balance, BlockNumber, Moment, Nonce, Signature};
 
 use apis::RUNTIME_API_VERSIONS;
-use sp_runtime::{generic, traits::NumberFor};
+use pallet_meta_tx::MetaTxMarker;
+use sp_runtime::{
+    generic::{self, ExtensionVersion},
+    traits::NumberFor,
+};
 use sp_version::{RuntimeVersion, runtime_version};
 
 #[cfg(any(feature = "std", test))]
@@ -89,7 +93,7 @@ pub type Header = allfeat_primitives::Header;
 pub type Block = generic::Block<Header, UncheckedExtrinsic>;
 
 /// The `TransactionExtension` to the basic transaction logic.
-pub type SignedExtra = (
+pub type TxBareExtension = (
     frame_system::CheckNonZeroSender<Runtime>,
     frame_system::CheckSpecVersion<Runtime>,
     frame_system::CheckTxVersion<Runtime>,
@@ -101,12 +105,39 @@ pub type SignedExtra = (
     frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
 );
 
+pub const META_EXTENSION_VERSION: ExtensionVersion = 0;
+
+#[cfg(feature = "runtime-benchmarks")]
+pub type MetaTxExtension = pallet_meta_tx::WeightlessExtension<Runtime>;
+
+#[cfg(not(feature = "runtime-benchmarks"))]
+/// Meta transaction extension.
+pub type MetaTxExtension = (
+    pallet_verify_signature::VerifySignature<Runtime>,
+    MetaTxBareExtension,
+);
+
+/// Meta transaction extension without signature information.
+///
+/// Helper type used to decode the part of the extension which should be signed.
+pub type MetaTxBareExtension = (
+    MetaTxMarker<Runtime>,
+    frame_system::CheckNonZeroSender<Runtime>,
+    frame_system::CheckSpecVersion<Runtime>,
+    frame_system::CheckTxVersion<Runtime>,
+    frame_system::CheckGenesis<Runtime>,
+    frame_system::CheckMortality<Runtime>,
+    frame_system::CheckNonce<Runtime>,
+);
+
+/// Transaction extension for signed transactions (v4 format, compatible with Polkadot-JS).
+/// Note: VerifySignature is NOT included here because the signature is verified at the
+/// extrinsic level for Signed (v4) transactions.
+pub type TxExtension = TxBareExtension;
+
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic =
-    generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
-
-/// The payload being signed in transactions.
-pub type SignedPayload = generic::SignedPayload<RuntimeCall, SignedExtra>;
+    generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, TxExtension>;
 
 /// Executive: handles dispatch to the various modules.
 pub type RuntimeExecutive = frame_executive::Executive<
@@ -186,4 +217,10 @@ mod runtime {
 
     #[runtime::pallet_index(19)]
     pub type Treasury = pallet_treasury;
+
+    #[runtime::pallet_index(20)]
+    pub type MetaTx = pallet_meta_tx;
+
+    #[runtime::pallet_index(21)]
+    pub type VerifySignature = pallet_verify_signature;
 }

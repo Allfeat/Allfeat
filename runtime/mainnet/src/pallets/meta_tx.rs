@@ -16,29 +16,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod multisig;
-mod proxy;
-mod scheduler;
-// System stuffs.
-mod aura;
-mod authorship;
-mod balances;
-mod grandpa;
-mod preimage;
-mod session;
-mod sudo;
-mod system;
-mod timestamp;
-mod token_allocation;
-mod transaction_payment;
-mod treasury;
-mod utility;
-mod validators;
-mod meta_tx;
+use sp_runtime::{MultiSignature, traits::Verify};
 
-// External required imports
-pub use aura::*;
-pub use balances::*;
-pub use session::*;
-pub use system::*;
-pub use transaction_payment::*;
+use crate::*;
+
+impl pallet_meta_tx::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type Extension = MetaTxExtension;
+    type WeightInfo = pallet_meta_tx::weights::SubstrateWeight<Runtime>;
+}
+
+impl pallet_verify_signature::Config for Runtime {
+    type Signature = MultiSignature;
+    type AccountIdentifier = <Signature as Verify>::Signer;
+    type WeightInfo = ();
+    #[cfg(feature = "runtime-benchmarks")]
+    type BenchmarkHelper = ();
+}

@@ -33,4 +33,6 @@ frame_benchmarking::define_benchmarks!(
     [pallet_token_allocation, TokenAllocation]
     [pallet_transaction_payment, TransactionPayment]
     [pallet_treasury, Treasury]
+    [pallet_meta_tx, MetaTx]
+    [pallet_verify_signature, VerifySignature]
 );
