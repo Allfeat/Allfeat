@@ -34,7 +34,7 @@ pub mod elections;
 pub mod currency;
 
 parameter_types! {
-    pub const BlockHashCount: BlockNumber = 4096;
+    pub const BlockHashCount: BlockNumber = 2400;
     /// The portion of the `NORMAL_DISPATCH_RATIO` that we adjust the fees with. Blocks filled less
     /// than this will decrease the weight and more will increase.
     pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
