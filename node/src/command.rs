@@ -265,9 +265,9 @@ fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpecT>, String> {
         "allfeat-local" => Box::new(allfeat_chain_spec::local_chain_spec().unwrap()),
 
         #[cfg(feature = "melodie-runtime")]
-        "melodie-dev" => Box::new(melodie_chain_spec::development_chain_spec().unwrap()),
+        "dev" | "melodie-dev" => Box::new(melodie_chain_spec::development_chain_spec().unwrap()),
         #[cfg(feature = "allfeat-runtime")]
-        "dev" | "allfeat-dev" => Box::new(allfeat_chain_spec::development_chain_spec().unwrap()),
+        "allfeat-dev" => Box::new(allfeat_chain_spec::development_chain_spec().unwrap()),
         _ => Box::new(ChainSpec::from_json_file(PathBuf::from(id))?),
     };
 
