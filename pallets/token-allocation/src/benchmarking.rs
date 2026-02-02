@@ -127,7 +127,7 @@ mod benches {
         // vesting_duration = 100
         // unique_beneficiary = None (so extrinsic is allowed)
         setup_envelope::<T>(
-            EnvelopeId::Founders,
+            EnvelopeId::Teams,
             ed.saturating_mul(100.into()),
             Percent::from_percent(20),
             10u32.into(),
@@ -138,7 +138,7 @@ mod benches {
         #[extrinsic_call]
         _(
             RawOrigin::Root,
-            EnvelopeId::Founders,
+            EnvelopeId::Teams,
             who.clone(),
             ed.saturating_mul(50.into()),
             Some(10u32.into()),
@@ -245,7 +245,7 @@ mod benches {
 
         // Same "fully vest at now=1" envelope config.
         setup_envelope::<T>(
-            EnvelopeId::Seed,
+            EnvelopeId::Public2,
             ed.saturating_mul(10_000_000u64.into()),
             Percent::from_percent(0),
             0u32.into(),
@@ -264,7 +264,7 @@ mod benches {
         for i in 0..x {
             let _ = setup_fully_vestable_allocation::<T>(
                 20_000 + i,
-                EnvelopeId::Seed,
+                EnvelopeId::Public2,
                 per_alloc_amount,
             );
         }

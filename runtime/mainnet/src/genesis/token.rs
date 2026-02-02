@@ -22,12 +22,12 @@ pub fn tokenomics(sudo_key: AccountId, num_validators: u128) -> TokenGenesis {
         },
         allocations: pallet_token_allocation::GenesisConfig {
             envelopes: vec![
-                // Envelope name: Founders
+                // Envelope name: Teams
                 // Total amount: 67 000 000 AFT
                 // 0% Upfront rate, 12 months of cliff (locked)
                 // Vesting on 36 months
                 (
-                    EnvelopeId::Founders,
+                    EnvelopeId::Teams,
                     EnvelopeConfig {
                         total_cap: 67_000_000 * AFT,
                         upfront_rate: Percent::from_percent(0),
@@ -78,12 +78,12 @@ pub fn tokenomics(sudo_key: AccountId, num_validators: u128) -> TokenGenesis {
                         unique_beneficiary: None,
                     },
                 ),
-                // Envelope name: ICO1
+                // Envelope name: Public1
                 // Total amount: 30 000 000 AFT
                 // 0% Upfront rate, no cliff
                 // Vesting on 6 months
                 (
-                    EnvelopeId::ICO1,
+                    EnvelopeId::Public1,
                     EnvelopeConfig {
                         total_cap: 30_000_000 * AFT,
                         upfront_rate: Percent::from_percent(0),
@@ -92,12 +92,12 @@ pub fn tokenomics(sudo_key: AccountId, num_validators: u128) -> TokenGenesis {
                         unique_beneficiary: None,
                     },
                 ),
-                // Envelope name: ICO2
+                // Envelope name: Public3
                 // Total amount: 30 000 000 AFT
                 // 0% Upfront rate, no cliff
                 // Vesting on 6 months
                 (
-                    EnvelopeId::ICO2,
+                    EnvelopeId::Public3,
                     EnvelopeConfig {
                         total_cap: 30_000_000 * AFT,
                         upfront_rate: Percent::from_percent(0),
@@ -106,12 +106,12 @@ pub fn tokenomics(sudo_key: AccountId, num_validators: u128) -> TokenGenesis {
                         unique_beneficiary: None,
                     },
                 ),
-                // Envelope name: Seed
+                // Envelope name: Public2
                 // Total amount: 75 000 000 AFT
                 // 0% Upfront rate, 18 months of cliff
                 // Vesting on 12 months
                 (
-                    EnvelopeId::Seed,
+                    EnvelopeId::Public2,
                     EnvelopeConfig {
                         total_cap: 75_000_000 * AFT,
                         upfront_rate: Percent::from_percent(0),
@@ -120,12 +120,12 @@ pub fn tokenomics(sudo_key: AccountId, num_validators: u128) -> TokenGenesis {
                         unique_beneficiary: None,
                     },
                 ),
-                // Envelope name: SerieA
+                // Envelope name: Public4
                 // Total amount: 80 000 000 AFT
                 // 0% Upfront rate, 12 months of cliff
                 // Vesting on 12 months
                 (
-                    EnvelopeId::SerieA,
+                    EnvelopeId::Public4,
                     EnvelopeConfig {
                         total_cap: 80_000_000 * AFT,
                         upfront_rate: Percent::from_percent(0),
@@ -163,13 +163,13 @@ pub fn tokenomics(sudo_key: AccountId, num_validators: u128) -> TokenGenesis {
                         unique_beneficiary: Some(Treasury::account_id()),
                     },
                 ),
-                // Envelope name: Exchanges
+                // Envelope name: Listing
                 // Total amount: 100 000 000 AFT
                 // 0% Upfront rate, 4 months of cliff
                 // Vesting on 12 months
                 // Beneficiary: Treasury
                 (
-                    EnvelopeId::Exchanges, // CEX/DEX listings
+                    EnvelopeId::Listing, // CEX/DEX listings
                     EnvelopeConfig {
                         total_cap: 100_000_000 * AFT,
                         upfront_rate: Percent::from_percent(0),

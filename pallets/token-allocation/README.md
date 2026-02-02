@@ -5,12 +5,14 @@ FRAME pallet for managing token allocations grouped by logical envelopes, with u
 ## Overview
 
 This pallet lets an admin define "envelopes" (budget buckets) with:
+
 - total_cap: maximum total tokens that can ever be allocated from the envelope
 - upfront_rate: Percent (0..=100%) paid immediately upon allocation
 - cliff: block number until which nothing vests
 - vesting_duration: number of blocks linearly vesting after the cliff
 
 Each allocation to a beneficiary is split into:
+
 - upfront: paid instantly (mul_floor of total by upfront_rate)
 - vested_total: linearly unlockable after cliff over vesting_duration
 
@@ -18,7 +20,7 @@ Claiming transfers the vested portion that is currently available but not yet re
 
 ## Concepts
 
-- EnvelopeId: fixed set of logical envelopes (e.g., Founders, Seed).
+- EnvelopeId: fixed set of logical envelopes (e.g., Teams, Publics).
 - Sub-account per envelope: derived from PalletId and EnvelopeId; source of transfers.
 - total_cap: hard budget limit per envelope (sum of all allocations cannot exceed it).
 - upfront_rate: Percent; use Percent::from_percent(n).
@@ -57,10 +59,11 @@ Claiming transfers the vested portion that is currently available but not yet re
 ## Vesting formula
 
 At block `now`:
+
 - If now <= cliff: 0 is claimable
 - Else let elapsed = now - cliff
   - If elapsed >= vesting_duration: claimable = vested_total - released
-  - Else: claimable = floor(vested_total * elapsed / vesting_duration) - released
+  - Else: claimable = floor(vested_total \* elapsed / vesting_duration) - released
 
 ## Genesis configuration
 
@@ -72,7 +75,7 @@ Example snippet (pseudo-code):
 ```
 GenesisConfig {
   envelopes: vec![
-    (EnvelopeId::Seed, EnvelopeConfig {
+    (EnvelopeId::Public2, EnvelopeConfig {
       total_cap: 1_000_000 * UNIT,
       upfront_rate: Percent::from_percent(0),
       cliff: 10,                  // blocks

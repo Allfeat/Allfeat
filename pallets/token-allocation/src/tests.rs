@@ -41,13 +41,13 @@ fn full_lifecycle_works() {
     // Tests the standard scenario: Upfront -> Cliff -> Progressive Vesting -> Finish.
     new_test_ext(vec![], vec![]).execute_with(|| {
         // Config: 1000 tokens, 10% upfront, Cliff at block 10, Duration 100 blocks.
-        setup_and_fund_envelope(EnvelopeId::Seed, 1000, 10, 10, 100, None);
+        setup_and_fund_envelope(EnvelopeId::Public2, 1000, 10, 10, 100, None);
         let ben = 1u128;
 
         // 1. Create allocation
         assert_ok!(TokenAllocation::add_allocation(
             RuntimeOrigin::root(),
-            EnvelopeId::Seed,
+            EnvelopeId::Public2,
             ben,
             1000,
             None // Start default (Cliff)
@@ -204,12 +204,12 @@ fn constraints_are_enforced() {
     // Tests limits (Caps) and business rules.
     new_test_ext(vec![], vec![]).execute_with(|| {
         // 1. Test CAP
-        setup_and_fund_envelope(EnvelopeId::ICO1, 1000, 0, 0, 100, None);
+        setup_and_fund_envelope(EnvelopeId::Public1, 1000, 0, 0, 100, None);
 
         // Allocation OK (1000 <= 1000).
         assert_ok!(TokenAllocation::add_allocation(
             RuntimeOrigin::root(),
-            EnvelopeId::ICO1,
+            EnvelopeId::Public1,
             1,
             1000,
             None
@@ -217,19 +217,19 @@ fn constraints_are_enforced() {
 
         // Allocation fails (Cap exceeded because 1000 already distributed).
         assert_noop!(
-            TokenAllocation::add_allocation(RuntimeOrigin::root(), EnvelopeId::ICO1, 2, 1, None),
+            TokenAllocation::add_allocation(RuntimeOrigin::root(), EnvelopeId::Public1, 2, 1, None),
             Error::<Test>::EnvelopeCapExceeded
         );
 
         // 2. Test Unique Beneficiary
         // Config with enforced beneficiary (e.g., ID 99).
-        setup_and_fund_envelope(EnvelopeId::Founders, 1000, 0, 0, 100, Some(99));
+        setup_and_fund_envelope(EnvelopeId::Teams, 1000, 0, 0, 100, Some(99));
 
         // Try to allocate to someone else.
         assert_noop!(
             TokenAllocation::add_allocation(
                 RuntimeOrigin::root(),
-                EnvelopeId::Founders,
+                EnvelopeId::Teams,
                 50,
                 100,
                 None
@@ -243,7 +243,7 @@ fn constraints_are_enforced() {
         assert_noop!(
             TokenAllocation::add_allocation(
                 RuntimeOrigin::root(),
-                EnvelopeId::Founders,
+                EnvelopeId::Teams,
                 99,
                 100,
                 None
@@ -256,13 +256,13 @@ fn constraints_are_enforced() {
 #[test]
 fn permission_checks() {
     new_test_ext(vec![], vec![]).execute_with(|| {
-        setup_and_fund_envelope(EnvelopeId::Seed, 1000, 0, 0, 100, None);
+        setup_and_fund_envelope(EnvelopeId::Public2, 1000, 0, 0, 100, None);
 
         // A normal user cannot create an allocation.
         assert_noop!(
             TokenAllocation::add_allocation(
                 RuntimeOrigin::signed(1), // Not root
-                EnvelopeId::Seed,
+                EnvelopeId::Public2,
                 2,
                 100,
                 None

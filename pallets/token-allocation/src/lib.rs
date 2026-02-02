@@ -75,17 +75,17 @@ pub type BalanceOf<T> =
     Deserialize,
 )]
 pub enum EnvelopeId {
-    Founders,
+    Teams,
     KoL,
     Private1,
     Private2,
-    ICO1,
-    Seed,
-    ICO2,
-    SerieA,
+    Public1,
+    Public2,
+    Public3,
+    Public4,
     Airdrop,
     CommunityRewards,
-    Exchanges,
+    Listing,
     ResearchDevelopment,
     Reserve,
 }

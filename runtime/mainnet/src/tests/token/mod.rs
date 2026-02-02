@@ -53,7 +53,7 @@ fn treasury_allocations_are_correctly_locked() {
 
         // 2. Verify Locked (Held)
         // Total Treasury Allocations:
-        // Community (259 999 000) + Exchanges (100) + R&D (125) + Reserve (20) = 505M
+        // Community (259 999 000) + Listing (100) + R&D (125) + Reserve (20) = 505M
         // Minus Upfront (45M) = 460M locked.
         let expected_held = 459_999_200 * AFT;
         let held_treasury = held_on_treasury();
