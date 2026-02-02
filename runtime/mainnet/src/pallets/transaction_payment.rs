@@ -38,19 +38,20 @@ pub struct DealWithFees;
 impl OnUnbalanced<Credit<AccountId, Balances>> for DealWithFees {
     fn on_unbalanceds(mut fees_then_tips: impl Iterator<Item = Credit<AccountId, Balances>>) {
         if let Some(mut amount) = fees_then_tips.next() {
-            // for fees, 100% to author
             if let Some(tips) = fees_then_tips.next() {
-                // for tips, if any, 100% to author
                 tips.merge_into(&mut amount);
             }
 
+            // Split: 80% to block author, 20% to treasury
+            let treasury_amount = Perbill::from_percent(20) * amount.peek();
+            let (treasury_part, author_part) = amount.split(treasury_amount);
+
+            // Send 20% to treasury
+            let _ = Balances::resolve(&Treasury::account_id(), treasury_part);
+
+            // Send 80% to block author
             if let Some(author) = Authorship::author() {
-                match Balances::resolve(&author, amount) {
-                    Ok(_) => (),
-                    Err(_amount) => {
-                        todo!()
-                    }
-                }
+                let _ = Balances::resolve(&author, author_part);
             }
         }
     }

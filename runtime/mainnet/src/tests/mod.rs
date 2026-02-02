@@ -6,7 +6,7 @@ pub mod token;
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
     let sudo = Sr25519Keyring::Charlie.to_account_id();
-    let token_genesis = tokenomics(sudo);
+    let token_genesis = tokenomics(sudo, 0);
 
     let mut t = frame_system::GenesisConfig::<Runtime>::default()
         .build_storage()

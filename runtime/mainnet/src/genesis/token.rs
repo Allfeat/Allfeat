@@ -7,13 +7,14 @@ use sp_runtime::Percent;
 use crate::{MONTHS, Runtime, Treasury};
 
 pub const SUDO_AMOUNT: Balance = 1_000 * AFT;
+pub const VALIDATOR_ENDOWMENT: Balance = 10 * AFT;
 
 pub struct TokenGenesis {
     pub balances: pallet_balances::GenesisConfig<Runtime>,
     pub allocations: pallet_token_allocation::GenesisConfig<Runtime>,
 }
 
-pub fn tokenomics(sudo_key: AccountId) -> TokenGenesis {
+pub fn tokenomics(sudo_key: AccountId, num_validators: u128) -> TokenGenesis {
     TokenGenesis {
         balances: pallet_balances::GenesisConfig {
             balances: vec![(sudo_key, SUDO_AMOUNT)],
@@ -187,7 +188,9 @@ pub fn tokenomics(sudo_key: AccountId) -> TokenGenesis {
                 (
                     EnvelopeId::ResearchDevelopment,
                     EnvelopeConfig {
-                        total_cap: (125_000_000 * AFT).saturating_sub(SUDO_AMOUNT),
+                        total_cap: (125_000_000 * AFT)
+                            .saturating_sub(SUDO_AMOUNT)
+                            .saturating_sub(num_validators * VALIDATOR_ENDOWMENT),
                         upfront_rate: Percent::from_percent(20),
                         cliff: 0u32,
                         vesting_duration: 26 * MONTHS,

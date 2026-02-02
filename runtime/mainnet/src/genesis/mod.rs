@@ -30,7 +30,7 @@ use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
 use sp_genesis_builder::PresetId;
 use staging::staging_config_genesis;
-use token::tokenomics;
+use token::{VALIDATOR_ENDOWMENT, tokenomics};
 
 use crate::{RuntimeGenesisConfig, SessionKeys};
 
@@ -54,7 +54,18 @@ pub fn genesis(
     dev_accounts: Vec<AccountId>,
     root_key: AccountId,
 ) -> serde_json::Value {
-    let mut token_genesis = tokenomics(root_key.clone());
+    let mut token_genesis =
+        tokenomics(root_key.clone(), initial_authorities.len() as u128);
+
+    // Give each validator an initial endowment (taken from R&D envelope)
+    let validator_balances: Vec<(AccountId, Balance)> = initial_authorities
+        .iter()
+        .map(|x| (x.0.clone(), VALIDATOR_ENDOWMENT))
+        .collect();
+    token_genesis
+        .balances
+        .balances
+        .extend(validator_balances);
 
     let dev_accounts_balances: Vec<(AccountId, Balance)> = dev_accounts
         .into_iter()

@@ -48,7 +48,7 @@ impl OnUnbalanced<Credit<AccountId, Balances>> for DealWithFees {
                 match Balances::resolve(&author, amount) {
                     Ok(_) => (),
                     Err(_amount) => {
-                        todo!()
+                        // Resolution failed, the credit is dropped (burned).
                     }
                 }
             }
