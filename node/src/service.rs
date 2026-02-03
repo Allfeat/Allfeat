@@ -18,7 +18,9 @@
 
 //! Service and service factory implementation. Specialized wrapper over substrate service.
 
+#[cfg(feature = "allfeat-runtime")]
 pub use allfeat_runtime::RuntimeApi as AllfeatRuntimeApi;
+#[cfg(feature = "melodie-runtime")]
 pub use melodie_runtime::RuntimeApi as MelodieRuntimeApi;
 
 // std
@@ -41,6 +43,12 @@ use sp_consensus_aura::sr25519::{AuthorityId as AuraId, AuthorityPair as AuraPai
 /// The minimum period of blocks on which justifications will be
 /// imported and generated.
 const GRANDPA_JUSTIFICATION_PERIOD: u32 = 512;
+/// Telemetry worker buffer size.
+const TELEMETRY_BUFFER_SIZE: usize = 16;
+/// Proportion of slot duration used for block proposal.
+const BLOCK_PROPOSAL_SLOT_PORTION: f32 = 2.0 / 3.0;
+/// Duration between GRANDPA gossip rounds in milliseconds.
+const GRANDPA_GOSSIP_DURATION_MS: u64 = 333;
 
 type HostFunctions = sp_io::SubstrateHostFunctions;
 
@@ -72,8 +80,6 @@ type Service<RuntimeApi> = sc_service::PartialComponents<
     ExtraParts<RuntimeApi>,
 >;
 
-pub use crate::chain_specs::IdentifyVariant;
-
 /// A set of APIs that allfeat-like runtimes must implement.
 pub trait RuntimeApiCollection:
     pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>
@@ -102,6 +108,22 @@ impl<Api> RuntimeApiCollection for Api where
 {
 }
 
+/// Creates the inherent data providers used by both import queue and block authoring.
+fn create_inherent_data_providers(
+    slot_duration: sp_consensus_aura::SlotDuration,
+) -> (
+    sp_consensus_aura::inherents::InherentDataProvider,
+    sp_timestamp::InherentDataProvider,
+) {
+    let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
+    let slot =
+        sp_consensus_aura::inherents::InherentDataProvider::from_timestamp_and_slot_duration(
+            *timestamp,
+            slot_duration,
+        );
+    (slot, timestamp)
+}
+
 pub fn new_partial<RuntimeApi>(
     config: &Configuration,
 ) -> Result<Service<RuntimeApi>, Box<ServiceError>>
@@ -115,7 +137,7 @@ where
         .clone()
         .filter(|x| !x.is_empty())
         .map(|endpoints| -> Result<_, sc_telemetry::Error> {
-            let worker = TelemetryWorker::new(16)?;
+            let worker = TelemetryWorker::new(TELEMETRY_BUFFER_SIZE)?;
             let telemetry = worker.handle().new_telemetry(endpoints);
             Ok((worker, telemetry))
         })
@@ -174,15 +196,7 @@ where
                             .map_err(|e| {
                                 Box::new(sp_consensus::error::Error::ClientImport(format!("{e:?}")))
                             })?;
-                    let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
-
-                    let slot =
-						sp_consensus_aura::inherents::InherentDataProvider::from_timestamp_and_slot_duration(
-							*timestamp,
-							slot_duration,
-						);
-
-                    Ok((slot, timestamp))
+                    Ok(create_inherent_data_providers(slot_duration))
                 }
             },
             spawner: &task_manager.spawn_essential_handle(),
@@ -209,6 +223,43 @@ where
             consensus_parts,
             telemetry,
         },
+    })
+}
+
+/// Build the RPC extensions handler closure.
+fn build_rpc_extensions<RuntimeApi>(
+    client: Arc<FullClient<RuntimeApi>>,
+    transaction_pool: Arc<sc_transaction_pool::TransactionPoolHandle<Block, FullClient<RuntimeApi>>>,
+    backend: Arc<FullBackend>,
+    grandpa_link: &GrandpaLinkHalf<RuntimeApi>,
+) -> Box<dyn Fn(SubscriptionTaskExecutor) -> Result<jsonrpsee::RpcModule<()>, ServiceError>>
+where
+    RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>>,
+    RuntimeApi: Send + Sync + 'static,
+    RuntimeApi::RuntimeApi: RuntimeApiCollection,
+{
+    let justification_stream = grandpa_link.justification_stream();
+    let shared_authority_set = grandpa_link.shared_authority_set().clone();
+    let shared_voter_state = sc_consensus_grandpa::SharedVoterState::empty();
+    let finality_proof_provider = sc_consensus_grandpa::FinalityProofProvider::new_for_service(
+        backend,
+        Some(shared_authority_set.clone()),
+    );
+
+    Box::new(move |subscription_executor: SubscriptionTaskExecutor| {
+        let deps = crate::rpc::FullDeps {
+            client: client.clone(),
+            pool: transaction_pool.clone(),
+            grandpa: crate::rpc::GrandpaDeps {
+                shared_voter_state: shared_voter_state.clone(),
+                shared_authority_set: shared_authority_set.clone(),
+                justification_stream: justification_stream.clone(),
+                subscription_executor: subscription_executor.clone(),
+                finality_provider: finality_proof_provider.clone(),
+            },
+        };
+        crate::rpc::create_full(deps)
+            .map_err(sc_service::Error::Application)
     })
 }
 
@@ -304,39 +355,16 @@ where
 
     let role = config.role;
     let force_authoring = config.force_authoring;
-    let backoff_authoring_blocks: Option<()> = None;
     let name = config.network.node_name.clone();
     let enable_grandpa = !config.disable_grandpa;
     let prometheus_registry = config.prometheus_registry().cloned();
 
-    let rpc_extensions_builder = {
-        let grandpa_link = &extra_parts.consensus_parts.grandpa_link;
-
-        let client = client.clone();
-        let pool = transaction_pool.clone();
-        let justification_stream = grandpa_link.justification_stream();
-        let shared_authority_set = grandpa_link.shared_authority_set().clone();
-        let shared_voter_state = sc_consensus_grandpa::SharedVoterState::empty();
-        let finality_proof_provider = sc_consensus_grandpa::FinalityProofProvider::new_for_service(
-            backend.clone(),
-            Some(shared_authority_set.clone()),
-        );
-
-        Box::new(move |subscription_executor: SubscriptionTaskExecutor| {
-            let deps = crate::rpc::FullDeps {
-                client: client.clone(),
-                pool: pool.clone(),
-                grandpa: crate::rpc::GrandpaDeps {
-                    shared_voter_state: shared_voter_state.clone(),
-                    shared_authority_set: shared_authority_set.clone(),
-                    justification_stream: justification_stream.clone(),
-                    subscription_executor: subscription_executor.clone(),
-                    finality_provider: finality_proof_provider.clone(),
-                },
-            };
-            crate::rpc::create_full(deps).map_err(Into::into)
-        })
-    };
+    let rpc_extensions_builder = build_rpc_extensions(
+        client.clone(),
+        transaction_pool.clone(),
+        backend.clone(),
+        &extra_parts.consensus_parts.grandpa_link,
+    );
 
     sc_service::spawn_tasks(sc_service::SpawnTasksParams {
         network: Arc::new(network.clone()),
@@ -354,6 +382,7 @@ where
         tracing_execute_block: None,
     })?;
 
+    // Start consensus (Aura + GRANDPA)
     if role.is_authority() {
         let proposer_factory = sc_basic_authorship::ProposerFactory::new(
             task_manager.spawn_handle(),
@@ -374,22 +403,15 @@ where
                 block_import: extra_parts.consensus_parts.grandpa_block_import,
                 proposer_factory,
                 create_inherent_data_providers: move |_, ()| async move {
-                    let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
-
-                    let slot =
-						sp_consensus_aura::inherents::InherentDataProvider::from_timestamp_and_slot_duration(
-							*timestamp,
-							slot_duration,
-						);
-
-                    Ok((slot, timestamp))
+                    Ok(create_inherent_data_providers(slot_duration))
                 },
                 force_authoring,
-                backoff_authoring_blocks,
+                // Backoff authoring is disabled; all validators author at every opportunity.
+                backoff_authoring_blocks: None::<()>,
                 keystore: keystore_container.keystore(),
                 sync_oracle: sync_service.clone(),
                 justification_sync_link: sync_service.clone(),
-                block_proposal_slot_portion: SlotProportion::new(2f32 / 3f32),
+                block_proposal_slot_portion: SlotProportion::new(BLOCK_PROPOSAL_SLOT_PORTION),
                 max_block_proposal_slot_portion: None,
                 telemetry: extra_parts.telemetry.as_ref().map(|x| x.handle()),
                 compatibility_mode: Default::default(),
@@ -397,16 +419,12 @@ where
         )
         .map_err(|e| Box::new(sc_service::Error::Application(e.into())))?;
 
-        // the AURA authoring task is considered essential, i.e. if it
-        // fails we take down the service with it.
         task_manager
             .spawn_essential_handle()
             .spawn_blocking("aura", Some("block-authoring"), aura);
     }
 
     if enable_grandpa {
-        // if the node isn't actively participating in consensus then it doesn't
-        // need a keystore, regardless of which protocol we use below.
         let keystore = if role.is_authority() {
             Some(keystore_container.keystore())
         } else {
@@ -414,7 +432,7 @@ where
         };
 
         let grandpa_config = sc_consensus_grandpa::Config {
-            gossip_duration: Duration::from_millis(333),
+            gossip_duration: Duration::from_millis(GRANDPA_GOSSIP_DURATION_MS),
             justification_generation_period: GRANDPA_JUSTIFICATION_PERIOD,
             name: Some(name),
             observer_enabled: false,
@@ -424,12 +442,6 @@ where
             protocol_name: grandpa_protocol_name,
         };
 
-        // start the full GRANDPA voter
-        // NOTE: non-authorities could run the GRANDPA observer protocol, but at
-        // this point the full voter should provide better guarantees of block
-        // and vote data availability than the observer. The observer has not
-        // been tested extensively yet and having most nodes in a network run it
-        // could lead to finality stalls.
         let grandpa_config = sc_consensus_grandpa::GrandpaParams {
             config: grandpa_config,
             link: extra_parts.consensus_parts.grandpa_link,
@@ -443,8 +455,6 @@ where
             offchain_tx_pool_factory: OffchainTransactionPoolFactory::new(transaction_pool),
         };
 
-        // the GRANDPA voter task is considered infallible, i.e.
-        // if it fails we take down the service with it.
         task_manager.spawn_essential_handle().spawn_blocking(
             "grandpa-voter",
             None,

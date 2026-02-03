@@ -17,13 +17,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use std::{env, path::PathBuf};
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 use crate::{
-    chain_specs::{ChainSpec, allfeat_chain_spec, melodie_chain_spec},
+    chain_specs::{ChainSpec, IdentifyVariant},
     cli::{Cli, Subcommand},
-    service::{self, *},
+    service,
 };
+
+#[cfg(feature = "allfeat-runtime")]
+use crate::chain_specs::allfeat_chain_spec;
+#[cfg(feature = "melodie-runtime")]
+use crate::chain_specs::melodie_chain_spec;
 use sc_cli::{ChainSpec as ChainSpecT, SubstrateCli};
 use sp_core::crypto::Ss58AddressFormatRegistry;
 
@@ -61,186 +65,121 @@ impl SubstrateCli for Cli {
 /// Parse and run command line arguments
 #[allow(clippy::result_large_err)]
 pub fn run() -> sc_cli::Result<()> {
-    #[cfg(feature = "runtime-benchmarks")]
-    /// Creates partial components for the runtimes that are supported by the benchmarks.
-    macro_rules! construct_benchmark_partials {
-        ($config:expr, $cli:ident, |$partials:ident| $code:expr) => {{
-            #[cfg(feature = "melodie-runtime")]
-            if $config.chain_spec.is_melodie() {
-                let $partials = service::new_partial::<MelodieRuntimeApi>(&$config)
-                    .map_err(|e| sc_cli::Error::from(*e))?;
-
-                return $code;
-            }
-
-            #[cfg(feature = "allfeat-runtime")]
-            if $config.chain_spec.is_allfeat() {
-                let $partials = service::new_partial::<AllfeatRuntimeApi>(&$config)
-                    .map_err(|e| sc_cli::Error::from(*e))?;
-
-                return $code;
-            }
-
-            return Err("No feature (melodie-runtime, allfeat-runtime) is enabled! \
-                Compile with --features melodie-runtime or --features allfeat-runtime.".into());
-        }};
-    }
-
-    macro_rules! construct_async_run {
-		(|$components:ident, $cli:ident, $cmd:ident, $config:ident| $( $code:tt )* ) => {{
-			let runner = $cli.create_runner($cmd)?;
-			let chain_spec = &runner.config().chain_spec;
-
-			set_default_ss58_version(chain_spec);
-
-			#[cfg(feature = "melodie-runtime")]
-			if chain_spec.is_melodie() {
-				return runner.async_run(|$config| {
-					let $components = service::new_partial::<MelodieRuntimeApi>(
-						&$config,
-					).map_err(|e| sc_cli::Error::from(*e))?;
-					let task_manager = $components.task_manager;
-
-					{ $( $code )* }.map(|v| (v, task_manager))
-				});
-			}
-
-			#[cfg(feature = "allfeat-runtime")]
-			if chain_spec.is_allfeat() {
-				return runner.async_run(|$config| {
-					let $components = service::new_partial::<AllfeatRuntimeApi>(
-						&$config,
-					).map_err(|e| sc_cli::Error::from(*e))?;
-					let task_manager = $components.task_manager;
-
-					{ $( $code )* }.map(|v| (v, task_manager))
-				});
-			}
-
-			return Err("No feature (melodie-runtime, allfeat-runtime) is enabled! \
-				Compile with --features melodie-runtime or --features allfeat-runtime.".into());
-		}}
-	}
-
     let cli = Cli::from_args();
 
     match &cli.subcommand {
-		Some(Subcommand::Key(cmd)) => cmd.run(&cli),
-		Some(Subcommand::BuildSpec(cmd)) => {
-			let runner = cli.create_runner(cmd)?;
-			let chain_spec = &runner.config().chain_spec;
+        Some(Subcommand::Key(cmd)) => cmd.run(&cli),
+        Some(Subcommand::BuildSpec(cmd)) => {
+            let runner = cli.create_runner(cmd)?;
+            set_default_ss58_version(&runner.config().chain_spec);
+            runner.sync_run(|config| cmd.run(config.chain_spec, config.network))
+        }
+        Some(Subcommand::CheckBlock(cmd)) => {
+            let runner = cli.create_runner(cmd)?;
+            set_default_ss58_version(&runner.config().chain_spec);
+            dispatch_async_run!(runner, &runner.config().chain_spec, config => |components| {
+                Ok(cmd.run(components.client, components.import_queue))
+            })
+        }
+        Some(Subcommand::ExportBlocks(cmd)) => {
+            let runner = cli.create_runner(cmd)?;
+            set_default_ss58_version(&runner.config().chain_spec);
+            dispatch_async_run!(runner, &runner.config().chain_spec, config => |components| {
+                Ok(cmd.run(components.client, config.database))
+            })
+        }
+        Some(Subcommand::ExportState(cmd)) => {
+            let runner = cli.create_runner(cmd)?;
+            set_default_ss58_version(&runner.config().chain_spec);
+            dispatch_async_run!(runner, &runner.config().chain_spec, config => |components| {
+                Ok(cmd.run(components.client, config.chain_spec))
+            })
+        }
+        Some(Subcommand::ImportBlocks(cmd)) => {
+            let runner = cli.create_runner(cmd)?;
+            set_default_ss58_version(&runner.config().chain_spec);
+            dispatch_async_run!(runner, &runner.config().chain_spec, config => |components| {
+                Ok(cmd.run(components.client, components.import_queue))
+            })
+        }
+        Some(Subcommand::Revert(cmd)) => {
+            let runner = cli.create_runner(cmd)?;
+            set_default_ss58_version(&runner.config().chain_spec);
+            dispatch_async_run!(runner, &runner.config().chain_spec, config => |components| {
+                Ok(cmd.run(components.client, components.backend, None))
+            })
+        }
+        Some(Subcommand::PurgeChain(cmd)) => {
+            let runner = cli.create_runner(cmd)?;
+            set_default_ss58_version(&runner.config().chain_spec);
+            runner.sync_run(|config| cmd.run(config.database))
+        }
+        #[cfg(feature = "runtime-benchmarks")]
+        Some(Subcommand::Benchmark(cmd)) => {
+            use frame_benchmarking_cli::{BenchmarkCmd, SUBSTRATE_REFERENCE_HARDWARE};
 
-			set_default_ss58_version(chain_spec);
-			runner.sync_run(|config| cmd.run(config.chain_spec, config.network))
-		},
-		Some(Subcommand::CheckBlock(cmd)) => {
-			construct_async_run!(|components, cli, cmd, config| {
-				Ok(cmd.run(components.client, components.import_queue))
-			})
-		},
-		Some(Subcommand::ExportBlocks(cmd)) => {
-			construct_async_run!(|components, cli, cmd, config| {
-				Ok(cmd.run(components.client, config.database))
-			})
-		},
-		Some(Subcommand::ExportState(cmd)) => {
-			construct_async_run!(|components, cli, cmd, config| {
-				Ok(cmd.run(components.client, config.chain_spec))
-			})
-		},
-		Some(Subcommand::ImportBlocks(cmd)) => {
-			construct_async_run!(|components, cli, cmd, config| {
-				Ok(cmd.run(components.client, components.import_queue))
-			})
-		},
-		Some(Subcommand::Revert(cmd)) => {
-			construct_async_run!(|components, cli, cmd, config| {
-				Ok(cmd.run(components.client, components.backend, None))
-			})
-		},
-		Some(Subcommand::PurgeChain(cmd)) => {
-			let runner = cli.create_runner(cmd)?;
-			let chain_spec = &runner.config().chain_spec;
+            let runner = cli.create_runner(cmd)?;
+            set_default_ss58_version(&runner.config().chain_spec);
 
-			set_default_ss58_version(chain_spec);
-			runner.sync_run(|config| {
-				cmd.run(config.database)
-			})
-		},
-		#[cfg(feature = "runtime-benchmarks")]
-		Some(Subcommand::Benchmark(cmd)) => {
-			// polkadot-sdk
-			use frame_benchmarking_cli::{BenchmarkCmd, SUBSTRATE_REFERENCE_HARDWARE};
+            match cmd {
+                BenchmarkCmd::Pallet(_) => Err(
+                    "Pallet benchmarking has migrated to its own CLI tool, \
+                    please read https://github.com/paritytech/polkadot-sdk/pull/3512."
+                        .into(),
+                ),
+                BenchmarkCmd::Storage(cmd) => runner.sync_run(|config| {
+                    dispatch_benchmark_partials!(config => |partials| {
+                        let db = partials.backend.expose_db();
+                        let storage = partials.backend.expose_storage();
+                        let shared_trie_cache = partials.backend.expose_shared_trie_cache();
+                        cmd.run(config, partials.client.clone(), db, storage, shared_trie_cache)
+                    })
+                }),
+                BenchmarkCmd::Overhead(_) => Err("Unsupported benchmarking command".into()),
+                BenchmarkCmd::Extrinsic(_) => Err("Unsupported benchmarking command".into()),
+                BenchmarkCmd::Block(cmd) => runner.sync_run(|config| {
+                    dispatch_benchmark_partials!(config => |partials| {
+                        cmd.run(partials.client)
+                    })
+                }),
+                BenchmarkCmd::Machine(cmd) => {
+                    runner.sync_run(|config| cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone()))
+                }
+            }
+        }
+        #[cfg(not(feature = "runtime-benchmarks"))]
+        Some(Subcommand::Benchmark(_)) => Err(
+            "Benchmarking was not enabled when building the node. \
+            You can enable it with `--features runtime-benchmarks`."
+                .into(),
+        ),
+        None => {
+            let runner = cli.create_runner(&cli.run)?;
 
-			let runner = cli.create_runner(cmd)?;
+            runner.run_node_until_exit(|config| async move {
+                let chain_spec = &config.chain_spec;
+                set_default_ss58_version(chain_spec);
 
-			set_default_ss58_version(&runner.config().chain_spec);
+                log::info!(
+                    "Is validating: {}",
+                    if config.role.is_authority() { "yes" } else { "no" }
+                );
 
-			match cmd {
-				BenchmarkCmd::Pallet(_) =>
-					Err("Pallet benchmarking has migrated to his own CLI tool, please read https://github.com/paritytech/polkadot-sdk/pull/3512.".into()),
-				BenchmarkCmd::Storage(cmd) => runner.sync_run(|config| {
-					construct_benchmark_partials!(config, cli, |partials| {
-						let db = partials.backend.expose_db();
-						let storage = partials.backend.expose_storage();
-						let shared_trie_cache = partials.backend.expose_shared_trie_cache();
-
-						cmd.run(config, partials.client.clone(), db, storage, shared_trie_cache)
-					})
-				}),
-				BenchmarkCmd::Overhead(_) => Err("Unsupported benchmarking command".into()),
-				BenchmarkCmd::Extrinsic(_) => Err("Unsupported benchmarking command".into()),
-				BenchmarkCmd::Block(cmd) => runner.sync_run(|config| {
-					construct_benchmark_partials!(config, cli, |partials| cmd.run(partials.client))
-				}),
-				BenchmarkCmd::Machine(cmd) =>
-					runner.sync_run(|config| cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone())),
-			}
-		},
-		#[cfg(not(feature = "runtime-benchmarks"))]
-		Some(Subcommand::Benchmark(_)) => Err(
-			"Benchmarking was not enabled when building the node. You can enable it with `--features runtime-benchmarks`.".into()
-		),
-		None => {
-			let runner = cli.create_runner(&cli.run)?;
-
-			runner.run_node_until_exit(|config| async move {
-				let chain_spec = &config.chain_spec;
-
-				set_default_ss58_version(chain_spec);
-
-				log::info!(
-					"Is validating: {}",
-					if config.role.is_authority() { "yes" } else { "no" }
-				);
-
-				#[cfg(feature = "melodie-runtime")]
-				if chain_spec.is_melodie() {
-					return service::new_full_from_network_cfg::<MelodieRuntimeApi>(
-						config,
-					)
-					.map_err(|e| sc_cli::Error::from(*e));
-				}
-
-				#[cfg(feature = "allfeat-runtime")]
-				if chain_spec.is_allfeat() {
-					return service::new_full_from_network_cfg::<AllfeatRuntimeApi>(
-						config,
-					)
-					.map_err(|e| sc_cli::Error::from(*e));
-				}
-
-				Err(sc_cli::Error::Application(
-					"No feature (melodie-runtime, allfeat-runtime) is enabled!".into()
-				))
-			})
-		},
-	}
+                dispatch_on_runtime!(chain_spec => |RuntimeApi| {
+                    service::new_full_from_network_cfg::<RuntimeApi>(config)
+                        .map_err(|e| sc_cli::Error::from(*e))
+                })
+            })
+        }
+    }
 }
 
 fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpecT>, String> {
     let id = if id.is_empty() {
-        let n = get_exec_name().unwrap_or_default();
+        let n = get_exec_name().unwrap_or_else(|| {
+            log::warn!("Failed to detect executable name, falling back to \"allfeat\"");
+            String::new()
+        });
         ["melodie", "allfeat"]
             .iter()
             .cloned()
