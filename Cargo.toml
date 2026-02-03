@@ -214,9 +214,20 @@ opt-level = "z"
 [profile.production]
 codegen-units = 1
 inherits = "release"
-lto = true
+lto = "fat"
+strip = true
 
 [profile.release]
 # Allfeat runtime requires unwinding.
 opt-level = 3
 panic = "unwind"
+lto = "thin"
+debug = false
+
+# Optimized profile for minimal binary size (docker, embedded)
+[profile.release-small]
+inherits = "release"
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+strip = true

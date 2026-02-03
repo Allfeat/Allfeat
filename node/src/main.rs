@@ -24,11 +24,24 @@
     clippy::large_enum_variant
 )]
 
+// Use jemalloc as the global allocator for improved performance on Linux and macOS.
+#[cfg(any(
+    all(target_os = "linux", not(target_env = "musl")),
+    target_os = "macos"
+))]
+#[global_allocator]
+static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
+
 mod chain_specs;
 mod cli;
-mod command;
 mod rpc;
 mod service;
+
+// runtime must be declared after service (uses service types)
+// but before command (command uses runtime macros)
+#[macro_use]
+mod runtime;
+mod command;
 
 #[allow(clippy::result_large_err)]
 fn main() -> sc_cli::Result<()> {

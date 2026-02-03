@@ -13,6 +13,13 @@ serde_json = { workspace = true }
 futures = { workspace = true }
 log = { workspace = true }
 
+# Memory allocator for improved performance
+[target.'cfg(all(target_os = "linux", not(target_env = "musl")))'.dependencies]
+tikv-jemallocator = { version = "0.6", features = ["unprefixed_malloc_on_supported_platforms"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+tikv-jemallocator = { version = "0.6", features = ["unprefixed_malloc_on_supported_platforms"] }
+
 allfeat-primitives = { workspace = true }
 
 # These dependencies are used for the node template's RPCs
@@ -69,7 +76,11 @@ substrate-build-script-utils = { workspace = true, default-features = true }
 [features]
 default = ["std", "all-runtime"]
 std = ["melodie-runtime?/std", "allfeat-runtime?/std"]
+
+# Runtime selection features - use specific features to reduce binary size
 all-runtime = ["melodie-runtime", "allfeat-runtime"]
+mainnet = ["allfeat-runtime"]
+testnet = ["melodie-runtime"]
 
 runtime-benchmarks = [
 	"frame-benchmarking-cli/runtime-benchmarks",
@@ -82,4 +93,9 @@ runtime-benchmarks = [
 fast-runtime = [
 	"melodie-runtime?/fast-runtime",
 	"allfeat-runtime?/fast-runtime",
+]
+
+# Production build with logging disabled for better performance
+production = [
+	"sp-api/disable-logging",
 ]
