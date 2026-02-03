@@ -16,56 +16,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::ChainSpec;
+use super::{ChainSpec, build_chain_spec};
 use allfeat_runtime::WASM_BINARY;
-use sc_service::{ChainType, Properties};
+use sc_service::ChainType;
 
-/// Generate a chain spec for use with the development service.
+const TOKEN_SYMBOL: &str = "AFT";
+
 pub fn development_chain_spec() -> Result<ChainSpec, String> {
-    Ok(ChainSpec::builder(
-        WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
-        Default::default(),
-    )
-    .with_name("Allfeat Development")
-    .with_id("allfeat_dev")
-    .with_chain_type(ChainType::Development)
-    .with_properties(properties())
-    .with_genesis_config_preset_name("development")
-    .build())
+    build_chain_spec(WASM_BINARY, "Allfeat Development", "allfeat_dev", ChainType::Development, TOKEN_SYMBOL, "development")
 }
 
 pub fn local_chain_spec() -> Result<ChainSpec, String> {
-    Ok(ChainSpec::builder(
-        WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
-        Default::default(),
-    )
-    .with_name("Allfeat Local")
-    .with_id("allfeat_local")
-    .with_chain_type(ChainType::Local)
-    .with_properties(properties())
-    .with_genesis_config_preset_name("local_testnet")
-    .build())
+    build_chain_spec(WASM_BINARY, "Allfeat Local", "allfeat_local", ChainType::Local, TOKEN_SYMBOL, "local_testnet")
 }
 
 pub fn live_chain_spec() -> Result<ChainSpec, String> {
-    Ok(ChainSpec::builder(
-        WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?,
-        Default::default(),
-    )
-    .with_name("Allfeat Live")
-    .with_id("allfeat_staging")
-    .with_chain_type(ChainType::Live)
-    .with_properties(properties())
-    .with_genesis_config_preset_name("staging")
-    .build())
-}
-
-fn properties() -> Properties {
-    serde_json::json!({
-        "tokenDecimals": 12,
-        "tokenSymbol": "AFT",
-    })
-    .as_object()
-    .expect("Map given; qed")
-    .clone()
+    build_chain_spec(WASM_BINARY, "Allfeat Live", "allfeat_staging", ChainType::Live, TOKEN_SYMBOL, "staging")
 }

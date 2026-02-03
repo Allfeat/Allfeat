@@ -72,26 +72,7 @@ type Service<RuntimeApi> = sc_service::PartialComponents<
     ExtraParts<RuntimeApi>,
 >;
 
-/// Can be called for a `Configuration` to check if it is the specific network.
-pub trait IdentifyVariant {
-    /// Get spec id.
-    fn id(&self) -> &str;
-
-    /// Returns if this is a configuration for the `Melodie` network.
-    fn is_melodie(&self) -> bool {
-        self.id().starts_with("melodie")
-    }
-
-    /// Returns if this is a configuration for the `Allfeat` network.
-    fn is_allfeat(&self) -> bool {
-        self.id().starts_with("allfeat")
-    }
-}
-impl IdentifyVariant for Box<dyn sc_service::ChainSpec> {
-    fn id(&self) -> &str {
-        sc_service::ChainSpec::id(&**self)
-    }
-}
+pub use crate::chain_specs::IdentifyVariant;
 
 /// A set of APIs that allfeat-like runtimes must implement.
 pub trait RuntimeApiCollection:
