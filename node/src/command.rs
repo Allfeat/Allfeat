@@ -81,7 +81,8 @@ pub fn run() -> sc_cli::Result<()> {
                 return $code;
             }
 
-            panic!("No feature(melodie-runtime, allfeat-runtime) is enabled!");
+            return Err("No feature (melodie-runtime, allfeat-runtime) is enabled! \
+                Compile with --features melodie-runtime or --features allfeat-runtime.".into());
         }};
     }
 
@@ -116,7 +117,8 @@ pub fn run() -> sc_cli::Result<()> {
 				});
 			}
 
-			panic!("No feature(melodie-runtime, allfeat-runtime) is enabled!");
+			return Err("No feature (melodie-runtime, allfeat-runtime) is enabled! \
+				Compile with --features melodie-runtime or --features allfeat-runtime.".into());
 		}}
 	}
 
@@ -228,7 +230,9 @@ pub fn run() -> sc_cli::Result<()> {
 					.map_err(|e| sc_cli::Error::from(*e));
 				}
 
-				panic!("No feature(melodie-runtime, allfeat-runtime) is enabled!");
+				Err(sc_cli::Error::Application(
+					"No feature (melodie-runtime, allfeat-runtime) is enabled!".into()
+				))
 			})
 		},
 	}
@@ -255,19 +259,19 @@ fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpecT>, String> {
             &include_bytes!("../specs/testnets/melodie/v2/melodie_raw.json")[..],
         )?),
         #[cfg(feature = "melodie-runtime")]
-        "melodie-staging" => Box::new(melodie_chain_spec::live_chain_spec().unwrap()),
+        "melodie-staging" => Box::new(melodie_chain_spec::live_chain_spec()?),
         #[cfg(feature = "melodie-runtime")]
-        "melodie-local" => Box::new(melodie_chain_spec::local_chain_spec().unwrap()),
+        "melodie-local" => Box::new(melodie_chain_spec::local_chain_spec()?),
 
         #[cfg(feature = "allfeat-runtime")]
-        "allfeat-staging" => Box::new(allfeat_chain_spec::live_chain_spec().unwrap()),
+        "allfeat-staging" => Box::new(allfeat_chain_spec::live_chain_spec()?),
         #[cfg(feature = "allfeat-runtime")]
-        "allfeat-local" => Box::new(allfeat_chain_spec::local_chain_spec().unwrap()),
+        "allfeat-local" => Box::new(allfeat_chain_spec::local_chain_spec()?),
 
         #[cfg(feature = "melodie-runtime")]
-        "dev" | "melodie-dev" => Box::new(melodie_chain_spec::development_chain_spec().unwrap()),
+        "dev" | "melodie-dev" => Box::new(melodie_chain_spec::development_chain_spec()?),
         #[cfg(feature = "allfeat-runtime")]
-        "allfeat-dev" => Box::new(allfeat_chain_spec::development_chain_spec().unwrap()),
+        "allfeat-dev" => Box::new(allfeat_chain_spec::development_chain_spec()?),
         _ => Box::new(ChainSpec::from_json_file(PathBuf::from(id))?),
     };
 

@@ -28,7 +28,10 @@ pub use mainnet::{self as allfeat_chain_spec};
 pub use melodie::{self as melodie_chain_spec};
 
 #[cfg(not(feature = "melodie-runtime"))]
-pub type MelodieChainSpec = DummyChainSpec;
+pub type MelodieChainSpec = ChainSpec;
+
+#[cfg(not(feature = "allfeat-runtime"))]
+pub type AllfeatChainSpec = ChainSpec;
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec;
