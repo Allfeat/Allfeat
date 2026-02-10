@@ -2,6 +2,7 @@ use crate::{Runtime, genesis::token::tokenomics};
 use sp_keyring::Sr25519Keyring;
 use sp_runtime::BuildStorage;
 
+pub mod fee_report;
 pub mod token;
 
 pub fn new_test_ext() -> sp_io::TestExternalities {

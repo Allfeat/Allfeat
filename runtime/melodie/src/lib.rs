@@ -63,6 +63,9 @@ pub use midds::*;
 mod ats;
 pub use ats::*;
 
+#[cfg(test)]
+mod tests;
+
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarks;
 

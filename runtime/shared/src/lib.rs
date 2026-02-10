@@ -33,6 +33,9 @@ pub mod elections;
 
 pub mod currency;
 
+#[cfg(feature = "std")]
+pub mod fee_estimator;
+
 parameter_types! {
     pub const BlockHashCount: BlockNumber = 2400;
     /// The portion of the `NORMAL_DISPATCH_RATIO` that we adjust the fees with. Blocks filled less
