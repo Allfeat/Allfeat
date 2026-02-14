@@ -38,6 +38,14 @@ benchmark-pallet runtime="melodie" pallet="":
       --template=./.maintain/frame-weight-template.hbs 2>&1
 
 [no-exit-message]
+benchmark-weights-mainnet:
+  ./scripts/generate_weights_mainnet.sh
+
+[no-exit-message]
+benchmark-weights-testnet:
+  ./scripts/generate_weights_testnet.sh
+
+[no-exit-message]
 format:
   cargo fmt --all
 

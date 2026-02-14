@@ -70,12 +70,15 @@ Allfeat delivers a music-native blockchain where creators certify, protect, and 
 
 - Deterministic WASM builds are produced via the `release-build-srtool-runtime.yml` workflow using `srtool` with `on-chain-release-build` features.
 - Runtime weights and benchmarks rely on templates stored in `.maintain/`. Update weights before tagging a runtime release.
+- Mainnet weights pipeline: `./scripts/generate_weights_mainnet.sh` (or `just benchmark-weights-mainnet`).
+- Testnet weights pipeline: `./scripts/generate_weights_testnet.sh` (or `just benchmark-weights-testnet`).
 - Production binaries are compiled in CI (`release-build-node.yml`) for x86_64 and aarch64 and distributed through releases S3 hosted by OVH.
 
 ## Operational Tooling
 
 - `scripts/prepare_testnet.sh`: Generates authority keys using `subkey` (requires `SECRET` env var).
 - `scripts/rotate_node_keys.sh`, `scripts/setup_validator_keys.sh`: Support validator lifecycle management.
+- `scripts/generate_weights_mainnet.sh`, `scripts/generate_weights_testnet.sh`: End-to-end weights generation with build checks and timestamped logs in `target/weight-logs/`.
 - Helm chart (`helm/`) encapsulates Kubernetes deployment defaults for validators and RPC nodes.
 
 ## Contributing & Governance
