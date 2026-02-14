@@ -30,12 +30,12 @@ use allfeat_midds::benchmarking::ReleaseBenchmarkHelper;
 
 parameter_types! {
     pub const ReleasePalletId: PalletId = PalletId(*b"m/rlease");
-    pub const ByteDepositCost: Balance = MILLIAFT;
+    pub const ByteDepositCost: Balance = 10 * MILLIAFT; // 0.01 AFT / byte
 }
 
 #[cfg(not(feature = "runtime-benchmarks"))]
 parameter_types! {
-    pub const UnregisterPeriod: Option<Moment> = Some(7 * DAYS as u64);
+    pub const UnregisterPeriod: Option<Moment> = Some(30 * DAYS as u64);
 }
 
 #[cfg(feature = "runtime-benchmarks")]

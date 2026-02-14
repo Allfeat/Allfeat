@@ -21,10 +21,10 @@ use crate::*;
 use allfeat_primitives::Balance;
 use frame_support::parameter_types;
 use frame_system::{EnsureRoot, EnsureSigned};
-use shared_runtime::currency::MILLIAFT;
+use shared_runtime::currency::AFT;
 
 parameter_types! {
-    pub const AtsRegistrationCost: Balance = MILLIAFT;
+    pub const AtsRegistrationCost: Balance = 10 * AFT; // 10 AFT
 }
 
 impl pallet_ats::Config for Runtime {

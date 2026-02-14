@@ -43,7 +43,6 @@
               # Polkadot SDK
               psvm
               subkey
-              frame-omni-bencher
             ]
             ++ lib.optionals stdenv.hostPlatform.isLinux [ rust-jemalloc-sys-unprefixed ];
 
