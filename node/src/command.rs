@@ -163,7 +163,7 @@ pub fn run() -> sc_cli::Result<()> {
                 let hwbench = (!no_hardware_benchmarks)
                     .then(|| {
                         config.database.path().map(|database_path| {
-                            let _ = std::fs::create_dir_all(&database_path);
+                            let _ = std::fs::create_dir_all(database_path);
                             sc_sysinfo::gather_hwbench(
                                 Some(database_path),
                                 &frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE,

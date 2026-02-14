@@ -163,16 +163,16 @@ fn format_balance_unit(balance: Balance) -> String {
         let micro = balance / MICROAFT;
         let remainder = balance % MICROAFT;
         if remainder == 0 {
-            format!("{} uAFT", micro)
+            format!("{micro} uAFT")
         } else {
-            format!("{}.{:06} uAFT", micro, remainder)
+            format!("{micro}.{remainder:06} uAFT")
         }
     } else if balance < AFT {
         // Display in mAFT
         let milli = balance / MILLIAFT;
         let remainder = balance % MILLIAFT;
         if remainder == 0 {
-            format!("{} mAFT", milli)
+            format!("{milli} mAFT")
         } else {
             format!("{}.{:03} mAFT", milli, remainder / MICROAFT)
         }
@@ -186,7 +186,7 @@ pub fn format_usd(usd: f64) -> String {
     if usd < 0.000001 {
         String::from("~$0")
     } else {
-        format!("${:.6}", usd)
+        format!("${usd:.6}")
     }
 }
 
@@ -198,9 +198,9 @@ fn format_total_usd(balance: Balance, aft_price: f64) -> String {
 /// Format a multiplier from num/den as a human-readable string.
 fn format_multiplier(num: u128, den: u128) -> String {
     if den == 1 {
-        format!("{}.0", num)
+        format!("{num}.0")
     } else {
-        format!("{}", num as f64 / den as f64)
+        (num as f64 / den as f64).to_string()
     }
 }
 
@@ -217,19 +217,14 @@ pub fn gcd(mut a: u128, mut b: u128) -> u128 {
 /// Print a complete fee estimation report to stdout.
 /// All displayed configuration values come from the `FeeReportConfig` struct,
 /// which should be populated from actual runtime constants.
-pub fn print_fee_report(
-    runtime_name: &str,
-    estimates: &[FeeEstimate],
-    config: &FeeReportConfig,
-) {
+pub fn print_fee_report(runtime_name: &str, estimates: &[FeeEstimate], config: &FeeReportConfig) {
     let col_pallet = 18;
     let col_ext = 22;
     let col_fee = 16;
     let col_deposit = 16;
     let col_total = 14;
 
-    let total_width =
-        col_pallet + col_ext + col_fee * 2 + col_deposit + col_total * 2 + 8; // 8 for separators
+    let total_width = col_pallet + col_ext + col_fee * 2 + col_deposit + col_total * 2 + 8; // 8 for separators
 
     // Top border
     println!();
@@ -317,10 +312,7 @@ pub fn print_fee_report(
     println!();
     println!("Configuration (from runtime):");
     println!("  AFT/USD Rate:           ${:.3}", config.aft_price_usd);
-    println!(
-        "  Fee Multiplier Range:   [{} (min), {} (congestion)]",
-        min_mult, max_mult
-    );
+    println!("  Fee Multiplier Range:   [{min_mult} (min), {max_mult} (congestion)]");
     println!(
         "  TransactionByteFee:     {}/byte",
         format_balance_unit(config.byte_fee)

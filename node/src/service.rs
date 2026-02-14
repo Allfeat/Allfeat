@@ -116,11 +116,10 @@ fn create_inherent_data_providers(
     sp_timestamp::InherentDataProvider,
 ) {
     let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
-    let slot =
-        sp_consensus_aura::inherents::InherentDataProvider::from_timestamp_and_slot_duration(
-            *timestamp,
-            slot_duration,
-        );
+    let slot = sp_consensus_aura::inherents::InherentDataProvider::from_timestamp_and_slot_duration(
+        *timestamp,
+        slot_duration,
+    );
     (slot, timestamp)
 }
 
@@ -229,7 +228,9 @@ where
 /// Build the RPC extensions handler closure.
 fn build_rpc_extensions<RuntimeApi>(
     client: Arc<FullClient<RuntimeApi>>,
-    transaction_pool: Arc<sc_transaction_pool::TransactionPoolHandle<Block, FullClient<RuntimeApi>>>,
+    transaction_pool: Arc<
+        sc_transaction_pool::TransactionPoolHandle<Block, FullClient<RuntimeApi>>,
+    >,
     backend: Arc<FullBackend>,
     grandpa_link: &GrandpaLinkHalf<RuntimeApi>,
 ) -> Box<dyn Fn(SubscriptionTaskExecutor) -> Result<jsonrpsee::RpcModule<()>, ServiceError>>
@@ -258,8 +259,7 @@ where
                 finality_provider: finality_proof_provider.clone(),
             },
         };
-        crate::rpc::create_full(deps)
-            .map_err(sc_service::Error::Application)
+        crate::rpc::create_full(deps).map_err(sc_service::Error::Application)
     })
 }
 

@@ -24,6 +24,7 @@ mod aura;
 mod authorship;
 mod balances;
 mod grandpa;
+mod meta_tx;
 mod preimage;
 mod session;
 mod sudo;
@@ -34,7 +35,6 @@ mod transaction_payment;
 mod treasury;
 mod utility;
 mod validators;
-mod meta_tx;
 
 // External required imports
 pub use aura::*;

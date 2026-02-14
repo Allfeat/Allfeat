@@ -2,8 +2,7 @@ use crate::{Runtime, RuntimeBlockWeights, TransactionByteFee, WeightToFee, weigh
 use frame_support::weights::{Weight, WeightToFee as WeightToFeeTrait};
 use frame_system::limits::BlockWeights;
 use shared_runtime::fee_estimator::{
-    self, ExtrinsicFeeInfo, FeeEstimate, FeeReportConfig, DEFAULT_AFT_PRICE_USD, estimate_fees,
-    gcd,
+    self, DEFAULT_AFT_PRICE_USD, ExtrinsicFeeInfo, FeeEstimate, FeeReportConfig, estimate_fees, gcd,
 };
 
 fn base_extrinsic_weight() -> Weight {
@@ -28,7 +27,7 @@ fn print_fee_report() {
         // FixedU128 stores value * 10^18, so 0.1 = 10^17
         // We express it as num/den for integer arithmetic
         let min_mult_inner = min_multiplier.into_inner();
-        let fixed_div = <pallet_transaction_payment::Multiplier as FixedPointNumber>::DIV as u128;
+        let fixed_div = <pallet_transaction_payment::Multiplier as FixedPointNumber>::DIV;
         // Simplify: gcd(min_mult_inner, fixed_div)
         let g = gcd(min_mult_inner, fixed_div);
         let min_num = min_mult_inner / g;
@@ -241,4 +240,3 @@ fn print_fee_report() {
         fee_estimator::print_fee_report("ALLFEAT MAINNET", &estimates, &config);
     });
 }
-

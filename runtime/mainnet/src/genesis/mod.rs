@@ -65,8 +65,7 @@ pub fn genesis(
     dev_accounts: Vec<AccountId>,
     root_key: AccountId,
 ) -> serde_json::Value {
-    let mut token_genesis =
-        tokenomics(root_key.clone(), initial_authorities.len() as u128);
+    let mut token_genesis = tokenomics(root_key.clone(), initial_authorities.len() as u128);
 
     // Give each validator an initial endowment (taken from R&D envelope)
     for (account, _, _) in &initial_authorities {
@@ -78,11 +77,7 @@ pub fn genesis(
     }
 
     for account in dev_accounts {
-        merge_balance(
-            &mut token_genesis.balances.balances,
-            account,
-            DEV_ENDOWMENT,
-        );
+        merge_balance(&mut token_genesis.balances.balances, account, DEV_ENDOWMENT);
     }
 
     build_struct_json_patch!(RuntimeGenesisConfig {

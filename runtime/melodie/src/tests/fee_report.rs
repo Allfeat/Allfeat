@@ -2,7 +2,7 @@ use crate::{RuntimeBlockWeights, TransactionByteFee, WeightToFee};
 use frame_support::weights::{Weight, WeightToFee as WeightToFeeTrait};
 use frame_system::limits::BlockWeights;
 use shared_runtime::fee_estimator::{
-    self, ExtrinsicFeeInfo, FeeEstimate, FeeReportConfig, DEFAULT_AFT_PRICE_USD, aft_to_usd,
+    self, DEFAULT_AFT_PRICE_USD, ExtrinsicFeeInfo, FeeEstimate, FeeReportConfig, aft_to_usd,
     balance_to_aft, estimate_fees, format_balance, format_usd, gcd,
 };
 
@@ -25,8 +25,7 @@ fn print_fee_report() {
         // Read MinimumMultiplier from runtime
         let min_multiplier = shared_runtime::MinimumMultiplier::get();
         let min_mult_inner = min_multiplier.into_inner();
-        let fixed_div =
-            <pallet_transaction_payment::Multiplier as FixedPointNumber>::DIV as u128;
+        let fixed_div = <pallet_transaction_payment::Multiplier as FixedPointNumber>::DIV;
         let g = gcd(min_mult_inner, fixed_div);
         let min_num = min_mult_inner / g;
         let min_den = fixed_div / g;
@@ -354,4 +353,3 @@ fn print_fee_report() {
         println!();
     });
 }
-
