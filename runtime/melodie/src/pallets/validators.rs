@@ -25,5 +25,5 @@ parameter_types! {
 
 impl pallet_validators::Config for Runtime {
     type MaxValidators = MaxValidators;
-    type WeightInfo = ();
+    type WeightInfo = weights::validators::AllfeatWeight<Runtime>;
 }

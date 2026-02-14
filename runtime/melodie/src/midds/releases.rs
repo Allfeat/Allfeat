@@ -52,7 +52,7 @@ impl pallet_midds::Config<Releases> for Runtime {
     type ProviderOrigin = EnsureSigned<Self::AccountId>;
     type ByteDepositCost = ByteDepositCost;
     type UnregisterPeriod = UnregisterPeriod;
-    type WeightInfo = ();
+    type WeightInfo = weights::midds_releases::AllfeatWeight<Runtime>;
 
     #[cfg(feature = "runtime-benchmarks")]
     type BenchmarkHelper = ReleaseBenchmarkHelper;

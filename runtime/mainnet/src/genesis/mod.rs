@@ -42,6 +42,17 @@ pub mod token;
 
 const DEV_ENDOWMENT: Balance = 100_000_000 * AFT;
 
+fn merge_balance(balances: &mut Vec<(AccountId, Balance)>, account: AccountId, amount: Balance) {
+    if let Some((_, existing_amount)) = balances
+        .iter_mut()
+        .find(|(existing_account, _)| *existing_account == account)
+    {
+        *existing_amount = existing_amount.saturating_add(amount);
+    } else {
+        balances.push((account, amount));
+    }
+}
+
 // Returns the genesis config template populated with given parameters.
 pub fn genesis(
     initial_authorities: Vec<(
@@ -58,23 +69,21 @@ pub fn genesis(
         tokenomics(root_key.clone(), initial_authorities.len() as u128);
 
     // Give each validator an initial endowment (taken from R&D envelope)
-    let validator_balances: Vec<(AccountId, Balance)> = initial_authorities
-        .iter()
-        .map(|x| (x.0.clone(), VALIDATOR_ENDOWMENT))
-        .collect();
-    token_genesis
-        .balances
-        .balances
-        .extend(validator_balances);
+    for (account, _, _) in &initial_authorities {
+        merge_balance(
+            &mut token_genesis.balances.balances,
+            account.clone(),
+            VALIDATOR_ENDOWMENT,
+        );
+    }
 
-    let dev_accounts_balances: Vec<(AccountId, Balance)> = dev_accounts
-        .into_iter()
-        .map(|acc| (acc, DEV_ENDOWMENT))
-        .collect();
-    token_genesis
-        .balances
-        .balances
-        .extend(dev_accounts_balances);
+    for account in dev_accounts {
+        merge_balance(
+            &mut token_genesis.balances.balances,
+            account,
+            DEV_ENDOWMENT,
+        );
+    }
 
     build_struct_json_patch!(RuntimeGenesisConfig {
         balances: token_genesis.balances,
@@ -129,4 +138,41 @@ pub fn preset_names() -> Vec<PresetId> {
         PresetId::from(sp_genesis_builder::LOCAL_TESTNET_RUNTIME_PRESET),
         PresetId::from("staging"),
     ]
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::BTreeSet;
+
+    use super::*;
+
+    fn assert_no_duplicate_balances(patch: serde_json::Value) {
+        let balances = patch
+            .get("balances")
+            .and_then(|b| b.get("balances"))
+            .and_then(serde_json::Value::as_array)
+            .expect("balances.balances should be present in genesis patch");
+
+        let mut seen = BTreeSet::new();
+        for entry in balances {
+            let account = entry
+                .get(0)
+                .expect("balance entry should contain account id")
+                .to_string();
+            assert!(
+                seen.insert(account.clone()),
+                "duplicate account in balances genesis: {account}"
+            );
+        }
+    }
+
+    #[test]
+    fn development_preset_has_unique_balances() {
+        assert_no_duplicate_balances(development_config_genesis());
+    }
+
+    #[test]
+    fn local_testnet_preset_has_unique_balances() {
+        assert_no_duplicate_balances(local_config_genesis());
+    }
 }

@@ -62,6 +62,7 @@ mod midds;
 pub use midds::*;
 mod ats;
 pub use ats::*;
+mod weights;
 
 #[cfg(test)]
 mod tests;

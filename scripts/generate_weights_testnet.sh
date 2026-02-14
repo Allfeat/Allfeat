@@ -18,7 +18,7 @@ WASM_EXECUTION="${WASM_EXECUTION:-compiled}"
 
 RUNTIME_PACKAGE="melodie-runtime"
 RUNTIME_WASM="${ROOT_DIR}/target/${PROFILE}/wbuild/${RUNTIME_PACKAGE}/melodie_runtime.compact.compressed.wasm"
-TEMPLATE="${ROOT_DIR}/.maintain/frame-weight-template.hbs"
+TEMPLATE="${ROOT_DIR}/.maintain/runtimes-weight-template.hbs"
 HEADER_FILE="${ROOT_DIR}/HEADER"
 BENCHMARKS_FILE="${ROOT_DIR}/runtime/melodie/src/benchmarks.rs"
 
@@ -26,6 +26,7 @@ RUN_ID="$(date +"%Y%m%d_%H%M%S")"
 LOG_DIR="${ROOT_DIR}/target/weight-logs"
 LOG_FILE="${LOG_DIR}/testnet_weights_${RUN_ID}.log"
 GENERATED_DIR="${LOG_DIR}/generated/testnet/${RUN_ID}"
+RUNTIME_WEIGHTS_DIR="${ROOT_DIR}/runtime/melodie/src/weights"
 
 timestamp() {
   date +"%Y-%m-%d %H:%M:%S"
@@ -76,11 +77,32 @@ resolve_pallet_name() {
 
 output_path_for_pallet() {
   local pallet="$1"
+  local normalized
   case "${pallet}" in
-    pallet_validators) echo "${ROOT_DIR}/pallets/validators/src/weights.rs" ;;
-    pallet_ats) echo "${ROOT_DIR}/pallets/ats/src/weights.rs" ;;
-    pallet_midds) echo "${ROOT_DIR}/pallets/midds/src/weights.rs" ;;
-    *) echo "${GENERATED_DIR}/${pallet}.rs" ;;
+    frame_system) echo "${RUNTIME_WEIGHTS_DIR}/system.rs" ;;
+    frame_benchmarking) echo "${RUNTIME_WEIGHTS_DIR}/benchmarking.rs" ;;
+    pallet_midds_musical_works) echo "${RUNTIME_WEIGHTS_DIR}/midds_musical_works.rs" ;;
+    pallet_midds_recordings) echo "${RUNTIME_WEIGHTS_DIR}/midds_recordings.rs" ;;
+    pallet_midds_releases) echo "${RUNTIME_WEIGHTS_DIR}/midds_releases.rs" ;;
+    *)
+      normalized="${pallet#pallet_}"
+      normalized="${normalized#frame_}"
+      echo "${RUNTIME_WEIGHTS_DIR}/${normalized}.rs"
+      ;;
+  esac
+}
+
+postprocess_weight_file() {
+  local pallet="$1"
+  local output_file="$2"
+
+  case "${pallet}" in
+    pallet_ats)
+      perl -0pi -e 's/fn register\(\) -> Weight/fn register(_x: u32, ) -> Weight/g; s/fn update\(\) -> Weight/fn update(_x: u32, ) -> Weight/g' "${output_file}"
+      ;;
+    pallet_grandpa)
+      perl -0pi -e 's/component `x`/component `validator_count`/g; s/fn check_equivocation_proof\((?:_)?x: u32, \) -> Weight \{/fn report_equivocation(\n\t\tvalidator_count: u32,\n\t\t_max_nominators_per_validator: u32,\n\t) -> Weight {/g; s/saturating_mul\((?:_)?x.into\(\)\)/saturating_mul(validator_count.min(1).into())/g' "${output_file}"
+      ;;
   esac
 }
 
@@ -150,6 +172,7 @@ for pallet in "${TARGET_PALLETS[@]}"; do
     --header="${HEADER_FILE}" \
     --template="${TEMPLATE}" \
     --output="${output_file}" >>"${LOG_FILE}" 2>&1; then
+    postprocess_weight_file "${pallet}" "${output_file}"
     success_count=$((success_count + 1))
     log "OK ${resolved_pallet}"
   else

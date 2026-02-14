@@ -33,5 +33,5 @@ impl pallet_ats::Config for Runtime {
     type ProviderOrigin = EnsureSigned<Self::AccountId>;
     type AdminOrigin = EnsureRoot<Self::AccountId>;
     type AtsRegistrationCost = AtsRegistrationCost;
-    type WeightInfo = ();
+    type WeightInfo = weights::ats::AllfeatWeight<Runtime>;
 }

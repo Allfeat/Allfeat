@@ -52,7 +52,7 @@ impl pallet_midds::Config<MusicalWorks> for Runtime {
     type ProviderOrigin = EnsureSigned<Self::AccountId>;
     type ByteDepositCost = ByteDepositCost;
     type UnregisterPeriod = UnregisterPeriod;
-    type WeightInfo = ();
+    type WeightInfo = weights::midds_musical_works::AllfeatWeight<Runtime>;
 
     #[cfg(feature = "runtime-benchmarks")]
     type BenchmarkHelper = MusicalWorkBenchmarkHelper;

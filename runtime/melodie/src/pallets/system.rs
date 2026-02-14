@@ -55,7 +55,7 @@ impl frame_system::Config for Runtime {
     type DbWeight = ParityDbWeight;
     type Version = Version;
     type AccountData = pallet_balances::AccountData<Balance>;
-    type SystemWeightInfo = frame_system::weights::SubstrateWeight<Runtime>;
+    type SystemWeightInfo = weights::system::AllfeatWeight<Runtime>;
     type SS58Prefix = ConstU16<42>;
     type MaxConsumers = ConstU32<16>;
     type SingleBlockMigrations = SingleBlockMigrations;

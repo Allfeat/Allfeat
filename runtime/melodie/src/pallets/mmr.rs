@@ -24,7 +24,7 @@ impl pallet_mmr::Config for Runtime {
     type LeafData = pallet_mmr::ParentNumberAndHash<Self>;
     type BlockHashProvider = pallet_mmr::DefaultBlockHashProvider<Runtime>;
     type OnNewRoot = ();
-    type WeightInfo = ();
+    type WeightInfo = weights::mmr::AllfeatWeight<Runtime>;
     #[cfg(feature = "runtime-benchmarks")]
     type BenchmarkHelper = ();
 }

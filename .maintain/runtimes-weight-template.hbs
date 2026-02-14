@@ -20,7 +20,16 @@
 
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
+{{#if (or
+  (eq pallet "pallet_midds_musical_works")
+  (eq pallet "pallet_midds_recordings")
+  (eq pallet "pallet_midds_releases")
+  (eq pallet "pallet_midds_release")
+)}}
+use pallet_midds::WeightInfo;
+{{else}}
 use {{pallet}}::WeightInfo;
+{{/if}}
 
 pub struct AllfeatWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {

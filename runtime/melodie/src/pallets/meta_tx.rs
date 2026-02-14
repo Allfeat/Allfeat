@@ -23,13 +23,13 @@ use crate::*;
 impl pallet_meta_tx::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type Extension = MetaTxExtension;
-    type WeightInfo = pallet_meta_tx::weights::SubstrateWeight<Runtime>; // TODO
+    type WeightInfo = weights::meta_tx::AllfeatWeight<Runtime>;
 }
 
 impl pallet_verify_signature::Config for Runtime {
     type Signature = Signature;
     type AccountIdentifier = <Signature as Verify>::Signer;
-    type WeightInfo = ();
+    type WeightInfo = weights::verify_signature::AllfeatWeight<Runtime>;
     #[cfg(feature = "runtime-benchmarks")]
     type BenchmarkHelper = ();
 }

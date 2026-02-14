@@ -37,7 +37,7 @@ impl pallet_scheduler::Config for Runtime {
     type ScheduleOrigin = EnsureRoot<AccountId>;
     type OriginPrivilegeCmp = EqualPrivilegeOnly;
     type MaxScheduledPerBlock = ConstU32<50>;
-    type WeightInfo = pallet_scheduler::weights::SubstrateWeight<Runtime>;
+    type WeightInfo = weights::scheduler::AllfeatWeight<Runtime>;
     type BlockNumberProvider = frame_system::Pallet<Runtime>;
     type Preimages = Preimage;
 }

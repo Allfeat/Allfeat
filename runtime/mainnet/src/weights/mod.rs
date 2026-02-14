@@ -17,6 +17,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod balances;
+pub mod grandpa;
+pub mod meta_tx;
 pub mod multisig;
 pub mod preimage;
 pub mod proxy;
@@ -30,3 +32,4 @@ pub mod transaction_payment;
 pub mod treasury;
 pub mod utility;
 pub mod validators;
+pub mod verify_signature;

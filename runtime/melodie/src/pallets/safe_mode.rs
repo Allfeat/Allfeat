@@ -53,5 +53,5 @@ impl pallet_safe_mode::Config for Runtime {
     type ForceDepositOrigin = EnsureRoot<AccountId>;
     type Notify = ();
     type ReleaseDelay = ReleaseDelay;
-    type WeightInfo = pallet_safe_mode::weights::SubstrateWeight<Runtime>;
+    type WeightInfo = weights::safe_mode::AllfeatWeight<Runtime>;
 }

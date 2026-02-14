@@ -39,7 +39,7 @@ impl pallet_grandpa::Config for Runtime {
 
     type EquivocationReportSystem = ();
     type MaxNominators = MaxNominatorRewardedPerValidator;
-    type WeightInfo = ();
+    type WeightInfo = weights::grandpa::AllfeatWeight<Runtime>;
     type MaxAuthorities = MaxAuthorities;
     type MaxSetIdSessionEntries = MaxSetIdSessionEntries;
 }

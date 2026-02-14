@@ -52,7 +52,7 @@ impl pallet_midds::Config<Recordings> for Runtime {
     type ProviderOrigin = EnsureSigned<Self::AccountId>;
     type ByteDepositCost = ByteDepositCost;
     type UnregisterPeriod = UnregisterPeriod;
-    type WeightInfo = ();
+    type WeightInfo = weights::midds_recordings::AllfeatWeight<Runtime>;
 
     #[cfg(feature = "runtime-benchmarks")]
     type BenchmarkHelper = RecordingBenchmarkHelper;

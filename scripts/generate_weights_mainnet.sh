@@ -26,6 +26,7 @@ RUN_ID="$(date +"%Y%m%d_%H%M%S")"
 LOG_DIR="${ROOT_DIR}/target/weight-logs"
 LOG_FILE="${LOG_DIR}/mainnet_weights_${RUN_ID}.log"
 GENERATED_DIR="${LOG_DIR}/generated/mainnet/${RUN_ID}"
+RUNTIME_WEIGHTS_DIR="${ROOT_DIR}/runtime/mainnet/src/weights"
 
 timestamp() {
   date +"%Y-%m-%d %H:%M:%S"
@@ -76,6 +77,7 @@ resolve_pallet_name() {
 
 output_path_for_pallet() {
   local pallet="$1"
+  local normalized
   case "${pallet}" in
     frame_system) echo "${ROOT_DIR}/runtime/mainnet/src/weights/system.rs" ;;
     frame_benchmarking) echo "${ROOT_DIR}/runtime/mainnet/src/weights/benchmarking.rs" ;;
@@ -92,7 +94,22 @@ output_path_for_pallet() {
     pallet_utility) echo "${ROOT_DIR}/runtime/mainnet/src/weights/utility.rs" ;;
     pallet_validators) echo "${ROOT_DIR}/runtime/mainnet/src/weights/validators.rs" ;;
     pallet_token_allocation) echo "${ROOT_DIR}/runtime/mainnet/src/weights/token_allocation.rs" ;;
-    *) echo "${GENERATED_DIR}/${pallet}.rs" ;;
+    *)
+      normalized="${pallet#pallet_}"
+      normalized="${normalized#frame_}"
+      echo "${RUNTIME_WEIGHTS_DIR}/${normalized}.rs"
+      ;;
+  esac
+}
+
+postprocess_weight_file() {
+  local pallet="$1"
+  local output_file="$2"
+
+  case "${pallet}" in
+    pallet_grandpa)
+      perl -0pi -e 's/component `x`/component `validator_count`/g; s/fn check_equivocation_proof\((?:_)?x: u32, \) -> Weight \{/fn report_equivocation(\n\t\tvalidator_count: u32,\n\t\t_max_nominators_per_validator: u32,\n\t) -> Weight {/g; s/saturating_mul\((?:_)?x.into\(\)\)/saturating_mul(validator_count.min(1).into())/g' "${output_file}"
+      ;;
   esac
 }
 
@@ -162,6 +179,7 @@ for pallet in "${TARGET_PALLETS[@]}"; do
     --header="${HEADER_FILE}" \
     --template="${TEMPLATE}" \
     --output="${output_file}" >>"${LOG_FILE}" 2>&1; then
+    postprocess_weight_file "${pallet}" "${output_file}"
     success_count=$((success_count + 1))
     log "OK ${resolved_pallet}"
   else
