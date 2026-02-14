@@ -41,7 +41,7 @@ jobs:
       - name: Prepare artifacts
         run: |
           mkdir dist
-          cp target/${{ matrix.target }}/release/allfeat dist/${{ matrix.out_name }}
+          cp target/release/allfeat dist/${{ matrix.out_name }}
 
       - name: Upload artifacts to S3
         env:
@@ -61,5 +61,4 @@ jobs:
           name: ${{ matrix.out_name }}
           path: |
             dist/${{ matrix.out_name }}
-
 

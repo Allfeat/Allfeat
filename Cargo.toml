@@ -127,6 +127,7 @@ sc-telemetry = { version = "30.0.0", default-features = false }
 sc-transaction-pool = { version = "44.0.0", default-features = false }
 sc-transaction-pool-api = { version = "43.0.0", default-features = false }
 sc-storage-monitor = { version = "0.27.0", default-features = false }
+sc-sysinfo = { version = "46.0.0", default-features = false }
 sc-consensus-slots = { version = "0.54.0", default-features = false }
 sc-consensus-grandpa-rpc = { version = "0.40.0", default-features = false }
 sc-rpc-spec-v2 = { version = "0.55.0", default-features = false }

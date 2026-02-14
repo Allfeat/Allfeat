@@ -70,7 +70,20 @@ macro_rules! dispatch_on_runtime {
             return $body;
         }
 
-        Err($crate::runtime::NO_RUNTIME_ERR.into())
+        // If a single runtime feature is enabled, use it as a safe fallback for custom specs.
+        #[cfg(all(feature = "melodie-runtime", not(feature = "allfeat-runtime")))]
+        {
+            type $RuntimeApi = $crate::service::MelodieRuntimeApi;
+            return $body;
+        }
+
+        #[cfg(all(feature = "allfeat-runtime", not(feature = "melodie-runtime")))]
+        {
+            type $RuntimeApi = $crate::service::AllfeatRuntimeApi;
+            return $body;
+        }
+
+        Err(sc_cli::Error::from($crate::runtime::NO_RUNTIME_ERR))
     }};
 }
 
@@ -94,9 +107,9 @@ macro_rules! dispatch_async_run {
         #[cfg(feature = "melodie-runtime")]
         if $chain_spec.is_melodie() {
             return $runner.async_run(|$config| {
-                let $components = $crate::service::new_partial::<$crate::service::MelodieRuntimeApi>(
-                    &$config,
-                ).map_err(|e| sc_cli::Error::from(*e))?;
+                let $components =
+                    $crate::service::new_partial::<$crate::service::MelodieRuntimeApi>(&$config)
+                        .map_err(|e| sc_cli::Error::from(*e))?;
                 let task_manager = $components.task_manager;
                 { $body }.map(|v| (v, task_manager))
             });
@@ -105,15 +118,38 @@ macro_rules! dispatch_async_run {
         #[cfg(feature = "allfeat-runtime")]
         if $chain_spec.is_allfeat() {
             return $runner.async_run(|$config| {
-                let $components = $crate::service::new_partial::<$crate::service::AllfeatRuntimeApi>(
-                    &$config,
-                ).map_err(|e| sc_cli::Error::from(*e))?;
+                let $components =
+                    $crate::service::new_partial::<$crate::service::AllfeatRuntimeApi>(&$config)
+                        .map_err(|e| sc_cli::Error::from(*e))?;
                 let task_manager = $components.task_manager;
                 { $body }.map(|v| (v, task_manager))
             });
         }
 
-        Err($crate::runtime::NO_RUNTIME_ERR.into())
+        // If a single runtime feature is enabled, use it as a safe fallback for custom specs.
+        #[cfg(all(feature = "melodie-runtime", not(feature = "allfeat-runtime")))]
+        {
+            return $runner.async_run(|$config| {
+                let $components =
+                    $crate::service::new_partial::<$crate::service::MelodieRuntimeApi>(&$config)
+                        .map_err(|e| sc_cli::Error::from(*e))?;
+                let task_manager = $components.task_manager;
+                { $body }.map(|v| (v, task_manager))
+            });
+        }
+
+        #[cfg(all(feature = "allfeat-runtime", not(feature = "melodie-runtime")))]
+        {
+            return $runner.async_run(|$config| {
+                let $components =
+                    $crate::service::new_partial::<$crate::service::AllfeatRuntimeApi>(&$config)
+                        .map_err(|e| sc_cli::Error::from(*e))?;
+                let task_manager = $components.task_manager;
+                { $body }.map(|v| (v, task_manager))
+            });
+        }
+
+        Err(sc_cli::Error::from($crate::runtime::NO_RUNTIME_ERR))
     }};
 }
 
@@ -136,18 +172,37 @@ macro_rules! dispatch_benchmark_partials {
 
         #[cfg(feature = "melodie-runtime")]
         if $config.chain_spec.is_melodie() {
-            let $partials = $crate::service::new_partial::<$crate::service::MelodieRuntimeApi>(&$config)
-                .map_err(|e| sc_cli::Error::from(*e))?;
+            let $partials =
+                $crate::service::new_partial::<$crate::service::MelodieRuntimeApi>(&$config)
+                    .map_err(|e| sc_cli::Error::from(*e))?;
             return $body;
         }
 
         #[cfg(feature = "allfeat-runtime")]
         if $config.chain_spec.is_allfeat() {
-            let $partials = $crate::service::new_partial::<$crate::service::AllfeatRuntimeApi>(&$config)
-                .map_err(|e| sc_cli::Error::from(*e))?;
+            let $partials =
+                $crate::service::new_partial::<$crate::service::AllfeatRuntimeApi>(&$config)
+                    .map_err(|e| sc_cli::Error::from(*e))?;
             return $body;
         }
 
-        return Err($crate::runtime::NO_RUNTIME_ERR.into());
+        // If a single runtime feature is enabled, use it as a safe fallback for custom specs.
+        #[cfg(all(feature = "melodie-runtime", not(feature = "allfeat-runtime")))]
+        {
+            let $partials =
+                $crate::service::new_partial::<$crate::service::MelodieRuntimeApi>(&$config)
+                    .map_err(|e| sc_cli::Error::from(*e))?;
+            return $body;
+        }
+
+        #[cfg(all(feature = "allfeat-runtime", not(feature = "melodie-runtime")))]
+        {
+            let $partials =
+                $crate::service::new_partial::<$crate::service::AllfeatRuntimeApi>(&$config)
+                    .map_err(|e| sc_cli::Error::from(*e))?;
+            return $body;
+        }
+
+        return Err(sc_cli::Error::from($crate::runtime::NO_RUNTIME_ERR));
     }};
 }

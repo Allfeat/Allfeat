@@ -64,7 +64,7 @@ macro_rules! define_chain_spec {
         pub mod $mod_name {
             //! Chain specifications for the network.
 
-            use super::{build_chain_spec_for, ChainSpec, NetworkConfig};
+            use super::{ChainSpec, NetworkConfig, build_chain_spec_for};
             use sc_service::ChainType;
 
             /// Returns the network configuration for this runtime.
@@ -148,12 +148,27 @@ impl NetworkVariant {
     /// Returns `Some(variant)` if the id starts with a known prefix,
     /// `None` otherwise.
     pub fn from_id(id: &str) -> Option<Self> {
-        if id.starts_with("melodie") {
+        let id = id.to_ascii_lowercase();
+        if id.contains("melodie") {
             Some(Self::Melodie)
-        } else if id.starts_with("allfeat") {
+        } else if id.contains("allfeat") {
             Some(Self::Allfeat)
         } else {
             None
+        }
+    }
+
+    /// Try to determine the variant from a chain spec name.
+    pub fn from_name(name: &str) -> Option<Self> {
+        Self::from_id(name)
+    }
+
+    /// Try to determine the variant from chain properties.
+    pub fn from_token_symbol(symbol: &str) -> Option<Self> {
+        match symbol.to_ascii_uppercase().as_str() {
+            "MEL" => Some(Self::Melodie),
+            "AFT" => Some(Self::Allfeat),
+            _ => None,
         }
     }
 }
@@ -233,9 +248,21 @@ pub trait IdentifyVariant {
     /// Get the chain spec id string.
     fn id(&self) -> &str;
 
+    /// Get the chain spec display name.
+    fn name(&self) -> &str;
+
+    /// Get the primary token symbol from chain properties.
+    fn token_symbol(&self) -> Option<String>;
+
     /// Returns the [`NetworkVariant`] for this chain spec, if recognized.
     fn variant(&self) -> Option<NetworkVariant> {
         NetworkVariant::from_id(self.id())
+            .or_else(|| NetworkVariant::from_name(self.name()))
+            .or_else(|| {
+                self.token_symbol()
+                    .as_deref()
+                    .and_then(NetworkVariant::from_token_symbol)
+            })
     }
 
     /// Returns `true` if this is a configuration for the Melodie testnet.
@@ -252,5 +279,16 @@ pub trait IdentifyVariant {
 impl IdentifyVariant for Box<dyn sc_service::ChainSpec> {
     fn id(&self) -> &str {
         sc_service::ChainSpec::id(&**self)
+    }
+
+    fn name(&self) -> &str {
+        sc_service::ChainSpec::name(&**self)
+    }
+
+    fn token_symbol(&self) -> Option<String> {
+        sc_service::ChainSpec::properties(&**self)
+            .get("tokenSymbol")
+            .and_then(|value| value.as_str())
+            .map(ToOwned::to_owned)
     }
 }

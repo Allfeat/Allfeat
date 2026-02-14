@@ -29,6 +29,7 @@ use crate::chain_specs::allfeat_chain_spec;
 #[cfg(feature = "melodie-runtime")]
 use crate::chain_specs::melodie_chain_spec;
 use sc_cli::{ChainSpec as ChainSpecT, SubstrateCli};
+use sc_storage_monitor::StorageMonitorService;
 use sp_core::crypto::Ss58AddressFormatRegistry;
 
 impl SubstrateCli for Cli {
@@ -122,11 +123,11 @@ pub fn run() -> sc_cli::Result<()> {
             set_default_ss58_version(&runner.config().chain_spec);
 
             match cmd {
-                BenchmarkCmd::Pallet(_) => Err(
-                    "Pallet benchmarking has migrated to its own CLI tool, \
+                BenchmarkCmd::Pallet(_) => {
+                    Err("Pallet benchmarking has migrated to its own CLI tool, \
                     please read https://github.com/paritytech/polkadot-sdk/pull/3512."
-                        .into(),
-                ),
+                        .into())
+                }
                 BenchmarkCmd::Storage(cmd) => runner.sync_run(|config| {
                     dispatch_benchmark_partials!(config => |partials| {
                         let db = partials.backend.expose_db();
@@ -148,27 +149,67 @@ pub fn run() -> sc_cli::Result<()> {
             }
         }
         #[cfg(not(feature = "runtime-benchmarks"))]
-        Some(Subcommand::Benchmark(_)) => Err(
-            "Benchmarking was not enabled when building the node. \
+        Some(Subcommand::Benchmark(_)) => {
+            Err("Benchmarking was not enabled when building the node. \
             You can enable it with `--features runtime-benchmarks`."
-                .into(),
-        ),
+                .into())
+        }
         None => {
             let runner = cli.create_runner(&cli.run)?;
+            let no_hardware_benchmarks = cli.no_hardware_benchmarks;
+            let storage_monitor = cli.storage_monitor.clone();
 
-            runner.run_node_until_exit(|config| async move {
+            runner.run_node_until_exit(move |config| async move {
+                let hwbench = (!no_hardware_benchmarks)
+                    .then(|| {
+                        config.database.path().map(|database_path| {
+                            let _ = std::fs::create_dir_all(&database_path);
+                            sc_sysinfo::gather_hwbench(
+                                Some(database_path),
+                                &frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE,
+                            )
+                        })
+                    })
+                    .flatten();
+
+                if let Some(ref hwbench) = hwbench {
+                    sc_sysinfo::print_hwbench(hwbench);
+                    if let Err(err) = frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE
+                        .check_hardware(hwbench, config.role.is_authority())
+                    {
+                        log::warn!("Hardware does not meet reference requirements: {err}");
+                    }
+                }
+
+                let database_source = config.database.clone();
                 let chain_spec = &config.chain_spec;
                 set_default_ss58_version(chain_spec);
 
                 log::info!(
                     "Is validating: {}",
-                    if config.role.is_authority() { "yes" } else { "no" }
+                    if config.role.is_authority() {
+                        "yes"
+                    } else {
+                        "no"
+                    }
                 );
 
-                dispatch_on_runtime!(chain_spec => |RuntimeApi| {
-                    service::new_full_from_network_cfg::<RuntimeApi>(config)
-                        .map_err(|e| sc_cli::Error::from(*e))
-                })
+                let task_manager: sc_service::TaskManager =
+                    dispatch_on_runtime!(chain_spec => |RuntimeApi| {
+                        service::new_full_from_network_cfg::<RuntimeApi>(config)
+                            .map_err(|e| sc_cli::Error::from(*e))
+                    })?;
+
+                if let Some(path) = database_source.path() {
+                    StorageMonitorService::try_spawn(
+                        storage_monitor,
+                        path.to_path_buf(),
+                        &task_manager.spawn_essential_handle(),
+                    )
+                    .map_err(|e| sc_cli::Error::Application(Box::new(e)))?;
+                }
+
+                Ok(task_manager)
             })
         }
     }

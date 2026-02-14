@@ -131,6 +131,7 @@ dependencies = [
  "sc-rpc-spec-v2",
  "sc-service",
  "sc-storage-monitor",
+ "sc-sysinfo",
  "sc-telemetry",
  "sc-transaction-pool",
  "sc-transaction-pool-api",
