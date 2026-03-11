@@ -369,50 +369,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ark-bn254"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d69eab57e8d2663efa5c63135b2af4f396d66424f88954c21104125ab6b3e6bc"
-dependencies = [
- "ark-ec 0.5.0",
- "ark-ff 0.5.0",
- "ark-std 0.5.0",
-]
-
-[[package]]
-name = "ark-crypto-primitives"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e0c292754729c8a190e50414fd1a37093c786c709899f29c9f7daccecfa855e"
-dependencies = [
- "ahash 0.8.12",
- "ark-crypto-primitives-macros",
- "ark-ec 0.5.0",
- "ark-ff 0.5.0",
- "ark-relations",
- "ark-serialize 0.5.0",
- "ark-snark",
- "ark-std 0.5.0",
- "blake2 0.10.6",
- "derivative",
- "digest 0.10.7",
- "fnv",
- "merlin",
- "sha2 0.10.9",
-]
-
-[[package]]
-name = "ark-crypto-primitives-macros"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e7e89fe77d1f0f4fe5b96dfc940923d88d17b6a773808124f21e764dfb063c6a"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.114",
-]
-
-[[package]]
 name = "ark-ec"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -549,21 +505,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ark-groth16"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "88f1d0f3a534bb54188b8dcc104307db6c56cdae574ddc3212aec0625740fc7e"
-dependencies = [
- "ark-crypto-primitives",
- "ark-ec 0.5.0",
- "ark-ff 0.5.0",
- "ark-poly 0.5.0",
- "ark-relations",
- "ark-serialize 0.5.0",
- "ark-std 0.5.0",
-]
-
-[[package]]
 name = "ark-poly"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -589,17 +530,6 @@ dependencies = [
  "educe",
  "fnv",
  "hashbrown 0.15.5",
-]
-
-[[package]]
-name = "ark-relations"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ec46ddc93e7af44bcab5230937635b06fb5744464dd6a7e7b083e80ebd274384"
-dependencies = [
- "ark-ff 0.5.0",
- "ark-std 0.5.0",
- "tracing",
 ]
 
 [[package]]
@@ -647,18 +577,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.114",
-]
-
-[[package]]
-name = "ark-snark"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d368e2848c2d4c129ce7679a7d0d2d612b6a274d3ea6a13bad4445d61b381b88"
-dependencies = [
- "ark-ff 0.5.0",
- "ark-relations",
- "ark-serialize 0.5.0",
- "ark-std 0.5.0",
 ]
 
 [[package]]
@@ -6504,22 +6422,15 @@ dependencies = [
 
 [[package]]
 name = "pallet-ats"
-version = "1.0.0"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4aa7d7d91241145f6f7eda7526eb18e073ebf9946adfdf1474b9d5ab985e82a6"
 dependencies = [
- "ark-bn254",
- "ark-ff 0.5.0",
- "ark-groth16",
- "ark-serialize 0.5.0",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "hex",
- "pallet-balances",
- "pallet-timestamp",
  "parity-scale-codec",
  "scale-info",
- "sp-io",
- "sp-tracing",
 ]
 
 [[package]]

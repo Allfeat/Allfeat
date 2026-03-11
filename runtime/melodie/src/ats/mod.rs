@@ -20,18 +20,21 @@ use crate::*;
 
 use allfeat_primitives::Balance;
 use frame_support::parameter_types;
-use frame_system::{EnsureRoot, EnsureSigned};
 use shared_runtime::currency::AFT;
 
 parameter_types! {
-    pub const AtsRegistrationCost: Balance = 10 * AFT; // 10 AFT
+    pub const BaseDeposit: Balance = 10 * AFT;
+    pub const VersionDeposit: Balance = 1 * AFT;
+    pub const MaxVersionsPerAts: u32 = 100;
+    pub const MaxAtsPerAccount: u32 = 1000;
 }
 
 impl pallet_ats::Config for Runtime {
-    type Currency = Balances;
     type RuntimeHoldReason = RuntimeHoldReason;
-    type ProviderOrigin = EnsureSigned<Self::AccountId>;
-    type AdminOrigin = EnsureRoot<Self::AccountId>;
-    type AtsRegistrationCost = AtsRegistrationCost;
-    type WeightInfo = weights::ats::AllfeatWeight<Runtime>;
+    type Currency = Balances;
+    type BaseDeposit = BaseDeposit;
+    type VersionDeposit = VersionDeposit;
+    type MaxVersionsPerAts = MaxVersionsPerAts;
+    type MaxAtsPerAccount = MaxAtsPerAccount;
+    type WeightInfo = ();
 }

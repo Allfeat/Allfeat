@@ -4,7 +4,6 @@ members = [
 	"node",
 	"runtime/*",
 	"primitives",
-	"pallets/ats",
 	"pallets/midds",
 	"pallets/validators",
 	"pallets/token-allocation",
@@ -79,7 +78,7 @@ zeroize = { opt-level = 3 }
 
 # Allfeat (wasm)
 allfeat-primitives = { version = "1.0.0", default-features = false, path = "./primitives" }
-pallet-ats = { version = "1.0.0-dev", default-features = false, path = "./pallets/ats" }
+pallet-ats = { version = "0.1.1", default-features = false }
 pallet-midds = { version = "1.0.0-dev", default-features = false, path = "./pallets/midds" }
 pallet-token-allocation = { version = "1.0.0", default-features = false, path = "./pallets/token-allocation" }
 

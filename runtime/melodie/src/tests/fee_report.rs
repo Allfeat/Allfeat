@@ -44,7 +44,8 @@ fn print_fee_report() {
         use pallet_ats::WeightInfo as AtsWeightInfo;
         use pallet_midds::WeightInfo as MiddsWeightInfo;
 
-        let ats_registration_cost = crate::AtsRegistrationCost::get();
+        let ats_base_deposit = crate::BaseDeposit::get();
+        let ats_version_deposit = crate::VersionDeposit::get();
         let midds_byte_deposit = crate::musical_works::ByteDepositCost::get();
 
         // Estimated encoded sizes for MIDDS data
@@ -214,29 +215,22 @@ fn print_fee_report() {
             // ATS
             ExtrinsicFeeInfo {
                 pallet: "ATS",
-                extrinsic: "register",
-                weight: <() as AtsWeightInfo>::register(500),
-                encoded_len: 600,
-                deposit: ats_registration_cost,
+                extrinsic: "create",
+                weight: <() as AtsWeightInfo>::create(),
+                encoded_len: 150,
+                deposit: ats_base_deposit + ats_version_deposit,
             },
             ExtrinsicFeeInfo {
                 pallet: "ATS",
                 extrinsic: "update",
-                weight: <() as AtsWeightInfo>::update(500),
-                encoded_len: 600,
-                deposit: ats_registration_cost,
-            },
-            ExtrinsicFeeInfo {
-                pallet: "ATS",
-                extrinsic: "claim",
-                weight: <() as AtsWeightInfo>::claim(),
+                weight: <() as AtsWeightInfo>::update(),
                 encoded_len: 150,
-                deposit: 0,
+                deposit: ats_version_deposit,
             },
             ExtrinsicFeeInfo {
                 pallet: "ATS",
-                extrinsic: "set_verification_key",
-                weight: <() as AtsWeightInfo>::set_verification_key(),
+                extrinsic: "revoke",
+                weight: <() as AtsWeightInfo>::revoke(10),
                 encoded_len: 100,
                 deposit: 0,
             },
@@ -295,36 +289,40 @@ fn print_fee_report() {
         fee_estimator::print_fee_report("ALLFEAT MELODIE (TESTNET)", &estimates, &config);
 
         // Print additional ATS cost summary
-        println!("=== ATS Registration Total Cost Summary ===");
+        println!("=== ATS Create Total Cost Summary ===");
         println!(
-            "  ATS Registration Deposit:     {}",
-            format_balance(ats_registration_cost)
+            "  ATS Base Deposit:             {}",
+            format_balance(ats_base_deposit)
         );
-        let ats_reg_est = estimates
+        println!(
+            "  ATS Version Deposit:          {}",
+            format_balance(ats_version_deposit)
+        );
+        let ats_create_est = estimates
             .iter()
-            .find(|e| e.pallet == "ATS" && e.extrinsic == "register")
+            .find(|e| e.pallet == "ATS" && e.extrinsic == "create")
             .unwrap();
         println!(
             "  + Min Transaction Fee:        {}",
-            format_balance(ats_reg_est.min_fee)
+            format_balance(ats_create_est.min_fee)
         );
         println!(
             "  + Max Transaction Fee:        {}",
-            format_balance(ats_reg_est.max_fee)
+            format_balance(ats_create_est.max_fee)
         );
         println!(
             "  = Total Min:                  {} ({})",
-            format_balance(ats_reg_est.total_min),
+            format_balance(ats_create_est.total_min),
             format_usd(aft_to_usd(
-                balance_to_aft(ats_reg_est.total_min),
+                balance_to_aft(ats_create_est.total_min),
                 DEFAULT_AFT_PRICE_USD
             ))
         );
         println!(
             "  = Total Max:                  {} ({})",
-            format_balance(ats_reg_est.total_max),
+            format_balance(ats_create_est.total_max),
             format_usd(aft_to_usd(
-                balance_to_aft(ats_reg_est.total_max),
+                balance_to_aft(ats_create_est.total_max),
                 DEFAULT_AFT_PRICE_USD
             ))
         );
