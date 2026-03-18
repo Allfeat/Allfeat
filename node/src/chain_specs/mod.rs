@@ -104,8 +104,8 @@ define_chain_spec!(
     module = melodie,
     runtime = melodie_runtime,
     symbol = "MEL",
-    prefix = "melodie_2",
-    name = "Melodie Testnet V2"
+    prefix = "melodie_3",
+    name = "Melodie Testnet V3"
 );
 
 define_chain_spec!(

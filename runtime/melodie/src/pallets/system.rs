@@ -36,9 +36,9 @@ type SingleBlockMigrations = ();
 
 frame_support::parameter_types! {
     pub const Version: sp_version::RuntimeVersion = VERSION;
-    /// We allow for 4 seconds of compute with a 12 second average block time.
+    /// We allow for 2 seconds of compute with a 6 second average block time.
     pub RuntimeBlockWeights: BlockWeights = BlockWeights::with_sensible_defaults(
-        Weight::from_parts(4u64 * WEIGHT_REF_TIME_PER_SECOND, u64::MAX),
+        Weight::from_parts(2u64 * WEIGHT_REF_TIME_PER_SECOND, u64::MAX),
         NORMAL_DISPATCH_RATIO,
     );
 }

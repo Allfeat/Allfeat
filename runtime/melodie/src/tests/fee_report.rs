@@ -1,4 +1,4 @@
-use crate::{RuntimeBlockWeights, TransactionByteFee, WeightToFee};
+use crate::{Runtime, RuntimeBlockWeights, TransactionByteFee, WeightToFee, weights};
 use frame_support::weights::{Weight, WeightToFee as WeightToFeeTrait};
 use frame_system::limits::BlockWeights;
 use shared_runtime::fee_estimator::{
@@ -41,8 +41,33 @@ fn print_fee_report() {
             aft_price_usd: DEFAULT_AFT_PRICE_USD,
         };
 
-        use pallet_ats::WeightInfo as AtsWeightInfo;
-        use pallet_midds::WeightInfo as MiddsWeightInfo;
+        use frame_system::WeightInfo as _;
+        use pallet_ats::WeightInfo as _;
+        use pallet_balances::WeightInfo as _;
+        use pallet_midds::WeightInfo as _;
+        use pallet_multisig::WeightInfo as _;
+        use pallet_preimage::WeightInfo as _;
+        use pallet_proxy::WeightInfo as _;
+        use pallet_scheduler::WeightInfo as _;
+        use pallet_sudo::WeightInfo as _;
+        use pallet_timestamp::WeightInfo as _;
+        use pallet_utility::WeightInfo as _;
+        use pallet_validators::WeightInfo as _;
+
+        type SystemW = weights::system::AllfeatWeight<Runtime>;
+        type BalancesW = weights::balances::AllfeatWeight<Runtime>;
+        type TimestampW = weights::timestamp::AllfeatWeight<Runtime>;
+        type UtilityW = weights::utility::AllfeatWeight<Runtime>;
+        type SchedulerW = weights::scheduler::AllfeatWeight<Runtime>;
+        type PreimageW = weights::preimage::AllfeatWeight<Runtime>;
+        type ProxyW = weights::proxy::AllfeatWeight<Runtime>;
+        type MultisigW = weights::multisig::AllfeatWeight<Runtime>;
+        type SudoW = weights::sudo::AllfeatWeight<Runtime>;
+        type ValidatorsW = weights::validators::AllfeatWeight<Runtime>;
+        type AtsW = weights::ats::AllfeatWeight<Runtime>;
+        type MiddsMusicalWorksW = weights::midds_musical_works::AllfeatWeight<Runtime>;
+        type MiddsRecordingsW = weights::midds_recordings::AllfeatWeight<Runtime>;
+        type MiddsReleasesW = weights::midds_releases::AllfeatWeight<Runtime>;
 
         let ats_base_deposit = crate::BaseDeposit::get();
         let ats_version_deposit = crate::VersionDeposit::get();
@@ -58,14 +83,14 @@ fn print_fee_report() {
             ExtrinsicFeeInfo {
                 pallet: "System",
                 extrinsic: "remark",
-                weight: <() as frame_system::WeightInfo>::remark(32),
+                weight: SystemW::remark(32),
                 encoded_len: 100,
                 deposit: 0,
             },
             ExtrinsicFeeInfo {
                 pallet: "System",
                 extrinsic: "set_code",
-                weight: <() as frame_system::WeightInfo>::set_code(),
+                weight: SystemW::set_code(),
                 encoded_len: 4_000_000,
                 deposit: 0,
             },
@@ -73,14 +98,14 @@ fn print_fee_report() {
             ExtrinsicFeeInfo {
                 pallet: "Balances",
                 extrinsic: "transfer_allow_death",
-                weight: <() as pallet_balances::WeightInfo>::transfer_allow_death(),
+                weight: BalancesW::transfer_allow_death(),
                 encoded_len: 120,
                 deposit: 0,
             },
             ExtrinsicFeeInfo {
                 pallet: "Balances",
                 extrinsic: "transfer_keep_alive",
-                weight: <() as pallet_balances::WeightInfo>::transfer_keep_alive(),
+                weight: BalancesW::transfer_keep_alive(),
                 encoded_len: 120,
                 deposit: 0,
             },
@@ -88,7 +113,7 @@ fn print_fee_report() {
             ExtrinsicFeeInfo {
                 pallet: "Timestamp",
                 extrinsic: "set",
-                weight: <() as pallet_timestamp::WeightInfo>::set(),
+                weight: TimestampW::set(),
                 encoded_len: 50,
                 deposit: 0,
             },
@@ -96,14 +121,14 @@ fn print_fee_report() {
             ExtrinsicFeeInfo {
                 pallet: "Utility",
                 extrinsic: "batch (10 calls)",
-                weight: <() as pallet_utility::WeightInfo>::batch(10),
+                weight: UtilityW::batch(10),
                 encoded_len: 500,
                 deposit: 0,
             },
             ExtrinsicFeeInfo {
                 pallet: "Utility",
                 extrinsic: "batch_all (10 calls)",
-                weight: <() as pallet_utility::WeightInfo>::batch_all(10),
+                weight: UtilityW::batch_all(10),
                 encoded_len: 500,
                 deposit: 0,
             },
@@ -111,14 +136,14 @@ fn print_fee_report() {
             ExtrinsicFeeInfo {
                 pallet: "Scheduler",
                 extrinsic: "schedule",
-                weight: <() as pallet_scheduler::WeightInfo>::schedule(10),
+                weight: SchedulerW::schedule(10),
                 encoded_len: 200,
                 deposit: 0,
             },
             ExtrinsicFeeInfo {
                 pallet: "Scheduler",
                 extrinsic: "cancel",
-                weight: <() as pallet_scheduler::WeightInfo>::cancel(10),
+                weight: SchedulerW::cancel(10),
                 encoded_len: 100,
                 deposit: 0,
             },
@@ -126,14 +151,14 @@ fn print_fee_report() {
             ExtrinsicFeeInfo {
                 pallet: "Preimage",
                 extrinsic: "note_preimage (1KB)",
-                weight: <() as pallet_preimage::WeightInfo>::note_preimage(1024),
+                weight: PreimageW::note_preimage(1024),
                 encoded_len: 1100,
                 deposit: 0,
             },
             ExtrinsicFeeInfo {
                 pallet: "Preimage",
                 extrinsic: "unnote_preimage",
-                weight: <() as pallet_preimage::WeightInfo>::unnote_preimage(),
+                weight: PreimageW::unnote_preimage(),
                 encoded_len: 100,
                 deposit: 0,
             },
@@ -141,21 +166,21 @@ fn print_fee_report() {
             ExtrinsicFeeInfo {
                 pallet: "Proxy",
                 extrinsic: "proxy",
-                weight: <() as pallet_proxy::WeightInfo>::proxy(5),
+                weight: ProxyW::proxy(5),
                 encoded_len: 150,
                 deposit: 0,
             },
             ExtrinsicFeeInfo {
                 pallet: "Proxy",
                 extrinsic: "add_proxy",
-                weight: <() as pallet_proxy::WeightInfo>::add_proxy(5),
+                weight: ProxyW::add_proxy(5),
                 encoded_len: 150,
                 deposit: 0,
             },
             ExtrinsicFeeInfo {
                 pallet: "Proxy",
                 extrinsic: "remove_proxy",
-                weight: <() as pallet_proxy::WeightInfo>::remove_proxy(5),
+                weight: ProxyW::remove_proxy(5),
                 encoded_len: 150,
                 deposit: 0,
             },
@@ -163,14 +188,14 @@ fn print_fee_report() {
             ExtrinsicFeeInfo {
                 pallet: "Multisig",
                 extrinsic: "as_multi (3 signers)",
-                weight: <() as pallet_multisig::WeightInfo>::as_multi_create(3, 500),
+                weight: MultisigW::as_multi_create(3, 500),
                 encoded_len: 600,
                 deposit: 0,
             },
             ExtrinsicFeeInfo {
                 pallet: "Multisig",
                 extrinsic: "approve_as_multi",
-                weight: <() as pallet_multisig::WeightInfo>::approve_as_multi_create(3),
+                weight: MultisigW::approve_as_multi_create(3),
                 encoded_len: 200,
                 deposit: 0,
             },
@@ -178,7 +203,7 @@ fn print_fee_report() {
             ExtrinsicFeeInfo {
                 pallet: "Sudo",
                 extrinsic: "sudo",
-                weight: <() as pallet_sudo::WeightInfo>::sudo(),
+                weight: SudoW::sudo(),
                 encoded_len: 200,
                 deposit: 0,
             },
@@ -186,29 +211,14 @@ fn print_fee_report() {
             ExtrinsicFeeInfo {
                 pallet: "Validators",
                 extrinsic: "add_validator",
-                weight: <() as pallet_validators::WeightInfo>::add_validator(),
+                weight: ValidatorsW::add_validator(),
                 encoded_len: 100,
                 deposit: 0,
             },
             ExtrinsicFeeInfo {
                 pallet: "Validators",
                 extrinsic: "remove_validator",
-                weight: <() as pallet_validators::WeightInfo>::remove_validator(),
-                encoded_len: 100,
-                deposit: 0,
-            },
-            // Identity
-            ExtrinsicFeeInfo {
-                pallet: "Identity",
-                extrinsic: "set_identity",
-                weight: <() as pallet_identity::WeightInfo>::set_identity(10),
-                encoded_len: 500,
-                deposit: 0,
-            },
-            ExtrinsicFeeInfo {
-                pallet: "Identity",
-                extrinsic: "clear_identity",
-                weight: <() as pallet_identity::WeightInfo>::clear_identity(10, 5),
+                weight: ValidatorsW::remove_validator(),
                 encoded_len: 100,
                 deposit: 0,
             },
@@ -216,21 +226,21 @@ fn print_fee_report() {
             ExtrinsicFeeInfo {
                 pallet: "ATS",
                 extrinsic: "create",
-                weight: <() as AtsWeightInfo>::create(),
+                weight: AtsW::create(),
                 encoded_len: 150,
                 deposit: ats_base_deposit + ats_version_deposit,
             },
             ExtrinsicFeeInfo {
                 pallet: "ATS",
                 extrinsic: "update",
-                weight: <() as AtsWeightInfo>::update(),
+                weight: AtsW::update(),
                 encoded_len: 150,
                 deposit: ats_version_deposit,
             },
             ExtrinsicFeeInfo {
                 pallet: "ATS",
                 extrinsic: "revoke",
-                weight: <() as AtsWeightInfo>::revoke(10),
+                weight: AtsW::revoke(10),
                 encoded_len: 100,
                 deposit: 0,
             },
@@ -238,14 +248,14 @@ fn print_fee_report() {
             ExtrinsicFeeInfo {
                 pallet: "MIDDS (Works)",
                 extrinsic: "register",
-                weight: <() as MiddsWeightInfo>::register(musical_work_size),
+                weight: MiddsMusicalWorksW::register(musical_work_size),
                 encoded_len: musical_work_size + 100,
                 deposit: midds_byte_deposit.saturating_mul(musical_work_size as u128),
             },
             ExtrinsicFeeInfo {
                 pallet: "MIDDS (Works)",
                 extrinsic: "unregister",
-                weight: <() as MiddsWeightInfo>::unregister(),
+                weight: MiddsMusicalWorksW::unregister(),
                 encoded_len: 100,
                 deposit: 0,
             },
@@ -253,14 +263,14 @@ fn print_fee_report() {
             ExtrinsicFeeInfo {
                 pallet: "MIDDS (Rec.)",
                 extrinsic: "register",
-                weight: <() as MiddsWeightInfo>::register(recording_size),
+                weight: MiddsRecordingsW::register(recording_size),
                 encoded_len: recording_size + 100,
                 deposit: midds_byte_deposit.saturating_mul(recording_size as u128),
             },
             ExtrinsicFeeInfo {
                 pallet: "MIDDS (Rec.)",
                 extrinsic: "unregister",
-                weight: <() as MiddsWeightInfo>::unregister(),
+                weight: MiddsRecordingsW::unregister(),
                 encoded_len: 100,
                 deposit: 0,
             },
@@ -268,14 +278,14 @@ fn print_fee_report() {
             ExtrinsicFeeInfo {
                 pallet: "MIDDS (Rel.)",
                 extrinsic: "register",
-                weight: <() as MiddsWeightInfo>::register(release_size),
+                weight: MiddsReleasesW::register(release_size),
                 encoded_len: release_size + 100,
                 deposit: midds_byte_deposit.saturating_mul(release_size as u128),
             },
             ExtrinsicFeeInfo {
                 pallet: "MIDDS (Rel.)",
                 extrinsic: "unregister",
-                weight: <() as MiddsWeightInfo>::unregister(),
+                weight: MiddsReleasesW::unregister(),
                 encoded_len: 100,
                 deposit: 0,
             },

@@ -32,7 +32,6 @@ use alloc::vec::Vec;
 pub use allfeat_primitives::{AccountId, Address, Balance, BlockNumber, Moment, Nonce, Signature};
 
 use apis::RUNTIME_API_VERSIONS;
-use frame_support::parameter_types;
 use pallet_meta_tx::MetaTxMarker;
 use sp_runtime::{
     generic::{self, ExtensionVersion},
@@ -73,13 +72,13 @@ mod benchmarks;
 /// Runtime version.
 #[runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-    spec_name: alloc::borrow::Cow::Borrowed("allfeat-melodie-2"),
-    impl_name: alloc::borrow::Cow::Borrowed("allfeatlabs-melodie-2"),
+    spec_name: alloc::borrow::Cow::Borrowed("allfeat-melodie-3"),
+    impl_name: alloc::borrow::Cow::Borrowed("allfeatlabs-melodie-3"),
     authoring_version: 1,
-    spec_version: 910,
+    spec_version: 100,
     impl_version: 0,
     apis: RUNTIME_API_VERSIONS,
-    transaction_version: 2,
+    transaction_version: 1,
     system_version: 1,
 };
 
@@ -103,7 +102,7 @@ pub type TxBareExtension = (
     frame_system::CheckSpecVersion<Runtime>,
     frame_system::CheckTxVersion<Runtime>,
     frame_system::CheckGenesis<Runtime>,
-    frame_system::CheckEra<Runtime>,
+    frame_system::CheckMortality<Runtime>,
     frame_system::CheckNonce<Runtime>,
     frame_system::CheckWeight<Runtime>,
     pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
@@ -152,16 +151,6 @@ pub type RuntimeExecutive = frame_executive::Executive<
     Runtime,
     AllPalletsWithSystem,
 >;
-
-parameter_types! {
-    pub const ReleasesStr: &'static str = "Releases";
-    pub const TracksStr: &'static str = "Tracks";
-    pub const PartyIdentifiersStr: &'static str = "PartyIdentifiers";
-    pub const MusicalWorksStr: &'static str = "MusicalWorks";
-
-    pub const BalancesStr: &'static str = "Balances";
-    pub const HoldsStr: &'static str = "Holds";
-}
 
 #[frame_support::runtime]
 mod runtime {
@@ -212,28 +201,22 @@ mod runtime {
     #[runtime::pallet_index(10)]
     pub type Sudo = pallet_sudo;
 
-    // #[runtime::pallet_index(11)]
-    // pub type ImOnline = pallet_im_online;
-
     #[runtime::pallet_index(13)]
     pub type Historical = pallet_session::historical;
 
     #[runtime::pallet_index(14)]
-    pub type Identity = pallet_identity;
-
-    #[runtime::pallet_index(15)]
     pub type Scheduler = pallet_scheduler;
 
-    #[runtime::pallet_index(16)]
+    #[runtime::pallet_index(15)]
     pub type Preimage = pallet_preimage;
 
-    #[runtime::pallet_index(17)]
+    #[runtime::pallet_index(16)]
     pub type Proxy = pallet_proxy;
 
-    #[runtime::pallet_index(18)]
+    #[runtime::pallet_index(17)]
     pub type Multisig = pallet_multisig;
 
-    #[runtime::pallet_index(19)]
+    #[runtime::pallet_index(18)]
     pub type SafeMode = pallet_safe_mode;
 
     #[runtime::pallet_index(20)]
@@ -242,13 +225,7 @@ mod runtime {
     #[runtime::pallet_index(21)]
     pub type VerifySignature = pallet_verify_signature;
 
-    #[runtime::pallet_index(50)]
-    pub type Mmr = pallet_mmr;
-
     // Allfeat related
-    //
-    // #[runtime::pallet_index(101)] DEPRECATED
-    // pub type PartyIdentifiers = pallet_midds<Instance1>;
 
     #[runtime::pallet_index(102)]
     pub type MusicalWorks = pallet_midds<Instance2>;

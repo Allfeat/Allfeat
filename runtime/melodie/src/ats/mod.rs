@@ -36,5 +36,5 @@ impl pallet_ats::Config for Runtime {
     type VersionDeposit = VersionDeposit;
     type MaxVersionsPerAts = MaxVersionsPerAts;
     type MaxAtsPerAccount = MaxAtsPerAccount;
-    type WeightInfo = ();
+    type WeightInfo = weights::ats::AllfeatWeight<Runtime>;
 }

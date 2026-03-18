@@ -33,7 +33,7 @@ impl_opaque_keys! {
 }
 
 parameter_types! {
-    pub const SessionPeriod: BlockNumber = 1800; // 6 hours for 12sec block
+    pub const SessionPeriod: BlockNumber = 1800; // 3 hours for 6sec block
     pub const SessionOffset: BlockNumber = 0;
 }
 

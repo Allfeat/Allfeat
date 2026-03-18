@@ -2825,26 +2825,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "enumflags2"
-version = "0.7.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1027f7680c853e056ebcec683615fb6fbbc07dbaa13b4d5d9442b146ded4ecef"
-dependencies = [
- "enumflags2_derive",
-]
-
-[[package]]
-name = "enumflags2_derive"
-version = "0.7.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "67c78a4d8fdf9953a5c9d458f9efe940fd97a0cab0941c075a813ac594733827"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.114",
-]
-
-[[package]]
 name = "env_filter"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5698,11 +5678,8 @@ dependencies = [
  "pallet-authorship",
  "pallet-balances",
  "pallet-grandpa",
- "pallet-identity",
- "pallet-im-online",
  "pallet-meta-tx",
  "pallet-midds",
- "pallet-mmr",
  "pallet-multisig",
  "pallet-preimage",
  "pallet-proxy",
@@ -6560,43 +6537,6 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-session",
- "sp-staking",
-]
-
-[[package]]
-name = "pallet-identity"
-version = "45.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "27cd00175e352b8db01de8d9264b95012cc0a649897e77858ba7a559faa09704"
-dependencies = [
- "enumflags2",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "parity-scale-codec",
- "scale-info",
- "sp-io",
- "sp-runtime",
-]
-
-[[package]]
-name = "pallet-im-online"
-version = "44.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7d9703332095a821815caae7085736a63fc217f0763c71ec4ee868c1b12264ad"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "pallet-authorship",
- "parity-scale-codec",
- "scale-info",
- "sp-application-crypto",
- "sp-core",
- "sp-io",
- "sp-runtime",
  "sp-staking",
 ]
 

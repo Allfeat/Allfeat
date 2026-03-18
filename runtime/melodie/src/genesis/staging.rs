@@ -27,42 +27,42 @@ pub fn staging_config_genesis() -> serde_json::Value {
     genesis(
         vec![
             (
-                AccountId::from_ss58check("5FsEGrMXNXgiA1BLK79mPuncQBCXGAJ9F3kGNWK1eujFZBhe")
+                AccountId::from_ss58check("5HB52SvFJEgXj4TnQyv9ghMvQZLzDsZKJPZY2AhEYdUyW8Ns")
                     .unwrap(), //5FEkoaPqZnNbHb8H9NqSrBsELhf27Fpp3YEhxKqEAWbCxF7N
                 //5FEkoaPqZnNbHb8H9NqSrBsELhf27Fpp3YEhxKqEAWbCxF7N
                 <[u8; 32]>::dehexify(
-                    "8c5f12e6c3725b4f71e8658c0ec5f9d4c0e424439bf279662f828a63561b38ec",
+                    "527d4a33043535d6f2e03117b9d6f66e60ca84962c740799b4ce4e4bdb52c101",
                 )
                 .unwrap()
                 .unchecked_into(),
                 //5CUonrGNpUrwERBJmHGo1GSHsVYsaB17AnW2SFoG1YLbcbEW
                 <[u8; 32]>::dehexify(
-                    "1261ddaa37ea3f4291bf8a531ff04f3b1316054e59a8f88237951e1227eae733",
+                    "f6353bfc949d1d268740e70697514d327b454a2b44976d6b2d19925ceb7c1004",
                 )
                 .unwrap()
                 .unchecked_into(),
             ),
             (
-                AccountId::from_ss58check("5GZALNe7abDksJTWbysRLcs4yg4b3ZeBhzK3N322DsVp3qa3")
+                AccountId::from_ss58check("5CVU8MfV5P6oKXW4Hx5j2i7FBwX9RtDhXfkRTSq4uPrDZsuj")
                     .unwrap(), //5HYAvJYxgxCC3mhDaQbnwTjsVLjVQGRV4cTHj6ypFQdMokjt
                 //5HYAvJYxgxCC3mhDaQbnwTjsVLjVQGRV4cTHj6ypFQdMokjt
                 <[u8; 32]>::dehexify(
-                    "f21fe4ece38c66c00045ff8ffdc9f937fe71222b36785fd734f1fd3e97c16ed5",
+                    "6285743d7f481e338cd52f888f4926caf28ba49bd8e21217358baf2292ddeac9",
                 )
                 .unwrap()
                 .unchecked_into(),
                 //5FRZGxnVAjYNT3xCDWRKLTbrdYwt1P2NoK9RvdYPTUXrQamy
                 <[u8; 32]>::dehexify(
-                    "949bf7979e6aa738a85141f90e7e9456babcce7ed933cba2e2107d501602ee6a",
+                    "e4af3da951c73adce00a8258dc8676ce6d30fce78561f82e75ebd6e8cdbc1730",
                 )
                 .unwrap()
                 .unchecked_into(),
             ),
         ],
-        AccountId::from_ss58check("5EARX89jfEp9DjBitYW55CtSQ2xW2gJRvB69nLNwbHNf9TY8").unwrap(),
+        AccountId::from_ss58check("5HDq69cbUxRMHwCDzpFefSeBaLAQmnLKp795zcWNmgGqAix6").unwrap(),
         vec![
             // Sudo account
-            AccountId::from_ss58check("5EARX89jfEp9DjBitYW55CtSQ2xW2gJRvB69nLNwbHNf9TY8").unwrap(),
+            AccountId::from_ss58check("5HDq69cbUxRMHwCDzpFefSeBaLAQmnLKp795zcWNmgGqAix6").unwrap(),
         ],
     )
 }

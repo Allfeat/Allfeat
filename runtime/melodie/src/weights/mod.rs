@@ -19,12 +19,10 @@
 pub mod ats;
 pub mod balances;
 pub mod grandpa;
-pub mod identity;
 pub mod meta_tx;
 pub mod midds_musical_works;
 pub mod midds_recordings;
 pub mod midds_releases;
-pub mod mmr;
 pub mod multisig;
 pub mod preimage;
 pub mod proxy;

@@ -17,11 +17,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::*;
-use frame_support::parameter_types;
-
-parameter_types! {
-    pub const UncleGenerations: BlockNumber = 5;
-}
 
 impl pallet_authorship::Config for Runtime {
     type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Aura>;

@@ -17,6 +17,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::*;
+use frame_support::parameter_types;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::ConstBool;
 

@@ -236,7 +236,7 @@ fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpecT>, String> {
         )?),
         #[cfg(feature = "melodie-runtime")]
         "melodie" => Box::new(ChainSpec::from_json_bytes(
-            &include_bytes!("../specs/testnets/melodie/v2/melodie_raw.json")[..],
+            &include_bytes!("../specs/testnets/melodie/v3/melodie_raw.json")[..],
         )?),
         #[cfg(feature = "melodie-runtime")]
         "melodie-staging" => Box::new(melodie_chain_spec::live_chain_spec()?),
