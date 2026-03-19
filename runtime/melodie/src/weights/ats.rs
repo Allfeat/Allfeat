@@ -25,29 +25,47 @@
 #![allow(missing_docs)]
 #![allow(dead_code)]
 
-use frame_support::{traits::Get, weights::Weight};
 use core::marker::PhantomData;
+use frame_support::{traits::Get, weights::Weight};
 use pallet_ats::WeightInfo;
 
 pub struct AllfeatWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
-	fn create() -> Weight {
-		Weight::from_parts(54_000_000, 3694)
-			.saturating_add(T::DbWeight::get().reads(4_u64))
-			.saturating_add(T::DbWeight::get().writes(7_u64))
-	}
+    fn create() -> Weight {
+        Weight::from_parts(54_000_000, 3694)
+            .saturating_add(T::DbWeight::get().reads(4_u64))
+            .saturating_add(T::DbWeight::get().writes(7_u64))
+    }
 
-	fn update() -> Weight {
-		Weight::from_parts(55_000_000, 3694)
-			.saturating_add(T::DbWeight::get().reads(3_u64))
-			.saturating_add(T::DbWeight::get().writes(4_u64))
-	}
+    fn update() -> Weight {
+        Weight::from_parts(55_000_000, 3694)
+            .saturating_add(T::DbWeight::get().reads(3_u64))
+            .saturating_add(T::DbWeight::get().writes(4_u64))
+    }
 
-	fn revoke(v: u32) -> Weight {
-		Weight::from_parts(30_000_000, 3694)
-			.saturating_add(Weight::from_parts(5_000_000, 0).saturating_mul(v as u64))
-			.saturating_add(T::DbWeight::get().reads(2_u64))
-			.saturating_add(T::DbWeight::get().writes(3_u64))
-			.saturating_add(T::DbWeight::get().reads_writes(1, 1).saturating_mul(v as u64))
-	}
+    fn revoke(v: u32) -> Weight {
+        Weight::from_parts(30_000_000, 3694)
+            .saturating_add(Weight::from_parts(5_000_000, 0).saturating_mul(v as u64))
+            .saturating_add(T::DbWeight::get().reads(2_u64))
+            .saturating_add(T::DbWeight::get().writes(3_u64))
+            .saturating_add(
+                T::DbWeight::get()
+                    .reads_writes(1, 1)
+                    .saturating_mul(v as u64),
+            )
+    }
+    fn create_on_behalf() -> Weight {
+        Weight::from_parts(20_000, 0)
+    }
+
+    fn update_on_behalf() -> Weight {
+        Weight::from_parts(20_000, 0)
+    }
+
+    fn revoke_on_behalf(v: u32) -> Weight {
+        Weight::from_parts(
+            20_000_u64.saturating_add(5_000_u64.saturating_mul(u64::from(v))),
+            0,
+        )
+    }
 }

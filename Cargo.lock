@@ -6399,15 +6399,17 @@ dependencies = [
 
 [[package]]
 name = "pallet-ats"
-version = "0.1.1"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4aa7d7d91241145f6f7eda7526eb18e073ebf9946adfdf1474b9d5ab985e82a6"
+checksum = "a5028396c1142ad9a528217f367e3f7c5ee5ae154d03c09faa1e14af34e6ac38"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
+ "log",
  "parity-scale-codec",
  "scale-info",
+ "sp-runtime",
 ]
 
 [[package]]

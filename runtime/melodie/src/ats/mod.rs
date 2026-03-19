@@ -24,7 +24,7 @@ use shared_runtime::currency::AFT;
 
 parameter_types! {
     pub const BaseDeposit: Balance = 10 * AFT;
-    pub const VersionDeposit: Balance = 1 * AFT;
+    pub const VersionDeposit: Balance = AFT;
     pub const MaxVersionsPerAts: u32 = 100;
     pub const MaxAtsPerAccount: u32 = 1000;
 }
@@ -36,5 +36,7 @@ impl pallet_ats::Config for Runtime {
     type VersionDeposit = VersionDeposit;
     type MaxVersionsPerAts = MaxVersionsPerAts;
     type MaxAtsPerAccount = MaxAtsPerAccount;
+    type OffchainSignature = sp_runtime::MultiSignature;
+    type Signer = sp_runtime::MultiSigner;
     type WeightInfo = weights::ats::AllfeatWeight<Runtime>;
 }
