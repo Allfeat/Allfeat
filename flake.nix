@@ -43,6 +43,7 @@
               # Polkadot SDK
               psvm
               subkey
+              try-runtime-cli
             ]
             ++ lib.optionals stdenv.hostPlatform.isLinux [ rust-jemalloc-sys-unprefixed ];
 

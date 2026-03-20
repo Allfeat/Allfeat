@@ -75,10 +75,10 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
     spec_name: alloc::borrow::Cow::Borrowed("allfeat-melodie-3"),
     impl_name: alloc::borrow::Cow::Borrowed("allfeatlabs-melodie-3"),
     authoring_version: 1,
-    spec_version: 100,
+    spec_version: 200,
     impl_version: 0,
     apis: RUNTIME_API_VERSIONS,
-    transaction_version: 1,
+    transaction_version: 2,
     system_version: 1,
 };
 

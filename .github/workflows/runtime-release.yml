@@ -3,7 +3,7 @@ name: Runtime Release
 on:
   push:
     tags:
-      - "melodie-*"
+      - "melodie-v3-*"
       - "allfeat-*"
 
 permissions:
@@ -24,25 +24,22 @@ jobs:
           set -euo pipefail
           TAG="${GITHUB_REF_NAME}"
 
-          if [[ "${TAG}" != *-* ]]; then
-            echo "Tag format must be <runtime>-<spec_version>, got: ${TAG}" >&2
+          # Supported tag formats:
+          #   melodie-v3-<spec_version>
+          #   allfeat-<spec_version>
+          if [[ "${TAG}" =~ ^melodie-v3-(.+)$ ]]; then
+            RUNTIME_NAME="melodie"
+            SPEC_VERSION="${BASH_REMATCH[1]}"
+            RUNTIME_DIR="runtime/melodie"
+          elif [[ "${TAG}" =~ ^allfeat-(.+)$ ]]; then
+            RUNTIME_NAME="allfeat"
+            SPEC_VERSION="${BASH_REMATCH[1]}"
+            RUNTIME_DIR="runtime/mainnet"
+          else
+            echo "Unsupported tag format: ${TAG}" >&2
+            echo "Expected: melodie-v3-<spec_version> or allfeat-<spec_version>" >&2
             exit 1
           fi
-
-          RUNTIME_NAME="${TAG%%-*}"
-          SPEC_VERSION="${TAG#*-}"
-
-          case "${RUNTIME_NAME}" in
-            allfeat)
-              RUNTIME_DIR="runtime/mainnet"
-              ;;
-            melodie)
-              RUNTIME_DIR="runtime/melodie"
-              ;;
-            *)
-              RUNTIME_DIR="runtime/${RUNTIME_NAME}"
-              ;;
-          esac
 
           echo "Runtime: ${RUNTIME_NAME}"
           echo "Spec version: ${SPEC_VERSION}"
