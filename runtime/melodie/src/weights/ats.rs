@@ -54,11 +54,11 @@ impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
                     .saturating_mul(v as u64),
             )
     }
-    fn create_on_behalf() -> Weight {
+    fn create_on_behalf(_s: u32) -> Weight {
         Weight::from_parts(20_000, 0)
     }
 
-    fn update_on_behalf() -> Weight {
+    fn update_on_behalf(_s: u32) -> Weight {
         Weight::from_parts(20_000, 0)
     }
 

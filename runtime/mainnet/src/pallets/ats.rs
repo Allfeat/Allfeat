@@ -26,7 +26,7 @@ parameter_types! {
     pub const BaseDeposit: Balance = 10 * AFT;
     pub const VersionDeposit: Balance = AFT;
     pub const MaxVersionsPerAts: u32 = 100;
-    pub const MaxAtsPerAccount: u32 = 100_000;
+    pub const MaxAtsPerAccount: u32 = 1000;
 }
 
 impl pallet_ats::Config for Runtime {
@@ -39,4 +39,6 @@ impl pallet_ats::Config for Runtime {
     type OffchainSignature = sp_runtime::MultiSignature;
     type Signer = sp_runtime::MultiSigner;
     type WeightInfo = weights::ats::AllfeatWeight<Runtime>;
+    #[cfg(feature = "runtime-benchmarks")]
+    type BenchmarkHelper = ();
 }

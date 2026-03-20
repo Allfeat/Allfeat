@@ -6400,17 +6400,30 @@ dependencies = [
 
 [[package]]
 name = "pallet-ats"
-version = "0.2.0"
+version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a5028396c1142ad9a528217f367e3f7c5ee5ae154d03c09faa1e14af34e6ac38"
+checksum = "408a2d8de757b468256c25634bd0e563adcd683666055c47e8a320dd2f62f9dd"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",
+ "pallet-ats-primitives",
  "parity-scale-codec",
  "scale-info",
+ "sp-core",
+ "sp-io",
  "sp-runtime",
+]
+
+[[package]]
+name = "pallet-ats-primitives"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "62ee7f9429dd13345f98f6ee4f7d0e2b112bdbbd08a4e77b0aa1e76b709f9f86"
+dependencies = [
+ "parity-scale-codec",
+ "scale-info",
 ]
 
 [[package]]
