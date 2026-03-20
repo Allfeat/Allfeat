@@ -25,6 +25,7 @@ shared-runtime = { workspace = true }
 allfeat-primitives = { workspace = true }
 
 # Allfeat pallets
+pallet-ats = { workspace = true }
 pallet-token-allocation = { workspace = true }
 
 sp-application-crypto = { workspace = true }
@@ -104,6 +105,7 @@ std = [
 	"pallet-balances/std",
 	"pallet-transaction-payment/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
+	"pallet-ats/std",
 	"pallet-token-allocation/std",
 	"pallet-treasury/std",
 	"pallet-meta-tx/std",
@@ -143,6 +145,7 @@ runtime-benchmarks = [
 	"pallet-proxy/runtime-benchmarks",
 	"pallet-multisig/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
+	"pallet-ats/runtime-benchmarks",
 	"pallet-transaction-payment/runtime-benchmarks",
 	"pallet-validators/runtime-benchmarks",
 	"pallet-treasury/runtime-benchmarks",
@@ -169,6 +172,7 @@ try-runtime = [
 	"pallet-multisig/try-runtime",
 	"pallet-balances/try-runtime",
 	"pallet-transaction-payment/try-runtime",
+	"pallet-ats/try-runtime",
 	"pallet-token-allocation/try-runtime",
 	"pallet-treasury/try-runtime",
 	"pallet-meta-tx/try-runtime",

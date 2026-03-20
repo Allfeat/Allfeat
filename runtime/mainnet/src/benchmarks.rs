@@ -35,4 +35,5 @@ frame_benchmarking::define_benchmarks!(
     [pallet_treasury, Treasury]
     [pallet_meta_tx, MetaTx]
     [pallet_verify_signature, VerifySignature]
+    [pallet_ats, Ats]
 );

@@ -223,4 +223,7 @@ mod runtime {
 
     #[runtime::pallet_index(21)]
     pub type VerifySignature = pallet_verify_signature;
+
+    #[runtime::pallet_index(105)]
+    pub type Ats = pallet_ats;
 }
