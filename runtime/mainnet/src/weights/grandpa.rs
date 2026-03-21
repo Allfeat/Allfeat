@@ -56,7 +56,7 @@ pub struct AllfeatWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
 	/// The range of component `validator_count` is `[0, 1]`.
 	fn report_equivocation(
-		validator_count: u32,
+		_validator_count: u32,
 		_max_nominators_per_validator: u32,
 	) -> Weight {
 		// Proof Size summary in bytes:
