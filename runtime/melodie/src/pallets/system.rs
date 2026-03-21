@@ -32,7 +32,10 @@ use shared_runtime::{NORMAL_DISPATCH_RATIO, RuntimeBlockLength};
 ///
 /// This can be a tuple of types, each implementing `OnRuntimeUpgrade`.
 #[allow(unused_parens)]
-type SingleBlockMigrations = (pallet_ats::migrations::v1::MigrateV0ToV1<Runtime>,);
+type SingleBlockMigrations = (
+    pallet_ats::migrations::v1::MigrateV0ToV1<Runtime>,
+    pallet_ats::migrations::v2::MigrateV1ToV2<Runtime>,
+);
 
 frame_support::parameter_types! {
     pub const Version: sp_version::RuntimeVersion = VERSION;

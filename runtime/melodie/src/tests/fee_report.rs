@@ -226,14 +226,14 @@ fn print_fee_report() {
             ExtrinsicFeeInfo {
                 pallet: "ATS",
                 extrinsic: "create",
-                weight: AtsW::create(),
+                weight: AtsW::create(0),
                 encoded_len: 150,
                 deposit: ats_base_deposit + ats_version_deposit,
             },
             ExtrinsicFeeInfo {
                 pallet: "ATS",
                 extrinsic: "update",
-                weight: AtsW::update(),
+                weight: AtsW::update(1),
                 encoded_len: 150,
                 deposit: ats_version_deposit,
             },

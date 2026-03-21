@@ -2,7 +2,8 @@ use crate::{Runtime, RuntimeBlockWeights, TransactionByteFee, WeightToFee, weigh
 use frame_support::weights::{Weight, WeightToFee as WeightToFeeTrait};
 use frame_system::limits::BlockWeights;
 use shared_runtime::fee_estimator::{
-    self, DEFAULT_AFT_PRICE_USD, ExtrinsicFeeInfo, FeeEstimate, FeeReportConfig, estimate_fees, gcd,
+    self, DEFAULT_AFT_PRICE_USD, ExtrinsicFeeInfo, FeeEstimate, FeeReportConfig, aft_to_usd,
+    balance_to_aft, estimate_fees, format_balance, format_usd, gcd,
 };
 
 fn base_extrinsic_weight() -> Weight {
@@ -55,6 +56,7 @@ fn print_fee_report() {
         use pallet_token_allocation::WeightInfo as _;
         use pallet_treasury::WeightInfo as _;
         use pallet_utility::WeightInfo as _;
+        use pallet_ats::WeightInfo as _;
         use pallet_validators::WeightInfo as _;
 
         type SystemW = weights::system::AllfeatWeight<Runtime>;
@@ -69,6 +71,11 @@ fn print_fee_report() {
         type TreasuryW = weights::treasury::AllfeatWeight<Runtime>;
         type SudoW = weights::sudo::AllfeatWeight<Runtime>;
         type ValidatorsW = weights::validators::AllfeatWeight<Runtime>;
+        type AtsW = weights::ats::AllfeatWeight<Runtime>;
+
+        use shared_runtime::currency::AFT;
+        let ats_base_deposit: u128 = 10 * AFT;
+        let ats_version_deposit: u128 = AFT;
 
         let extrinsics = vec![
             // System
@@ -230,6 +237,28 @@ fn print_fee_report() {
                 encoded_len: 100,
                 deposit: 0,
             },
+            // ATS
+            ExtrinsicFeeInfo {
+                pallet: "ATS",
+                extrinsic: "create",
+                weight: AtsW::create(0),
+                encoded_len: 150,
+                deposit: ats_base_deposit + ats_version_deposit,
+            },
+            ExtrinsicFeeInfo {
+                pallet: "ATS",
+                extrinsic: "update",
+                weight: AtsW::update(1),
+                encoded_len: 150,
+                deposit: ats_version_deposit,
+            },
+            ExtrinsicFeeInfo {
+                pallet: "ATS",
+                extrinsic: "revoke",
+                weight: AtsW::revoke(10),
+                encoded_len: 100,
+                deposit: 0,
+            },
         ];
 
         let estimates: Vec<FeeEstimate> = extrinsics
@@ -238,5 +267,45 @@ fn print_fee_report() {
             .collect();
 
         fee_estimator::print_fee_report("ALLFEAT MAINNET", &estimates, &config);
+
+        // Print additional ATS cost summary
+        println!("=== ATS Create Total Cost Summary ===");
+        println!(
+            "  ATS Base Deposit:             {}",
+            format_balance(ats_base_deposit)
+        );
+        println!(
+            "  ATS Version Deposit:          {}",
+            format_balance(ats_version_deposit)
+        );
+        let ats_create_est = estimates
+            .iter()
+            .find(|e| e.pallet == "ATS" && e.extrinsic == "create")
+            .unwrap();
+        println!(
+            "  + Min Transaction Fee:        {}",
+            format_balance(ats_create_est.min_fee)
+        );
+        println!(
+            "  + Max Transaction Fee:        {}",
+            format_balance(ats_create_est.max_fee)
+        );
+        println!(
+            "  = Total Min:                  {} ({})",
+            format_balance(ats_create_est.total_min),
+            format_usd(aft_to_usd(
+                balance_to_aft(ats_create_est.total_min),
+                DEFAULT_AFT_PRICE_USD
+            ))
+        );
+        println!(
+            "  = Total Max:                  {} ({})",
+            format_balance(ats_create_est.total_max),
+            format_usd(aft_to_usd(
+                balance_to_aft(ats_create_est.total_max),
+                DEFAULT_AFT_PRICE_USD
+            ))
+        );
+        println!();
     });
 }
