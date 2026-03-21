@@ -46,6 +46,7 @@ fn print_fee_report() {
         };
 
         use frame_system::WeightInfo as _;
+        use pallet_ats::WeightInfo as _;
         use pallet_balances::WeightInfo as _;
         use pallet_multisig::WeightInfo as _;
         use pallet_preimage::WeightInfo as _;
@@ -56,7 +57,6 @@ fn print_fee_report() {
         use pallet_token_allocation::WeightInfo as _;
         use pallet_treasury::WeightInfo as _;
         use pallet_utility::WeightInfo as _;
-        use pallet_ats::WeightInfo as _;
         use pallet_validators::WeightInfo as _;
 
         type SystemW = weights::system::AllfeatWeight<Runtime>;
