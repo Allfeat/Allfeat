@@ -4,6 +4,7 @@
   "chainType": "Live",
   "bootNodes": [
     "/dns/bootnode.p2p.allfeat.org/tcp/30333/p2p/12D3KooWNjFeRas5cREZmgQGxae1KuBvYkpGhtmDhundDuWFf4K9",
+    "/dns/bootnode.p2p.allfeat.org/tcp/30334/ws/p2p/12D3KooWNjFeRas5cREZmgQGxae1KuBvYkpGhtmDhundDuWFf4K9",
     "/dns/bootnode.allfeat.org/tcp/443/wss/p2p/12D3KooWNjFeRas5cREZmgQGxae1KuBvYkpGhtmDhundDuWFf4K9"
   ],
   "telemetryEndpoints": null,
