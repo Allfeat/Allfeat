@@ -71,7 +71,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
     spec_name: alloc::borrow::Cow::Borrowed("allfeat"),
     impl_name: alloc::borrow::Cow::Borrowed("allfeat-allfeat"),
     authoring_version: 1,
-    spec_version: 200,
+    spec_version: 201,
     impl_version: 0,
     apis: RUNTIME_API_VERSIONS,
     transaction_version: 1,

@@ -74,7 +74,7 @@ fn print_fee_report() {
         type AtsW = weights::ats::AllfeatWeight<Runtime>;
 
         use shared_runtime::currency::AFT;
-        let ats_base_deposit: u128 = 10 * AFT;
+        let ats_base_deposit: u128 = 5 * AFT;
         let ats_version_deposit: u128 = AFT;
 
         let extrinsics = vec![

@@ -23,7 +23,7 @@ use frame_support::parameter_types;
 use shared_runtime::currency::AFT;
 
 parameter_types! {
-    pub const BaseDeposit: Balance = 10 * AFT;
+    pub const BaseDeposit: Balance = 5 * AFT;
     pub const VersionDeposit: Balance = AFT;
     pub const MaxVersionsPerAts: u32 = 100;
     pub const MaxAtsPerAccount: u32 = 1000;
