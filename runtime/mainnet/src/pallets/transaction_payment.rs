@@ -103,3 +103,6 @@ impl pallet_transaction_payment::Config for Runtime {
     type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
     type WeightInfo = weights::transaction_payment::AllfeatWeight<Runtime>;
 }
+
+#[cfg(feature = "runtime-benchmarks")]
+impl pallet_transaction_payment::BenchmarkConfig for Runtime {}
