@@ -31,7 +31,16 @@ use scale_info::TypeInfo;
 type Block = frame_system::mocking::MockBlock<Test>;
 
 #[derive(
-    Encode, Default, Decode, DecodeWithMemTracking, Clone, Eq, PartialEq, TypeInfo, MaxEncodedLen, Debug,
+    Encode,
+    Default,
+    Decode,
+    DecodeWithMemTracking,
+    Clone,
+    Eq,
+    PartialEq,
+    TypeInfo,
+    MaxEncodedLen,
+    Debug,
 )]
 pub struct MockMiddsStruct {
     pub value: u64,
