@@ -19,11 +19,7 @@
 #![cfg(test)]
 
 use crate::{self as pallet_midds};
-use frame_support::{
-    self, PalletId, derive_impl,
-    sp_runtime::{BuildStorage, RuntimeDebug},
-    testing_prelude::*,
-};
+use frame_support::{self, PalletId, derive_impl, sp_runtime::BuildStorage, testing_prelude::*};
 use frame_system::EnsureSigned;
 
 #[cfg(feature = "runtime-benchmarks")]
@@ -35,16 +31,7 @@ use scale_info::TypeInfo;
 type Block = frame_system::mocking::MockBlock<Test>;
 
 #[derive(
-    Encode,
-    Default,
-    Decode,
-    DecodeWithMemTracking,
-    Clone,
-    Eq,
-    PartialEq,
-    RuntimeDebug,
-    TypeInfo,
-    MaxEncodedLen,
+    Encode, Default, Decode, DecodeWithMemTracking, Clone, Eq, PartialEq, TypeInfo, MaxEncodedLen, Debug,
 )]
 pub struct MockMiddsStruct {
     pub value: u64,

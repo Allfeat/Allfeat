@@ -22,6 +22,7 @@
 
 use allfeat_primitives::{Balance, BlockNumber};
 use frame_support::{
+    dispatch::DispatchClass,
     parameter_types,
     sp_runtime::{FixedPointNumber, Perbill, Perquintill, traits::Bounded},
 };
@@ -52,7 +53,7 @@ parameter_types! {
     pub MaximumMultiplier: Multiplier = Bounded::max_value();
     /// Maximum length of block. Up to 5MB.
     pub RuntimeBlockLength: BlockLength =
-        BlockLength::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
+        BlockLength::builder().max_length(5 * 1024 * 1024).modify_max_length_for_class(DispatchClass::Normal, |m| *m = NORMAL_DISPATCH_RATIO * *m).build();
 }
 
 /// Parameterized slow adjusting fee updated based on

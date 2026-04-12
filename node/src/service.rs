@@ -25,6 +25,7 @@ pub use melodie_runtime::RuntimeApi as MelodieRuntimeApi;
 
 // std
 use sc_consensus_aura::{ImportQueueParams, StartAuraParams};
+use sc_consensus_grandpa::GrandpaPruningFilter;
 use std::{sync::Arc, time::Duration};
 // crates.io
 use futures::FutureExt;
@@ -149,6 +150,7 @@ where
             config,
             telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
             executor,
+            vec![Arc::new(GrandpaPruningFilter)],
         )?;
     let client = Arc::new(client);
 
@@ -324,6 +326,7 @@ where
             client: client.clone(),
             transaction_pool: transaction_pool.clone(),
             spawn_handle: task_manager.spawn_handle(),
+            spawn_essential_handle: task_manager.spawn_essential_handle(),
             import_queue,
             block_announce_validator_builder: None,
             warp_sync_config: Some(WarpSyncConfig::WithProvider(warp_sync)),

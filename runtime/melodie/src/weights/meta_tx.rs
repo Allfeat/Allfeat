@@ -54,7 +54,7 @@ use pallet_meta_tx::WeightInfo;
 
 pub struct AllfeatWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
-	fn bare_dispatch() -> Weight {
+	fn bare_dispatch(_n: u32, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`

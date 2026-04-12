@@ -20,6 +20,7 @@ use frame_support::pallet_prelude::{TransactionSource, TransactionValidity};
 use sp_api::impl_runtime_apis;
 use sp_inherents::InherentData;
 use sp_runtime::traits::Block as BlockT;
+use sp_session::OpaqueGeneratedSessionKeys;
 
 use super::*;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -177,8 +178,8 @@ impl sp_consensus_grandpa::GrandpaApi<Block> for Runtime {
     }
 
     impl sp_session::SessionKeys<Block> for Runtime {
-        fn generate_session_keys(seed: Option<Vec<u8>>) -> Vec<u8> {
-            SessionKeys::generate(seed)
+        fn generate_session_keys(owner: Vec<u8>, seed: Option<Vec<u8>>) -> OpaqueGeneratedSessionKeys {
+            SessionKeys::generate(&owner, seed).into()
         }
 
         fn decode_session_keys(

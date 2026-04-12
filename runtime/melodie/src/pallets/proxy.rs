@@ -18,7 +18,7 @@
 
 use crate::*;
 use frame_support::{
-    pallet_prelude::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen, RuntimeDebug},
+    pallet_prelude::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen},
     parameter_types,
     traits::InstanceFilter,
 };
@@ -37,6 +37,7 @@ parameter_types! {
 
 /// The type used to represent the kinds of proxying allowed.
 #[derive(
+    Debug,
     Copy,
     Clone,
     Eq,
@@ -46,7 +47,6 @@ parameter_types! {
     Encode,
     Decode,
     DecodeWithMemTracking,
-    RuntimeDebug,
     MaxEncodedLen,
     scale_info::TypeInfo,
 )]

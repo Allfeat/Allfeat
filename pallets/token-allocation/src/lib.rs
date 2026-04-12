@@ -97,18 +97,7 @@ impl EnvelopeId {
     }
 }
 
-#[derive(
-    Encode,
-    Decode,
-    Clone,
-    PartialEq,
-    Eq,
-    RuntimeDebug,
-    TypeInfo,
-    MaxEncodedLen,
-    Serialize,
-    Deserialize,
-)]
+#[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen, Serialize, Deserialize)]
 pub struct EnvelopeConfig<Balance, BlockNumber, AccountId> {
     pub total_cap: Balance,
     pub upfront_rate: Percent,
@@ -117,7 +106,7 @@ pub struct EnvelopeConfig<Balance, BlockNumber, AccountId> {
     pub unique_beneficiary: Option<AccountId>,
 }
 
-#[derive(Encode, Decode, Clone, PartialEq, Eq, RuntimeDebug, TypeInfo, MaxEncodedLen)]
+#[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
 pub struct Allocation<AccountId, Balance, BlockNumber> {
     pub envelope: EnvelopeId,
     pub beneficiary: AccountId,
