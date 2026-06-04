@@ -2,63 +2,74 @@
 # BASE #
 ########
 
-FROM rust:bookworm AS base
+# base is the first stage where all the debian dependencies
+# needed to build the Allfeat binary are installed,
+# plus cargo-check to optimize rust dependency management and then speedup any re-build
+
+FROM rust:bookworm as base
 
 WORKDIR /app
 
-RUN apt-get update -y && \
-    apt-get install -y --no-install-recommends \
-      build-essential git clang curl libssl-dev \
-      llvm libudev-dev make protobuf-compiler pkg-config libclang-dev \
-      mold xz-utils && \
-    rm -rf /var/lib/apt/lists/*
+# This installs all debian dependencies we need (besides Rust).
+RUN apt update -y && \
+    apt install -y build-essential git clang curl libssl-dev \
+    llvm libudev-dev make protobuf-compiler pkg-config libclang-dev
 
-RUN ARCH=$(uname -m) && \
-    case "$ARCH" in \
-      x86_64)  TARGET="x86_64-unknown-linux-musl" ;; \
-      aarch64) TARGET="aarch64-unknown-linux-musl" ;; \
-      *) echo "unsupported arch: $ARCH" && exit 1 ;; \
-    esac && \
-    curl -sSLf "https://github.com/LukeMathWalker/cargo-chef/releases/download/v0.1.77/cargo-chef-${TARGET}.tar.xz" \
-    | tar -xJ --strip-components=1 -C /usr/local/bin "cargo-chef-${TARGET}/cargo-chef"
-
-# cacher and builder must share the same linker or cargo treats the artifacts as stale
-ENV RUSTFLAGS="-C link-arg=-fuse-ld=mold"
+# Using cargo-chef to only pay the deps installation cost once,
+# it will be cached from the second build onwards
+RUN cargo install cargo-chef
 
 ###########
 # PLANNER #
 ###########
 
+# planner is where chef prepares its recipe using a local cache for the target
+
 FROM base AS planner
 COPY . .
 
-RUN cargo chef prepare --recipe-path recipe.json
+RUN --mount=type=cache,mode=0755,target=/app/target cargo chef prepare --recipe-path recipe.json
 
 ##########
 # CACHER #
 ##########
 
-FROM base AS cacher
-COPY --from=planner /app/recipe.json recipe.json
-COPY --from=planner /app/rust-toolchain.toml rust-toolchain.toml
+# cacher is where chef cooks all the deps from the recipe inside the local cache
 
-RUN cargo chef cook --release --locked --recipe-path recipe.json
+FROM base as cacher
+COPY --from=planner /app/recipe.json recipe.json
+
+# Build dependencies - this is the caching Docker layer!
+COPY --from=planner /app/rust-toolchain.toml rust-toolchain.toml
+RUN --mount=type=cache,mode=0755,target=/app/target cargo chef cook --release --recipe-path recipe.json
 
 ###########
 # BUILDER #
 ###########
 
+# builder is where chef builds the binary using the deps of the cache
+
 FROM cacher AS builder
 COPY . .
 
-RUN cargo build --locked --release
+# Build the binary
+# We prioritize the local toolchain file
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/app/target \
+    cargo build --locked --release
 
-RUN strip /app/target/release/allfeat && \
+# Strip the binary to reduce the final image size significantly
+# (Removes debug symbols, not needed for production runtime)
+RUN --mount=type=cache,target=/app/target \
+    strip /app/target/release/allfeat && \
     cp /app/target/release/allfeat /usr/local/bin/allfeat
 
 ###########
 # RUNTIME #
 ###########
+
+# runtime is where the Allfeat binary is finally copied from the builder
+# inside an autonomous slim and secured image.
 
 FROM debian:bookworm-slim AS runtime
 
@@ -71,6 +82,7 @@ LABEL io.allfeat.image.type="builder" \
     io.allfeat.image.source="https://github.com/allfeat/allfeat/blob/${VCS_REF}/Dockerfile" \
     io.allfeat.image.documentation="https://github.com/allfeat/allfeat"
 
+# Install minimal runtime dependencies including shell
 RUN apt-get update && apt-get install -y \
     ca-certificates \
     curl \
@@ -78,10 +90,12 @@ RUN apt-get update && apt-get install -y \
 
 COPY --from=builder /usr/local/bin/allfeat /usr/local/bin
 
+
 RUN useradd -m -u 1000 -U -s /bin/sh -d /app allfeat && \
     mkdir -p /data /app/.local/share && \
     chown -R allfeat:allfeat /data && \
     ln -s /data /app/.local/share/allfeat && \
+    # check if executable works in this container
     /usr/local/bin/allfeat --version
 
 USER allfeat
@@ -89,5 +103,6 @@ USER allfeat
 EXPOSE 30333 9933 9944 9615
 
 VOLUME ["/data"]
+
 
 ENTRYPOINT ["/usr/local/bin/allfeat"]
