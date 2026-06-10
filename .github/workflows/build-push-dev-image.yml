@@ -1,0 +1,107 @@
+name: Build and Push Melodie Dev Image
+
+# Thin dev-node image: the official polkadot-omni-node image plus the dev
+# chain spec generated from the runtime wasm built at this commit. Dev
+# environments run it as a single pod (manual seal, no relay chain) — the
+# parachain equivalent of the old `allfeat --dev`.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+      # Temporary until the parachain migration lands on master.
+      - feat/parachain-migration
+    paths:
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "rust-toolchain.toml"
+      - "runtime/melodie/**"
+      - "docker/melodie-dev.Dockerfile"
+      - ".github/workflows/build-push-dev-image.yml"
+
+env:
+  REGISTRY: ghcr.io
+  # Must stay in the same polkadot-sdk band as the workspace umbrella crate
+  # (host functions) — bump together with Cargo.toml / flake.nix.
+  OMNI_NODE_IMAGE: docker.io/parity/polkadot-omni-node:stable2603-3
+
+jobs:
+  build-push-dev-image:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Set image name
+        run: echo "IMAGE_NAME=$(echo '${{ github.repository_owner }}/melodie-dev-node' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Free disk space
+        uses: endersonmenezes/free-disk-space@v3
+        with:
+          remove_android: true
+          remove_dotnet: true
+          remove_haskell: true
+          rm_cmd: "rmz"
+
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Build runtime wasm
+        run: cargo build --locked --release --package melodie-runtime
+
+      - name: Generate dev chain spec
+        run: |
+          mkdir -p image-context
+          docker run --rm --user root \
+            --entrypoint /usr/local/bin/polkadot-omni-node \
+            -v "$PWD:/work" -w /work/image-context \
+            "$OMNI_NODE_IMAGE" \
+            chain-spec-builder create \
+              --chain-name "Allfeat Melodie Dev" \
+              --chain-id melodie-dev \
+              -t development \
+              --para-id 2000 \
+              --relay-chain paseo-local \
+              --raw-storage \
+              --properties tokenSymbol=MEL,tokenDecimals=12,ss58Format=42 \
+              --runtime /work/target/release/wbuild/melodie-runtime/melodie_runtime.compact.compressed.wasm \
+              named-preset development
+          mv image-context/chain_spec.json image-context/melodie-dev.json
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha,format=long
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: image-context
+          file: docker/melodie-dev.Dockerfile
+          # parity/polkadot-omni-node is only published for linux/amd64.
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            OMNI_NODE_IMAGE=${{ env.OMNI_NODE_IMAGE }}

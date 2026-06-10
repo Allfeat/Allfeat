@@ -32,6 +32,22 @@ benchmark-pallet runtime="melodie" pallet="":
 benchmark-weights-testnet:
   ./scripts/generate_weights_testnet.sh
 
+# Build the runtime and generate the Melodie dev chain spec (./chain_spec.json,
+# gitignored) — the same spec the dev-node image CI bakes into the image.
+[no-exit-message]
+build-spec-dev:
+  cargo build --locked --release --package melodie-runtime
+  polkadot-omni-node chain-spec-builder create \
+    --chain-name "Allfeat Melodie Dev" \
+    --chain-id melodie-dev \
+    -t development \
+    --para-id 2000 \
+    --relay-chain paseo-local \
+    --raw-storage \
+    --properties tokenSymbol=MEL,tokenDecimals=12,ss58Format=42 \
+    --runtime ./target/release/wbuild/melodie-runtime/melodie_runtime.compact.compressed.wasm \
+    named-preset development
+
 [no-exit-message]
 format:
   cargo fmt --all

@@ -34,5 +34,8 @@ migration/*.json
 migration/genesis-head.hex
 migration/scripts/genesis-head.hex
 
+# Locally generated dev chain spec (just build-spec-dev)
+chain_spec.json
+
 # LLM
 CRUSH.md
