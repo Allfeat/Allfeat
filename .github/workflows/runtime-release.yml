@@ -4,7 +4,6 @@ on:
   push:
     tags:
       - "melodie-v3-*"
-      - "allfeat-*"
 
 permissions:
   contents: write
@@ -26,18 +25,13 @@ jobs:
 
           # Supported tag formats:
           #   melodie-v3-<spec_version>
-          #   allfeat-<spec_version>
           if [[ "${TAG}" =~ ^melodie-v3-(.+)$ ]]; then
             RUNTIME_NAME="melodie"
             SPEC_VERSION="${BASH_REMATCH[1]}"
             RUNTIME_DIR="runtime/melodie"
-          elif [[ "${TAG}" =~ ^allfeat-(.+)$ ]]; then
-            RUNTIME_NAME="allfeat"
-            SPEC_VERSION="${BASH_REMATCH[1]}"
-            RUNTIME_DIR="runtime/mainnet"
           else
             echo "Unsupported tag format: ${TAG}" >&2
-            echo "Expected: melodie-v3-<spec_version> or allfeat-<spec_version>" >&2
+            echo "Expected: melodie-v3-<spec_version>" >&2
             exit 1
           fi
 

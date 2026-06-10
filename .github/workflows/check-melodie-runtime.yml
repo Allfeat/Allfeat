@@ -9,7 +9,6 @@ on:
     paths:
       - "Cargo.toml"
       - "Cargo.lock"
-      - "pallets/**"
       - "runtime/melodie/**"
   pull_request:
     branches:
@@ -17,7 +16,6 @@ on:
     paths:
       - "Cargo.toml"
       - "Cargo.lock"
-      - "pallets/**"
       - "runtime/melodie/**"
 
 jobs:

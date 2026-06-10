@@ -4,25 +4,25 @@ on:
   workflow_dispatch:
     inputs:
       runtime_name:
-        description: "Name of the runtime chain (allfeat/melodie)"
+        description: "Name of the runtime chain (melodie)"
         required: true
-        default: "allfeat"
+        default: "melodie"
         type: string
       runtime_dir:
-        description: "Path of the runtime crate (ex: runtime/mainnet)"
+        description: "Path of the runtime crate (ex: runtime/melodie)"
         required: true
-        default: "runtime/mainnet"
+        default: "runtime/melodie"
         type: string
   workflow_call:
     inputs:
       runtime_name:
         required: true
         type: string
-        description: "Name of the runtime chain (allfeat/melodie)"
+        description: "Name of the runtime chain (melodie)"
       runtime_dir:
         required: true
         type: string
-        description: "Path of the runtime crate (ex: runtime/mainnet)"
+        description: "Path of the runtime crate (ex: runtime/melodie)"
 
 jobs:
   build-runtime:

@@ -2,29 +2,20 @@
 
 set positional-arguments := true
 
-optimized_node_args := "-- --database=paritydb"
-
 # Cargo profile used to execute cargo commands.
 CARGO_PROFILE := env("PROFILE", "release")
 BENCHER := env("BENCHER_PATH", "frame-omni-bencher")
 
-# Build the node (default to release profile)
+# Build the workspace, i.e. the Melodie runtime (default to release profile).
+# The chain runs on `polkadot-omni-node` — there is no node crate to build here.
 [no-exit-message]
 build:
-  echo "Starting to build Allfeat Node with profile '{{CARGO_PROFILE}}'"
+  echo "Building the Melodie parachain runtime with profile '{{CARGO_PROFILE}}'"
   cargo build --profile {{CARGO_PROFILE}}
 
 [no-exit-message]
 build-melodie:
   cargo build --profile=production --package melodie-runtime --features on-chain-release-build
-
-# Start the node with default arguments in default mode (Melodie Testnet Live)
-[no-exit-message]
-start args='': (_start-base "--sync=warp" args)
-
-# Start the node with default arguments in development mode.
-[no-exit-message]
-start-dev args='': (_start-base "--dev" args)
 
 [no-exit-message]
 benchmark-pallet runtime="melodie" pallet="":
@@ -36,10 +27,6 @@ benchmark-pallet runtime="melodie" pallet="":
       --extrinsic="*" \
       --header="./HEADER" \
       --template=./.maintain/frame-weight-template.hbs 2>&1
-
-[no-exit-message]
-benchmark-weights-mainnet:
-  ./scripts/generate_weights_mainnet.sh
 
 [no-exit-message]
 benchmark-weights-testnet:
@@ -58,7 +45,3 @@ check:
 [no-exit-message]
 clippy:
   cargo clippy
-
-[no-exit-message]
-_start-base args0='' args1='':
-  cargo run --profile {{CARGO_PROFILE}} {{optimized_node_args}} {{args0}} {{args1}}

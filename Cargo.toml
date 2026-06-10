@@ -1,244 +1,52 @@
 [workspace]
 resolver = "2"
-members = [
-	"node",
-	"runtime/*",
-	"primitives",
-	"pallets/validators",
-	"pallets/token-allocation",
-]
-default-members = [
-    "node"
-]
+members = ["runtime/melodie"]
 
 [workspace.package]
-authors = ["Allfeat labs. <hello@allfeat.com>"]
+authors = ["Allfeat Foundation <hello@allfeat.org>"]
 edition = "2024"
-homepage = "https://allfeat.com"
+homepage = "https://allfeat.org"
 license = "GPL-3.0"
 repository = "https://github.com/allfeat/allfeat"
 version = "1.0.0-dev"
 
-# The list of dependencies below (which can be both direct and indirect dependencies) are crates
-# that are suspected to be CPU-intensive, and that are unlikely to require debugging (as some of
-# their debug info might be missing) or to require to be frequently recompiled. We compile these
-# dependencies with `opt-level=3` even in "dev" mode in order to make "dev" mode more usable.
-# The majority of these crates are cryptographic libraries.
-#
-# Note that this does **not** affect crates that depend on Substrate. In other words, if you add
-# a dependency on Substrate, you have to copy-paste this list in your own `Cargo.toml` (assuming
-# that you want the same list). This list is only relevant when running `cargo build` from within
-# the Substrate workspace.
-#
-# If you see an error mentioning "profile package spec ... did not match any packages", it
-# probably concerns this list.
-#
-# This list is ordered alphabetically.
-[profile.dev.package]
-blake2 = { opt-level = 3 }
-blake2b_simd = { opt-level = 3 }
-cranelift-codegen = { opt-level = 3 }
-crc32fast = { opt-level = 3 }
-crossbeam-deque = { opt-level = 3 }
-crypto-mac = { opt-level = 3 }
-curve25519-dalek = { opt-level = 3 }
-ed25519-zebra = { opt-level = 3 }
-futures-channel = { opt-level = 3 }
-hash-db = { opt-level = 3 }
-hashbrown = { opt-level = 3 }
-hmac = { opt-level = 3 }
-httparse = { opt-level = 3 }
-integer-sqrt = { opt-level = 3 }
-keccak = { opt-level = 3 }
-libsecp256k1 = { opt-level = 3 }
-mio = { opt-level = 3 }
-nalgebra = { opt-level = 3 }
-num-bigint = { opt-level = 3 }
-parking_lot = { opt-level = 3 }
-parking_lot_core = { opt-level = 3 }
-percent-encoding = { opt-level = 3 }
-primitive-types = { opt-level = 3 }
-sha2 = { opt-level = 3 }
-sha3 = { opt-level = 3 }
-smallvec = { opt-level = 3 }
-twox-hash = { opt-level = 3 }
-uint = { opt-level = 3 }
-x25519-dalek = { opt-level = 3 }
-zeroize = { opt-level = 3 }
-
 [workspace.dependencies]
-# Dependencies are split into 2 groups: wasm and client.
-# - "wasm" dependencies requires to be no_std compatible, which often requires
-#   `default-features = false`. When used in a client-side crate the "std" feature should be enabled
-#   there if it exists.
-# - "client" dependencies are only used in the client, and thus don't need to be no_std compatible.
+codec = { package = "parity-scale-codec", version = "3.7.5", default-features = false, features = ["derive"] }
+docify = "0.4.1"
+log = { version = "0.4.25", default-features = false }
+scale-info = { version = "2.11.6", default-features = false, features = ["derive"] }
+serde_json = { version = "1.0.137", features = ["alloc"], default-features = false }
+smallvec = "1.13.2"
+cumulus-pallet-parachain-system = { version = "0.26.0", default-features = false }
 
-# Allfeat (wasm)
-allfeat-primitives = { version = "1.0.0", default-features = false, path = "./primitives" }
-pallet-ats = { version = "0.4.0", default-features = false }
-pallet-token-allocation = { version = "1.0.0", default-features = false, path = "./pallets/token-allocation" }
+# Allfeat SDK pallets (`feat/umbrella` branches; the lockfile pins the revisions).
+pallet-ats = { git = "https://github.com/Allfeat/ats-sdk.git", branch = "feat/umbrella", default-features = false }
+pallet-midds = { git = "https://github.com/Allfeat/midds-sdk.git", branch = "feat/umbrella", default-features = false }
+midds-types = { git = "https://github.com/Allfeat/midds-sdk.git", branch = "feat/umbrella", default-features = false }
+midds-traits = { git = "https://github.com/Allfeat/midds-sdk.git", branch = "feat/umbrella", default-features = false }
+midds-runtime-api = { git = "https://github.com/Allfeat/midds-sdk.git", branch = "feat/umbrella", default-features = false }
 
-pallet-validators = { version = "1.0.0", default-features = false, path = "./pallets/validators" }
+# Build
+substrate-wasm-builder = "32.0.0"
 
-# MIDDS SDK (wasm)
-midds-traits = { git = "https://github.com/Allfeat/midds-sdk.git", branch = "master", default-features = false }
-midds-types = { git = "https://github.com/Allfeat/midds-sdk.git", branch = "master", default-features = false }
-midds-runtime-api = { git = "https://github.com/Allfeat/midds-sdk.git", branch = "master", default-features = false }
-pallet-midds = { git = "https://github.com/Allfeat/midds-sdk.git", branch = "master", default-features = false }
+polkadot-sdk = { version = "2603.0.0", default-features = false }
 
-# MIDDS SDK (client)
-midds-rpc = { git = "https://github.com/Allfeat/midds-sdk.git", branch = "master" }
+[profile.release]
+panic = "unwind"
 
-# MIDDS SDK (test-only, std)
-midds-fixtures = { git = "https://github.com/Allfeat/midds-sdk.git", branch = "master" }
-
-# polkadot-sdk
-sp-core = { version = "40.0.0", default-features = false }
-sp-application-crypto = { version = "45.0.0", default-features = false }
-sp-tracing = { version = "19.0.0", default-features = false }
-sp-io = { version = "45.0.0", default-features = false }
-sp-version = { version = "44.0.0", default-features = false }
-sp-consensus = { version = "0.47.0", default-features = false }
-sp-consensus-aura = { version = "0.47.0", default-features = false }
-sp-consensus-grandpa = { version = "28.0.0", default-features = false }
-sp-genesis-builder = { version = "0.22.0", default-features = false }
-sp-keyring = { version = "46.0.0", default-features = false }
-sp-api = { version = "41.0.0", default-features = false }
-sp-inherents = { version = "41.0.0", default-features = false }
-sp-offchain = { version = "41.0.0", default-features = false }
-sp-session = { version = "43.0.0", default-features = false }
-sp-transaction-pool = { version = "41.0.0", default-features = false }
-sp-block-builder = { version = "41.0.0", default-features = false }
-sp-blockchain = { version = "44.0.0", default-features = false }
-sp-timestamp = { version = "41.0.0", default-features = false }
-sp-runtime = { version = "46.0.0", default-features = false }
-sp-storage = { version = "23.0.0", default-features = false }
-sp-keystore = { version = "0.46.0", default-features = false }
-sp-transaction-storage-proof = { version = "41.0.0", default-features = false }
-sp-staking = { version = "43.0.0", default-features = false }
-sp-state-machine = { version = "0.50.0", default-features = false }
-
-sc-basic-authorship = { version = "0.54.0", default-features = false }
-sc-cli = { version = "0.58.0", default-features = false }
-sc-client-api = { version = "45.0.0", default-features = false }
-sc-consensus = { version = "0.55.0", default-features = false }
-sc-consensus-aura = { version = "0.56.0", default-features = false }
-sc-consensus-grandpa = { version = "0.41.0", default-features = false }
-sc-executor = { version = "0.48.0", default-features = false }
-sc-network = { version = "0.56.0", default-features = false }
-sc-offchain = { version = "51.0.0", default-features = false }
-sc-service = { version = "0.57.0", default-features = false }
-sc-telemetry = { version = "30.0.1", default-features = false }
-sc-transaction-pool = { version = "45.0.0", default-features = false }
-sc-transaction-pool-api = { version = "44.0.0", default-features = false }
-sc-storage-monitor = { version = "0.28.0", default-features = false }
-sc-sysinfo = { version = "47.0.0", default-features = false }
-sc-consensus-slots = { version = "0.55.0", default-features = false }
-sc-consensus-grandpa-rpc = { version = "0.41.0", default-features = false }
-sc-rpc-spec-v2 = { version = "0.56.0", default-features = false }
-sc-authority-discovery = { version = "0.56.0", default-features = false }
-
-frame-support = { version = "46.0.0", default-features = false }
-frame-system = { version = "46.0.0", default-features = false }
-frame-benchmarking = { version = "46.0.0", default-features = false }
-frame-system-benchmarking = { version = "46.0.0", default-features = false }
-frame-system-rpc-runtime-api = { version = "41.0.0", default-features = false }
-frame-metadata-hash-extension = { version = "0.14.0", default-features = false }
-frame-executive = { version = "46.0.0", default-features = false }
-frame-try-runtime = { version = "0.52.0", default-features = false }
-frame-benchmarking-cli = { version = "54.0.0", default-features = false }
-substrate-frame-rpc-system = { version = "50.0.0", default-features = false }
-substrate-build-script-utils = { version = "11.0.0" }
-
-pallet-aura = { version = "45.0.0", default-features = false }
-pallet-collective = { version = "46.0.0", default-features = false }
-pallet-timestamp = { version = "45.0.0", default-features = false }
-pallet-utility = { version = "46.0.0", default-features = false }
-pallet-grandpa = { version = "46.0.0", default-features = false }
-pallet-mmr = { version = "46.0.0", default-features = false }
-pallet-authorship = { version = "46.0.0", default-features = false }
-pallet-sudo = { version = "46.0.0", default-features = false }
-pallet-session = { version = "46.0.0", default-features = false }
-pallet-scheduler = { version = "47.0.0", default-features = false }
-pallet-preimage = { version = "46.0.0", default-features = false }
-pallet-proxy = { version = "46.0.0", default-features = false }
-pallet-multisig = { version = "46.0.0", default-features = false }
-pallet-balances = { version = "47.0.0", default-features = false }
-pallet-im-online = { version = "45.0.0", default-features = false }
-pallet-transaction-payment = { version = "46.0.0", default-features = false }
-pallet-transaction-payment-rpc = { version = "49.0.0", default-features = false }
-pallet-transaction-payment-rpc-runtime-api = { version = "46.0.0", default-features = false }
-pallet-treasury = { version = "45.0.0", default-features = false }
-pallet-identity = { version = "46.0.0", default-features = false }
-pallet-authority-discovery = { version = "46.0.0", default-features = false }
-pallet-safe-mode = { version = "27.0.0", default-features = false }
-pallet-meta-tx = { version = "0.8.0", default-features = false }
-pallet-verify-signature = { version = "0.9.0", default-features = false }
-
-substrate-wasm-builder = { version = "32.0.0", default-features = false }
-
-# Substrate (wasm)
-parity-scale-codec = { version = "3.7.4", default-features = false, features = [
-	"derive",
-] }
-scale-info = { version = "2.11.6", default-features = false, features = [
-	"derive",
-] }
-log = { version = "0.4.22", default-features = false }
-smallvec = { version = "1.9.0", default-features = false }
-array-bytes = { version = "9.1.2", default-features = true }
-
-
-# Other (wasm)
-enumflags2 = { version = "0.7.10", default-features = false }
-
-# Allfeat (client)
-shared-runtime = { version = "1.0.0-dev", path = "./runtime/shared", default-features = false }
-melodie-runtime = { version = "1.0.0-dev", path = "./runtime/melodie" }
-allfeat-runtime = { version = "1.0.0-dev", path = "./runtime/mainnet" }
-
-# Other (client)
-env_logger = "0.11"
-clap = { version = "4.5.13", features = ["derive"] }
-jsonrpsee = { version = "0.24.3", features = ["server", "macros"] }
-serde = { version = "1", default-features = false, features = ["derive"] }
-serde_json = { version = "1.0.132", default-features = false }
-futures = "0.3.31"
-rand = { version = "0.8.5", default-features = false }
-
-# make sure dev builds with backtrace do
-# not slow us down
-[profile.dev.package.backtrace]
-inherits = "release"
-
-[profile.ci]
-debug = false
-incremental = false
-inherits = "dev"
-opt-level = "z"
-
+# On-chain release profile (just build-melodie, weight scripts, srtool).
 [profile.production]
 codegen-units = 1
 inherits = "release"
 lto = "fat"
 strip = true
 
-[profile.release]
-# Allfeat runtime requires unwinding.
-opt-level = 3
-panic = "unwind"
-lto = "thin"
-debug = false
-
-# Optimized profile for minimal binary size (docker, embedded)
-[profile.release-small]
-inherits = "release"
-opt-level = "z"
-lto = "fat"
-codegen-units = 1
-strip = true
-
-# Workaround for yanked `core2` (transitive via cid → litep2p → sc-network).
-# See https://github.com/paritytech/polkadot-sdk/issues/11769 — remove once upstream stops depending on core2.
-[patch.crates-io]
-core2 = { version = "0.4.0", git = "https://github.com/bbqsrc/core2", rev = "545e84bcb0f235b12e21351e0c69767958efe2a7" }
+# To develop against the local sibling SDK checkouts, uncomment:
+# [patch."https://github.com/Allfeat/ats-sdk.git"]
+# pallet-ats = { path = "../ats-sdk/pallet-ats" }
+#
+# [patch."https://github.com/Allfeat/midds-sdk.git"]
+# pallet-midds = { path = "../midds-sdk/pallets/pallet-midds" }
+# midds-types = { path = "../midds-sdk/crates/midds-types" }
+# midds-traits = { path = "../midds-sdk/crates/midds-traits" }
+# midds-runtime-api = { path = "../midds-sdk/crates/midds-runtime-api" }

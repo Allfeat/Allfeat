@@ -1,0 +1,9 @@
+{
+  "name": "melodie-migration-scripts",
+  "private": true,
+  "type": "module",
+  "description": "Tooling for the Melodie solo->para migration rehearsal (REHEARSAL-PLAN.md)",
+  "dependencies": {
+    "@polkadot/api": "latest"
+  }
+}

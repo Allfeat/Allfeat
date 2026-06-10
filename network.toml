@@ -1,0 +1,36 @@
+[relaychain]
+chain = "paseo-local"
+
+[[relaychain.nodes]]
+name = "alice"
+validator = true
+
+[[relaychain.nodes]]
+name = "bob"
+validator = true
+
+[[parachains]]
+chain = "base-parachain"
+id = 2000
+default_command = "polkadot-omni-node"
+chain_spec_command_is_local = true
+chain_spec_command_output_path = "./target/release/chain-spec.json"
+chain_spec_command = """
+pop build spec                \
+    --path .                  \
+    --profile release         \
+    --para-id 2000            \
+    --id base-parachain       \
+    --protocol-id custom      \
+    --type local              \
+    --relay paseo-local       \
+    --chain local_testnet     \
+    --default-bootnode=false  \
+    --genesis-code=false      \
+    --genesis-state=false     \
+    --deterministic=false     \
+    --output ./target/release/chain-spec.json
+"""
+
+[[parachains.collators]]
+name = "collator-01"

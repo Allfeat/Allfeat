@@ -27,6 +27,18 @@
           inherit system overlays;
         };
 
+        # polkadot-omni-node depends on wasm-opt-sys, whose build script probes
+        # `-std=c++17` through the `cc` crate. cc only accepts a flag when the
+        # test compile leaves stderr empty (cc-rs: `status.success() &&
+        # stderr.is_empty()`). On aarch64-darwin the crate passes
+        # `--target=aarch64-apple-darwin`, and the nixpkgs clang wrapper prints a
+        # warning to stderr because its canonical triple is `arm64-apple-darwin`.
+        # That stderr noise makes cc report c++17 as unsupported and the build
+        # aborts. Suppressing the warning keeps the probe's stderr clean.
+        polkadot-omni-node = pkgs.polkadot-omni-node.overrideAttrs (_: {
+          NIX_CC_WRAPPER_SUPPRESS_TARGET_WARNING = 1;
+        });
+
       in
       {
         devShells.default = pkgs.mkShell {
@@ -42,9 +54,8 @@
               nodejs-slim
 
               # Polkadot SDK
-              psvm
-              subkey
               try-runtime-cli
+              polkadot-omni-node
             ]
             ++ lib.optionals stdenv.hostPlatform.isLinux [ rust-jemalloc-sys-unprefixed ];
 

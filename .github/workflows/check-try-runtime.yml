@@ -1,5 +1,9 @@
 name: Check Melodie Try Runtime Migrations
 
+# NOTE(parachain migration): the runtime is now a parachain runtime, so
+# try-runtime must be run with `--disable-mbm-checks` — the tool's MBM phase
+# builds an empty block without the cumulus `set_validation_data` inherent,
+# so parachain-system panics (tool limitation, not a runtime bug).
 on:
   workflow_dispatch:
   workflow_call:
@@ -17,5 +21,6 @@ jobs:
         uses: "paritytech/try-runtime-gha@v0.1.0"
         with:
           runtime-package: "melodie-runtime"        # The runtime package name
-          node-uri: "wss://melodie-rpc.allfeat.io:443" # Extra args to pass to the ''on-runtime-upgrade'' subcommand. For example, "--disable-idempotency-check --no-weight-warnings". See all options at https://paritytech.github.io/try-runtime-cli/try_runtime_core/commands/on_runtime_upgrade/struct.Command.html.
+          node-uri: "wss://melodie-rpc.allfeat.io:443"
+          extra-args: "--disable-mbm-checks"   # Extra args to pass to the ''on-runtime-upgrade'' subcommand. See all options at https://paritytech.github.io/try-runtime-cli/try_runtime_core/commands/on_runtime_upgrade/struct.Command.html.
           checks: "all"                        # OPTIONAL: Types of checks to run. For example, "pre-and-post". See all options at https://paritytech.github.io/try-runtime-cli/frame_support/traits/enum.UpgradeCheckSelect.html. Default: "all".

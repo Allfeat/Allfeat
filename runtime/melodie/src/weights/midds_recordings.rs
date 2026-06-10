@@ -24,27 +24,14 @@
 //! HOSTNAME: `5bcfbcd0-ba91-46bd-9ae8-7646f35e9853-0`, CPU: `AMD EPYC-Milan Processor`
 //! WASM-EXECUTION: `Compiled`, CHAIN: `None`, DB CACHE: `1024`
 
-// Executed Command:
-// frame-omni-bencher
-// v1
-// benchmark
-// pallet
-// --runtime=target/release/wbuild/melodie-runtime/melodie_runtime.compact.compressed.wasm
-// --genesis-builder-preset=development
-// --pallet=pallet_midds
-// --extrinsic=*
-// --header=./HEADER
-// --template=./.maintain/frame-weight-template.hbs
-// --output=runtime/melodie/src/weights/midds_recordings.rs
-// --unsafe-overwrite-results
-
 #![cfg_attr(rustfmt, rustfmt_skip)]
 #![allow(unused_parens)]
 #![allow(unused_imports)]
 #![allow(missing_docs)]
 #![allow(dead_code)]
 
-use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
+use polkadot_sdk::frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
+use polkadot_sdk::frame_system;
 use core::marker::PhantomData;
 use pallet_midds::WeightInfo;
 

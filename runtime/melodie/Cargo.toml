@@ -1,203 +1,140 @@
 [package]
-authors.workspace = true
-description = "Melodie Testnet runtime."
-edition.workspace = true
 name = "melodie-runtime"
-readme = "README.md"
 version.workspace = true
+authors.workspace = true
+description = "Melodie testnet parachain runtime"
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+edition.workspace = true
+publish = false
 
 [package.metadata.docs.rs]
 targets = ["x86_64-unknown-linux-gnu"]
 
+[build-dependencies]
+substrate-wasm-builder.workspace = true
+docify.workspace = true
+
 [dependencies]
-parity-scale-codec = { workspace = true, features = [
-	"derive"
-] }
-scale-info = { features = ["derive", "serde"], workspace = true }
-log = { workspace = true }
-smallvec = { workspace = true }
-serde_json = { workspace = true, default-features = false, features = [
-	"alloc",
-] }
-array-bytes = { workspace = true }
+codec.workspace = true
+log.workspace = true
+scale-info.workspace = true
+serde_json.workspace = true
+smallvec.workspace = true
+docify.workspace = true
+cumulus-pallet-parachain-system = { workspace = true }
 
-shared-runtime = { workspace = true }
-allfeat-primitives = { workspace = true }
-
-# Allfeat pallets
+# Allfeat SDK pallets
 pallet-ats = { workspace = true }
-
-sp-application-crypto = { workspace = true }
-sp-core = { features = ["serde"], workspace = true }
-sp-keyring = { workspace = true }
-sp-version = { features = ["serde"], workspace = true }
-sp-consensus-aura = { features = ["serde"], workspace = true }
-sp-consensus-grandpa = { features = ["serde"], workspace = true }
-sp-genesis-builder = { workspace = true }
-sp-api = { workspace = true }
-sp-inherents = { workspace = true }
-sp-offchain = { workspace = true }
-sp-session = { workspace = true }
-sp-transaction-pool = { workspace = true }
-sp-runtime = { features = ["serde"], workspace = true }
-sp-io = { workspace = true }
-sp-block-builder = { workspace = true }
-
-frame-try-runtime = { workspace = true, optional = true }
-frame-support = { workspace = true }
-frame-system = { workspace = true }
-frame-system-rpc-runtime-api = { workspace = true }
-frame-metadata-hash-extension = { workspace = true }
-frame-executive = { workspace = true }
-
-pallet-timestamp = { workspace = true }
-pallet-utility = { workspace = true }
-pallet-aura = { workspace = true }
-pallet-grandpa = { workspace = true }
-pallet-authorship = { workspace = true }
-pallet-sudo = { workspace = true }
-pallet-session = { workspace = true }
-pallet-scheduler = { workspace = true }
-pallet-preimage = { workspace = true }
-pallet-proxy = { workspace = true }
-pallet-multisig = { workspace = true }
-pallet-balances = { workspace = true }
-pallet-transaction-payment = { workspace = true }
-pallet-transaction-payment-rpc-runtime-api = { workspace = true }
-pallet-safe-mode = { workspace = true }
-pallet-meta-tx = { workspace = true }
-pallet-verify-signature = { workspace = true }
-
-pallet-validators = { workspace = true }
-
-# MIDDS
 pallet-midds = { workspace = true }
 midds-types = { workspace = true }
 midds-traits = { workspace = true }
 midds-runtime-api = { workspace = true }
 
-# Benchmarking
-frame-benchmarking = { optional = true, workspace = true }
-frame-system-benchmarking = { optional = true, workspace = true }
+# Polkadot SDK umbrella (curated features for this runtime)
+polkadot-sdk = { workspace = true, features = [
+    # Core Substrate primitives and runtime
+    "sp-api",
+    "sp-block-builder",
+    "sp-consensus-aura",
+    "sp-core",
+    "sp-genesis-builder",
+    "sp-inherents",
+    # Re-export used by the MIDDS benchmark helpers (keystore signatures).
+    "sp-io",
+    "sp-keyring",
+    "sp-offchain",
+    "sp-runtime",
+    "sp-session",
+    "sp-transaction-pool",
+    "sp-version",
 
-[dev-dependencies]
-# Layer 4 runtime integration tests (see ../midds-sdk/docs/testing.md §7).
-midds-fixtures = { workspace = true }
+    # FRAME core
+    "frame-executive",
+    "frame-support",
+    "frame-system",
+    "frame-metadata-hash-extension",
+    "frame-system-rpc-runtime-api",
 
-[build-dependencies]
-substrate-wasm-builder = { workspace = true, optional = true, default-features = true }
+    # Pallets used in this runtime
+    "pallet-aura",
+    "pallet-authorship",
+    "pallet-balances",
+    "pallet-collator-selection",
+    "pallet-message-queue",
+    "pallet-session",
+    "pallet-sudo",
+    "pallet-timestamp",
+    "pallet-transaction-payment",
+    "pallet-xcm",
+    "pallet-transaction-payment-rpc-runtime-api",
+
+    # Utility & governance
+    "pallet-utility",
+    "pallet-multisig",
+    "pallet-proxy",
+    "pallet-scheduler",
+    "pallet-preimage",
+    "pallet-safe-mode",
+    "pallet-meta-tx",
+    "pallet-verify-signature",
+
+    # Cumulus runtime-side pallets and primitives
+    "cumulus-pallet-aura-ext",
+    "cumulus-pallet-weight-reclaim",
+    "cumulus-pallet-xcm",
+    "cumulus-pallet-xcmp-queue",
+    "cumulus-primitives-aura",
+    "cumulus-primitives-core",
+    "cumulus-primitives-utility",
+
+    # Parachains and Polkadot common runtime pieces
+    "parachains-common",
+    "polkadot-runtime-common",
+    "polkadot-parachain-primitives",
+    "staging-parachain-info",
+
+    # XCM (staging) components used at runtime
+    "staging-xcm",
+    "staging-xcm-builder",
+    "staging-xcm-executor",
+] }
 
 [features]
 default = ["std"]
-with-tracing = []
 std = [
-	"parity-scale-codec/std",
-	"scale-info/std",
-	"log/std",
-	"pallet-validators/std",
-	"pallet-midds/std",
-	"midds-traits/std",
-	"midds-types/std",
-	"midds-runtime-api/std",
-	"allfeat-primitives/std",
-	"shared-runtime/std",
-	"serde_json/std",
-	"pallet-ats/std",
-	"pallet-timestamp/std",
-	"frame-support/std",
-	"frame-system/std",
-	"frame-try-runtime?/std",
-	"pallet-utility/std",
-	"pallet-aura/std",
-	"pallet-grandpa/std",
-	"pallet-authorship/std",
-	"pallet-sudo/std",
-	"pallet-session/std",
-	"pallet-scheduler/std",
-	"pallet-preimage/std",
-	"pallet-proxy/std",
-	"pallet-multisig/std",
-	"pallet-balances/std",
-	"pallet-transaction-payment/std",
-	"pallet-transaction-payment-rpc-runtime-api/std",
-	"pallet-safe-mode/std",
-	"pallet-meta-tx/std",
-	"pallet-verify-signature/std",
-	"sp-application-crypto/std",
-	"sp-version/std",
-	"sp-consensus-aura/std",
-	"sp-consensus-grandpa/std",
-	"sp-genesis-builder/std",
-	"sp-keyring/std",
-	"sp-core/std",
-	"sp-runtime/std",
-	"sp-api/std",
-	"sp-inherents/std",
-	"sp-offchain/std",
-	"sp-session/std",
-	"sp-transaction-pool/std",
-	"sp-block-builder/std",
-	"sp-io/std",
-	"frame-metadata-hash-extension/std",
-	"frame-executive/std",
-	"frame-system-rpc-runtime-api/std",
-	"frame-benchmarking?/std",
-	"frame-system-benchmarking?/std",
-	"substrate-wasm-builder",
-]
-runtime-benchmarks = [
-	"frame-benchmarking/runtime-benchmarks",
-	"frame-support/runtime-benchmarks",
-	"frame-system-benchmarking/runtime-benchmarks",
-	"frame-system/runtime-benchmarks",
-	"pallet-ats/runtime-benchmarks",
-	"pallet-timestamp/runtime-benchmarks",
-	"pallet-utility/runtime-benchmarks",
-	"pallet-grandpa/runtime-benchmarks",
-	"pallet-sudo/runtime-benchmarks",
-	"pallet-scheduler/runtime-benchmarks",
-	"pallet-preimage/runtime-benchmarks",
-	"pallet-proxy/runtime-benchmarks",
-	"pallet-multisig/runtime-benchmarks",
-	"pallet-balances/runtime-benchmarks",
-	"pallet-transaction-payment/runtime-benchmarks",
-	"pallet-safe-mode/runtime-benchmarks",
-	"pallet-validators/runtime-benchmarks",
-	"pallet-midds/runtime-benchmarks",
-	"pallet-meta-tx/runtime-benchmarks",
-	"pallet-verify-signature/runtime-benchmarks",
-]
-try-runtime = [
-	"frame-executive/try-runtime",
-	"frame-support/try-runtime",
-	"frame-system/try-runtime",
-	"frame-try-runtime/try-runtime",
-	"pallet-validators/try-runtime",
-	"pallet-midds/try-runtime",
-	"pallet-ats/try-runtime",
-	"pallet-timestamp/try-runtime",
-	"pallet-utility/try-runtime",
-	"pallet-aura/try-runtime",
-	"pallet-grandpa/try-runtime",
-	"pallet-authorship/try-runtime",
-	"pallet-sudo/try-runtime",
-	"pallet-session/try-runtime",
-	"pallet-scheduler/try-runtime",
-	"pallet-preimage/try-runtime",
-	"pallet-proxy/try-runtime",
-	"pallet-multisig/try-runtime",
-	"pallet-balances/try-runtime",
-	"pallet-transaction-payment/try-runtime",
-	"pallet-safe-mode/try-runtime",
-	"pallet-meta-tx/try-runtime",
-	"pallet-verify-signature/try-runtime",
+    "codec/std",
+    "log/std",
+    "scale-info/std",
+    "serde_json/std",
+    "polkadot-sdk/std",
+    "cumulus-pallet-parachain-system/std",
+    "pallet-ats/std",
+    "pallet-midds/std",
+    "midds-types/std",
+    "midds-traits/std",
+    "midds-runtime-api/std",
 ]
 
+runtime-benchmarks = [
+    "cumulus-pallet-parachain-system/runtime-benchmarks",
+    "polkadot-sdk/runtime-benchmarks",
+    "polkadot-sdk/frame-benchmarking",
+    "polkadot-sdk/frame-system-benchmarking",
+    "polkadot-sdk/cumulus-pallet-session-benchmarking",
+    "pallet-ats/runtime-benchmarks",
+    "pallet-midds/runtime-benchmarks",
+]
+
+try-runtime = [
+    "cumulus-pallet-parachain-system/try-runtime",
+    "polkadot-sdk/try-runtime",
+    "pallet-ats/try-runtime",
+    "pallet-midds/try-runtime",
+]
+
+# Feature-gated because it doubles the wasm compile time.
 metadata-hash = ["substrate-wasm-builder/metadata-hash"]
 
-# Set timing constants (e.g. session period) to faster versions to speed up testing.
-fast-runtime = []
-
-# A convenience feature for enabling things when doing a build
-# for an on-chain release.
-on-chain-release-build = ["metadata-hash", "sp-api/disable-logging"]
+on-chain-release-build = ["metadata-hash"]

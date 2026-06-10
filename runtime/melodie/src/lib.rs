@@ -16,83 +16,227 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Melodie runtime.
-
 #![cfg_attr(not(feature = "std"), no_std)]
 #![recursion_limit = "256"]
 
-// Make the WASM binary available.
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-extern crate alloc;
-use alloc::vec::Vec;
-
-// allfeat
-pub use allfeat_primitives::{AccountId, Address, Balance, BlockNumber, Moment, Nonce, Signature};
-
-use apis::RUNTIME_API_VERSIONS;
-use pallet_meta_tx::MetaTxMarker;
-use sp_runtime::{
-    generic::{self, ExtensionVersion},
-    traits::NumberFor,
-};
-use sp_version::{RuntimeVersion, runtime_version};
-
-#[cfg(any(feature = "std", test))]
-pub use frame_system::Call as SystemCall;
-#[cfg(any(feature = "std", test))]
-pub use pallet_balances::Call as BalancesCall;
-
-#[cfg(feature = "std")]
-use sp_version::NativeVersion;
-
 pub mod apis;
-pub use apis::RuntimeApi;
-
-/// Constant values used within the runtime.
-pub mod constants;
-pub use constants::time::*;
-
-mod pallets;
-pub use pallets::*;
-mod ats;
-mod genesis;
-pub use ats::*;
-mod weights;
-
-#[cfg(test)]
-mod tests;
-
 #[cfg(feature = "runtime-benchmarks")]
 mod benchmarks;
+pub mod configs;
+mod genesis_config_presets;
+pub mod migrations;
+mod weights;
 
-/// Runtime version.
-#[runtime_version]
+extern crate alloc;
+
+use alloc::vec::Vec;
+#[cfg(feature = "std")]
+use polkadot_sdk::sp_version::NativeVersion;
+use polkadot_sdk::{
+    cumulus_pallet_aura_ext, cumulus_pallet_weight_reclaim,
+    cumulus_pallet_weight_reclaim::StorageWeightReclaim,
+    cumulus_pallet_xcm, cumulus_pallet_xcmp_queue, cumulus_primitives_core, frame_executive,
+    frame_metadata_hash_extension,
+    frame_support::{
+        self,
+        weights::{
+            Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
+            constants::WEIGHT_REF_TIME_PER_SECOND,
+        },
+    },
+    frame_system, pallet_aura, pallet_authorship, pallet_balances, pallet_collator_selection,
+    pallet_message_queue, pallet_meta_tx, pallet_multisig, pallet_preimage, pallet_proxy,
+    pallet_safe_mode, pallet_scheduler, pallet_session, pallet_sudo, pallet_timestamp,
+    pallet_transaction_payment, pallet_utility, pallet_verify_signature, pallet_xcm, sp_core,
+    sp_runtime,
+    sp_runtime::{
+        Cow, MultiAddress, MultiSignature, Perbill, generic, impl_opaque_keys,
+        traits::{BlakeTwo256, IdentifyAccount, Verify},
+    },
+    sp_version::{self, RuntimeVersion},
+    staging_parachain_info as parachain_info,
+};
+use smallvec::smallvec;
+
+#[cfg(any(feature = "std", test))]
+pub use polkadot_sdk::sp_runtime::BuildStorage;
+
+use weights::ExtrinsicBaseWeight;
+
+pub type Signature = MultiSignature;
+
+pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::AccountId;
+
+pub type Balance = u128;
+
+pub type Nonce = u32;
+
+pub type Hash = sp_core::H256;
+
+pub type BlockNumber = u32;
+
+pub type Address = MultiAddress<AccountId, ()>;
+
+pub type Header = generic::Header<BlockNumber, BlakeTwo256>;
+
+pub type Block = generic::Block<Header, UncheckedExtrinsic>;
+
+pub type SignedBlock = generic::SignedBlock<Block>;
+
+pub type BlockId = generic::BlockId<Block>;
+
+#[docify::export(template_signed_extra)]
+pub type TxExtension = StorageWeightReclaim<
+    Runtime,
+    (
+        frame_system::CheckNonZeroSender<Runtime>,
+        frame_system::CheckSpecVersion<Runtime>,
+        frame_system::CheckTxVersion<Runtime>,
+        frame_system::CheckGenesis<Runtime>,
+        frame_system::CheckEra<Runtime>,
+        frame_system::CheckNonce<Runtime>,
+        frame_system::CheckWeight<Runtime>,
+        pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
+        frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
+    ),
+>;
+
+pub type UncheckedExtrinsic =
+    generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, TxExtension>;
+
+/// Bare meta-transaction extension: the signed part of a meta-transaction,
+/// independent of the runtime's outer `TxExtension`.
+pub type MetaTxBareExtension = (
+    pallet_meta_tx::MetaTxMarker<Runtime>,
+    frame_system::CheckNonZeroSender<Runtime>,
+    frame_system::CheckSpecVersion<Runtime>,
+    frame_system::CheckTxVersion<Runtime>,
+    frame_system::CheckGenesis<Runtime>,
+    frame_system::CheckMortality<Runtime>,
+    frame_system::CheckNonce<Runtime>,
+);
+
+#[cfg(feature = "runtime-benchmarks")]
+pub type MetaTxExtension = pallet_meta_tx::WeightlessExtension<Runtime>;
+
+/// `VerifySignature` validates the meta-tx signature here; it is intentionally
+/// absent from the outer `TxExtension`.
+#[cfg(not(feature = "runtime-benchmarks"))]
+pub type MetaTxExtension = (
+    pallet_verify_signature::VerifySignature<Runtime>,
+    MetaTxBareExtension,
+);
+
+pub type Migrations = migrations::Migrations;
+
+pub type Executive = frame_executive::Executive<
+    Runtime,
+    Block,
+    frame_system::ChainContext<Runtime>,
+    Runtime,
+    AllPalletsWithSystem,
+    Migrations,
+>;
+
+pub struct WeightToFee;
+impl WeightToFeePolynomial for WeightToFee {
+    type Balance = Balance;
+    fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
+        // Fee parity with the live solo chain: one base-extrinsic worth of
+        // weight maps to 10 MILLIUNIT.
+        let p = 10 * MILLIUNIT;
+        let q = Balance::from(ExtrinsicBaseWeight::get().ref_time());
+        smallvec![WeightToFeeCoefficient {
+            degree: 1,
+            negative: false,
+            coeff_frac: Perbill::from_rational(p % q, q),
+            coeff_integer: p / q,
+        }]
+    }
+}
+
+pub mod opaque {
+    use super::*;
+    use sp_runtime::{
+        generic,
+        traits::{BlakeTwo256, Hash as HashT},
+    };
+
+    pub use sp_runtime::OpaqueExtrinsic as UncheckedExtrinsic;
+    pub type Header = generic::Header<BlockNumber, BlakeTwo256>;
+    pub type Block = generic::Block<Header, UncheckedExtrinsic>;
+    pub type BlockId = generic::BlockId<Block>;
+    pub type Hash = <BlakeTwo256 as HashT>::Output;
+}
+
+impl_opaque_keys! {
+    pub struct SessionKeys {
+        pub aura: Aura,
+    }
+}
+
+// This runtime CONTINUES the live `allfeat-melodie-3` solo chain in place
+// (solo→para handover): `spec_name` MUST stay `allfeat-melodie-3`.
+// `spec_version` 300 opens the parachain-era band (205..=299 stay free for
+// last solo-side releases); `transaction_version` bumps to 4 (call surface
+// changed, `TxExtension` gained `StorageWeightReclaim`).
+#[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-    spec_name: alloc::borrow::Cow::Borrowed("allfeat-melodie-3"),
-    impl_name: alloc::borrow::Cow::Borrowed("allfeatlabs-melodie-3"),
+    spec_name: Cow::Borrowed("allfeat-melodie-3"),
+    impl_name: Cow::Borrowed("allfeatlabs-melodie-3"),
     authoring_version: 1,
-    spec_version: 204,
+    spec_version: 300,
     impl_version: 0,
-    apis: RUNTIME_API_VERSIONS,
-    // 204 — added the `Releases` `pallet_midds<Instance3>` (pallet index
-    // 108) and its `ReleaseApi` runtime API, completing the V1 MIDDS type
-    // surface (`MusicalWork` / `Recording` / `Release`). Additive (new
-    // pallet at a fresh index), so existing signed-transaction encoding is
-    // unchanged and `transaction_version` stays at 3. 203 had added the
-    // `Recordings` `pallet_midds<Instance2>` (pallet index 107) the same
-    // way; 202 had bumped the `pallet_midds` extrinsic indices and storage
-    // layout substantially (multi-claim `IdentifierClaims`, payload-hash
-    // index, premium-aware `Deposit`, two-variant `force_remove_*`,
-    // `remove_own` / `finalize`). Per `../midds-sdk/docs/economics.md`
-    // decision #11 no migration is required: melodie testnet is reset on
-    // deploy, mainnet doesn't host the pallet.
-    transaction_version: 3,
+    apis: apis::RUNTIME_API_VERSIONS,
+    transaction_version: 4,
     system_version: 1,
 };
 
-/// The version information used to identify this runtime when compiled natively.
+pub const MILLISECS_PER_BLOCK: u64 = 6000;
+
+pub const SLOT_DURATION: u64 = MILLISECS_PER_BLOCK;
+
+pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
+pub const HOURS: BlockNumber = MINUTES * 60;
+pub const DAYS: BlockNumber = HOURS * 24;
+
+pub const UNIT: Balance = 1_000_000_000_000;
+pub const CENTIUNIT: Balance = 10_000_000_000;
+pub const MILLIUNIT: Balance = 1_000_000_000;
+pub const MICROUNIT: Balance = 1_000_000;
+
+/// 0.1 UNIT, aligned with the live chain.
+pub const EXISTENTIAL_DEPOSIT: Balance = UNIT / 10;
+
+/// Para ID the chain runs under on the relay. `2000` is the local/zombienet
+/// default — replace with the ID reserved on Paseo before the real
+/// registration. Consumed by the genesis presets and seeded on the continued
+/// chain by `TransitionToParachain`, so it has to match the registered ID.
+pub const PARA_ID: u32 = 2000;
+
+const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_percent(5);
+
+const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
+
+const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
+    WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2),
+    cumulus_primitives_core::relay_chain::MAX_POV_SIZE as u64,
+);
+
+const UNINCLUDED_SEGMENT_CAPACITY: u32 = 3;
+const BLOCK_PROCESSING_VELOCITY: u32 = 1;
+const RELAY_CHAIN_SLOT_DURATION_MILLIS: u32 = 6000;
+
+type ConsensusHook = cumulus_pallet_aura_ext::FixedVelocityConsensusHook<
+    Runtime,
+    RELAY_CHAIN_SLOT_DURATION_MILLIS,
+    BLOCK_PROCESSING_VELOCITY,
+    UNINCLUDED_SEGMENT_CAPACITY,
+>;
+
 #[cfg(feature = "std")]
 pub fn native_version() -> NativeVersion {
     NativeVersion {
@@ -100,67 +244,6 @@ pub fn native_version() -> NativeVersion {
         can_author_with: Default::default(),
     }
 }
-
-/// Block header type as expected by this runtime.
-pub type Header = allfeat_primitives::Header;
-/// Block type as expected by this runtime.
-pub type Block = generic::Block<Header, UncheckedExtrinsic>;
-
-/// The `TransactionExtension` to the basic transaction logic.
-pub type TxBareExtension = (
-    frame_system::CheckNonZeroSender<Runtime>,
-    frame_system::CheckSpecVersion<Runtime>,
-    frame_system::CheckTxVersion<Runtime>,
-    frame_system::CheckGenesis<Runtime>,
-    frame_system::CheckMortality<Runtime>,
-    frame_system::CheckNonce<Runtime>,
-    frame_system::CheckWeight<Runtime>,
-    pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
-    frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
-);
-
-pub const META_EXTENSION_VERSION: ExtensionVersion = 0;
-
-#[cfg(feature = "runtime-benchmarks")]
-pub type MetaTxExtension = pallet_meta_tx::WeightlessExtension<Runtime>;
-
-#[cfg(not(feature = "runtime-benchmarks"))]
-/// Meta transaction extension.
-pub type MetaTxExtension = (
-    pallet_verify_signature::VerifySignature<Runtime>,
-    MetaTxBareExtension,
-);
-
-/// Meta transaction extension without signature information.
-///
-/// Helper type used to decode the part of the extension which should be signed.
-pub type MetaTxBareExtension = (
-    MetaTxMarker<Runtime>,
-    frame_system::CheckNonZeroSender<Runtime>,
-    frame_system::CheckSpecVersion<Runtime>,
-    frame_system::CheckTxVersion<Runtime>,
-    frame_system::CheckGenesis<Runtime>,
-    frame_system::CheckMortality<Runtime>,
-    frame_system::CheckNonce<Runtime>,
-);
-
-/// Transaction extension for signed transactions (v4 format, compatible with Polkadot-JS).
-/// Note: VerifySignature is NOT included here because the signature is verified at the
-/// extrinsic level for Signed (v4) transactions.
-pub type TxExtension = TxBareExtension;
-
-/// Unchecked extrinsic type as expected by this runtime.
-pub type UncheckedExtrinsic =
-    generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, TxExtension>;
-
-/// Executive: handles dispatch to the various modules.
-pub type RuntimeExecutive = frame_executive::Executive<
-    Runtime,
-    Block,
-    frame_system::ChainContext<Runtime>,
-    Runtime,
-    AllPalletsWithSystem,
->;
 
 #[frame_support::runtime]
 mod runtime {
@@ -174,79 +257,85 @@ mod runtime {
         RuntimeHoldReason,
         RuntimeSlashReason,
         RuntimeLockId,
-        RuntimeTask
+        RuntimeTask,
+        RuntimeViewFunction
     )]
     pub struct Runtime;
 
+    // Pallet indices are pinned to the Melodie solo chain so its state decodes
+    // unchanged (RuntimeCall/Origin/HoldReason discriminants). Declaration
+    // ORDER (not index) drives hook execution and keeps the template's order.
+    // 7/9/13 reuse slots freed by Validators/Grandpa/Historical; 105-108 are
+    // the ATS/MIDDS indices.
     #[runtime::pallet_index(0)]
-    pub type System = frame_system;
-
-    #[runtime::pallet_index(1)]
-    pub type Utility = pallet_utility;
-
-    #[runtime::pallet_index(2)]
-    pub type Aura = pallet_aura;
-
+    pub type System = frame_system::Pallet<Runtime>;
+    #[runtime::pallet_index(11)]
+    pub type ParachainSystem = cumulus_pallet_parachain_system::Pallet<Runtime>;
     #[runtime::pallet_index(3)]
-    pub type Timestamp = pallet_timestamp;
-
-    #[runtime::pallet_index(4)]
-    pub type Authorship = pallet_authorship;
+    pub type Timestamp = pallet_timestamp::Pallet<Runtime>;
+    #[runtime::pallet_index(12)]
+    pub type ParachainInfo = parachain_info::Pallet<Runtime>;
+    #[runtime::pallet_index(13)]
+    pub type WeightReclaim = cumulus_pallet_weight_reclaim::Pallet<Runtime>;
 
     #[runtime::pallet_index(5)]
-    pub type Balances = pallet_balances;
-
+    pub type Balances = pallet_balances::Pallet<Runtime>;
     #[runtime::pallet_index(6)]
-    pub type TransactionPayment = pallet_transaction_payment;
-
-    #[runtime::pallet_index(7)]
-    pub type Validators = pallet_validators;
-
-    #[runtime::pallet_index(8)]
-    pub type Session = pallet_session;
-
-    #[runtime::pallet_index(9)]
-    pub type Grandpa = pallet_grandpa;
+    pub type TransactionPayment = pallet_transaction_payment::Pallet<Runtime>;
 
     #[runtime::pallet_index(10)]
-    pub type Sudo = pallet_sudo;
+    pub type Sudo = pallet_sudo::Pallet<Runtime>;
 
-    #[runtime::pallet_index(13)]
-    pub type Historical = pallet_session::historical;
+    #[runtime::pallet_index(4)]
+    pub type Authorship = pallet_authorship::Pallet<Runtime>;
+    // The order of these 4 is important and shall not change.
+    #[runtime::pallet_index(7)]
+    pub type CollatorSelection = pallet_collator_selection::Pallet<Runtime>;
+    #[runtime::pallet_index(8)]
+    pub type Session = pallet_session::Pallet<Runtime>;
+    #[runtime::pallet_index(2)]
+    pub type Aura = pallet_aura::Pallet<Runtime>;
+    #[runtime::pallet_index(9)]
+    pub type AuraExt = cumulus_pallet_aura_ext::Pallet<Runtime>;
 
-    #[runtime::pallet_index(14)]
-    pub type Scheduler = pallet_scheduler;
+    #[runtime::pallet_index(30)]
+    pub type XcmpQueue = cumulus_pallet_xcmp_queue::Pallet<Runtime>;
+    #[runtime::pallet_index(31)]
+    pub type PolkadotXcm = pallet_xcm::Pallet<Runtime>;
+    #[runtime::pallet_index(32)]
+    pub type CumulusXcm = cumulus_pallet_xcm::Pallet<Runtime>;
+    #[runtime::pallet_index(33)]
+    pub type MessageQueue = pallet_message_queue::Pallet<Runtime>;
 
-    #[runtime::pallet_index(15)]
-    pub type Preimage = pallet_preimage;
-
-    #[runtime::pallet_index(16)]
-    pub type Proxy = pallet_proxy;
-
+    #[runtime::pallet_index(1)]
+    pub type Utility = pallet_utility::Pallet<Runtime>;
     #[runtime::pallet_index(17)]
-    pub type Multisig = pallet_multisig;
-
+    pub type Multisig = pallet_multisig::Pallet<Runtime>;
+    #[runtime::pallet_index(16)]
+    pub type Proxy = pallet_proxy::Pallet<Runtime>;
+    #[runtime::pallet_index(14)]
+    pub type Scheduler = pallet_scheduler::Pallet<Runtime>;
+    #[runtime::pallet_index(15)]
+    pub type Preimage = pallet_preimage::Pallet<Runtime>;
     #[runtime::pallet_index(18)]
-    pub type SafeMode = pallet_safe_mode;
-
+    pub type SafeMode = pallet_safe_mode::Pallet<Runtime>;
     #[runtime::pallet_index(20)]
-    pub type MetaTx = pallet_meta_tx;
-
+    pub type MetaTx = pallet_meta_tx::Pallet<Runtime>;
     #[runtime::pallet_index(21)]
-    pub type VerifySignature = pallet_verify_signature;
-
-    // Allfeat related
+    pub type VerifySignature = pallet_verify_signature::Pallet<Runtime>;
 
     #[runtime::pallet_index(105)]
-    pub type Ats = pallet_ats;
+    pub type Ats = pallet_ats::Pallet<Runtime>;
 
-    // MIDDS — one pallet_midds instance per supported MIDDS type.
     #[runtime::pallet_index(106)]
-    pub type MusicalWorks = pallet_midds<Instance1>;
-
+    pub type MusicalWorks = pallet_midds::Pallet<Runtime, Instance1>;
     #[runtime::pallet_index(107)]
-    pub type Recordings = pallet_midds<Instance2>;
-
+    pub type Recordings = pallet_midds::Pallet<Runtime, Instance2>;
     #[runtime::pallet_index(108)]
-    pub type Releases = pallet_midds<Instance3>;
+    pub type Releases = pallet_midds::Pallet<Runtime, Instance3>;
+}
+
+cumulus_pallet_parachain_system::register_validate_block! {
+    Runtime = Runtime,
+    BlockExecutor = cumulus_pallet_aura_ext::BlockExecutor::<Runtime, Executive>,
 }

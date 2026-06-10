@@ -24,31 +24,14 @@
 //! HOSTNAME: `3803e90a-1da7-4940-8054-96c4ef646f72-0`, CPU: `AMD EPYC-Milan Processor`
 //! WASM-EXECUTION: `Compiled`, CHAIN: `None`, DB CACHE: `1024`
 
-// Executed Command:
-// /home/debian/.cargo/bin/frame-omni-bencher
-// v1
-// benchmark
-// pallet
-// --runtime
-// target/release/wbuild/melodie-runtime/melodie_runtime.compact.compressed.wasm
-// --genesis-builder-preset=staging
-// --pallet=pallet_ats
-// --extrinsic=*
-// --steps=50
-// --repeat=20
-// --wasm-execution=compiled
-// --heap-pages=4096
-// --header=HEADER
-// --template=.maintain/runtimes-weight-template.hbs
-// --output=runtime/melodie/src/weights/ats.rs
-
 #![cfg_attr(rustfmt, rustfmt_skip)]
 #![allow(unused_parens)]
 #![allow(unused_imports)]
 #![allow(missing_docs)]
 #![allow(dead_code)]
 
-use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
+use polkadot_sdk::frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
+use polkadot_sdk::frame_system;
 use core::marker::PhantomData;
 use pallet_ats::WeightInfo;
 
@@ -59,7 +42,7 @@ impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
 	/// Storage: `Ats::NextAtsId` (r:1 w:1)
 	/// Proof: `Ats::NextAtsId` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
 	/// Storage: `Balances::Holds` (r:1 w:1)
-	/// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(229), added: 2704, mode: `MaxEncodedLen`)
+	/// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(121), added: 2596, mode: `MaxEncodedLen`)
 	/// Storage: `Ats::AtsRegistry` (r:0 w:1)
 	/// Proof: `Ats::AtsRegistry` (`max_values`: None, `max_size`: Some(833), added: 3308, mode: `MaxEncodedLen`)
 	/// Storage: `Ats::AtsVersions` (r:0 w:1)
@@ -67,37 +50,37 @@ impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
 	/// The range of component `n` is `[0, 999]`.
 	fn create(n: u32, ) -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `231 + n * (8 ±0)`
+		//  Measured:  `269 + n * (8 ±0)`
 		//  Estimated: `11515`
-		// Minimum execution time: 80_228_000 picoseconds.
-		Weight::from_parts(99_411_507, 11515)
-			// Standard Error: 1_051
-			.saturating_add(Weight::from_parts(36_255, 0).saturating_mul(n.into()))
+		// Minimum execution time: 68_169_000 picoseconds.
+		Weight::from_parts(80_692_574, 11515)
+			// Standard Error: 502
+			.saturating_add(Weight::from_parts(25_485, 0).saturating_mul(n.into()))
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(5_u64))
 	}
 	/// Storage: `Ats::AtsRegistry` (r:1 w:1)
 	/// Proof: `Ats::AtsRegistry` (`max_values`: None, `max_size`: Some(833), added: 3308, mode: `MaxEncodedLen`)
 	/// Storage: `Balances::Holds` (r:1 w:1)
-	/// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(229), added: 2704, mode: `MaxEncodedLen`)
+	/// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(121), added: 2596, mode: `MaxEncodedLen`)
 	/// Storage: `Ats::AtsVersions` (r:0 w:1)
 	/// Proof: `Ats::AtsVersions` (`max_values`: None, `max_size`: Some(81), added: 2556, mode: `MaxEncodedLen`)
 	/// The range of component `v` is `[1, 99]`.
 	fn update(v: u32, ) -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `293`
+		//  Measured:  `331`
 		//  Estimated: `4298`
-		// Minimum execution time: 78_610_000 picoseconds.
-		Weight::from_parts(81_478_101, 4298)
-			// Standard Error: 4_433
-			.saturating_add(Weight::from_parts(68_310, 0).saturating_mul(v.into()))
+		// Minimum execution time: 68_109_000 picoseconds.
+		Weight::from_parts(71_183_382, 4298)
+			// Standard Error: 2_322
+			.saturating_add(Weight::from_parts(37_165, 0).saturating_mul(v.into()))
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 	}
 	/// Storage: `Ats::AtsRegistry` (r:1 w:1)
 	/// Proof: `Ats::AtsRegistry` (`max_values`: None, `max_size`: Some(833), added: 3308, mode: `MaxEncodedLen`)
 	/// Storage: `Balances::Holds` (r:1 w:1)
-	/// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(229), added: 2704, mode: `MaxEncodedLen`)
+	/// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(121), added: 2596, mode: `MaxEncodedLen`)
 	/// Storage: `Ats::AtsVersions` (r:100 w:100)
 	/// Proof: `Ats::AtsVersions` (`max_values`: None, `max_size`: Some(81), added: 2556, mode: `MaxEncodedLen`)
 	/// Storage: `Ats::OwnerIndex` (r:1 w:1)
@@ -105,12 +88,12 @@ impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
 	/// The range of component `v` is `[1, 100]`.
 	fn revoke(v: u32, ) -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `356 + v * (56 ±0)`
+		//  Measured:  `394 + v * (56 ±0)`
 		//  Estimated: `11515 + v * (2556 ±0)`
-		// Minimum execution time: 74_409_000 picoseconds.
-		Weight::from_parts(79_643_540, 11515)
-			// Standard Error: 13_226
-			.saturating_add(Weight::from_parts(1_311_758, 0).saturating_mul(v.into()))
+		// Minimum execution time: 62_489_000 picoseconds.
+		Weight::from_parts(64_815_038, 11515)
+			// Standard Error: 5_041
+			.saturating_add(Weight::from_parts(1_156_581, 0).saturating_mul(v.into()))
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().reads((1_u64).saturating_mul(v.into())))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
@@ -124,7 +107,7 @@ impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
 	/// Storage: `Ats::NextAtsId` (r:1 w:1)
 	/// Proof: `Ats::NextAtsId` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
 	/// Storage: `Balances::Holds` (r:1 w:1)
-	/// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(229), added: 2704, mode: `MaxEncodedLen`)
+	/// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(121), added: 2596, mode: `MaxEncodedLen`)
 	/// Storage: `Ats::AtsRegistry` (r:0 w:1)
 	/// Proof: `Ats::AtsRegistry` (`max_values`: None, `max_size`: Some(833), added: 3308, mode: `MaxEncodedLen`)
 	/// Storage: `Ats::AtsVersions` (r:0 w:1)
@@ -132,12 +115,12 @@ impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
 	/// The range of component `n` is `[0, 999]`.
 	fn create_on_behalf(n: u32, ) -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `309 + n * (8 ±0)`
+		//  Measured:  `347 + n * (8 ±0)`
 		//  Estimated: `11515`
-		// Minimum execution time: 142_578_000 picoseconds.
-		Weight::from_parts(158_097_223, 11515)
-			// Standard Error: 1_606
-			.saturating_add(Weight::from_parts(15_750, 0).saturating_mul(n.into()))
+		// Minimum execution time: 119_999_000 picoseconds.
+		Weight::from_parts(145_322_181, 11515)
+			// Standard Error: 1_794
+			.saturating_add(Weight::from_parts(37_186, 0).saturating_mul(n.into()))
 			.saturating_add(T::DbWeight::get().reads(4_u64))
 			.saturating_add(T::DbWeight::get().writes(6_u64))
 	}
@@ -146,18 +129,18 @@ impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
 	/// Storage: `Ats::AtsRegistry` (r:1 w:1)
 	/// Proof: `Ats::AtsRegistry` (`max_values`: None, `max_size`: Some(833), added: 3308, mode: `MaxEncodedLen`)
 	/// Storage: `Balances::Holds` (r:1 w:1)
-	/// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(229), added: 2704, mode: `MaxEncodedLen`)
+	/// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(121), added: 2596, mode: `MaxEncodedLen`)
 	/// Storage: `Ats::AtsVersions` (r:0 w:1)
 	/// Proof: `Ats::AtsVersions` (`max_values`: None, `max_size`: Some(81), added: 2556, mode: `MaxEncodedLen`)
 	/// The range of component `v` is `[1, 99]`.
 	fn update_on_behalf(v: u32, ) -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `371`
+		//  Measured:  `409`
 		//  Estimated: `4298`
-		// Minimum execution time: 122_499_000 picoseconds.
-		Weight::from_parts(130_786_145, 4298)
-			// Standard Error: 6_803
-			.saturating_add(Weight::from_parts(60_009, 0).saturating_mul(v.into()))
+		// Minimum execution time: 124_458_000 picoseconds.
+		Weight::from_parts(136_578_114, 4298)
+			// Standard Error: 11_070
+			.saturating_add(Weight::from_parts(32_735, 0).saturating_mul(v.into()))
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(4_u64))
 	}
@@ -166,7 +149,7 @@ impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
 	/// Storage: `Ats::AtsRegistry` (r:1 w:1)
 	/// Proof: `Ats::AtsRegistry` (`max_values`: None, `max_size`: Some(833), added: 3308, mode: `MaxEncodedLen`)
 	/// Storage: `Balances::Holds` (r:1 w:1)
-	/// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(229), added: 2704, mode: `MaxEncodedLen`)
+	/// Proof: `Balances::Holds` (`max_values`: None, `max_size`: Some(121), added: 2596, mode: `MaxEncodedLen`)
 	/// Storage: `Ats::AtsVersions` (r:100 w:100)
 	/// Proof: `Ats::AtsVersions` (`max_values`: None, `max_size`: Some(81), added: 2556, mode: `MaxEncodedLen`)
 	/// Storage: `Ats::OwnerIndex` (r:1 w:1)
@@ -174,12 +157,12 @@ impl<T: frame_system::Config> WeightInfo for AllfeatWeight<T> {
 	/// The range of component `v` is `[1, 100]`.
 	fn revoke_on_behalf(v: u32, ) -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `434 + v * (56 ±0)`
+		//  Measured:  `472 + v * (56 ±0)`
 		//  Estimated: `11515 + v * (2556 ±0)`
-		// Minimum execution time: 114_688_000 picoseconds.
-		Weight::from_parts(125_592_054, 11515)
-			// Standard Error: 17_755
-			.saturating_add(Weight::from_parts(1_474_408, 0).saturating_mul(v.into()))
+		// Minimum execution time: 118_399_000 picoseconds.
+		Weight::from_parts(122_311_208, 11515)
+			// Standard Error: 17_903
+			.saturating_add(Weight::from_parts(1_599_520, 0).saturating_mul(v.into()))
 			.saturating_add(T::DbWeight::get().reads(4_u64))
 			.saturating_add(T::DbWeight::get().reads((1_u64).saturating_mul(v.into())))
 			.saturating_add(T::DbWeight::get().writes(4_u64))

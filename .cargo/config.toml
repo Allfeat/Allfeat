@@ -1,0 +1,2 @@
+[env]
+SKIP_PALLET_REVIVE_FIXTURES = "1"
