@@ -18,11 +18,11 @@
 //! Expose the auto generated weight files.
 
 pub mod ats;
+pub mod block_weights;
+pub mod extrinsic_weights;
 pub mod midds_musical_works;
 pub mod midds_recordings;
 pub mod midds_releases;
-pub mod block_weights;
-pub mod extrinsic_weights;
 pub mod paritydb_weights;
 pub mod rocksdb_weights;
 

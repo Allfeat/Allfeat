@@ -1,8 +1,8 @@
 use crate::{
+	AccountId, BalancesConfig, CollatorSelectionConfig, EXISTENTIAL_DEPOSIT, MusicalWorksConfig,
+	PARA_ID, ParachainInfoConfig, PolkadotXcmConfig, RecordingsConfig, ReleasesConfig,
+	RuntimeGenesisConfig, SessionConfig, SessionKeys, SudoConfig,
 	configs::{MiddsDepositBase, MiddsDepositPerByte},
-	AccountId, BalancesConfig, CollatorSelectionConfig, MusicalWorksConfig, ParachainInfoConfig,
-	PolkadotXcmConfig, RecordingsConfig, ReleasesConfig, RuntimeGenesisConfig, SessionConfig,
-	SessionKeys, SudoConfig, EXISTENTIAL_DEPOSIT, PARA_ID,
 };
 use alloc::{vec, vec::Vec};
 use polkadot_sdk::{
@@ -40,13 +40,7 @@ fn testnet_genesis(
 		session: SessionConfig {
 			keys: invulnerables
 				.into_iter()
-				.map(|(acc, aura)| {
-					(
-						acc.clone(),
-						acc,
-						template_session_keys(aura),
-					)
-				})
+				.map(|(acc, aura)| { (acc.clone(), acc, template_session_keys(aura),) })
 				.collect::<Vec<_>>()
 		},
 		polkadot_xcm: PolkadotXcmConfig { safe_xcm_version: Some(SAFE_XCM_VERSION) },

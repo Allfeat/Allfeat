@@ -53,6 +53,14 @@ jobs:
           mkdir dist
           cp "$WASM_PATH" "dist/"
 
+      # Build digest (srtool/rustc versions, hashes…) — shipped next to the
+      # wasm so releases can document how to reproduce the build.
+      - name: Export srtool digest
+        run: |
+          echo '${{ steps.srtool_build.outputs.json }}' \
+            | jq . > "dist/${{ inputs.runtime_name }}-srtool-digest.json"
+          cat "dist/${{ inputs.runtime_name }}-srtool-digest.json"
+
       - name: Upload runtime artifacts
         uses: actions/upload-artifact@v4
         with:

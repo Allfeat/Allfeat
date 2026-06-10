@@ -1,9 +1,10 @@
-name: Build and Push Melodie Dev Image
+name: Build and Push Dev Images
 
-# Thin dev-node image: the official polkadot-omni-node image plus the dev
+# Thin dev-node images: the official polkadot-omni-node image plus the dev
 # chain spec generated from the runtime wasm built at this commit. Dev
-# environments run it as a single pod (manual seal, no relay chain) — the
-# parachain equivalent of the old `allfeat --dev`.
+# environments run them as a single pod (manual seal, no relay chain) — the
+# parachain equivalent of the old `allfeat --dev`. One image per runtime:
+# melodie-dev-node (testnet runtime) and allfeat-dev-node (mainnet runtime).
 
 on:
   workflow_dispatch:
@@ -16,9 +17,17 @@ on:
       - "Cargo.toml"
       - "Cargo.lock"
       - "rust-toolchain.toml"
-      - "runtime/melodie/**"
+      - "runtime/**"
+      - "pallets/**"
       - "docker/melodie-dev.Dockerfile"
+      - "docker/allfeat-dev.Dockerfile"
       - ".github/workflows/build-push-dev-image.yml"
+
+# Serialize per ref without cancelling: an in-flight image push should finish
+# (queued runs are superseded by the latest one).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 env:
   REGISTRY: ghcr.io
@@ -27,7 +36,7 @@ env:
   OMNI_NODE_IMAGE: docker.io/parity/polkadot-omni-node:stable2603-3
 
 jobs:
-  build-push-dev-image:
+  build-push-dev-images:
     runs-on: ubuntu-latest
 
     permissions:
@@ -35,8 +44,11 @@ jobs:
       packages: write
 
     steps:
-      - name: Set image name
-        run: echo "IMAGE_NAME=$(echo '${{ github.repository_owner }}/melodie-dev-node' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+      - name: Set image names
+        run: |
+          OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')
+          echo "MELODIE_IMAGE=${OWNER}/melodie-dev-node" >> $GITHUB_ENV
+          echo "ALLFEAT_IMAGE=${OWNER}/allfeat-dev-node" >> $GITHUB_ENV
 
       - name: Free disk space
         uses: endersonmenezes/free-disk-space@v3
@@ -52,27 +64,38 @@ jobs:
       - name: Setup Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
 
-      - name: Build runtime wasm
-        run: cargo build --locked --release --package melodie-runtime
+      - name: Build runtime wasms
+        run: cargo build --locked --release --package melodie-runtime --package allfeat-runtime
 
-      - name: Generate dev chain spec
+      - name: Generate dev chain specs
         run: |
-          mkdir -p image-context
-          docker run --rm --user root \
-            --entrypoint /usr/local/bin/polkadot-omni-node \
-            -v "$PWD:/work" -w /work/image-context \
-            "$OMNI_NODE_IMAGE" \
-            chain-spec-builder create \
-              --chain-name "Allfeat Melodie Dev" \
-              --chain-id melodie-dev \
-              -t development \
-              --para-id 2000 \
-              --relay-chain paseo-local \
-              --raw-storage \
-              --properties tokenSymbol=MEL,tokenDecimals=12,ss58Format=42 \
-              --runtime /work/target/release/wbuild/melodie-runtime/melodie_runtime.compact.compressed.wasm \
-              named-preset development
-          mv image-context/chain_spec.json image-context/melodie-dev.json
+          spec() {
+            local context="$1" chain_name="$2" chain_id="$3" relay="$4" props="$5" wasm="$6" out="$7"
+            mkdir -p "$context"
+            docker run --rm --user root \
+              --entrypoint /usr/local/bin/polkadot-omni-node \
+              -v "$PWD:/work" -w "/work/$context" \
+              "$OMNI_NODE_IMAGE" \
+              chain-spec-builder create \
+                --chain-name "$chain_name" \
+                --chain-id "$chain_id" \
+                -t development \
+                --para-id 2000 \
+                --relay-chain "$relay" \
+                --raw-storage \
+                --properties "$props" \
+                --runtime "/work/$wasm" \
+                named-preset development
+            mv "$context/chain_spec.json" "$context/$out"
+          }
+          spec image-context-melodie "Allfeat Melodie Dev" melodie-dev paseo-local \
+            tokenSymbol=MEL,tokenDecimals=12,ss58Format=42 \
+            target/release/wbuild/melodie-runtime/melodie_runtime.compact.compressed.wasm \
+            melodie-dev.json
+          spec image-context-allfeat "Allfeat Dev" allfeat-dev polkadot-local \
+            tokenSymbol=AFT,tokenDecimals=12,ss58Format=440 \
+            target/release/wbuild/allfeat-runtime/allfeat_runtime.compact.compressed.wasm \
+            allfeat-dev.json
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
@@ -81,27 +104,49 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract metadata (melodie)
+        id: meta-melodie
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.MELODIE_IMAGE }}
           tags: |
             type=ref,event=branch
             type=sha,format=long
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build and push
+      - name: Build and push (melodie)
         uses: docker/build-push-action@v6
         with:
-          context: image-context
+          context: image-context-melodie
           file: docker/melodie-dev.Dockerfile
           # parity/polkadot-omni-node is only published for linux/amd64.
           platforms: linux/amd64
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta-melodie.outputs.tags }}
+          labels: ${{ steps.meta-melodie.outputs.labels }}
+          build-args: |
+            OMNI_NODE_IMAGE=${{ env.OMNI_NODE_IMAGE }}
+
+      - name: Extract metadata (allfeat)
+        id: meta-allfeat
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.ALLFEAT_IMAGE }}
+          tags: |
+            type=ref,event=branch
+            type=sha,format=long
+
+      - name: Build and push (allfeat)
+        uses: docker/build-push-action@v6
+        with:
+          context: image-context-allfeat
+          file: docker/allfeat-dev.Dockerfile
+          # parity/polkadot-omni-node is only published for linux/amd64.
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta-allfeat.outputs.tags }}
+          labels: ${{ steps.meta-allfeat.outputs.labels }}
           build-args: |
             OMNI_NODE_IMAGE=${{ env.OMNI_NODE_IMAGE }}

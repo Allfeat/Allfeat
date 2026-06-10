@@ -16,6 +16,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! The Allfeat mainnet parachain runtime. Like Melodie, it CONTINUES the
+//! live `allfeat` solo chain in place (solo→para handover, see
+//! `migrations.rs`); the genesis presets and tokenomics only seed fresh
+//! dev/local/staging networks.
+
 #![cfg_attr(not(feature = "std"), no_std)]
 #![recursion_limit = "256"]
 
@@ -27,7 +32,10 @@ pub mod apis;
 mod benchmarks;
 pub mod configs;
 mod genesis_config_presets;
+mod genesis_token;
 pub mod migrations;
+#[cfg(test)]
+mod tests;
 mod weights;
 
 extern crate alloc;
@@ -45,8 +53,8 @@ use polkadot_sdk::{
 	},
 	frame_system, pallet_aura, pallet_authorship, pallet_balances, pallet_collator_selection,
 	pallet_message_queue, pallet_meta_tx, pallet_multisig, pallet_preimage, pallet_proxy,
-	pallet_safe_mode, pallet_scheduler, pallet_session, pallet_sudo, pallet_timestamp,
-	pallet_transaction_payment, pallet_utility, pallet_verify_signature, pallet_xcm,
+	pallet_scheduler, pallet_session, pallet_sudo, pallet_timestamp, pallet_transaction_payment,
+	pallet_treasury, pallet_utility, pallet_verify_signature, pallet_xcm,
 	sp_runtime::{Cow, Perbill, generic, impl_opaque_keys},
 	sp_version::{self, RuntimeVersion},
 	staging_parachain_info as parachain_info,
@@ -62,7 +70,7 @@ pub use allfeat_runtime_common::{
 	RELAY_CHAIN_SLOT_DURATION_MILLIS, Signature, UNINCLUDED_SEGMENT_CAPACITY,
 	currency::{CENTIUNIT, EXISTENTIAL_DEPOSIT, MICROUNIT, MILLIUNIT, UNIT},
 	opaque,
-	time::{DAYS, HOURS, MILLISECS_PER_BLOCK, MINUTES, SLOT_DURATION},
+	time::{DAYS, HOURS, MILLISECS_PER_BLOCK, MINUTES, MONTHS, SLOT_DURATION},
 };
 
 use weights::ExtrinsicBaseWeight;
@@ -73,7 +81,6 @@ pub type SignedBlock = generic::SignedBlock<Block>;
 
 pub type BlockId = generic::BlockId<Block>;
 
-#[docify::export(template_signed_extra)]
 pub type TxExtension = StorageWeightReclaim<
 	Runtime,
 	(
@@ -127,8 +134,8 @@ pub struct WeightToFee;
 impl WeightToFeePolynomial for WeightToFee {
 	type Balance = Balance;
 	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-		// Fee parity with the live solo chain: one base-extrinsic worth of
-		// weight maps to 10 MILLIUNIT.
+		// Economic parity across Allfeat networks: one base-extrinsic worth
+		// of weight maps to 10 MILLIUNIT.
 		let p = 10 * MILLIUNIT;
 		let q = Balance::from(ExtrinsicBaseWeight::get().ref_time());
 		smallvec![WeightToFeeCoefficient {
@@ -146,25 +153,25 @@ impl_opaque_keys! {
 	}
 }
 
-// This runtime CONTINUES the live `allfeat-melodie-3` solo chain in place
-// (solo→para handover): `spec_name` MUST stay `allfeat-melodie-3`.
-// `spec_version` 300 opens the parachain-era band (205..=299 stay free for
-// last solo-side releases); `transaction_version` bumps to 4 (call surface
+// This runtime CONTINUES the live `allfeat` solo chain in place (solo→para
+// handover): `spec_name` MUST stay `allfeat`. `spec_version` 300 opens the
+// parachain-era band, aligned with Melodie (204..=299 stay free for last
+// solo-side releases); `transaction_version` bumps to 3 (call surface
 // changed, `TxExtension` gained `StorageWeightReclaim`).
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: Cow::Borrowed("allfeat-melodie-3"),
-	impl_name: Cow::Borrowed("allfeatlabs-melodie-3"),
+	spec_name: Cow::Borrowed("allfeat"),
+	impl_name: Cow::Borrowed("allfeatlabs-allfeat"),
 	authoring_version: 1,
 	spec_version: 300,
 	impl_version: 0,
 	apis: apis::RUNTIME_API_VERSIONS,
-	transaction_version: 4,
+	transaction_version: 3,
 	system_version: 1,
 };
 
 /// Para ID the chain runs under on the relay. `2000` is the local/zombienet
-/// default — replace with the ID reserved on Paseo before the real
+/// default — replace with the ID reserved on Polkadot before the real
 /// registration. Consumed by the genesis presets and seeded on the continued
 /// chain by `TransitionToParachain`, so it has to match the registered ID.
 pub const PARA_ID: u32 = 2000;
@@ -198,11 +205,12 @@ mod runtime {
 	)]
 	pub struct Runtime;
 
-	// Pallet indices are pinned to the Melodie solo chain so its state decodes
-	// unchanged (RuntimeCall/Origin/HoldReason discriminants). Declaration
-	// ORDER (not index) drives hook execution and keeps the template's order.
-	// 7/9/13 reuse slots freed by Validators/Grandpa/Historical; 105-108 are
-	// the ATS/MIDDS indices.
+	// Pallet indices are pinned to the live `allfeat` solo chain so its state
+	// decodes unchanged (RuntimeCall/Origin/HoldReason discriminants), with
+	// the same parachain substitutions as Melodie: 7 Validators→CollatorSelection,
+	// 9 Grandpa→AuraExt, 13 Historical→WeightReclaim; 11/12 host the cumulus
+	// system pallets and 30-33 the XCM stack. Declaration ORDER (not index)
+	// drives hook execution and matches Melodie.
 	#[runtime::pallet_index(0)]
 	pub type System = frame_system::Pallet<Runtime>;
 	#[runtime::pallet_index(11)]
@@ -254,7 +262,9 @@ mod runtime {
 	#[runtime::pallet_index(15)]
 	pub type Preimage = pallet_preimage::Pallet<Runtime>;
 	#[runtime::pallet_index(18)]
-	pub type SafeMode = pallet_safe_mode::Pallet<Runtime>;
+	pub type TokenAllocation = pallet_token_allocation::Pallet<Runtime>;
+	#[runtime::pallet_index(19)]
+	pub type Treasury = pallet_treasury::Pallet<Runtime>;
 	#[runtime::pallet_index(20)]
 	pub type MetaTx = pallet_meta_tx::Pallet<Runtime>;
 	#[runtime::pallet_index(21)]
@@ -262,13 +272,6 @@ mod runtime {
 
 	#[runtime::pallet_index(105)]
 	pub type Ats = pallet_ats::Pallet<Runtime>;
-
-	#[runtime::pallet_index(106)]
-	pub type MusicalWorks = pallet_midds::Pallet<Runtime, Instance1>;
-	#[runtime::pallet_index(107)]
-	pub type Recordings = pallet_midds::Pallet<Runtime, Instance2>;
-	#[runtime::pallet_index(108)]
-	pub type Releases = pallet_midds::Pallet<Runtime, Instance3>;
 }
 
 cumulus_pallet_parachain_system::register_validate_block! {

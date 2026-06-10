@@ -1,0 +1,105 @@
+# Quality gate for the runtimes workspace. Single entry point for PRs and
+# master pushes; branch protection should require only the final `ci-ok` job,
+# so jobs can be added or removed here without touching the repo settings.
+#
+# No `paths` filter on purpose: a path-filtered required check stays
+# "expected/waiting" forever on PRs that don't match it (docs-only, CI-only)
+# and blocks the merge. rust-cache keeps the always-run cost low.
+name: CI
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - master
+      # Temporary until the parachain migration lands on master.
+      - feat/parachain-migration
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
+permissions:
+  contents: read
+
+jobs:
+  fmt:
+    name: Rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: rustfmt
+          # No build artifacts to cache for a format check.
+          cache: false
+
+      - name: Check formatting
+        run: cargo fmt --all --check
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          components: clippy
+
+      - name: Clippy (deny warnings)
+        run: cargo clippy --locked --workspace --all-features -- -D warnings
+        env:
+          SKIP_WASM_BUILD: "1"
+
+  # Native + wasm: wasm-builder runs here (no SKIP_WASM_BUILD), so this is the
+  # job that catches wasm-only breakage (e.g. a missing `std` feature
+  # propagation in a dependency).
+  check:
+    name: Check (all features)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Cargo check
+        run: cargo check --locked --workspace --all-features
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Cargo test
+        run: cargo test --locked --workspace
+        env:
+          SKIP_WASM_BUILD: "1"
+
+  # The single status to mark as "required" in branch protection.
+  ci-ok:
+    name: CI OK
+    runs-on: ubuntu-latest
+    needs: [fmt, clippy, check, test]
+    if: always()
+    steps:
+      - name: All jobs succeeded
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "One or more required jobs failed or were cancelled."
+            exit 1
+          fi
+          echo "All required jobs succeeded."

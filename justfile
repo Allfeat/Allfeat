@@ -6,16 +6,21 @@ set positional-arguments := true
 CARGO_PROFILE := env("PROFILE", "release")
 BENCHER := env("BENCHER_PATH", "frame-omni-bencher")
 
-# Build the workspace, i.e. the Melodie runtime (default to release profile).
-# The chain runs on `polkadot-omni-node` — there is no node crate to build here.
+# Build the workspace, i.e. the Melodie and Allfeat runtimes (default to
+# release profile). The chains run on `polkadot-omni-node` — there is no node
+# crate to build here.
 [no-exit-message]
 build:
-  echo "Building the Melodie parachain runtime with profile '{{CARGO_PROFILE}}'"
+  echo "Building the Allfeat parachain runtimes with profile '{{CARGO_PROFILE}}'"
   cargo build --profile {{CARGO_PROFILE}}
 
 [no-exit-message]
 build-melodie:
   cargo build --profile=production --package melodie-runtime --features on-chain-release-build
+
+[no-exit-message]
+build-mainnet:
+  cargo build --profile=production --package allfeat-runtime --features on-chain-release-build
 
 [no-exit-message]
 benchmark-pallet runtime="melodie" pallet="":
@@ -46,6 +51,21 @@ build-spec-dev:
     --raw-storage \
     --properties tokenSymbol=MEL,tokenDecimals=12,ss58Format=42 \
     --runtime ./target/release/wbuild/melodie-runtime/melodie_runtime.compact.compressed.wasm \
+    named-preset development
+
+# Same as build-spec-dev, for the Allfeat (mainnet) runtime.
+[no-exit-message]
+build-spec-dev-mainnet:
+  cargo build --locked --release --package allfeat-runtime
+  polkadot-omni-node chain-spec-builder create \
+    --chain-name "Allfeat Dev" \
+    --chain-id allfeat-dev \
+    -t development \
+    --para-id 2000 \
+    --relay-chain polkadot-local \
+    --raw-storage \
+    --properties tokenSymbol=AFT,tokenDecimals=12,ss58Format=440 \
+    --runtime ./target/release/wbuild/allfeat-runtime/allfeat_runtime.compact.compressed.wasm \
     named-preset development
 
 [no-exit-message]

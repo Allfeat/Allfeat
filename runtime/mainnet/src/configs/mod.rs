@@ -19,6 +19,8 @@
 #[path = "xcm.rs"]
 mod xcm_config;
 
+#[cfg(feature = "runtime-benchmarks")]
+use core::marker::PhantomData;
 use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 use polkadot_sdk::{
 	cumulus_pallet_aura_ext, cumulus_pallet_weight_reclaim, cumulus_pallet_xcmp_queue,
@@ -30,31 +32,38 @@ use polkadot_sdk::{
 		pallet_prelude::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen},
 		parameter_types,
 		traits::{
-			ConstBool, ConstU8, ConstU32, ConstU64, Contains, EitherOfDiverse, EqualPrivilegeOnly,
+			ConstBool, ConstU8, ConstU16, ConstU32, ConstU64, EitherOfDiverse, EqualPrivilegeOnly,
 			Imbalance, InstanceFilter, LinearStoragePrice, OnUnbalanced, TransformOrigin,
 			VariantCountOf,
 			fungible::{Balanced, Credit, HoldConsideration},
+			tokens::{PayFromAccount, UnityAssetBalanceConversion},
 		},
 		weights::{ConstantMultiplier, Weight},
 	},
 	frame_system,
-	frame_system::{EnsureRoot, EnsureRootWithSuccess, EnsureSigned, limits::BlockWeights},
+	frame_system::{EnsureRoot, EnsureRootWithSuccess, limits::BlockWeights},
 	pallet_aura, pallet_authorship, pallet_balances, pallet_collator_selection,
 	pallet_message_queue, pallet_meta_tx, pallet_multisig, pallet_preimage, pallet_proxy,
-	pallet_safe_mode, pallet_scheduler, pallet_session, pallet_sudo, pallet_timestamp,
-	pallet_transaction_payment, pallet_utility, pallet_verify_signature,
+	pallet_scheduler, pallet_session, pallet_sudo, pallet_timestamp, pallet_transaction_payment,
+	pallet_treasury, pallet_utility, pallet_verify_signature,
 	pallet_xcm::{EnsureXcm, IsVoiceOfBody},
 	parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling},
 	polkadot_runtime_common::{BlockHashCount, xcm_sender::NoPriceForMessageDelivery},
 	sp_consensus_aura::sr25519::AuthorityId as AuraId,
 	sp_runtime,
 	sp_runtime::{
-		FixedU128, Perbill,
-		traits::{AccountIdConversion, BlakeTwo256, Verify},
+		Perbill,
+		traits::{BlakeTwo256, IdentityLookup, Verify},
 	},
 	sp_version::RuntimeVersion,
 	staging_parachain_info as parachain_info,
 	staging_xcm::latest::prelude::BodyId,
+};
+#[cfg(feature = "runtime-benchmarks")]
+use polkadot_sdk::{
+	frame_support::traits::fungible::{Inspect, Mutate},
+	pallet_treasury::ArgumentsFactory,
+	sp_core::crypto::FromEntropy,
 };
 
 pub use allfeat_runtime_common::{RuntimeBlockLength, SlowAdjustingFeeUpdate, currency::deposit};
@@ -62,10 +71,10 @@ pub use allfeat_runtime_common::{RuntimeBlockLength, SlowAdjustingFeeUpdate, cur
 use super::{
 	AVERAGE_ON_INITIALIZE_RATIO, AccountId, Aura, Authorship, Balance, Balances, Block,
 	BlockNumber, CollatorSelection, ConsensusHook, DAYS, EXISTENTIAL_DEPOSIT, HOURS, Hash,
-	MAXIMUM_BLOCK_WEIGHT, MICROUNIT, MILLIUNIT, MessageQueue, MetaTxExtension,
-	NORMAL_DISPATCH_RATIO, Nonce, OriginCaller, PalletInfo, ParachainSystem, Preimage, Runtime,
-	RuntimeCall, RuntimeEvent, RuntimeFreezeReason, RuntimeHoldReason, RuntimeOrigin, RuntimeTask,
-	SLOT_DURATION, Session, SessionKeys, Signature, System, UNIT, VERSION, WeightToFee, XcmpQueue,
+	MAXIMUM_BLOCK_WEIGHT, MICROUNIT, MessageQueue, MetaTxExtension, NORMAL_DISPATCH_RATIO, Nonce,
+	OriginCaller, PalletInfo, ParachainSystem, Preimage, Runtime, RuntimeCall, RuntimeEvent,
+	RuntimeFreezeReason, RuntimeHoldReason, RuntimeOrigin, RuntimeTask, SLOT_DURATION, Session,
+	SessionKeys, Signature, System, Treasury, UNIT, VERSION, WeightToFee, XcmpQueue,
 	weights::{BlockExecutionWeight, ExtrinsicBaseWeight, ParityDbWeight},
 };
 use xcm_config::{RelayLocation, XcmOriginToTransactDispatchOrigin};
@@ -89,7 +98,6 @@ parameter_types! {
 		})
 		.avg_block_initialization(AVERAGE_ON_INITIALIZE_RATIO)
 		.build_or_panic();
-	pub const SS58Prefix: u16 = 42;
 }
 
 #[derive_impl(frame_system::config_preludes::ParaChainDefaultConfig)]
@@ -106,7 +114,8 @@ impl frame_system::Config for Runtime {
 	type DbWeight = ParityDbWeight;
 	type BlockWeights = RuntimeBlockWeights;
 	type BlockLength = RuntimeBlockLength;
-	type SS58Prefix = SS58Prefix;
+	/// `allfeat_network`, registered in the SS58 registry.
+	type SS58Prefix = ConstU16<440>;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 	type MaxConsumers = ConstU32<16>;
 }
@@ -149,12 +158,12 @@ impl pallet_balances::Config for Runtime {
 }
 
 parameter_types! {
-	/// Live-chain parity: deliberately 1/10 of the template default so the
-	/// length fee does not dwarf the MIDDS bonds.
-	pub const TransactionByteFee: Balance = MICROUNIT;
+	/// Historical mainnet value (10x the Melodie byte fee).
+	pub const TransactionByteFee: Balance = 10 * MICROUNIT;
 }
 
-/// Routes 100% of transaction fees and tips to the block author.
+/// Routes 80% of transaction fees and tips to the block author and 20% to
+/// the treasury (historical mainnet split).
 pub struct DealWithFees;
 impl OnUnbalanced<Credit<AccountId, Balances>> for DealWithFees {
 	fn on_unbalanceds(mut fees_then_tips: impl Iterator<Item = Credit<AccountId, Balances>>) {
@@ -162,11 +171,11 @@ impl OnUnbalanced<Credit<AccountId, Balances>> for DealWithFees {
 			if let Some(tips) = fees_then_tips.next() {
 				tips.merge_into(&mut amount);
 			}
+			let treasury_amount = Perbill::from_percent(20) * amount.peek();
+			let (treasury_part, author_part) = amount.split(treasury_amount);
+			let _ = Balances::resolve(&Treasury::account_id(), treasury_part);
 			if let Some(author) = Authorship::author() {
-				match Balances::resolve(&author, amount) {
-					Ok(_) => (),
-					Err(_drop) => (),
-				}
+				let _ = Balances::resolve(&author, author_part);
 			}
 		}
 	}
@@ -432,39 +441,6 @@ impl pallet_multisig::Config for Runtime {
 	type WeightInfo = ();
 }
 
-pub struct SafeModeWhitelistedCalls;
-impl Contains<RuntimeCall> for SafeModeWhitelistedCalls {
-	fn contains(call: &RuntimeCall) -> bool {
-		matches!(call, RuntimeCall::System(_) | RuntimeCall::SafeMode(_))
-	}
-}
-
-parameter_types! {
-	pub const EnterDuration: BlockNumber = 4 * HOURS;
-	pub const EnterDepositAmount: Option<Balance> = None;
-	pub const ExtendDuration: BlockNumber = 2 * HOURS;
-	pub const ExtendDepositAmount: Option<Balance> = None;
-	pub const ReleaseDelay: u32 = 2 * DAYS;
-}
-
-impl pallet_safe_mode::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Currency = Balances;
-	type RuntimeHoldReason = RuntimeHoldReason;
-	type WhitelistedCalls = SafeModeWhitelistedCalls;
-	type EnterDuration = EnterDuration;
-	type ExtendDuration = ExtendDuration;
-	type EnterDepositAmount = EnterDepositAmount;
-	type ExtendDepositAmount = ExtendDepositAmount;
-	type ForceEnterOrigin = EnsureRootWithSuccess<AccountId, ConstU32<9>>;
-	type ForceExtendOrigin = EnsureRootWithSuccess<AccountId, ConstU32<11>>;
-	type ForceExitOrigin = EnsureRoot<AccountId>;
-	type ForceDepositOrigin = EnsureRoot<AccountId>;
-	type Notify = ();
-	type ReleaseDelay = ReleaseDelay;
-	type WeightInfo = ();
-}
-
 impl pallet_meta_tx::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Extension = MetaTxExtension;
@@ -477,6 +453,75 @@ impl pallet_verify_signature::Config for Runtime {
 	type WeightInfo = ();
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
+}
+
+// Treasury (fed by 20% of the transaction fees and the tokenomics
+// envelopes whose unique beneficiary is the treasury account).
+
+parameter_types! {
+	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
+	pub const SpendPeriod: BlockNumber = 6 * DAYS;
+	pub const PayoutSpendPeriod: BlockNumber = 30 * DAYS;
+	pub const MaxBalance: Balance = Balance::MAX;
+	pub TreasuryAccount: AccountId = Treasury::account_id();
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+pub struct PalletTreasuryArguments<T>(PhantomData<T>);
+
+#[cfg(feature = "runtime-benchmarks")]
+impl<T> ArgumentsFactory<(), AccountId> for PalletTreasuryArguments<T>
+where
+	T: Mutate<AccountId> + Inspect<AccountId>,
+{
+	fn create_asset_kind(_seed: u32) {}
+	fn create_beneficiary(seed: [u8; 32]) -> AccountId {
+		let account = AccountId::from_entropy(&mut seed.as_slice()).unwrap();
+		<T as Mutate<_>>::mint_into(&account, <T as Inspect<_>>::minimum_balance()).unwrap();
+		account
+	}
+}
+
+impl pallet_treasury::Config for Runtime {
+	type PalletId = TreasuryPalletId;
+	type Currency = Balances;
+	type RejectOrigin = EnsureRoot<Self::AccountId>;
+	type RuntimeEvent = RuntimeEvent;
+	type SpendPeriod = SpendPeriod;
+	type Burn = ();
+	type BurnDestination = ();
+	type MaxApprovals = ConstU32<100>;
+	type WeightInfo = ();
+	type SpendFunds = ();
+	type SpendOrigin = EnsureRootWithSuccess<Self::AccountId, MaxBalance>;
+	type AssetKind = ();
+	type Beneficiary = Self::AccountId;
+	type BeneficiaryLookup = IdentityLookup<Self::Beneficiary>;
+	type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
+	type BalanceConverter = UnityAssetBalanceConversion;
+	type PayoutPeriod = PayoutSpendPeriod;
+	type BlockNumberProvider = System;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = PalletTreasuryArguments<Balances>;
+}
+
+// Token allocation (genesis tokenomics: upfront, cliff and linear vesting
+// per envelope).
+
+parameter_types! {
+	pub const TokenAllocPalletId: PalletId = PalletId(*b"m/tknalc");
+	pub const EpochDuration: BlockNumber = DAYS;
+	pub const MaxPayoutsPerBlock: u32 = 256;
+}
+
+impl pallet_token_allocation::Config for Runtime {
+	type Currency = Balances;
+	type AdminOrigin = EnsureRoot<Self::AccountId>;
+	type PalletId = TokenAllocPalletId;
+	type EpochDuration = EpochDuration;
+	type MaxPayoutsPerBlock = MaxPayoutsPerBlock;
+	type RuntimeHoldReason = RuntimeHoldReason;
+	type WeightInfo = pallet_token_allocation::weights::AllfeatWeight<Runtime>;
 }
 
 // ATS (Allfeat Timestamp Service).
@@ -500,295 +545,4 @@ impl pallet_ats::Config for Runtime {
 	type WeightInfo = crate::weights::ats::AllfeatWeight<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
-}
-
-// MIDDS — one `pallet_midds` instance per type: MusicalWork (Instance1),
-// Recording (Instance2), Release (Instance3). The bond floor below is
-// runtime-mutable storage seeded at genesis (and re-seeded by the migration);
-// governance can recalibrate via `force_set_deposit_*`.
-
-parameter_types! {
-	pub const MiddsDepositBase: Balance = 100 * MILLIUNIT;
-	pub const MiddsDepositPerByte: Balance = 250 * MICROUNIT;
-
-	pub const MiddsCommitmentWindow: BlockNumber = 7 * DAYS;
-	pub const MiddsMaxFinalizationsPerBlock: u32 = 100;
-	// Must stay ≥ the benchmark sweep range (`Linear<1, 64>`).
-	pub const MiddsMaxRemovalsPerCall: u32 = 100;
-	pub const MiddsBlocksPerDay: BlockNumber = DAYS;
-
-	// M_fast — anti-DoS, per-block reactivity.
-	pub const MiddsFastTargetPerBlock: u32 = 100;
-	pub MiddsFastAdjustmentRate: FixedU128 = FixedU128::from_rational(125, 1_000);
-	pub MiddsFastMultiplierMin: FixedU128 = FixedU128::from_rational(1, 10);
-	pub MiddsFastMultiplierMax: FixedU128 = FixedU128::from_u32(20);
-
-	// M_slow — anti-flood, 7-day rolling window.
-	pub const MiddsSlowTargetPerWindow: u32 = 200_000;
-	pub MiddsSlowAdjustmentRate: FixedU128 = FixedU128::from_rational(5, 100);
-	pub MiddsSlowMultiplierMin: FixedU128 = FixedU128::from_rational(1, 10);
-	pub MiddsSlowMultiplierMax: FixedU128 = FixedU128::from_u32(50);
-
-	pub const MiddsTreasuryPalletId: PalletId = PalletId(*b"af/midds");
-	pub MiddsTreasuryAccount: AccountId =
-		MiddsTreasuryPalletId::get().into_account_truncating();
-}
-
-impl pallet_midds::Config<pallet_midds::Instance1> for Runtime {
-	type Currency = Balances;
-	type RuntimeHoldReason = RuntimeHoldReason;
-	type Midds = midds_types::MusicalWork;
-	type ProviderOrigin = EnsureSigned<AccountId>;
-	type ForceOrigin = EnsureRoot<AccountId>;
-	type OffchainSignature = Signature;
-	type Signer = sp_runtime::MultiSigner;
-	type TreasuryAccount = MiddsTreasuryAccount;
-	type CommitmentWindow = MiddsCommitmentWindow;
-	type MaxFinalizationsPerBlock = MiddsMaxFinalizationsPerBlock;
-	type MaxRemovalsPerCall = MiddsMaxRemovalsPerCall;
-	type BlocksPerDay = MiddsBlocksPerDay;
-	type FastTargetPerBlock = MiddsFastTargetPerBlock;
-	type FastAdjustmentRate = MiddsFastAdjustmentRate;
-	type FastMultiplierMin = MiddsFastMultiplierMin;
-	type FastMultiplierMax = MiddsFastMultiplierMax;
-	type SlowTargetPerWindow = MiddsSlowTargetPerWindow;
-	type SlowAdjustmentRate = MiddsSlowAdjustmentRate;
-	type SlowMultiplierMin = MiddsSlowMultiplierMin;
-	type SlowMultiplierMax = MiddsSlowMultiplierMax;
-	type WeightInfo = crate::weights::midds_musical_works::AllfeatWeight<Runtime>;
-	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = MusicalWorksBenchmarkHelper;
-}
-
-#[cfg(feature = "runtime-benchmarks")]
-pub struct MusicalWorksBenchmarkHelper;
-
-#[cfg(feature = "runtime-benchmarks")]
-impl pallet_midds::BenchmarkHelper<midds_types::MusicalWork, Signature, AccountId>
-	for MusicalWorksBenchmarkHelper
-{
-	fn bench_instance(size: u32) -> midds_types::MusicalWork {
-		use frame_support::BoundedVec;
-		use midds_types::{Creator, CreatorRole, CreatorRoles, MusicalWorkV1, PartyId, WorkType};
-
-		// The identifier stays constant across calls (`IdentifierImmutable`
-		// guard); per-iteration uniqueness is carried by the title length.
-		let title_len = ((size as usize) + 1).min(midds_types::TITLE_MAX_LEN as usize);
-		let title = BoundedVec::try_from(alloc::vec![b'a'; title_len])
-			.expect("title clamped to TITLE_MAX_LEN");
-		let iswc = bench_iswc();
-		let ipi = BoundedVec::try_from(b"123456789".to_vec()).expect("9-byte IPI literal");
-		let mut roles = CreatorRoles::new();
-		roles
-			.try_insert(CreatorRole::Composer)
-			.expect("single role fits CREATOR_ROLES_MAX");
-		let creators =
-			BoundedVec::try_from(alloc::vec![Creator { roles, party: PartyId::Ipi(ipi) }])
-				.expect("single creator fits CREATORS_MAX");
-
-		midds_types::MusicalWork::V1(MusicalWorkV1 {
-			iswc,
-			title,
-			creation_year: Some(2025),
-			instrumental: false,
-			language: None,
-			explicit_lyrics: false,
-			bpm: None,
-			key: None,
-			work_type: WorkType::Original,
-			samples: Default::default(),
-			creators,
-			classical_info: None,
-			offchain_extension: None,
-		})
-	}
-
-	fn create_signature(entropy: &[u8], msg: &[u8]) -> (Signature, AccountId) {
-		bench_create_signature(entropy, msg)
-	}
-}
-
-/// Constant, structurally-valid ISWC literal.
-#[cfg(feature = "runtime-benchmarks")]
-fn bench_iswc() -> midds_traits::Iswc {
-	use frame_support::BoundedVec;
-	BoundedVec::try_from(b"T0000000001".to_vec()).expect("11-byte literal fits ISWC bound")
-}
-
-/// Deterministic `(MultiSignature, AccountId)` pair valid for `msg`. Uses the
-/// benchmark keystore (`sp_io::crypto`) so the runtime build stays
-/// `no_std`-clean (no `sp-core/full_crypto`).
-#[cfg(feature = "runtime-benchmarks")]
-fn bench_create_signature(entropy: &[u8], msg: &[u8]) -> (Signature, AccountId) {
-	use sp_runtime::traits::IdentifyAccount as _;
-	let path = core::str::from_utf8(entropy).unwrap_or("bench");
-	let uri = alloc::format!("//{path}");
-	let public = polkadot_sdk::sp_io::crypto::sr25519_generate(0.into(), Some(uri.into_bytes()));
-	let account: AccountId = sp_runtime::MultiSigner::Sr25519(public).into_account();
-	let sig = polkadot_sdk::sp_io::crypto::sr25519_sign(0.into(), &public, msg)
-		.expect("keystore available in benchmark context; qed");
-	(Signature::Sr25519(sig), account)
-}
-
-// Instance2 — Recording (ISRC-keyed). Same calibration as Instance1.
-impl pallet_midds::Config<pallet_midds::Instance2> for Runtime {
-	type Currency = Balances;
-	type RuntimeHoldReason = RuntimeHoldReason;
-	type Midds = midds_types::Recording;
-	type ProviderOrigin = EnsureSigned<AccountId>;
-	type ForceOrigin = EnsureRoot<AccountId>;
-	type OffchainSignature = Signature;
-	type Signer = sp_runtime::MultiSigner;
-	type TreasuryAccount = MiddsTreasuryAccount;
-	type CommitmentWindow = MiddsCommitmentWindow;
-	type MaxFinalizationsPerBlock = MiddsMaxFinalizationsPerBlock;
-	type MaxRemovalsPerCall = MiddsMaxRemovalsPerCall;
-	type BlocksPerDay = MiddsBlocksPerDay;
-	type FastTargetPerBlock = MiddsFastTargetPerBlock;
-	type FastAdjustmentRate = MiddsFastAdjustmentRate;
-	type FastMultiplierMin = MiddsFastMultiplierMin;
-	type FastMultiplierMax = MiddsFastMultiplierMax;
-	type SlowTargetPerWindow = MiddsSlowTargetPerWindow;
-	type SlowAdjustmentRate = MiddsSlowAdjustmentRate;
-	type SlowMultiplierMin = MiddsSlowMultiplierMin;
-	type SlowMultiplierMax = MiddsSlowMultiplierMax;
-	type WeightInfo = crate::weights::midds_recordings::AllfeatWeight<Runtime>;
-	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = RecordingsBenchmarkHelper;
-}
-
-#[cfg(feature = "runtime-benchmarks")]
-pub struct RecordingsBenchmarkHelper;
-
-#[cfg(feature = "runtime-benchmarks")]
-impl pallet_midds::BenchmarkHelper<midds_types::Recording, Signature, AccountId>
-	for RecordingsBenchmarkHelper
-{
-	fn bench_instance(size: u32) -> midds_types::Recording {
-		use frame_support::BoundedVec;
-		use midds_types::{PartyId, RecordingV1, WorkRef};
-
-		let title_len = ((size as usize) + 1).min(midds_types::TITLE_MAX_LEN as usize);
-		let title = BoundedVec::try_from(alloc::vec![b'a'; title_len])
-			.expect("title clamped to TITLE_MAX_LEN");
-		let isrc = bench_isrc();
-		let ipi = BoundedVec::try_from(b"123456789".to_vec()).expect("9-byte IPI literal");
-
-		midds_types::Recording::V1(RecordingV1 {
-			isrc,
-			title,
-			title_aliases: Default::default(),
-			artist: PartyId::Ipi(ipi),
-			featuring: Default::default(),
-			work: WorkRef::Midds(0),
-			genre: None,
-			sub_genre: None,
-			record_year: None,
-			version_type: None,
-			performers: Default::default(),
-			producers: Default::default(),
-			duration: None,
-			bpm: None,
-			key: None,
-			places: None,
-			contributors: Default::default(),
-			offchain_extension: None,
-		})
-	}
-
-	fn create_signature(entropy: &[u8], msg: &[u8]) -> (Signature, AccountId) {
-		bench_create_signature(entropy, msg)
-	}
-}
-
-/// Constant, structurally-valid ISRC literal.
-#[cfg(feature = "runtime-benchmarks")]
-fn bench_isrc() -> midds_traits::Isrc {
-	use frame_support::BoundedVec;
-	BoundedVec::try_from(b"USAAA2500001".to_vec()).expect("12-byte literal fits ISRC bound")
-}
-
-// Instance3 — Release (UPC/EAN-keyed). Same calibration as Instance1/2.
-impl pallet_midds::Config<pallet_midds::Instance3> for Runtime {
-	type Currency = Balances;
-	type RuntimeHoldReason = RuntimeHoldReason;
-	type Midds = midds_types::Release;
-	type ProviderOrigin = EnsureSigned<AccountId>;
-	type ForceOrigin = EnsureRoot<AccountId>;
-	type OffchainSignature = Signature;
-	type Signer = sp_runtime::MultiSigner;
-	type TreasuryAccount = MiddsTreasuryAccount;
-	type CommitmentWindow = MiddsCommitmentWindow;
-	type MaxFinalizationsPerBlock = MiddsMaxFinalizationsPerBlock;
-	type MaxRemovalsPerCall = MiddsMaxRemovalsPerCall;
-	type BlocksPerDay = MiddsBlocksPerDay;
-	type FastTargetPerBlock = MiddsFastTargetPerBlock;
-	type FastAdjustmentRate = MiddsFastAdjustmentRate;
-	type FastMultiplierMin = MiddsFastMultiplierMin;
-	type FastMultiplierMax = MiddsFastMultiplierMax;
-	type SlowTargetPerWindow = MiddsSlowTargetPerWindow;
-	type SlowAdjustmentRate = MiddsSlowAdjustmentRate;
-	type SlowMultiplierMin = MiddsSlowMultiplierMin;
-	type SlowMultiplierMax = MiddsSlowMultiplierMax;
-	type WeightInfo = crate::weights::midds_releases::AllfeatWeight<Runtime>;
-	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = ReleasesBenchmarkHelper;
-}
-
-#[cfg(feature = "runtime-benchmarks")]
-pub struct ReleasesBenchmarkHelper;
-
-#[cfg(feature = "runtime-benchmarks")]
-impl pallet_midds::BenchmarkHelper<midds_types::Release, Signature, AccountId>
-	for ReleasesBenchmarkHelper
-{
-	fn bench_instance(size: u32) -> midds_types::Release {
-		use frame_support::BoundedVec;
-		use midds_types::{
-			Country, PartyId, RecordingRef, ReleaseDate, ReleaseFormat, ReleasePackaging,
-			ReleaseStatus, ReleaseType, ReleaseV1, Track,
-		};
-
-		let title_len = ((size as usize) + 1).min(midds_types::TITLE_MAX_LEN as usize);
-		let title = BoundedVec::try_from(alloc::vec![b'a'; title_len])
-			.expect("title clamped to TITLE_MAX_LEN");
-		let upc = bench_upc();
-		let ipi = BoundedVec::try_from(b"123456789".to_vec()).expect("9-byte IPI literal");
-		let tracks = BoundedVec::try_from(alloc::vec![Track {
-			number: 1,
-			recording: RecordingRef::Midds(0),
-		}])
-		.expect("single track fits TRACKS_MAX");
-
-		midds_types::Release::V1(ReleaseV1 {
-			upc,
-			title,
-			title_aliases: Default::default(),
-			artist: PartyId::Ipi(ipi),
-			featuring: Default::default(),
-			tracks,
-			producers: Default::default(),
-			status: ReleaseStatus::Official,
-			release_date: ReleaseDate { year: 2024, month: 1, day: 1 },
-			country: Country::Fr,
-			distributor_name: BoundedVec::try_from(b"Believe".to_vec())
-				.expect("non-empty distributor name"),
-			release_type: ReleaseType::Album,
-			format: ReleaseFormat::Cd,
-			packaging: ReleasePackaging::None,
-			cover_contributors: Default::default(),
-			offchain_extension: None,
-		})
-	}
-
-	fn create_signature(entropy: &[u8], msg: &[u8]) -> (Signature, AccountId) {
-		bench_create_signature(entropy, msg)
-	}
-}
-
-/// Constant, structurally-valid EAN-13 literal.
-#[cfg(feature = "runtime-benchmarks")]
-fn bench_upc() -> midds_traits::Upc {
-	use frame_support::BoundedVec;
-	BoundedVec::try_from(b"0000000000001".to_vec()).expect("13-byte literal fits UPC bound")
 }
