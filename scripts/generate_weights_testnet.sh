@@ -19,7 +19,6 @@ WASM_EXECUTION="${WASM_EXECUTION:-compiled}"
 RUNTIME_PACKAGE="melodie-runtime"
 RUNTIME_WASM="${ROOT_DIR}/target/${PROFILE}/wbuild/${RUNTIME_PACKAGE}/melodie_runtime.compact.compressed.wasm"
 TEMPLATE="${ROOT_DIR}/.maintain/runtimes-weight-template.hbs"
-HEADER_FILE="${ROOT_DIR}/HEADER"
 BENCHMARKS_FILE="${ROOT_DIR}/runtime/melodie/src/benchmarks.rs"
 
 RUN_ID="$(date +"%Y%m%d_%H%M%S")"
@@ -125,7 +124,6 @@ fi
 
 [[ -f "${RUNTIME_WASM}" ]] || fail "WASM not found: ${RUNTIME_WASM}"
 [[ -f "${TEMPLATE}" ]] || fail "Template not found: ${TEMPLATE}"
-[[ -f "${HEADER_FILE}" ]] || fail "Header not found: ${HEADER_FILE}"
 [[ -f "${BENCHMARKS_FILE}" ]] || fail "Benchmark file not found: ${BENCHMARKS_FILE}"
 
 log "Fetching list of benchmarkable pallets"
@@ -135,28 +133,40 @@ AVAILABLE_PALLETS="$("${BENCHER}" v1 benchmark pallet \
   --no-csv-header \
   --genesis-builder-preset="${GENESIS_PRESET}" 2>>"${LOG_FILE}")"
 
-mapfile -t TARGET_PALLETS < <(sed -n 's/^[[:space:]]*\[\([^,[:space:]]\+\),.*/\1/p' "${BENCHMARKS_FILE}")
-[[ "${#TARGET_PALLETS[@]}" -gt 0 ]] || fail "No pallets parsed from ${BENCHMARKS_FILE}"
+# `define_benchmarks!` lists instanced pallets once per instance (e.g.
+# `pallet_midds` appears three times): bench each pallet once, and keep the
+# duplicate count around to detect multi-instance pallets in the loop below.
+mapfile -t RAW_TARGETS < <(sed -n 's/^[[:space:]]*\[\([^,[:space:]]\+\),.*/\1/p' "${BENCHMARKS_FILE}")
+[[ "${#RAW_TARGETS[@]}" -gt 0 ]] || fail "No pallets parsed from ${BENCHMARKS_FILE}"
+mapfile -t TARGET_PALLETS < <(printf "%s\n" "${RAW_TARGETS[@]}" | awk '!seen[$0]++')
 
 success_count=0
 fail_count=0
 start_epoch="$(date +%s)"
 
 for pallet in "${TARGET_PALLETS[@]}"; do
-  output_file="$(output_path_for_pallet "${pallet}")"
-  output_rel="${output_file#${ROOT_DIR}/}"
-  if [[ "${output_file}" == "${GENERATED_DIR}"/* ]]; then
-    output_rel="target/weight-logs/generated/testnet/${RUN_ID}/$(basename -- "${output_file}")"
-  fi
-  mkdir -p "$(dirname -- "${output_file}")"
-
   resolved_pallet="$(resolve_pallet_name "${pallet}")" || {
     warn "Pallet missing from benchmark list: ${pallet}"
     fail_count=$((fail_count + 1))
     continue
   }
 
-  log "Benchmark ${resolved_pallet} -> ${output_rel}"
+  instance_count="$(printf "%s\n" "${RAW_TARGETS[@]}" | grep -Fxc "${pallet}" || true)"
+
+  if [[ "${instance_count}" -gt 1 ]]; then
+    # The weight writer refuses to merge several instances into a single
+    # `--output` file: bench into a staging directory (the writer then emits
+    # one `<pallet>_<instance>.rs` per instance) and rename the files to the
+    # `<short>_<instance>.rs` modules wired in the runtime afterwards.
+    output_target="${GENERATED_DIR}/${pallet}"
+    mkdir -p "${output_target}"
+    log "Benchmark ${resolved_pallet} (${instance_count} instances) -> ${output_target#${ROOT_DIR}/}"
+  else
+    output_target="$(output_path_for_pallet "${pallet}")"
+    mkdir -p "$(dirname -- "${output_target}")"
+    log "Benchmark ${resolved_pallet} -> ${output_target#${ROOT_DIR}/}"
+  fi
+
   if "${BENCHER}" v1 benchmark pallet \
     --runtime "${RUNTIME_WASM}" \
     --genesis-builder-preset="${GENESIS_PRESET}" \
@@ -166,12 +176,29 @@ for pallet in "${TARGET_PALLETS[@]}"; do
     --repeat="${REPEAT}" \
     --wasm-execution="${WASM_EXECUTION}" \
     --heap-pages="${HEAP_PAGES}" \
-    --header="${HEADER_FILE}" \
     --template="${TEMPLATE}" \
-    --output="${output_file}" >>"${LOG_FILE}" 2>&1; then
-    postprocess_weight_file "${pallet}" "${output_file}"
-    success_count=$((success_count + 1))
-    log "OK ${resolved_pallet}"
+    --output="${output_target}" >>"${LOG_FILE}" 2>&1; then
+    if [[ "${instance_count}" -gt 1 ]]; then
+      moved=0
+      for generated in "${output_target}"/*.rs; do
+        [[ -e "${generated}" ]] || continue
+        dest="$(output_path_for_pallet "$(basename -- "${generated}" .rs)")"
+        mv -f -- "${generated}" "${dest}"
+        postprocess_weight_file "${pallet}" "${dest}"
+        log "OK ${resolved_pallet} -> ${dest#${ROOT_DIR}/}"
+        moved=$((moved + 1))
+      done
+      if [[ "${moved}" -eq "${instance_count}" ]]; then
+        success_count=$((success_count + 1))
+      else
+        fail_count=$((fail_count + 1))
+        warn "FAILED ${resolved_pallet}: expected ${instance_count} weight files, found ${moved}"
+      fi
+    else
+      postprocess_weight_file "${pallet}" "${output_target}"
+      success_count=$((success_count + 1))
+      log "OK ${resolved_pallet}"
+    fi
   else
     fail_count=$((fail_count + 1))
     warn "FAILED ${resolved_pallet}"

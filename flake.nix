@@ -38,6 +38,9 @@
         polkadot-omni-node = pkgs.polkadot-omni-node.overrideAttrs (_: {
           NIX_CC_WRAPPER_SUPPRESS_TARGET_WARNING = 1;
         });
+        frame-omni-bencher = pkgs.frame-omni-bencher.overrideAttrs (_: {
+          NIX_CC_WRAPPER_SUPPRESS_TARGET_WARNING = 1;
+        });
 
       in
       {
@@ -56,6 +59,7 @@
               # Polkadot SDK
               try-runtime-cli
               polkadot-omni-node
+              frame-omni-bencher
             ]
             ++ lib.optionals stdenv.hostPlatform.isLinux [ rust-jemalloc-sys-unprefixed ];
 
