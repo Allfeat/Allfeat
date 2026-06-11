@@ -163,11 +163,10 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	system_version: 1,
 };
 
-/// Para ID the chain runs under on the relay. `2000` is the local/zombienet
-/// default — replace with the ID reserved on Paseo before the real
-/// registration. Consumed by the genesis presets and seeded on the continued
-/// chain by `TransitionToParachain`, so it has to match the registered ID.
-pub const PARA_ID: u32 = 2000;
+/// Para ID the chain runs under on the relay: the ID reserved on Paseo.
+/// Consumed by the genesis presets and seeded on the continued chain by
+/// `TransitionToParachain`, so it has to match the registered ID.
+pub const PARA_ID: u32 = 5206;
 
 type ConsensusHook = cumulus_pallet_aura_ext::FixedVelocityConsensusHook<
 	Runtime,

@@ -70,7 +70,7 @@ jobs:
       - name: Generate dev chain specs
         run: |
           spec() {
-            local context="$1" chain_name="$2" chain_id="$3" relay="$4" props="$5" wasm="$6" out="$7"
+            local context="$1" chain_name="$2" chain_id="$3" relay="$4" para_id="$5" props="$6" wasm="$7" out="$8"
             mkdir -p "$context"
             docker run --rm --user root \
               --entrypoint /usr/local/bin/polkadot-omni-node \
@@ -80,7 +80,7 @@ jobs:
                 --chain-name "$chain_name" \
                 --chain-id "$chain_id" \
                 -t development \
-                --para-id 2000 \
+                --para-id "$para_id" \
                 --relay-chain "$relay" \
                 --raw-storage \
                 --properties "$props" \
@@ -88,11 +88,11 @@ jobs:
                 named-preset development
             mv "$context/chain_spec.json" "$context/$out"
           }
-          spec image-context-melodie "Allfeat Melodie Dev" melodie-dev paseo-local \
+          spec image-context-melodie "Allfeat Melodie Dev" melodie-dev paseo-local 5206 \
             tokenSymbol=MEL,tokenDecimals=12,ss58Format=42 \
             target/release/wbuild/melodie-runtime/melodie_runtime.compact.compressed.wasm \
             melodie-dev.json
-          spec image-context-allfeat "Allfeat Dev" allfeat-dev polkadot-local \
+          spec image-context-allfeat "Allfeat Dev" allfeat-dev polkadot-local 2000 \
             tokenSymbol=AFT,tokenDecimals=12,ss58Format=440 \
             target/release/wbuild/allfeat-runtime/allfeat_runtime.compact.compressed.wasm \
             allfeat-dev.json

@@ -46,7 +46,7 @@ build-spec-dev:
     --chain-name "Allfeat Melodie Dev" \
     --chain-id melodie-dev \
     -t development \
-    --para-id 2000 \
+    --para-id 5206 \
     --relay-chain paseo-local \
     --raw-storage \
     --properties tokenSymbol=MEL,tokenDecimals=12,ss58Format=42 \

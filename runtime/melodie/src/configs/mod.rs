@@ -30,9 +30,8 @@ use polkadot_sdk::{
 		pallet_prelude::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen},
 		parameter_types,
 		traits::{
-			ConstBool, ConstU8, ConstU32, ConstU64, Contains, EitherOfDiverse, EqualPrivilegeOnly,
-			Imbalance, InstanceFilter, LinearStoragePrice, OnUnbalanced, TransformOrigin,
-			VariantCountOf,
+			ConstBool, ConstU8, ConstU32, ConstU64, Contains, EqualPrivilegeOnly, Imbalance,
+			InstanceFilter, LinearStoragePrice, OnUnbalanced, TransformOrigin, VariantCountOf,
 			fungible::{Balanced, Credit, HoldConsideration},
 		},
 		weights::{ConstantMultiplier, Weight},
@@ -43,7 +42,6 @@ use polkadot_sdk::{
 	pallet_message_queue, pallet_meta_tx, pallet_multisig, pallet_preimage, pallet_proxy,
 	pallet_safe_mode, pallet_scheduler, pallet_session, pallet_sudo, pallet_timestamp,
 	pallet_transaction_payment, pallet_utility, pallet_verify_signature,
-	pallet_xcm::{EnsureXcm, IsVoiceOfBody},
 	parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling},
 	polkadot_runtime_common::{BlockHashCount, xcm_sender::NoPriceForMessageDelivery},
 	sp_consensus_aura::sr25519::AuthorityId as AuraId,
@@ -54,7 +52,6 @@ use polkadot_sdk::{
 	},
 	sp_version::RuntimeVersion,
 	staging_parachain_info as parachain_info,
-	staging_xcm::latest::prelude::BodyId,
 };
 
 pub use allfeat_runtime_common::{RuntimeBlockLength, SlowAdjustingFeeUpdate, currency::deposit};
@@ -68,7 +65,7 @@ use super::{
 	SLOT_DURATION, Session, SessionKeys, Signature, System, UNIT, VERSION, WeightToFee, XcmpQueue,
 	weights::{BlockExecutionWeight, ExtrinsicBaseWeight, ParityDbWeight},
 };
-use xcm_config::{RelayLocation, XcmOriginToTransactDispatchOrigin};
+use xcm_config::XcmOriginToTransactDispatchOrigin;
 
 parameter_types! {
 	pub const Version: RuntimeVersion = VERSION;
@@ -282,22 +279,15 @@ impl pallet_aura::Config for Runtime {
 
 parameter_types! {
 	pub const PotId: PalletId = PalletId(*b"PotStake");
-	pub const SessionLength: BlockNumber = 6 * HOURS;
-	pub const StakingAdminBodyId: BodyId = BodyId::Defense;
 }
-
-pub type CollatorSelectionUpdateOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EnsureXcm<IsVoiceOfBody<RelayLocation, StakingAdminBodyId>>,
->;
 
 impl pallet_collator_selection::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
-	type UpdateOrigin = CollatorSelectionUpdateOrigin;
+	type UpdateOrigin = EnsureRoot<AccountId>;
 	type PotId = PotId;
 	type MaxCandidates = ConstU32<100>;
-	type MinEligibleCollators = ConstU32<4>;
+	type MinEligibleCollators = ConstU32<2>;
 	type MaxInvulnerables = ConstU32<20>;
 	// Should be a multiple of the session period or things will get inconsistent.
 	type KickThreshold = Period;

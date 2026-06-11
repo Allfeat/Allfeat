@@ -11,7 +11,7 @@ validator = true
 
 [[parachains]]
 chain = "base-parachain"
-id = 2000
+id = 5206
 default_command = "polkadot-omni-node"
 chain_spec_command_is_local = true
 chain_spec_command_output_path = "./target/release/chain-spec.json"
@@ -19,7 +19,7 @@ chain_spec_command = """
 pop build spec                \
     --path .                  \
     --profile release         \
-    --para-id 2000            \
+    --para-id 5206            \
     --id base-parachain       \
     --protocol-id custom      \
     --type local              \
