@@ -1,19 +1,39 @@
-// This file is part of Substrate.
+// This file is part of Allfeat.
 
-// Copyright (C) Parity Technologies (UK) Ltd.
-// SPDX-License-Identifier: Apache-2.0
+// Copyright (C) 2022-2025 Allfeat.
+// SPDX-License-Identifier: GPL-3.0-or-later
 
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 57.0.0
+//! DATE: 2026-06-12 (Y/M/D)
+//! HOSTNAME: `c3-16-2026-06-12-14-19`, CPU: `AMD EPYC-Milan Processor`
+//!
+//! SHORT-NAME: `extrinsic`, LONG-NAME: `ExtrinsicBase`, RUNTIME: `allfeat-melodie-3`
+//! WARMUPS: `10`, REPEAT: `100`
+//! WEIGHT-PATH: `/tmp/.tmpjjNvej`
+//! WEIGHT-METRIC: `Average`, WEIGHT-MUL: `1.0`, WEIGHT-ADD: `0`
+
+// Executed Command:
+//  pop
+//  bench
+//  overhead
+//  --runtime=/home/debian/Allfeat/target/release/wbuild/melodie-runtime/melodie_runtime.wasm
+//  --genesis-builder=runtime
+//  --genesis-builder-preset=development
+//  --weight-path=.
+//  --profile=release
 
 pub mod constants {
 	use polkadot_sdk::frame_support::{
@@ -22,9 +42,21 @@ pub mod constants {
 	};
 
 	parameter_types! {
-		/// Executing a NO-OP `System::remarks` Extrinsic.
+		/// Weight of executing a NO-OP extrinsic, for example `System::remark`.
+		/// Calculated by multiplying the *Average* with `1.0` and adding `0`.
+		///
+		/// Stats nanoseconds:
+		///   Min, Max: 137_921, 141_075
+		///   Average:  138_893
+		///   Median:   138_756
+		///   Std-Dev:  559.75
+		///
+		/// Percentiles nanoseconds:
+		///   99th: 140_429
+		///   95th: 139_861
+		///   75th: 139_205
 		pub const ExtrinsicBaseWeight: Weight =
-			Weight::from_parts(constants::WEIGHT_REF_TIME_PER_NANOS.saturating_mul(125_000), 0);
+			Weight::from_parts(constants::WEIGHT_REF_TIME_PER_NANOS.saturating_mul(138_893), 346);
 	}
 
 	#[cfg(test)]
