@@ -106,17 +106,18 @@ impl frame_system::Config for Runtime {
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 	type MaxConsumers = ConstU32<16>;
+	type SystemWeightInfo = crate::weights::system::AllfeatWeight<Runtime>;
 }
 
 impl cumulus_pallet_weight_reclaim::Config for Runtime {
-	type WeightInfo = ();
+	type WeightInfo = crate::weights::cumulus_pallet_weight_reclaim::AllfeatWeight<Runtime>;
 }
 
 impl pallet_timestamp::Config for Runtime {
 	type Moment = u64;
 	type OnTimestampSet = Aura;
 	type MinimumPeriod = ConstU64<0>;
-	type WeightInfo = ();
+	type WeightInfo = crate::weights::timestamp::AllfeatWeight<Runtime>;
 }
 
 impl pallet_authorship::Config for Runtime {
@@ -135,7 +136,7 @@ impl pallet_balances::Config for Runtime {
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
-	type WeightInfo = ();
+	type WeightInfo = crate::weights::balances::AllfeatWeight<Runtime>;
 	type MaxReserves = ConstU32<50>;
 	type ReserveIdentifier = [u8; 8];
 	type RuntimeHoldReason = RuntimeHoldReason;
@@ -182,7 +183,7 @@ impl pallet_transaction_payment::Config for Runtime {
 impl pallet_sudo::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
-	type WeightInfo = ();
+	type WeightInfo = crate::weights::sudo::AllfeatWeight<Runtime>;
 }
 
 parameter_types! {
@@ -192,7 +193,7 @@ parameter_types! {
 }
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
-	type WeightInfo = ();
+	type WeightInfo = crate::weights::cumulus_pallet_parachain_system::AllfeatWeight<Runtime>;
 	type RuntimeEvent = RuntimeEvent;
 	type OnSystemEvent = ();
 	type SelfParaId = parachain_info::Pallet<Runtime>;
@@ -214,7 +215,7 @@ parameter_types! {
 
 impl pallet_message_queue::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = ();
+	type WeightInfo = crate::weights::message_queue::AllfeatWeight<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type MessageProcessor =
 		pallet_message_queue::mock_helpers::NoopMessageProcessor<AggregateMessageOrigin>;
@@ -243,7 +244,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type MaxInboundSuspended = ConstU32<1_000>;
 	type ControllerOrigin = EnsureRoot<AccountId>;
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
-	type WeightInfo = ();
+	type WeightInfo = crate::weights::cumulus_pallet_xcmp_queue::AllfeatWeight<Runtime>;
 	type PriceForSiblingDelivery = NoPriceForMessageDelivery<ParaId>;
 	type MaxActiveOutboundChannels = ConstU32<128>;
 	type MaxPageSize = ConstU32<{ 1 << 16 }>;
@@ -264,7 +265,7 @@ impl pallet_session::Config for Runtime {
 	type SessionManager = CollatorSelection;
 	type SessionHandler = <SessionKeys as sp_runtime::traits::OpaqueKeys>::KeyTypeIdProviders;
 	type Keys = SessionKeys;
-	type WeightInfo = ();
+	type WeightInfo = crate::weights::session::AllfeatWeight<Runtime>;
 	type Currency = Balances;
 	type KeyDeposit = ();
 }
@@ -294,14 +295,14 @@ impl pallet_collator_selection::Config for Runtime {
 	type ValidatorId = <Self as frame_system::Config>::AccountId;
 	type ValidatorIdOf = pallet_collator_selection::IdentityCollator;
 	type ValidatorRegistration = Session;
-	type WeightInfo = ();
+	type WeightInfo = crate::weights::collator_selection::AllfeatWeight<Runtime>;
 }
 
 impl pallet_utility::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type PalletsOrigin = OriginCaller;
-	type WeightInfo = ();
+	type WeightInfo = crate::weights::utility::AllfeatWeight<Runtime>;
 }
 
 parameter_types! {
@@ -318,7 +319,7 @@ impl pallet_scheduler::Config for Runtime {
 	type ScheduleOrigin = EnsureRoot<AccountId>;
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
 	type MaxScheduledPerBlock = ConstU32<50>;
-	type WeightInfo = ();
+	type WeightInfo = crate::weights::scheduler::AllfeatWeight<Runtime>;
 	type BlockNumberProvider = frame_system::Pallet<Runtime>;
 	type Preimages = Preimage;
 }
@@ -332,7 +333,7 @@ parameter_types! {
 
 impl pallet_preimage::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = ();
+	type WeightInfo = crate::weights::preimage::AllfeatWeight<Runtime>;
 	type Currency = Balances;
 	type ManagerOrigin = EnsureRoot<AccountId>;
 	type Consideration = HoldConsideration<
@@ -397,7 +398,7 @@ impl pallet_proxy::Config for Runtime {
 	type ProxyDepositBase = ProxyDepositBase;
 	type ProxyDepositFactor = ProxyDepositFactor;
 	type MaxProxies = MaxProxies;
-	type WeightInfo = ();
+	type WeightInfo = crate::weights::proxy::AllfeatWeight<Runtime>;
 	type MaxPending = MaxPending;
 	type CallHasher = BlakeTwo256;
 	type AnnouncementDepositBase = AnnouncementDepositBase;
@@ -419,7 +420,7 @@ impl pallet_multisig::Config for Runtime {
 	type DepositFactor = DepositFactor;
 	type MaxSignatories = MaxSignatories;
 	type BlockNumberProvider = frame_system::Pallet<Runtime>;
-	type WeightInfo = ();
+	type WeightInfo = crate::weights::multisig::AllfeatWeight<Runtime>;
 }
 
 pub struct SafeModeWhitelistedCalls;
@@ -452,19 +453,19 @@ impl pallet_safe_mode::Config for Runtime {
 	type ForceDepositOrigin = EnsureRoot<AccountId>;
 	type Notify = ();
 	type ReleaseDelay = ReleaseDelay;
-	type WeightInfo = ();
+	type WeightInfo = crate::weights::safe_mode::AllfeatWeight<Runtime>;
 }
 
 impl pallet_meta_tx::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Extension = MetaTxExtension;
-	type WeightInfo = ();
+	type WeightInfo = crate::weights::meta_tx::AllfeatWeight<Runtime>;
 }
 
 impl pallet_verify_signature::Config for Runtime {
 	type Signature = Signature;
 	type AccountIdentifier = <Signature as Verify>::Signer;
-	type WeightInfo = ();
+	type WeightInfo = crate::weights::verify_signature::AllfeatWeight<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
 }

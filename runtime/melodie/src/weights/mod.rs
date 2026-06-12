@@ -18,13 +18,31 @@
 //! Expose the auto generated weight files.
 
 pub mod ats;
+pub mod balances;
 pub mod block_weights;
+pub mod collator_selection;
+pub mod cumulus_pallet_parachain_system;
+pub mod cumulus_pallet_weight_reclaim;
+pub mod cumulus_pallet_xcmp_queue;
 pub mod extrinsic_weights;
+pub mod message_queue;
+pub mod meta_tx;
 pub mod midds_musical_works;
 pub mod midds_recordings;
 pub mod midds_releases;
+pub mod multisig;
 pub mod paritydb_weights;
+pub mod preimage;
+pub mod proxy;
 pub mod rocksdb_weights;
+pub mod safe_mode;
+pub mod scheduler;
+pub mod session;
+pub mod sudo;
+pub mod system;
+pub mod timestamp;
+pub mod utility;
+pub mod verify_signature;
 
 pub use block_weights::constants::BlockExecutionWeight;
 pub use extrinsic_weights::constants::ExtrinsicBaseWeight;
