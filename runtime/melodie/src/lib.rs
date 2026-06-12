@@ -148,15 +148,16 @@ impl_opaque_keys! {
 
 // This runtime CONTINUES the live `allfeat-melodie-3` solo chain in place
 // (solo→para handover): `spec_name` MUST stay `allfeat-melodie-3`.
-// `spec_version` 300 opens the parachain-era band (205..=299 stay free for
-// last solo-side releases); `transaction_version` bumps to 4 (call surface
-// changed, `TxExtension` gained `StorageWeightReclaim`).
+// `spec_version` 301 opens the parachain-era band (205..=299 stay free for
+// last solo-side releases; 300 was tagged pre-cutover without the benched
+// weights and never deployed — do not reuse it); `transaction_version` bumps
+// to 4 (call surface changed, `TxExtension` gained `StorageWeightReclaim`).
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: Cow::Borrowed("allfeat-melodie-3"),
 	impl_name: Cow::Borrowed("allfeatlabs-melodie-3"),
 	authoring_version: 1,
-	spec_version: 300,
+	spec_version: 301,
 	impl_version: 0,
 	apis: apis::RUNTIME_API_VERSIONS,
 	transaction_version: 4,
