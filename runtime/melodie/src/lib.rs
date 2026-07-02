@@ -152,12 +152,15 @@ impl_opaque_keys! {
 // last solo-side releases; 300 was tagged pre-cutover without the benched
 // weights and never deployed — do not reuse it); `transaction_version` bumps
 // to 4 (call surface changed, `TxExtension` gained `StorageWeightReclaim`).
+// 302 ships the midds-sdk validation upgrade (IPN = 8 digits, contiguous
+// 1..N release track numbering, ≥ 1 instrument per performer) — SCALE
+// layout unchanged, so `transaction_version` stays at 4.
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: Cow::Borrowed("allfeat-melodie-3"),
 	impl_name: Cow::Borrowed("allfeatlabs-melodie-3"),
 	authoring_version: 1,
-	spec_version: 301,
+	spec_version: 302,
 	impl_version: 0,
 	apis: apis::RUNTIME_API_VERSIONS,
 	transaction_version: 4,
